@@ -13,7 +13,7 @@ export default async function VerificationPage() {
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
             <div className="flex flex-col md:flex-row gap-12">
-                <ProviderSidebar activeItem="Профиль" />
+                <ProviderSidebar />
 
                 <main className="flex-1 flex flex-col items-center justify-start pt-4">
                     <VerificationForm />

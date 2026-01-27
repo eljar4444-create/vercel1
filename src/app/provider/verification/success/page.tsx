@@ -15,7 +15,7 @@ export default async function VerificationSuccessPage() {
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
             <div className="flex flex-col md:flex-row gap-12">
-                <ProviderSidebar activeItem="Профиль" />
+                <ProviderSidebar />
 
                 <main className="flex-1 flex flex-col items-center justify-center pt-20">
                     <div className="bg-white p-10 rounded-2xl shadow-sm border border-gray-100 max-w-md w-full text-center">

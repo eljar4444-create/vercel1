@@ -13,7 +13,7 @@ export default async function PhotoPage() {
     return (
         <div className="container mx-auto px-4 py-8 max-w-7xl">
             <div className="flex flex-col md:flex-row gap-12">
-                <ProviderSidebar activeItem="Фото профиля" />
+                <ProviderSidebar />
 
                 <main className="flex-1 flex flex-col items-center justify-start pt-8">
                     <UploadPhotoForm currentImage={session.user.image} />
