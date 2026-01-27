@@ -187,7 +187,7 @@ interface ServiceItem {
     id: string;
     title: string;
     description: string;
-    price: number;
+    price: number | null;
     category: {
         name: string;
     };
@@ -274,7 +274,7 @@ export function ServicesList({ services = [] }: { services?: ServiceItem[] }) {
                             <p className="text-sm text-gray-500 mt-1 line-clamp-1 max-w-md">{service.description}</p>
                         </div>
                         <div className="mt-4 md:mt-0 flex flex-col items-end gap-2">
-                            <span className="font-bold text-lg">{service.price} €</span>
+                            <span className="font-bold text-lg">{service.price ?? 0} €</span>
                             <Link href={`/provider/services/edit/${service.id}`} className="relative z-10">
                                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 text-gray-400 hover:text-blue-600">
                                     <Pencil className="w-4 h-4" />
