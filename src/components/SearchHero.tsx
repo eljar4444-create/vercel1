@@ -170,13 +170,17 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
 
             <div className="container mx-auto px-4 relative z-10 w-full max-w-5xl text-center">
 
-                <h1 className="text-4xl md:text-6xl font-bold mb-4 text-white tracking-normal animate-slide-up">
-                    {user?.name ? `С возвращением, ${user.name}!` : 'Забронируйте свой стиль'}
-                </h1>
+                <div className="flex flex-col items-center mb-8 animate-slide-up">
+                    <div className="relative w-40 h-40 mb-2">
+                        <img src="/logo-icon.png?v=6" alt="Svoi.de" className="w-full h-full object-contain" />
+                    </div>
+                    <div className="text-center">
+                        <span className="block text-6xl font-bold text-white tracking-tight leading-none mb-1">svoi.de</span>
+                        <span className="block text-xl text-white/90 font-light">Свои люди - свой сервис</span>
+                    </div>
+                </div>
 
-                <p className="text-white/90 font-medium text-lg mb-10 tracking-wide animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                    Быстро • Просто • 24/7
-                </p>
+
 
                 {/* Main Search Bar Container */}
                 <form

@@ -110,10 +110,10 @@ export function Header() {
     // PROVIDER HEADER (Cabinet)
     if (isProviderPage) {
         return (
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-24 flex items-center">
                 <div className="container mx-auto px-4 flex justify-between items-center h-full max-w-7xl">
                     <Link href="/" className="flex items-center gap-2">
-                        <span className="text-xl font-bold text-black tracking-tight">Главная</span>
+                        <img src="/logo.png" alt="Svoi.de" className="h-20 w-auto object-contain" />
                     </Link>
 
                     <nav className="hidden md:flex items-center gap-6 text-[15px] text-gray-500">
@@ -147,13 +147,13 @@ export function Header() {
     // PUBLIC / CLIENT HEADER
     return (
         <header className={cn(
-            "fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center transition-all duration-200",
+            "fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-24 flex items-center transition-all duration-200",
             scrolled && "shadow-sm"
         )}>
             <div className="container mx-auto px-4 flex justify-between items-center h-full max-w-7xl">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-black tracking-tight">Главная</span>
+                    <img src="/logo.png?v=6" alt="Svoi.de" className="h-20 w-auto object-contain" />
                 </Link>
 
 
@@ -233,6 +233,6 @@ export function Header() {
                     )}
                 </div>
             </div>
-        </header>
+        </header >
     );
 }

@@ -10,7 +10,9 @@ export async function GET(req: NextRequest) {
         const category = searchParams.get('category'); // Expected to be Name or Slug
         const city = searchParams.get('city'); // Expected to be Name or Slug
 
-        const where: any = {};
+        const where: any = {
+            status: { not: 'PAYMENT_PENDING' }
+        };
 
         if (q) {
             where.OR = [

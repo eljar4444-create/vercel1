@@ -129,7 +129,7 @@ export async function createService(formData: FormData) {
             title: finalTitle,
             description,
             price: price || 0, // Default to 0 if null, or keep null if desired. User removed input, so likely 0 or null.
-            status: 'PENDING',
+            status: 'PAYMENT_PENDING',
             providerProfileId: providerProfile.id,
             categoryId: category.id,
             cityId: city.id,
@@ -158,7 +158,7 @@ export async function createService(formData: FormData) {
 
     revalidatePath('/provider/profile');
     revalidatePath('/admin/moderation'); // Also revalidate admin page
-    redirect('/provider/services/success');
+    redirect(`/provider/services/${service.id}/payment`);
 }
 
 export async function updateService(serviceId: string, formData: FormData) {
