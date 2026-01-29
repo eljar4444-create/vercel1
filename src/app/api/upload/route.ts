@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { put } from "@vercel/blob";
 
 export async function POST(req: Request) {
     try {
@@ -11,22 +10,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "No file received" }, { status: 400 });
         }
 
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const filename = Date.now() + "_" + file.name.replaceAll(" ", "_");
+        const filename = `${Date.now()}_${file.name.replace(/\s/g, '_')}`;
 
-        // Ensure uploads directory exists
-        const uploadDir = path.join(process.cwd(), "public/uploads");
-        try {
-            await mkdir(uploadDir, { recursive: true });
-        } catch (e) {
-            // Ignore if exists
-        }
+        // Upload to Vercel Blob
+        const blob = await put(filename, file, {
+            access: 'public',
+        });
 
-        const filepath = path.join(uploadDir, filename);
-        await writeFile(filepath, buffer);
-
-        const url = `/uploads/${filename}`;
-        return NextResponse.json({ url });
+        return NextResponse.json({ url: blob.url });
     } catch (error) {
         console.error("Upload failed:", error);
         return NextResponse.json({ error: "Upload failed" }, { status: 500 });
