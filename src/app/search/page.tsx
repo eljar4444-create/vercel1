@@ -92,10 +92,11 @@ export default async function SearchPage({
                 return distance <= radius;
             });
         } else if (searchParams.location) {
-            // Fallback: Filter by city name text match if no coords
+            // Fallback: Filter by city name OR slug text match if no coordinates
             const locLower = searchParams.location.toLowerCase();
             services = rawServices.filter(service =>
-                service.city?.name.toLowerCase().includes(locLower)
+                service.city?.name.toLowerCase().includes(locLower) ||
+                service.city?.slug?.toLowerCase().includes(locLower)
             );
         } else {
             services = rawServices;
