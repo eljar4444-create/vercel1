@@ -55,6 +55,7 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
     });
     const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>(initialCategory?.slug || '');
     const [autoCityId, setAutoCityId] = useState<string>(initialData?.cityId || '');
+    const [customCityName, setCustomCityName] = useState<string>('');
 
     // Price List State
     const [priceListItems, setPriceListItems] = useState<{ description: string; price: string }[]>(
@@ -644,11 +645,8 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                                     }
                                     // We will send this as a "New City" candidate
                                     setAutoCityId('NEW_CITY'); // Marker
-                                    // We need a way to pass the name. We'll add a hidden input.
-                                    // We can stick the name in a ref or another state.
-                                    // Let's use a hidden input "customCityName"
-                                    const input = document.getElementById('customCityName') as HTMLInputElement;
-                                    if (input) input.value = extractedName;
+                                    // We'll add a hidden input.
+                                    setCustomCityName(extractedName);
                                 } else {
                                     console.log('City not detected from address. Address:', addr);
                                     setAutoCityId('');
@@ -658,7 +656,7 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                         />
                         <input type="hidden" name="latitude" value={coordinates.lat || ''} />
                         <input type="hidden" name="longitude" value={coordinates.lng || ''} />
-                        <input type="hidden" id="customCityName" name="customCityName" />
+                        <input type="hidden" name="customCityName" value={customCityName} />
 
                         {coordinates.lat && (
                             <div className="mt-2 text-sm">
