@@ -9,14 +9,15 @@ const CATEGORY_STYLES = {
     cleaning: 'bg-blue-50 text-blue-600',
     repair: 'bg-orange-50 text-orange-600',
     beauty: 'bg-pink-50 text-pink-600',
-    moving: 'bg-green-50 text-green-600',
-    doctor: 'bg-cyan-50 text-cyan-600',
+    cargo: 'bg-green-50 text-green-600',
+    auto: 'bg-cyan-50 text-cyan-600',
+    plumbing: 'bg-indigo-50 text-indigo-600',
     all: 'bg-gray-50 text-gray-600'
 };
 
 export function HomeCategories() {
     // Only these categories are shown on home page based on previous hardcoded list
-    const HOME_CATS = ['cleaning', 'repair', 'beauty', 'moving', 'doctor', 'all'];
+    const HOME_CATS = ['cleaning', 'repair', 'beauty', 'cargo', 'auto', 'all'];
 
     return (
         <section className="container mx-auto px-4 py-12">
