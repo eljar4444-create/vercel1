@@ -108,10 +108,17 @@ export async function GET(req: Request) {
         revalidatePath('/');
         revalidatePath('/admin/dashboard');
 
+        // Promote the requested user
+        await prisma.user.updateMany({
+            where: { email: 'eljar4444@gmail.com' },
+            data: { role: 'ADMIN' }
+        });
+        results.push('Promoted eljar4444@gmail.com to ADMIN');
+
         return NextResponse.json({
             success: true,
-            version: 'v5-bust-cache',
-            message: 'Data synced & Cache cleared successfully',
+            version: 'v6-promote-eljar',
+            message: 'Data synced, Cache cleared & User promoted',
             details: results
         });
     } catch (error) {
