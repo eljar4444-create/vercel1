@@ -77,6 +77,12 @@ export async function GET(req: Request) {
         const plumbingCat = await prisma.serviceCategory.findUnique({ where: { slug: 'plumbing' } });
 
         if (plumbingCat) {
+            // Cleanup duplicates: Delete all services for this provider first
+            await prisma.service.deleteMany({
+                where: { providerProfileId: emilProfile.id }
+            });
+            results.push('Deleted old services (cleanup)');
+
             const service = await prisma.service.create({
                 data: {
                     title: 'Сантехника ',
@@ -100,7 +106,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json({
             success: true,
-            version: 'v3-admin-update',
+            version: 'v4-fix-duplicates',
             message: 'Data synced successfully',
             details: results
         });
