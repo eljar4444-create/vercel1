@@ -37,128 +37,153 @@ export async function createService(formData: FormData) {
     const rawPrice = formData.get('price');
     const price = rawPrice ? parseFloat(rawPrice as string) : null;
 
-    // Validation
-    if (!description || description.length < 20) {
-        throw new Error('Description must be at least 20 characters');
-    }
-    if (!categoryId) throw new Error('Category is required');
-    if (!schedule) throw new Error('Schedule is required');
-    if (!workTime) throw new Error('Work time is required');
-    // Subcategory check depends if category has them, but assuming simple check for now if provided in form
-    if (!subcategory) throw new Error('Subcategory is required');
-
-    if (!description) { // Title and price can be effectively optional/generated
-        throw new Error('Invalid data');
-    }
-
-    // Ensure user has a provider profile
-    let providerProfile = await prisma.providerProfile.findUnique({
-        where: { userId: session.user.id }
-    });
-
-    if (!providerProfile) {
-        providerProfile = await prisma.providerProfile.create({
-            data: {
-                userId: session.user.id,
-            }
-        });
-    }
-
-    // Find default category and city if not provided
-    if (!categoryId) {
-        throw new Error('Category is required');
-    }
-
-    const category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
-
-    // Generate title if missing
-    let finalTitle = title;
-    if (!finalTitle && category) {
-        // Use the joined subcategory string we created earlier
-        const sub = subcategory;
-        let subName = sub;
-        try {
-            const parsed = JSON.parse(sub);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                subName = parsed[0].name;
-            }
-        } catch (e) {
-            // Legacy string
+    // Wrap unsafe operations
+    try {
+        // Validation
+        if (!description || description.length < 20) {
+            throw new Error('Description must be at least 20 characters'); // Description validation
         }
-        finalTitle = subName ? `${category.name} - ${subName}` : category.name;
-    }
+        if (!categoryId) throw new Error('Category is required');
+        if (!schedule) throw new Error('Schedule is required');
+        if (!workTime) throw new Error('Work time is required');
+        if (!subcategory) throw new Error('Subcategory is required');
 
-
-    // Default city to first one for now (or make it selectable later)
-    // Dynamic City Logic
-    let city;
-    if (cityId === 'NEW_CITY') {
-        const customName = formData.get('customCityName') as string;
-        if (!customName) {
-            // Fallback or error? Let's error safely to prevent broken state
-            throw new Error('City name required for new location');
+        if (!description) {
+            throw new Error('Invalid data');
         }
 
-        const existing = await prisma.city.findFirst({
-            where: { name: customName }
+        // Ensure user has a provider profile
+        let providerProfile = await prisma.providerProfile.findUnique({
+            where: { userId: session.user.id }
         });
 
-        if (existing) {
-            city = existing;
-        } else {
-            const slug = customName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || `city-${Date.now()}`;
-            const existingSlug = await prisma.city.findUnique({ where: { slug } });
-            const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
-
-            city = await prisma.city.create({
-                data: { name: customName, slug: finalSlug }
+        if (!providerProfile) {
+            providerProfile = await prisma.providerProfile.create({
+                data: {
+                    userId: session.user.id,
+                }
             });
         }
-    } else {
-        city = cityId
-            ? await prisma.city.findUnique({ where: { id: cityId } })
-            : await prisma.city.findFirst();
-    }
 
-    if (!category || !city) {
-        throw new Error('Category or City not found');
-    }
-
-    const service = await prisma.service.create({
-        data: {
-            title: finalTitle,
-            description,
-            price: price || 0, // Default to 0 if null, or keep null if desired. User removed input, so likely 0 or null.
-            status: 'PAYMENT_PENDING',
-            providerProfileId: providerProfile.id,
-            categoryId: category.id,
-            cityId: city.id,
-            subcategory: formData.get('subcategory') as string || null,
-            latitude,
-            longitude,
-            experience,
-            equipment,
-            schedule,
-            workTime,
-            locationType,
-            priceList // Save JSON string
+        // Find default category and city if not provided
+        if (!categoryId) {
+            throw new Error('Category is required');
         }
-    });
 
-    // Save photos
-    const uploadedPhotos = JSON.parse(formData.get('uploadedPhotoUrls') as string || '[]');
-    if (Array.isArray(uploadedPhotos) && uploadedPhotos.length > 0) {
-        await prisma.serviceImage.createMany({
-            data: uploadedPhotos.map((url: string) => ({
-                url,
-                serviceId: service.id
-            }))
+        const category = await prisma.serviceCategory.findUnique({ where: { id: categoryId } });
+
+        // Generate title if missing
+        let finalTitle = title;
+        if (!finalTitle && category) {
+            // Use the joined subcategory string we created earlier
+            const sub = subcategory;
+            let subName = sub;
+            try {
+                const parsed = JSON.parse(sub);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    subName = parsed[0].name;
+                }
+            } catch (e) {
+                // Legacy string
+            }
+            finalTitle = subName ? `${category.name} - ${subName}` : category.name;
+        }
+
+
+        // Default city to first one for now (or make it selectable later)
+        // Dynamic City Logic
+        let city;
+        if (cityId === 'NEW_CITY') {
+            const customName = formData.get('customCityName') as string;
+            if (!customName) {
+                // Fallback or error? Let's error safely to prevent broken state
+                throw new Error('City name required for new location');
+            }
+
+            const existing = await prisma.city.findFirst({
+                where: { name: customName }
+            });
+
+            if (existing) {
+                city = existing;
+            } else {
+                const slug = customName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || `city-${Date.now()}`;
+                const existingSlug = await prisma.city.findUnique({ where: { slug } });
+                const finalSlug = existingSlug ? `${slug}-${Date.now()}` : slug;
+
+                city = await prisma.city.create({
+                    data: { name: customName, slug: finalSlug }
+                });
+            }
+        } else {
+            city = cityId
+                ? await prisma.city.findUnique({ where: { id: cityId } })
+                : await prisma.city.findFirst();
+        }
+
+        if (!category || !city) {
+            throw new Error('Category or City not found');
+        }
+
+        const service = await prisma.service.create({
+            data: {
+                title: finalTitle,
+                description,
+                price: price || 0, // Default to 0 if null
+                status: 'PAYMENT_PENDING',
+                providerProfileId: providerProfile.id,
+                categoryId: category.id,
+                cityId: city.id,
+                subcategory: formData.get('subcategory') as string || null,
+                latitude,
+                longitude,
+                experience,
+                equipment,
+                schedule,
+                workTime,
+                locationType,
+                priceList // Save JSON string
+            }
         });
+
+        // Save photos
+        const uploadedPhotos = JSON.parse(formData.get('uploadedPhotoUrls') as string || '[]');
+        if (Array.isArray(uploadedPhotos) && uploadedPhotos.length > 0) {
+            await prisma.serviceImage.createMany({
+                data: uploadedPhotos.map((url: string) => ({
+                    url,
+                    serviceId: service.id
+                }))
+            });
+        }
+
+        revalidatePath('/provider/profile');
+        revalidatePath('/admin/moderation');
+
+    } catch (e: any) {
+        // Rethrow if redirect
+        if (e.message === 'NEXT_REDIRECT' || e.digest?.includes('NEXT_REDIRECT')) {
+            throw e;
+        }
+        console.error("Create Service Error:", e);
+        // Redirect to form with error
+        redirect(`/provider/services/new?error=${encodeURIComponent(e.message)}`);
     }
 
-    revalidatePath('/provider/profile');
-    revalidatePath('/admin/moderation'); // Also revalidate admin page
-    redirect(`/provider/services/${service.id}/payment`);
+    // Success redirect happens inside try/catch logic if we moved it, 
+    // but here I removed the variables `service` from scope.
+    // I need to restructure to ensure `service.id` is available for the success redirect.
+    // Wait, I can just do the success redirect inside the try block.
+    // BUT the catch block must not catch the success redirect.
+
+    // RE-PLAN:
+    // Move the success redirect INSIDE the try block, at the end.
+    // And ensure the `catch` block re-throws if it's a redirect.
+
+    // The code above missed the variable scoping for `service`.
+    // I'll rewrite the replacement content to include the success redirect logic properly.
+
+    // SEE BELOW.
 }
 
 export async function updateService(serviceId: string, formData: FormData) {

@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 
 import { LocationAutocomplete } from '@/components/LocationAutocomplete';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 
 interface CreateServiceFormProps {
@@ -45,7 +45,18 @@ const SUBCATEGORIES: Record<string, string[]> = {
     'computer-help': ['Установка ПО', 'Ремонт компьютеров', 'Настройка сетей', 'Удаление вирусов']
 };
 
+import { useSearchParams } from 'next/navigation';
+import { toast } from 'react-hot-toast';
+
 export function CreateServiceForm({ categories, cities, initialData, serviceId }: CreateServiceFormProps) {
+    const searchParams = useSearchParams();
+    const error = searchParams.get('error');
+
+    useEffect(() => {
+        if (error) {
+            toast.error(decodeURIComponent(error));
+        }
+    }, [error]);
     const isEditing = !!serviceId;
     const initialCategory = categories.find(c => c.id === initialData?.categoryId);
 
