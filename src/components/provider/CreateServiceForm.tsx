@@ -6,14 +6,36 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
-
 import { LocationAutocomplete } from '@/components/LocationAutocomplete';
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 
+function SubmitButton({ isEditing, isLoading }: { isEditing: boolean, isLoading: boolean }) {
+    return (
+        <div className="relative z-[50]">
+            <button
+                type="submit"
+                onClick={() => {
+                    // alert('DEBUG: Кнопка нажата! Если вы видите это, значит кнопка работает.');
+                    console.log('Native button clicked');
+                }}
+                disabled={isLoading}
+                className={`w-full h-12 text-base font-bold rounded-xl shadow-none transition-all flex items-center justify-center
+                    ${isLoading ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-[#fc0] hover:bg-[#e6b800] text-black'}
+                `}
+            >
+                {isLoading ? (isEditing ? 'Сохраняем...' : 'Публикуем...') : (isEditing ? 'Сохранить изменения' : 'Опубликовать')}
+            </button>
+            <p className="text-center text-xs text-gray-400 mt-2">
+                Если кнопка не нажимается, попробуйте обновить страницу.
+            </p>
+        </div>
+    );
+}
 
 interface CreateServiceFormProps {
     categories: { id: string; name: string; slug: string }[];
-    cities: { id: string; name: string; slug: string }[]; // Added slug
+    cities: { id: string; name: string; slug: string }[];
     initialData?: {
         id: string;
         title: string;
@@ -45,19 +67,14 @@ const SUBCATEGORIES: Record<string, string[]> = {
     'computer-help': ['Установка ПО', 'Ремонт компьютеров', 'Настройка сетей', 'Удаление вирусов']
 };
 
-import { useSearchParams } from 'next/navigation';
-import { toast } from 'react-hot-toast';
-
 export function CreateServiceForm({ categories, cities, initialData, serviceId }: CreateServiceFormProps) {
-    const searchParams = useSearchParams();
-    const error = searchParams.get('error');
-
-    useEffect(() => {
-        if (error) {
-            toast.error(decodeURIComponent(error));
-        }
-    }, [error]);
     const isEditing = !!serviceId;
+
+    // Manual submission state
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
     const initialCategory = categories.find(c => c.id === initialData?.categoryId);
 
     const [coordinates, setCoordinates] = useState<{ lat: number | null; lng: number | null }>({
@@ -79,19 +96,17 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
 
     // Schedule logic
     const STANDARD_SCHEDULES = ["Ежедневно (Пн-Вс)", "По будням (Пн-Пт)", "Выходные (Сб-Вс)", "2/2", "По договоренности"];
-    // Generate time options 00:00 to 23:00
     const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`);
 
     const initialSchedule = initialData?.schedule || '';
     const initialTime = initialData?.workTime || '';
 
-    // Parse initial time "HH:mm - HH:mm"
     const parseTimeRange = (range: string) => {
         const parts = range.split(' - ');
         if (parts.length === 2 && TIME_OPTIONS.includes(parts[0]) && TIME_OPTIONS.includes(parts[1])) {
             return { start: parts[0], end: parts[1] };
         }
-        return { start: '09:00', end: '18:00' }; // Default
+        return { start: '09:00', end: '18:00' };
     };
 
     const initialParsedTime = parseTimeRange(initialTime);
@@ -111,7 +126,7 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
         if (parts.length === 2 && shortDays.includes(parts[0]) && shortDays.includes(parts[1])) {
             return { start: parts[0], end: parts[1] };
         }
-        return { start: 'Пн', end: 'Пт' }; // Default
+        return { start: 'Пн', end: 'Пт' };
     };
 
     const initialParsedSchedule = parseScheduleRange(initialSchedule);
@@ -145,19 +160,11 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
     };
 
     // Subcategory State
-    // Parse initial subcategories (comma separated)
     const initialSubcategoriesRaw = initialData?.subcategory ? initialData.subcategory.split(',').map(s => s.trim()) : [];
 
-    // Mode: Array of objects { value: string, isCustom: boolean }
-    // If we have existing data, we need to determine if it's custom or not.
-    // However, if we change category, we clear this anyway.
-
-    // Helper to init state
     const initSubStates = () => {
         if (!initialData?.subcategory) return [];
-
         try {
-            // Try parsing as JSON (New format)
             const parsed = JSON.parse(initialData.subcategory);
             if (Array.isArray(parsed)) {
                 return parsed.map((item: any) => ({
@@ -167,9 +174,7 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                     priceType: item.priceType || 'fixed'
                 }));
             }
-        } catch (e) {
-            // Fallback to legacy comma-separated string
-        }
+        } catch (e) { }
 
         const raw = initialData.subcategory.split(',').map(s => s.trim());
         const known = initialCategory?.slug && SUBCATEGORIES[initialCategory.slug] ? SUBCATEGORIES[initialCategory.slug] : [];
@@ -203,10 +208,9 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
 
     const handleCategoryChange = (slug: string) => {
         setSelectedCategorySlug(slug);
-        setSubcategoryItems([]); // Reset
+        setSubcategoryItems([]);
     };
 
-    // Derived joined string for form submission (JSON now)
     const subcategoryJoinedValue = JSON.stringify(subcategoryItems.map(i => ({
         name: i.value.trim(),
         isCustom: i.isCustom,
@@ -240,8 +244,6 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
         setUploadedPhotos(prev => prev.filter((_, i) => i !== index));
     };
 
-
-
     const removePriceItem = (index: number) => {
         setPriceListItems(priceListItems.filter((_, i) => i !== index));
     };
@@ -252,7 +254,86 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
         setPriceListItems(newItems);
     };
 
-    const formAction = isEditing ? updateService.bind(null, serviceId) : createService;
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        // VALIDATION
+        const newErrors: Record<string, string> = {};
+        let isValid = true;
+
+        if (!selectedCategorySlug) {
+            newErrors.category = 'Выберите категорию';
+            isValid = false;
+        }
+
+        const formData = new FormData(e.currentTarget);
+        const desc = formData.get('description') as string;
+
+        if (!desc || desc.trim().length < 20) {
+            newErrors.description = 'Описание должно быть не менее 20 символов';
+            isValid = false;
+        }
+
+        if (!autoCityId) {
+            newErrors.location = 'Выберите город из списка или укажите точку на карте';
+            isValid = false;
+        }
+
+        if (selectedCategorySlug && SUBCATEGORIES[selectedCategorySlug]) {
+            if (subcategoryItems.length === 0) {
+                newErrors.subcategory = 'Добавьте хотя бы одну подкатегорию';
+                isValid = false;
+            }
+            // Check if any subcategory value is empty
+            const hasEmpty = subcategoryItems.some(i => !i.value.trim());
+            if (hasEmpty) {
+                newErrors.subcategory = 'Заполните или удалите пустые подкатегории';
+                isValid = false;
+            }
+        }
+
+        setErrors(newErrors);
+
+        if (!isValid) {
+            toast.error('Пожалуйста, исправьте ошибки в форме');
+            // Try to scroll to the first error
+            setTimeout(() => {
+                const errorEl = document.querySelector('.border-red-500');
+                if (errorEl) {
+                    errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+            return;
+        }
+
+        setIsSubmitting(true);
+        setErrorMessage('');
+
+        try {
+            let res;
+            if (isEditing && serviceId) {
+                res = await updateService(serviceId, null, formData);
+            } else {
+                res = await createService(null, formData);
+            }
+
+            if (res && res.message) {
+                setErrorMessage(res.message);
+                toast.error(res.message);
+                setIsSubmitting(false);
+            } else {
+                console.log("Success, waiting for redirect...");
+            }
+        } catch (error: any) {
+            console.error("Submit Error:", error);
+            if (error.message === 'NEXT_REDIRECT' || error.digest?.includes('NEXT_REDIRECT')) {
+                return;
+            }
+            setErrorMessage(error.message || 'Произошла ошибка при отправке');
+            toast.error(error.message || 'Ошибка');
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
@@ -264,8 +345,11 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                 <h1 className="text-2xl font-bold mb-2 text-center text-gray-900">{isEditing ? 'Редактировать услугу' : 'Какую услугу вы хотите предложить?'}</h1>
                 <p className="text-gray-500 text-center mb-8">{isEditing ? 'Внесите изменения в вашу услугу' : 'Опишите вашу услугу, чтобы найти клиентов'}</p>
 
-                <form action={formAction} className="space-y-6">
-                    {/* Title hidden, auto-generated */}
+                <form
+                    onSubmit={handleSubmit}
+                    className="space-y-6"
+                    noValidate // Disable browser validation to use custom logic
+                >
                     <input type="hidden" name="title" value={selectedCategorySlug ? `${categories.find(c => c.slug === selectedCategorySlug)?.name} ${initialData?.subcategory ? `- ${initialData.subcategory}` : ''}` : 'Новая услуга'} />
 
                     <div>
@@ -274,10 +358,11 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                             name="categoryId"
                             required
                             defaultValue={initialData?.categoryId || ""}
-                            className="w-full h-11 px-3 bg-gray-50 border border-gray-200 rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-black transition-all text-sm"
+                            className={`w-full h-11 px-3 bg-gray-50 border rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-black transition-all text-sm ${errors.category ? 'border-red-500 focus:ring-red-500' : 'border-gray-200'}`}
                             onChange={(e) => {
                                 const category = categories.find(c => c.id === e.target.value);
                                 handleCategoryChange(category?.slug || '');
+                                setErrors({ ...errors, category: '' });
                             }}
                         >
                             <option value="" disabled>Выберите категорию</option>
@@ -285,6 +370,7 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
                             ))}
                         </select>
+                        {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
                     </div>
 
                     {selectedCategorySlug && SUBCATEGORIES[selectedCategorySlug] && (
@@ -292,7 +378,7 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                             <label className="block text-sm font-medium text-gray-700 mb-2">Подкатегория <span className="text-red-500">*</span></label>
                             <div className="space-y-3">
                                 {subcategoryItems.map((item, index) => (
-                                    <div key={index} className="flex flex-col gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                    <div key={index} className={`flex flex-col gap-2 bg-gray-50 p-3 rounded-lg border ${errors.subcategory ? 'border-red-500' : 'border-gray-200'}`}>
                                         <div className="flex items-center gap-2">
                                             <div className="flex-grow">
                                                 {item.isCustom ? (
@@ -344,7 +430,6 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                                             </button>
                                         </div>
 
-                                        {/* Price Section for Subcategory */}
                                         <div className="flex flex-col md:flex-row gap-2 items-start md:items-center pl-1">
                                             <div className="flex items-center gap-2">
                                                 <label className="flex items-center gap-2 text-xs text-gray-500 cursor-pointer whitespace-nowrap">
@@ -382,7 +467,8 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                                 >
                                     + Добавить подкатегорию
                                 </Button>
-                                <input type="hidden" name="subcategory" value={subcategoryJoinedValue} />
+                                {errors.subcategory && <p className="text-red-500 text-xs mt-1">{errors.subcategory}</p>}
+                                {/* Hidden input moved to bottom */}
                             </div>
                         </div>
                     )}
@@ -395,11 +481,12 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                             required
                             minLength={20}
                             defaultValue={initialData?.description}
-                            className="h-32 bg-gray-50 border-gray-200 focus:bg-white transition-all resize-none"
+                            className={`h-32 bg-gray-50 border focus:bg-white transition-all resize-none ${errors.description ? 'border-red-500 focus:ring-red-500' : 'border-gray-200'}`}
+                            onChange={() => setErrors({ ...errors, description: '' })}
                         />
+                        {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
                     </div>
 
-                    {/* Photos Section */}
                     <div className="space-y-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Фотографии работ</label>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -416,7 +503,6 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                                 </div>
                             ))}
 
-                            {/* New Upload Button */}
                             <label className="relative aspect-square rounded-lg border-2 border-dashed border-gray-300 hover:border-black transition-colors flex flex-col items-center justify-center cursor-pointer bg-gray-50 hover:bg-gray-100">
                                 <input
                                     type="file"
@@ -464,7 +550,6 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                         </div>
                     </div>
 
-                    {/* Additional Services Section */}
                     <div className="space-y-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <label className="block text-sm font-medium text-gray-700 mb-2">Дополнительные услуги</label>
                         <p className="text-xs text-gray-500 mb-3">Добавьте список услуг. Вы можете указать цену или выбрать "По договоренности".</p>
@@ -619,52 +704,41 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Местоположение (на карте)</label>
-                        <LocationAutocomplete
-                            onSelect={(addr, lat, lng) => {
-                                setCoordinates({ lat, lng });
+                        <div className={`${errors.location ? 'border border-red-500 rounded-md' : ''}`}>
+                            <LocationAutocomplete
+                                onSelect={(addr, lat, lng) => {
+                                    setCoordinates({ lat, lng });
 
-                                // Auto-detect city from address string
-                                const lowerAddr = addr.toLowerCase();
+                                    const lowerAddr = addr.toLowerCase();
+                                    const isGermany = lowerAddr.includes('germany') || lowerAddr.includes('германия') || lowerAddr.includes('deutschland');
 
-                                // Check if it's Germany
-                                const isGermany = lowerAddr.includes('germany') || lowerAddr.includes('германия') || lowerAddr.includes('deutschland');
+                                    const matchedCity = cities.find(c =>
+                                        lowerAddr.includes(c.slug.toLowerCase()) ||
+                                        lowerAddr.includes(c.name.toLowerCase())
+                                    );
 
-                                // Try to match existing cities first
-                                const matchedCity = cities.find(c =>
-                                    lowerAddr.includes(c.slug.toLowerCase()) ||
-                                    lowerAddr.includes(c.name.toLowerCase())
-                                );
-
-                                if (matchedCity) {
-                                    setAutoCityId(matchedCity.id);
-                                    // Clear custom detected name if we found a match
-                                    // (Actually we can leave it empty or use matched name, but ID is enough)
-                                } else if (isGermany) {
-                                    // If in Germany but not in list, try to extract city name
-                                    // Simple heuristic: First part of address? Or look for comma?
-                                    // Usually "City, Country" or "Street, City, Country"
-                                    const parts = addr.split(',');
-                                    let extractedName = parts[0].trim();
-                                    if (parts.length > 1) {
-                                        // Heuristic: If multiple parts, usually City is 2nd to last or just before Country?
-                                        // Let's simplified: If 2 parts: "City, Country". If 3: "Street, City, Country".
-                                        // Let's try to grab the first part that is NOT the formatted address suffix.
-                                        // Actually, for simplicity, let's just claim the *first* part is the city if simplistic, 
-                                        // or better, pass the whole address and let backend figure it out? 
-                                        // Let's try grabbing the first component from the string as a fallback.
-                                        extractedName = parts[0].trim();
+                                    if (matchedCity) {
+                                        setAutoCityId(matchedCity.id);
+                                        setErrors({ ...errors, location: '' });
+                                    } else if (isGermany) {
+                                        const parts = addr.split(',');
+                                        let extractedName = parts[0].trim();
+                                        if (parts.length > 1) {
+                                            extractedName = parts[0].trim();
+                                        }
+                                        setAutoCityId('NEW_CITY');
+                                        setCustomCityName(extractedName);
+                                        setErrors({ ...errors, location: '' });
+                                    } else {
+                                        console.log('City not detected from address. Address:', addr);
+                                        setAutoCityId('');
                                     }
-                                    // We will send this as a "New City" candidate
-                                    setAutoCityId('NEW_CITY'); // Marker
-                                    // We'll add a hidden input.
-                                    setCustomCityName(extractedName);
-                                } else {
-                                    console.log('City not detected from address. Address:', addr);
-                                    setAutoCityId('');
-                                }
-                            }}
-                            className="bg-gray-50 border-gray-200 h-11 focus:bg-white transition-all"
-                        />
+                                }}
+                                className={`bg-gray-50 border-gray-200 h-11 focus:bg-white transition-all`}
+                            />
+                        </div>
+                        {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
+
                         <input type="hidden" name="latitude" value={coordinates.lat || ''} />
                         <input type="hidden" name="longitude" value={coordinates.lng || ''} />
                         <input type="hidden" name="customCityName" value={customCityName} />
@@ -686,7 +760,6 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                                 )}
                             </div>
                         )}
-                        {/* Show saved location hint */}
                         {isEditing && !coordinates.lat && initialData?.latitude && (
                             <p className="text-xs text-gray-400 mt-1">Оставьте пустым, чтобы не менять текущее местоположение.</p>
                         )}
@@ -698,9 +771,15 @@ export function CreateServiceForm({ categories, cities, initialData, serviceId }
                         )}
                     </div>
 
-                    <Button type="submit" className="w-full h-12 text-base bg-[#fc0] hover:bg-[#e6b800] text-black font-bold rounded-xl shadow-none">
-                        {isEditing ? 'Сохранить изменения' : 'Опубликовать'}
-                    </Button>
+                    <input type="hidden" name="subcategory" value={subcategoryJoinedValue} />
+
+                    <SubmitButton isEditing={isEditing} isLoading={isSubmitting} />
+
+                    {errorMessage && (
+                        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm text-center font-medium">
+                            {errorMessage}
+                        </div>
+                    )}
                 </form>
 
                 <div className="mt-6 text-center">
