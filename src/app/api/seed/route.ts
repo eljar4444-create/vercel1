@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { CATEGORIES, SUB_CATEGORIES } from '@/constants/categories';
+import { revalidatePath } from 'next/cache';
 
 // Simple API Key protection to prevent public abuse
 const SEED_SECRET = 'temp-seed-key-123';
@@ -104,10 +105,13 @@ export async function GET(req: Request) {
             results.push('Synced Service: Сантехника (APPROVED)');
         }
 
+        revalidatePath('/');
+        revalidatePath('/admin/dashboard');
+
         return NextResponse.json({
             success: true,
-            version: 'v4-fix-duplicates',
-            message: 'Data synced successfully',
+            version: 'v5-bust-cache',
+            message: 'Data synced & Cache cleared successfully',
             details: results
         });
     } catch (error) {

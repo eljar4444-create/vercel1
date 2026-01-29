@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Star, ShieldCheck, Zap } from 'lucide-react';
 import { auth } from '@/auth';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
     const session = await auth();
     const services = await prisma.service.findMany({
