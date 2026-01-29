@@ -1,5 +1,6 @@
 import { CreateServiceForm } from '@/components/provider/CreateServiceForm';
 import prisma from '@/lib/prisma';
+import { Suspense } from 'react';
 
 export default async function OnboardingServicePage() {
     // Fetch categories and cities for the form
@@ -29,7 +30,9 @@ export default async function OnboardingServicePage() {
                  But for reusing logic, let's keep it simple.
                  The CreateServiceForm component is self-contained with layout.
               */}
-            <CreateServiceForm categories={displayCategories} cities={cities} />
+            <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
+                <CreateServiceForm categories={displayCategories} cities={cities} />
+            </Suspense>
         </div>
     );
 }

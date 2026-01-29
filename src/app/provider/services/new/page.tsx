@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { CreateServiceForm } from '@/components/provider/CreateServiceForm';
 import prisma from '@/lib/prisma';
 
@@ -20,5 +21,9 @@ export default async function CreateServicePage() {
         select: { id: true, name: true, slug: true }
     });
 
-    return <CreateServiceForm categories={displayCategories} cities={cities} />;
+    return (
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
+            <CreateServiceForm categories={displayCategories} cities={cities} />
+        </Suspense>
+    );
 }

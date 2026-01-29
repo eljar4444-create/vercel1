@@ -1,5 +1,6 @@
 import { CreateServiceForm } from '@/components/provider/CreateServiceForm';
 import prisma from '@/lib/prisma';
+import { Suspense } from 'react';
 import { auth } from '@/auth';
 import { notFound, redirect } from 'next/navigation';
 
@@ -45,28 +46,30 @@ export default async function EditServicePage({ params }: { params: { id: string
     });
 
     return (
-        <CreateServiceForm
-            categories={displayCategories}
-            cities={cities}
-            initialData={{
-                id: service.id,
-                title: service.title,
-                description: service.description,
-                price: service.price ?? 0,
-                categoryId: service.categoryId,
-                cityId: service.cityId,
-                subcategory: service.subcategory,
-                latitude: service.latitude,
-                longitude: service.longitude,
-                experience: service.experience,
-                equipment: service.equipment,
-                schedule: service.schedule,
-                workTime: service.workTime,
-                locationType: service.locationType,
-                priceList: service.priceList,
-                photos: service.photos
-            }}
-            serviceId={service.id}
-        />
+        <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
+            <CreateServiceForm
+                categories={displayCategories}
+                cities={cities}
+                initialData={{
+                    id: service.id,
+                    title: service.title,
+                    description: service.description,
+                    price: service.price ?? 0,
+                    categoryId: service.categoryId,
+                    cityId: service.cityId,
+                    subcategory: service.subcategory,
+                    latitude: service.latitude,
+                    longitude: service.longitude,
+                    experience: service.experience,
+                    equipment: service.equipment,
+                    schedule: service.schedule,
+                    workTime: service.workTime,
+                    locationType: service.locationType,
+                    priceList: service.priceList,
+                    photos: service.photos
+                }}
+                serviceId={service.id}
+            />
+        </Suspense>
     );
 }

@@ -1,9 +1,7 @@
 'use server';
 
 import { auth } from '@/auth';
-import prisma from '@/lib/prisma';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+import { put } from '@vercel/blob';
 
 export async function uploadServicePhoto(formData: FormData) {
     const session = await auth();
@@ -13,6 +11,8 @@ export async function uploadServicePhoto(formData: FormData) {
 
     const file = formData.get('photo') as File;
     if (!file) {
+        // Return object structure matching what frontend expects (or throw error that frontend catches)
+        // Frontend CreateServiceForm catches error, so throwing is fine.
         throw new Error('No file uploaded');
     }
 
@@ -26,20 +26,15 @@ export async function uploadServicePhoto(formData: FormData) {
         throw new Error('File size must be less than 5MB');
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create unique filename
     const filename = `service-${session.user.id}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
-    const path = join(process.cwd(), 'public', 'uploads', filename);
 
-    // Write file to public/uploads
     try {
-        await writeFile(path, buffer);
+        const blob = await put(filename, file, {
+            access: 'public',
+        });
+        return { success: true, imageUrl: blob.url };
     } catch (e) {
-        console.error('Error saving file:', e);
-        throw new Error('Failed to save file to server');
+        console.error('Error uploading to blob:', e);
+        throw new Error('Failed to upload file');
     }
-
-    return { success: true, imageUrl: `/uploads/${filename}` };
 }
