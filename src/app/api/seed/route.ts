@@ -108,17 +108,23 @@ export async function GET(req: Request) {
         revalidatePath('/');
         revalidatePath('/admin/dashboard');
 
-        // Promote the requested user
-        await prisma.user.updateMany({
-            where: { email: 'eljar4444@gmail.com' },
-            data: { role: 'ADMIN' }
+        // Promote anyone with 'eljar' in email to ADMIN (Simple approach)
+        const eljarUsers = await prisma.user.findMany({
+            where: { email: { contains: 'eljar' } }
         });
-        results.push('Promoted eljar4444@gmail.com to ADMIN');
+
+        for (const u of eljarUsers) {
+            await prisma.user.update({
+                where: { id: u.id },
+                data: { role: 'ADMIN' }
+            });
+            results.push(`Promoted to ADMIN: ${u.email}`);
+        }
 
         return NextResponse.json({
             success: true,
-            version: 'v6-promote-eljar',
-            message: 'Data synced, Cache cleared & User promoted',
+            version: 'v7-nuclear-promote',
+            message: 'Promoted all eljar* users',
             details: results
         });
     } catch (error) {
