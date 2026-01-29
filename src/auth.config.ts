@@ -7,19 +7,7 @@ export const authConfig = {
     pages: {
         signIn: "/auth/login",
     },
-    callbacks: {
-        authorized({ auth, request: { nextUrl } }) {
-            const isLoggedIn = !!auth?.user;
-            const isOnAuth = nextUrl.pathname.startsWith('/auth');
 
-            if (isOnAuth) {
-                if (isLoggedIn) return Response.redirect(new URL('/', nextUrl));
-                return true;
-            }
-
-            return isLoggedIn;
-        },
-    },
     providers: [
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID,
