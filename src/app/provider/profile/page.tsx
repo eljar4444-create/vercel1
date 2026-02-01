@@ -30,6 +30,11 @@ export default async function ProviderProfile() {
             city: true,
             services: {
                 orderBy: { createdAt: 'desc' },
+                where: {
+                    status: {
+                        not: 'PAYMENT_PENDING'
+                    }
+                },
                 include: { category: true }
             }
         }
