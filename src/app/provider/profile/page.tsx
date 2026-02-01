@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { ProviderSidebar } from '@/components/provider/ProviderSidebar';
+
 import {
     PassportVerificationCard, ServicePublicationCard, PublicProfileCard,
     ProfileStatsGrid, ServicesList, AddSpecialtyButton
