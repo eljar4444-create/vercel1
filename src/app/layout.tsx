@@ -1,12 +1,16 @@
 import { Header } from '@/components/Header';
 import { Toaster } from 'react-hot-toast';
-import { Outfit } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Providers } from '@/components/Providers';
 import './globals.css';
 import { Footer } from '@/components/Footer';
 import type { Metadata } from 'next';
 
-const outfit = Outfit({ subsets: ['latin'] });
+const outfit = localFont({
+    src: '../../public/fonts/Outfit-Latin.woff2',
+    variable: '--font-outfit',
+    display: 'swap',
+});
 
 export const metadata: Metadata = {
     title: "Svoi.de — Маркетплейс услуг",
