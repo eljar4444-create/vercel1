@@ -41,6 +41,7 @@ export async function GET(req: NextRequest, { params }: { params: { requestId: s
                 id: `initial-${requestId}`,
                 content: request.message,
                 senderId: request.clientId,
+                requestId: requestId,
                 createdAt: request.createdAt,
                 sender: request.client
             };
