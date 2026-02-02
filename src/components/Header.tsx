@@ -238,10 +238,13 @@ export function Header() {
                 <div className="flex items-center gap-4 ml-4">
                     {user ? (
                         <div className="flex items-center gap-5 text-gray-400">
-                            <Link href="/chat">
+                            <Link href="/chat" className="relative">
                                 <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent">
                                     <span className="sr-only">Сообщения</span>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send rotate-[-45deg] mt-1"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
+                                    {unreadCount > 0 && (
+                                        <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                                    )}
                                 </Button>
                             </Link>
                             <Button variant="ghost" size="icon" className="hover:text-gray-600 hover:bg-transparent relative">
