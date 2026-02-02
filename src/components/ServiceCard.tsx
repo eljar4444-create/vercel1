@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useSession } from 'next-auth/react';
 
 interface Service {
     id: string;
@@ -108,14 +109,16 @@ export function ServiceCard({ service }: { service: Service }) {
     };
 
     const subcategoryDisplay = getSubcategoryDisplay();
+    const { data: session } = useSession();
+
     const handleContact = async () => {
-        const userString = localStorage.getItem('user');
-        if (!userString) {
+        if (!session?.user) {
             toast.error('Пожалуйста, войдите, чтобы связаться с профессионалами');
             window.location.href = '/auth/login';
             return;
         }
-        const user = JSON.parse(userString);
+
+        const user = session.user;
         if (user.role === 'PROVIDER') {
             toast.error('Обнаружен аккаунт исполнителя. Пожалуйста, войдите как клиент.');
             return;
@@ -138,6 +141,7 @@ export function ServiceCard({ service }: { service: Service }) {
             setIsContacting(false);
             setMessage('');
         } catch (error) {
+            console.error('Send request error:', error);
             toast.error('Не удалось отправить запрос. Попробуйте еще раз.');
         } finally {
             setLoading(false);
