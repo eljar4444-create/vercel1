@@ -55,6 +55,7 @@ export async function GET(req: NextRequest, { params }: { params: { requestId: s
                 content: request.message,
                 senderId: request.clientId,
                 requestId: requestId,
+                isRead: true, // Initial request message is considered read for the purpose of this view
                 createdAt: request.createdAt,
                 sender: request.client
             };
