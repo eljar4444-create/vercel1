@@ -3,6 +3,7 @@ import { Search, LayoutGrid, CheckCircle2, MoreVertical, Phone, MessageCircle } 
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import prisma from '@/lib/prisma';
+export const dynamic = 'force-dynamic';
 
 export default async function BeautySearchPage({
     searchParams

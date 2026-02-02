@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+export const dynamic = 'force-dynamic';
 import { ModerationControls } from '@/components/admin/ModerationControls';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

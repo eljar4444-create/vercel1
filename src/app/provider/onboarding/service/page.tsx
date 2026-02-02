@@ -1,4 +1,5 @@
 import { CreateServiceForm } from '@/components/provider/CreateServiceForm';
+export const dynamic = 'force-dynamic';
 import prisma from '@/lib/prisma';
 import { Suspense } from 'react';
 
