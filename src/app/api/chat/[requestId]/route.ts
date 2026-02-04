@@ -42,11 +42,23 @@ export async function GET(req: NextRequest, { params }: { params: { requestId: s
                 clientId: true,
                 client: {
                     select: { id: true, name: true, image: true }
+                },
+                service: {
+                    select: {
+                        id: true,
+                        title: true,
+                        price: true,
+                        description: true,
+                        photos: true
+                        // address: true // removed as it doesn't exist on Service
+                    }
                 }
             }
         })
 
         let allMessages = [...messages];
+        // Cast to any to avoid type errors with included relations not being inferred correctly
+        let service = (request as any)?.service || null;
 
         // Include the initial request message as the first message
         if (request && request.message) {
@@ -57,12 +69,12 @@ export async function GET(req: NextRequest, { params }: { params: { requestId: s
                 requestId: requestId,
                 isRead: true, // Initial request message is considered read for the purpose of this view
                 createdAt: request.createdAt,
-                sender: request.client
+                sender: (request as any).client
             };
             allMessages = [initialMessage, ...messages];
         }
 
-        return NextResponse.json({ messages: allMessages });
+        return NextResponse.json({ messages: allMessages, service });
     } catch (error) {
         return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
     }
