@@ -160,7 +160,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
     };
 
     return (
-        <section className="relative min-h-[calc(100vh-5rem)] flex items-center justify-center overflow-hidden">
+        <section className="relative min-h-[calc(100vh-5rem)] flex items-start justify-center pt-32 overflow-hidden">
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900" />
