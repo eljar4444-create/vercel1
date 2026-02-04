@@ -38,8 +38,8 @@ export default async function Home() {
         <div className="bg-[#f5f5f7] min-h-screen pb-20">
             <SearchHero categories={categories} user={session?.user} />
 
-            {/* Categories Section - Floating Cards */}
-            <HomeCategories />
+            {/* Categories Section Removed */}
+            <div className="pt-8" />
 
             {/* Approved Services Section */}
             <section className="py-12">
