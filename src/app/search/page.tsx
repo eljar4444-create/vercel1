@@ -217,7 +217,8 @@ export default async function SearchPage({
                                             city: service.city?.name || '',
                                             provider: {
                                                 name: service.providerProfile.user.name || '',
-                                                email: service.providerProfile.user.email || ''
+                                                email: service.providerProfile.user.email || '',
+                                                image: service.providerProfile.user.image
                                             }
                                         }}
                                     />
