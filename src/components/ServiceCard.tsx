@@ -154,7 +154,7 @@ export function ServiceCard({ service }: { service: Service }) {
             <CardHeader className="pb-3 pt-5 px-6 border-b border-gray-50">
                 <div className="flex justify-between items-center gap-3">
                     <div className="flex items-center gap-3">
-                        <div className="relative">
+                        <div className="relative shrink-0">
                             {service.provider.image ? (
                                 <img
                                     src={service.provider.image}
