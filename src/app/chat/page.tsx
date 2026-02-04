@@ -227,29 +227,33 @@ export default function ChatPage() {
                             >
                                 {messages.map((msg, idx) => {
                                     const isMe = msg.senderId === session.user.id;
+                                    const prevMsg = messages[idx - 1];
+                                    const isNewDay = !prevMsg || new Date(msg.createdAt).toDateString() !== new Date(prevMsg.createdAt).toDateString();
 
                                     return (
-                                        <div key={msg.id} className={cn("flex w-full mb-2", isMe ? "justify-end" : "justify-start")}>
-                                            <div className={cn(
-                                                "relative max-w-[70%] px-3 py-2 text-sm shadow-[0_1px_2px_rgba(0,0,0,0.1)]",
-                                                isMe
-                                                    ? "bg-[#effdde] text-black rounded-2xl rounded-br-sm"
-                                                    : "bg-white text-black rounded-2xl rounded-bl-sm"
-                                            )}>
-                                                <div className="break-words pr-2">
-                                                    {msg.content}
+                                        <div key={msg.id} className="w-full">
+                                            {isNewDay && (
+                                                <div className="flex justify-center my-4">
+                                                    <span className="bg-gray-100/80 text-gray-500 text-xs py-1 px-3 rounded-full font-medium">
+                                                        {format(new Date(msg.createdAt), 'd MMMM', { locale: ru })}
+                                                    </span>
                                                 </div>
+                                            )}
+                                            <div className={cn("flex w-full mb-2", isMe ? "justify-end" : "justify-start")}>
                                                 <div className={cn(
-                                                    "text-[10px] text-gray-500 float-right ml-2 mt-1 select-none flex items-center gap-0.5"
+                                                    "relative max-w-[70%] px-3 py-2 text-sm shadow-[0_1px_2px_rgba(0,0,0,0.1)]",
+                                                    isMe
+                                                        ? "bg-[#effdde] text-black rounded-2xl rounded-br-sm"
+                                                        : "bg-white text-black rounded-2xl rounded-bl-sm"
                                                 )}>
-                                                    {format(new Date(msg.createdAt), 'HH:mm')}
-                                                    {isMe && (
-                                                        <span className="text-blue-500">
-                                                            <svg width="14" height="14" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-3 h-3">
-                                                                <path d="M9.65625 1.54688L4.35938 8.82812L1.3125 5.92188L0.625 6.64062L4.35938 10.2188L10.3281 2.26562L9.65625 1.54688Z" fill="currentColor" />
-                                                            </svg>
-                                                        </span>
-                                                    )}
+                                                    <div className="break-words pr-2">
+                                                        {msg.content}
+                                                    </div>
+                                                    <div className={cn(
+                                                        "text-[10px] text-gray-400 float-right ml-2 mt-1 select-none"
+                                                    )}>
+                                                        {format(new Date(msg.createdAt), 'HH:mm')}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
