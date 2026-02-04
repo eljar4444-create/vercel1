@@ -226,21 +226,30 @@ export default function ChatPage() {
                                 className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/30"
                             >
                                 {messages.map((msg, idx) => {
-                                    // Treat initial message as incoming (left-aligned) always, or check session user
-                                    const isInitial = msg.id.startsWith('initial-');
-                                    const isMe = msg.senderId === session.user.id && !isInitial;
+                                    const isMe = msg.senderId === session.user.id;
 
                                     return (
-                                        <div key={msg.id} className={cn("flex w-full", isMe ? "justify-end" : "justify-start")}>
+                                        <div key={msg.id} className={cn("flex w-full mb-2", isMe ? "justify-end" : "justify-start")}>
                                             <div className={cn(
-                                                "max-w-[70%] rounded-2xl p-3 text-sm shadow-sm",
+                                                "relative max-w-[70%] px-3 py-2 text-sm shadow-[0_1px_2px_rgba(0,0,0,0.1)]",
                                                 isMe
-                                                    ? "bg-blue-600 text-white rounded-br-none"
-                                                    : "bg-white text-gray-800 border border-gray-100 rounded-bl-none"
+                                                    ? "bg-[#effdde] text-black rounded-2xl rounded-br-sm"
+                                                    : "bg-white text-black rounded-2xl rounded-bl-sm"
                                             )}>
-                                                {msg.content}
-                                                <div className={cn("text-[10px] mt-1 text-right", isMe ? "text-blue-200" : "text-gray-400")}>
+                                                <div className="break-words pr-2">
+                                                    {msg.content}
+                                                </div>
+                                                <div className={cn(
+                                                    "text-[10px] text-gray-500 float-right ml-2 mt-1 select-none flex items-center gap-0.5"
+                                                )}>
                                                     {format(new Date(msg.createdAt), 'HH:mm')}
+                                                    {isMe && (
+                                                        <span className="text-blue-500">
+                                                            <svg width="14" height="14" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-3 h-3">
+                                                                <path d="M9.65625 1.54688L4.35938 8.82812L1.3125 5.92188L0.625 6.64062L4.35938 10.2188L10.3281 2.26562L9.65625 1.54688Z" fill="currentColor" />
+                                                            </svg>
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
