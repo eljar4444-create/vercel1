@@ -322,7 +322,6 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
                             }}
                             className="w-full h-14 pl-16 pt-1 pb-1 border-none bg-transparent shadow-none focus-visible:ring-0 text-base font-semibold placeholder:font-normal placeholder:text-gray-300 rounded-lg md:rounded-l-none"
                         />
-                        <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
                     </div>
 
                     {/* Search Button */}
