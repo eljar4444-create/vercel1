@@ -1,60 +1,72 @@
+
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-async function testNominatim() {
-    const queries = ['Berlin'];
+async function fetchMajorCities() {
+    const cities = [
+        "Berlin", "Hamburg", "München", "Köln", "Frankfurt am Main", "Stuttgart",
+        "Düsseldorf", "Dortmund", "Essen", "Leipzig", "Bremen", "Dresden",
+        "Hannover", "Nürnberg", "Duisburg", "Bochum", "Wuppertal", "Bielefeld",
+        "Bonn", "Münster", "Kiel"
+    ];
 
-    // Test generic Q
-    for (const q of queries) {
-        console.log(`\n--- Testing Generic Q: "${q}" ---`);
+    console.log("const MAJOR_CITIES = [");
+    for (const city of cities) {
         const params = new URLSearchParams({
-            q: q,
+            q: city,
             format: 'json',
             addressdetails: '1',
-            limit: '10', // Increased limit
+            limit: '1',
             countrycodes: 'de',
             'accept-language': 'ru'
         });
-        await runAuth(params);
-    }
 
-    // Test City param
-    for (const q of queries) {
-        console.log(`\n--- Testing City Param: "${q}" ---`);
-        const params = new URLSearchParams({
-            city: q,
-            format: 'json',
-            addressdetails: '1',
-            limit: '10',
-            countrycodes: 'de',
-            'accept-language': 'ru'
-        });
-        await runAuth(params);
-    }
-}
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`, {
+                headers: { 'User-Agent': 'Svoi.de-Debug-Script/1.0' }
+            });
+            const data = await response.json();
+            if (data[0]) {
+                const item = data[0];
+                const name = city.toLowerCase();
+                // handle special chars like ü -> u/ue
+                const simpleName = name.replace('ü', 'u').replace('ö', 'o').replace('ä', 'a').replace('ß', 'ss');
 
-async function runAuth(params) {
-    const url = `https://nominatim.openstreetmap.org/search?${params.toString()}`;
-    console.log(`URL: ${url}`);
+                const nameRu = item.display_name.split(',')[0].toLowerCase();
 
-    try {
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'Svoi.de-Debug-Script/1.0'
+                let triggers = [name[0]];
+                if (nameRu[0] !== name[0]) triggers.push(nameRu[0]);
+                triggers.push(name.substring(0, 2));
+                if (nameRu.length >= 2) triggers.push(nameRu.substring(0, 2));
+
+                // Add simple name variations
+                triggers.push(simpleName[0]);
+                triggers.push(simpleName.substring(0, 2));
+
+                triggers = [...new Set(triggers)];
+
+                console.log(`  {`);
+                console.log(`    names: ["${name}", "${simpleName}", "${nameRu}"],`);
+                console.log(`    triggers: ${JSON.stringify(triggers)},`);
+                console.log(`    data: {`);
+                console.log(`       place_id: ${item.place_id},`);
+                console.log(`       osm_id: ${item.osm_id},`);
+                console.log(`       osm_type: "${item.osm_type}",`);
+                console.log(`       lat: "${item.lat}",`);
+                console.log(`       lon: "${item.lon}",`);
+                console.log(`       display_name: "${item.display_name.replace(/"/g, '\\"')}",`);
+                console.log(`       class: "${item.class}",`);
+                console.log(`       type: "${item.type}",`);
+                console.log(`       importance: ${item.importance},`);
+                console.log(`       address: ${JSON.stringify(item.address)}`);
+                console.log(`    }`);
+                console.log(`  },`);
             }
-        });
-        const data = await response.json();
-
-        if (data.length === 0) console.log("No results.");
-        data.forEach((item, index) => {
-            console.log(JSON.stringify(item, null, 2));
-        });
-    } catch (error) {
-        console.error("Error:", error);
+        } catch (e) {
+            console.error(e);
+        }
+        await new Promise(r => setTimeout(r, 1100)); // Rate limit respect
     }
+    console.log("];");
 }
 
-// async function testNominatim() { // Refactored above to run directly
-//     ...
-// }
-
-testNominatim();
+fetchMajorCities();

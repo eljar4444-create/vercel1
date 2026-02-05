@@ -40,23 +40,133 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
     const debouncedValue = useDebounce(value, 300);
 
     // Major cities manual boost (to fix Nominatim ranking issues for short prefixes)
-    const MAJOR_CITIES = [
+    // Generated via script for top ~20 German cities
+    const MAJOR_CITIES: { names: string[], triggers: string[], data: NominatimResult }[] = [
         {
-            names: ["berlin", "берлин"],
-            triggers: ["ber", "бер"],
+            names: ["berlin", "berlin", "берлин"],
+            triggers: ["b", "б", "be", "бе"],
             data: {
-                place_id: 133170383,
-                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
-                osm_type: "relation",
-                osm_id: 62422,
-                boundingbox: ["52.3382448", "52.6755087", "13.0883450", "13.7611609"],
-                lat: "52.5173885",
-                lon: "13.3951309",
-                display_name: "Берлин, Германия",
-                class: "boundary",
-                type: "administrative",
-                importance: 0.8522196536088086
-            } as NominatimResult
+                place_id: 134131805, osm_id: 62422, osm_type: "relation", lat: "52.5173885", lon: "13.3951309",
+                display_name: "Берлин, Германия", class: "boundary", type: "administrative", importance: 0.8522196536088086,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["hamburg", "hamburg", "гамбург"],
+            triggers: ["h", "г", "ha", "га"],
+            data: {
+                place_id: 129789555, osm_id: 62782, osm_type: "relation", lat: "53.5503410", lon: "10.0006540",
+                display_name: "Гамбург, Германия", class: "boundary", type: "administrative", importance: 0.7877290162608149,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["münchen", "munchen", "мюнхен"],
+            triggers: ["m", "м", "mü", "мю", "mu"],
+            data: {
+                place_id: 117581410, osm_id: 62428, osm_type: "relation", lat: "48.1371079", lon: "11.5753822",
+                display_name: "Мюнхен, Бавария, Германия", class: "boundary", type: "administrative", importance: 0.8105981661589455,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["köln", "koln", "кёльн"],
+            triggers: ["k", "к", "kö", "кё", "ko"],
+            data: {
+                place_id: 106066015, osm_id: 62578, osm_type: "relation", lat: "50.9383610", lon: "6.9599740",
+                display_name: "Кёльн, Северный Рейн — Вестфалия, Германия", class: "boundary", type: "administrative", importance: 0.7583028574734825,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["frankfurt am main", "frankfurt am main", "франкфурт-на-майне"],
+            triggers: ["f", "ф", "fr", "фр"],
+            data: {
+                place_id: 127334826, osm_id: 62400, osm_type: "relation", lat: "50.1106444", lon: "8.6820917",
+                display_name: "Франкфурт-на-Майне, Гессен, Германия", class: "boundary", type: "administrative", importance: 0.7473970382925892,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["stuttgart", "stuttgart", "штутгарт"],
+            triggers: ["s", "ш", "st", "шт"],
+            data: {
+                place_id: 112463238, osm_id: 2793104, osm_type: "relation", lat: "48.7784485", lon: "9.1800132",
+                display_name: "Штутгарт, Баден-Вюртемберг, Германия", class: "boundary", type: "administrative", importance: 0.7482923125603024,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["düsseldorf", "dusseldorf", "дюссельдорф"],
+            triggers: ["d", "д", "dü", "дю", "du"],
+            data: {
+                place_id: 102124007, osm_id: 62539, osm_type: "relation", lat: "51.2254018", lon: "6.7763137",
+                display_name: "Дюссельдорф, Северный Рейн — Вестфалия, Германия", class: "boundary", type: "administrative", importance: 0.7310605525031979,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["dortmund", "dortmund", "дортмунд"],
+            triggers: ["d", "д", "do", "до"],
+            data: {
+                place_id: 103955318, osm_id: 1829065, osm_type: "relation", lat: "51.5142273", lon: "7.4652789",
+                display_name: "Дортмунд, Северный Рейн — Вестфалия, Германия", class: "boundary", type: "administrative", importance: 0.6915985025910664,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["essen", "essen", "эссен"],
+            triggers: ["e", "э", "es", "эс"],
+            data: {
+                place_id: 129798031, osm_id: 62713, osm_type: "relation", lat: "51.4582235", lon: "7.0158171",
+                display_name: "Эссен, Северный Рейн — Вестфалия, Германия", class: "boundary", type: "administrative", importance: 0.7490212042129525,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["leipzig", "leipzig", "лейпциг"],
+            triggers: ["l", "л", "le", "ле"],
+            data: {
+                place_id: 130193233, osm_id: 62649, osm_type: "relation", lat: "51.3406321", lon: "12.3747329",
+                display_name: "Лейпциг, Саксония, Германия", class: "boundary", type: "administrative", importance: 0.7139199216773322,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["bremen", "bremen", "бремен"],
+            triggers: ["b", "б", "br", "бр"],
+            data: {
+                place_id: 133221971, osm_id: 62718, osm_type: "relation", lat: "53.0758196", lon: "8.8071646",
+                display_name: "Бремен, Германия", class: "boundary", type: "administrative", importance: 0.7127197721039941,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["dresden", "dresden", "дрезден"],
+            triggers: ["d", "д", "dr", "др"],
+            data: {
+                place_id: 104278453, osm_id: 191645, osm_type: "relation", lat: "51.0493286", lon: "13.7383200",
+                display_name: "Дрезден, Саксония, Германия", class: "boundary", type: "administrative", importance: 0.70994508906933,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["hannover", "hannover", "ганновер"],
+            triggers: ["h", "г", "ha", "га"],
+            data: {
+                place_id: 133469904, osm_id: 62723, osm_type: "relation", lat: "52.3744779", lon: "9.7385532",
+                display_name: "Ганновер, Нижняя Саксония, Германия", class: "boundary", type: "administrative", importance: 0.7389148464627151,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
+        },
+        {
+            names: ["nürnberg", "nurnberg", "нюрнберг"],
+            triggers: ["n", "н", "nü", "ню", "nu"],
+            data: {
+                place_id: 134105139, osm_id: 62780, osm_type: "relation", lat: "49.4538720", lon: "11.0772980",
+                display_name: "Нюрнберг, Бавария, Германия", class: "boundary", type: "administrative", importance: 0.7303362157774903,
+                licence: "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright", boundingbox: []
+            } as unknown as NominatimResult
         }
     ];
 
@@ -68,13 +178,14 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
     // Fetch suggestions
     useEffect(() => {
         const fetchSuggestions = async () => {
-            if (!debouncedValue || debouncedValue.length < 2) {
+            // Allow 1 char search if it matches major city triggers
+            const queryLower = debouncedValue?.toLowerCase() || '';
+            const isMajorTrigger = MAJOR_CITIES.some(city => city.triggers.includes(queryLower));
+
+            if (!debouncedValue || (debouncedValue.length < 2 && !isMajorTrigger)) {
                 setSuggestions([]);
                 return;
             }
-
-            // prevent searching if we just selected an item (heuristic: exact match with top result? No, simpler to just let it search or block via a flag. 
-            // For now, let's just search. Nominatim is free but we should be gentle.)
 
             setIsLoading(true);
             try {
@@ -83,45 +194,76 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
                     q: debouncedValue,
                     format: 'json',
                     addressdetails: '1',
-                    limit: '5',
-                    countrycodes: 'de', // Limit to Germany as per previous context
-                    'accept-language': 'ru' // Prefer Russian if possible, or de
+                    limit: '20', // Fetch more to allow for filtering
+                    countrycodes: 'de',
+                    'accept-language': 'ru'
                 });
 
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 let data: NominatimResult[] = await response.json();
 
-                // Manual Boost Logic
-                const queryLower = debouncedValue.toLowerCase();
+                // 1. FILTERING (Keep only cities/towns/major places)
+                // Filter out obviously non-city types (streets, buildings, shops)
+                data = data.filter(item => {
+                    const type = item.type;
+                    const resultClass = item.class;
 
+                    // Always exclude these
+                    if (['building', 'amenity', 'shop', 'office', 'highway', 'landuse', 'aeroway', 'tourism', 'railway', 'waterway', 'man_made', 'leisure'].includes(resultClass)) return false;
+                    if (['building', 'house', 'yes', 'apartments', 'industrial', 'commercial', 'retail', 'residential', 'tertiary', 'secondary', 'primary', 'track', 'path', 'cycleway', 'footway', 'motel', 'hotel', 'attraction', 'viewpoint', 'museum'].includes(type)) return false;
+
+                    // Strictly allow these (or if class=boundary/place)
+                    const isPlace = resultClass === 'boundary' || resultClass === 'place';
+                    const isCityLike = ['city', 'town', 'village', 'hamlet', 'administrative', 'municipality'].includes(type);
+
+                    return isPlace && isCityLike;
+                });
+
+                // 2. BOOSTING (Inject major cities if missing)
                 for (const city of MAJOR_CITIES) {
-                    // Check if query matches a trigger (start of city name)
-                    const isTrigger = city.triggers.some(t => queryLower.startsWith(t));
+                    const formattedQuery = queryLower.trim();
+                    // Check if query matches a trigger OR is the start of the name
+                    const isTrigger = city.triggers.includes(formattedQuery) || city.names.some(n => n.startsWith(formattedQuery));
 
                     if (isTrigger) {
-                        // Check if city is NOT already in top results (fuzzy check by ID or name)
                         const exists = data.some(d =>
                             d.osm_id === city.data.osm_id ||
                             city.names.some(n => d.display_name.toLowerCase().includes(n))
                         );
 
                         if (!exists) {
-                            // Prepend to results
-                            data = [city.data, ...data];
+                            data.push(city.data);
                         }
                     }
                 }
 
-                setSuggestions(data);
+                // 3. SORTING (By Importance descending)
+                // data.sort((a, b) => b.importance - a.importance); // simple numeric sort
+
+                // Refined sort: Boost exact name matches to top, then importance
+                data.sort((a, b) => {
+                    // Start-of-string match priority
+                    const aName = a.display_name.toLowerCase().split(',')[0];
+                    const bName = b.display_name.toLowerCase().split(',')[0];
+                    const aStarts = aName.startsWith(queryLower);
+                    const bStarts = bName.startsWith(queryLower);
+
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
+
+                    return b.importance - a.importance;
+                });
+
+                setSuggestions(data.slice(0, 10)); // Limit to top 10 after filter/sort
             } catch (error) {
                 console.error("Nominatim search error:", error);
 
-                // Fallback: If network fails but we match a major city, show it
-                const queryLower = debouncedValue.toLowerCase();
+                // Fallback
+                const queryLower = debouncedValue?.toLowerCase() || '';
                 const fallbackSuggestions: NominatimResult[] = [];
                 for (const city of MAJOR_CITIES) {
-                    if (city.triggers.some(t => queryLower.startsWith(t))) {
+                    if (city.triggers.includes(queryLower) || city.names.some(n => n.startsWith(queryLower))) {
                         fallbackSuggestions.push(city.data);
                     }
                 }
