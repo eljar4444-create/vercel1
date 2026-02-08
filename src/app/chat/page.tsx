@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import axios from 'axios';
-import { Loader2, Send, User, MessageSquare } from 'lucide-react';
+import { Loader2, Send, User, MessageSquare, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -148,7 +148,10 @@ export default function ChatPage() {
         <div className="container mx-auto px-4 py-8 h-[calc(100vh-100px)] max-w-[1200px] mt-20">
             <div className="grid grid-cols-1 md:grid-cols-4 h-full gap-6 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                 {/* Sidebar (1 column) */}
-                <div className="col-span-1 border-r border-gray-100 flex flex-col h-full bg-gray-50/50 min-w-[300px]">
+                <div className={cn(
+                    "col-span-1 border-r border-gray-100 flex-col h-full bg-gray-50/50 min-w-[300px]",
+                    selectedChatId ? "hidden md:flex" : "flex"
+                )}>
                     <div className="p-4 border-b border-gray-100 bg-white">
                         <h2 className="font-bold text-lg">Сообщения</h2>
                     </div>
@@ -207,11 +210,22 @@ export default function ChatPage() {
                 </div>
 
                 {/* Chat Area (2 columns) */}
-                <div className="col-span-1 md:col-span-2 flex flex-col h-full bg-white border-r border-gray-100">
+                <div className={cn(
+                    "col-span-1 md:col-span-2 flex-col h-full bg-white border-r border-gray-100",
+                    selectedChatId ? "flex" : "hidden md:flex"
+                )}>
                     {selectedChatId ? (
                         <>
                             {/* Chat Header */}
                             <div className="p-4 border-b border-gray-100 flex items-center gap-3 shadow-sm z-10">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="md:hidden -ml-2"
+                                    onClick={() => setSelectedChatId(null)}
+                                >
+                                    <ArrowLeft className="w-5 h-5" />
+                                </Button>
                                 <h3 className="font-bold">Чат</h3>
                                 {conversations.find(c => c.id === selectedChatId)?.serviceTitle && (
                                     <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
