@@ -172,10 +172,10 @@ export function Header() {
     // PUBLIC / CLIENT HEADER
     return (
         <header className={cn(
-            "fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-24 flex items-center transition-all duration-200",
+            "fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 min-h-[6rem] flex flex-col justify-center transition-all duration-200",
             scrolled && "shadow-sm"
         )}>
-            <div className="container mx-auto px-4 flex justify-between items-center h-full max-w-7xl">
+            <div className="container mx-auto px-4 flex justify-between items-center h-24 max-w-7xl w-full">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-2">
                     <img src="/logo.png?v=6" alt="Svoi.de" className="h-20 w-auto object-contain" />
@@ -270,6 +270,43 @@ export function Header() {
                     )}
                 </div>
             </div>
+
+            {/* Mobile Navigation (Scrollable) */}
+            <nav className="xl:hidden w-full overflow-x-auto pb-3 px-4 flex items-center gap-6 font-medium text-[14px] whitespace-nowrap scrollbar-hide">
+                <Link
+                    href="/create-order"
+                    className={cn("transition-colors", pathname === '/create-order' ? "text-blue-600 font-bold" : "text-gray-500 hover:text-black")}
+                >
+                    Создать заказ
+                </Link>
+                <Link
+                    href="/search"
+                    className={cn("transition-colors", pathname?.startsWith('/search') || pathname?.startsWith('/profile/') ? "text-blue-600 font-bold" : "text-gray-500 hover:text-black")}
+                >
+                    Найти специалиста
+                </Link>
+                <Link
+                    href="/my-orders"
+                    className={cn("transition-colors", pathname === '/my-orders' ? "text-blue-600 font-bold" : "text-gray-500 hover:text-black")}
+                >
+                    Мои заказы
+                </Link>
+                {user?.role === 'PROVIDER' ? (
+                    <Link
+                        href="/provider/profile"
+                        className={cn("transition-colors", pathname?.startsWith('/provider') ? "text-blue-600 font-bold" : "text-gray-500 hover:text-black")}
+                    >
+                        Кабинет исполнителя
+                    </Link>
+                ) : (
+                    <Link
+                        href="/auth/register?role=provider"
+                        className={cn("transition-colors", pathname === '/auth/register' ? "text-blue-600 font-bold" : "text-gray-500 hover:text-black")}
+                    >
+                        Стать исполнителем
+                    </Link>
+                )}
+            </nav>
         </header >
     );
 }
