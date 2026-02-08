@@ -21,9 +21,21 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { address, city, latitude, longitude, serviceRadius } = schema.parse(body);
 
-        const profile = await prisma.providerProfile.update({
+        const profile = await prisma.providerProfile.upsert({
             where: { userId: session.user.id },
-            data: {
+            create: {
+                userId: session.user.id!,
+                address,
+                city,
+                latitude,
+                longitude,
+                serviceRadius: serviceRadius || 10,
+                type: "PRIVATE", // Default
+                rating: 0,
+                reviewCount: 0,
+                verificationStatus: "IDLE"
+            },
+            update: {
                 address,
                 city,
                 latitude,
@@ -31,6 +43,19 @@ export async function POST(req: Request) {
                 serviceRadius
             },
         });
+
+        // Ensure User role is PROVIDER
+        const currentUser = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { role: true }
+        });
+
+        if (currentUser?.role !== 'ADMIN' && currentUser?.role !== 'PROVIDER') {
+            await prisma.user.update({
+                where: { id: session.user.id },
+                data: { role: 'PROVIDER' }
+            });
+        }
 
         return NextResponse.json({ success: true, profile });
     } catch (error: any) {

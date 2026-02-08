@@ -26,11 +26,32 @@ export async function POST(req: Request) {
             });
         }
 
-        // Update Provider bio
-        await prisma.providerProfile.update({
+        // Update Provider bio (Upsert to ensure it exists)
+        await prisma.providerProfile.upsert({
             where: { userId: session.user.id },
-            data: { bio },
+            create: {
+                userId: session.user.id!,
+                bio,
+                type: "PRIVATE", // Default if missing
+                rating: 0,
+                reviewCount: 0,
+                verificationStatus: "IDLE"
+            },
+            update: { bio },
         });
+
+        // Ensure User role is PROVIDER (Just in case)
+        const currentUser = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { role: true }
+        });
+
+        if (currentUser?.role !== 'ADMIN' && currentUser?.role !== 'PROVIDER') {
+            await prisma.user.update({
+                where: { id: session.user.id },
+                data: { role: 'PROVIDER' }
+            });
+        }
 
         return NextResponse.json({ success: true });
     } catch (error: any) {
