@@ -247,7 +247,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
             </div>
 
             {isFocused && (suggestions.length > 0 || isLoading) && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 text-left animate-fade-in max-h-80 overflow-y-auto">
+                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-[100] text-left animate-fade-in max-h-80 overflow-y-auto">
 
                     {!isLoading && suggestions.length > 0 && (
                         suggestions.map((item) => (
