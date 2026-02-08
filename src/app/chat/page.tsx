@@ -211,7 +211,7 @@ export default function ChatPage() {
 
                 {/* Chat Area (2 columns) */}
                 <div className={cn(
-                    "col-span-1 md:col-span-2 flex-col h-full bg-white border-r border-gray-100",
+                    "col-span-1 md:col-span-2 flex-col h-full bg-white border-r border-gray-100 min-h-0",
                     selectedChatId ? "flex" : "hidden md:flex"
                 )}>
                     {selectedChatId ? (
@@ -276,7 +276,7 @@ export default function ChatPage() {
                             </div>
 
                             {/* Input */}
-                            <div className="p-4 border-t border-gray-100 bg-white">
+                            <div className="p-4 border-t border-gray-100 bg-white relative z-20">
                                 <form onSubmit={handleSendMessage} className="flex gap-2">
                                     <input
                                         type="text"
