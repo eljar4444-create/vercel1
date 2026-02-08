@@ -65,12 +65,8 @@ export function ServiceCard({ service, variant = 'vertical' }: { service: Servic
             window.location.href = '/auth/login';
             return;
         }
-
         const user = session.user;
-        if (user.role === 'PROVIDER') {
-            toast.error('Обнаружен аккаунт исполнителя. Пожалуйста, войдите как клиент.');
-            return;
-        }
+
 
         if (!message.trim()) {
             toast.error('Пожалуйста, введите сообщение');
