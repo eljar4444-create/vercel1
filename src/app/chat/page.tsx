@@ -182,14 +182,14 @@ export default function ChatPage() {
                                     )}
                                 >
                                     <div className="relative shrink-0">
-                                        {chat.interlocutor.image ? (
-                                            <img src={chat.interlocutor.image} alt={chat.interlocutor.name || ''} className="w-10 h-10 rounded-full object-cover" />
+                                        {chat.interlocutor?.image ? (
+                                            <img src={chat.interlocutor?.image} alt={chat.interlocutor?.name || ''} className="w-10 h-10 rounded-full object-cover" />
                                         ) : (
                                             <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
                                                 <User className="w-5 h-5" />
                                             </div>
                                         )}
-                                        {chat.unreadCount > 0 && (
+                                        {(chat.unreadCount ?? 0) > 0 && (
                                             <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white ring-2 ring-white">
                                                 {chat.unreadCount}
                                             </span>
@@ -198,10 +198,10 @@ export default function ChatPage() {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-baseline mb-1">
                                             <h3 className={cn("text-sm truncate", chat.unreadCount > 0 ? "font-bold text-black" : "font-semibold")}>
-                                                {chat.interlocutor.name}
+                                                {chat.interlocutor?.name}
                                             </h3>
                                             <span className="text-[10px] text-gray-400">
-                                                {format(new Date(chat.updatedAt), 'HH:mm')}
+                                                {chat.lastMessageTime ? format(new Date(chat.lastMessageTime), 'HH:mm') : ''}
                                             </span>
                                         </div>
                                         <p className="text-xs text-blue-600 font-medium truncate mb-0.5">{chat.serviceTitle}</p>
