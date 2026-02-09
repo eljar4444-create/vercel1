@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import toast from 'react-hot-toast';
 
 interface Conversation {
     id: string;
@@ -126,9 +127,12 @@ export default function ChatPage() {
             // Replace temp message with real one or just refetch
             // For simplicity, we assume success and just let the poll or next fetch sync exact ID
             fetchConversations(); // Update last message in sidebar
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error sending message', error);
-            // Allow retry? Remove optimistic?
+            toast.error(`Ошибка при отправке: ${error.response?.data?.details || error.message || 'Неизвестная ошибка'}`);
+
+            // Remove the optimistic message on error
+            setMessages(prev => prev.filter(m => m.id !== optimisiticMessage.id));
         }
     };
 
