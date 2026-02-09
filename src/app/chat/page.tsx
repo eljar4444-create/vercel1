@@ -217,13 +217,13 @@ export default function ChatPage() {
 
                 {/* Chat Area (2 columns) */}
                 <div className={cn(
-                    "col-span-1 md:col-span-2 flex-col h-full bg-white border-r border-gray-100 min-h-0",
+                    "col-span-1 md:col-span-2 flex flex-col h-full bg-white border-r border-gray-100",
                     selectedChatId ? "flex" : "hidden md:flex"
                 )}>
                     {selectedChatId ? (
                         <>
                             {/* Chat Header */}
-                            <div className="p-4 border-b border-gray-100 flex items-center gap-3 shadow-sm z-10">
+                            <div className="p-4 border-b border-gray-100 flex items-center gap-3 shadow-sm z-10 flex-shrink-0">
                                 <Button
                                     variant="ghost"
                                     size="icon"
@@ -284,7 +284,7 @@ export default function ChatPage() {
                             </div>
 
                             {/* Input */}
-                            <div className="p-4 border-t border-gray-100 bg-white relative z-20">
+                            <div className="p-4 border-t border-gray-100 bg-white relative z-20 flex-shrink-0">
                                 <form onSubmit={handleSendMessage} className="flex gap-2">
                                     <input
                                         type="text"
