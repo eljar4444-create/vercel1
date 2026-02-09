@@ -160,8 +160,8 @@ export default function ChatPage() {
     return (
         <div className={cn(
             "container mx-auto px-0 md:px-4 max-w-[1200px] transition-all",
-            "h-[calc(100svh-130px)] md:h-[calc(100vh-140px)] mt-0 md:mt-4 mb-0 md:mb-4",
-            "flex flex-col overscroll-none"
+            "h-[calc(100dvh-150px)] md:h-[calc(100vh-140px)] mt-0 md:mt-4 mb-0 md:mb-4",
+            "flex flex-col overscroll-none overflow-hidden relative"
         )}>
             <div className="grid grid-cols-1 md:grid-cols-4 h-full md:gap-4 bg-white md:rounded-xl shadow-lg md:border border-gray-100 overflow-hidden relative flex-1 min-h-0">
                 {/* Sidebar (1 column) */}
