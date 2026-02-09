@@ -23,7 +23,7 @@ export default function ChatPageSimple() {
         }
     }, [selectedId]);
 
-    const send = async (e) => {
+    const send = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim()) return;
         try {
@@ -87,7 +87,7 @@ export default function ChatPageSimple() {
                         <form onSubmit={send} style={{ padding: '10px', borderTop: '1px solid #ccc', display: 'flex', gap: '10px' }}>
                             <input
                                 value={input}
-                                onChange={e => setInput(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
                                 placeholder="Type a message..."
                                 style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
                             />
