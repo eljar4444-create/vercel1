@@ -150,8 +150,11 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="container mx-auto px-0 md:px-4 h-[calc(100dvh-80px)] md:h-[calc(100vh-140px)] max-w-[1200px] mt-0 md:mt-4 mb-0 md:mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 h-full md:gap-4 bg-white md:rounded-xl shadow-lg border-b md:border border-gray-100 overflow-hidden relative">
+        <div className={cn(
+            "container mx-auto px-0 md:px-4 max-w-[1200px] md:mt-4 md:mb-4 transition-all pb-0",
+            "fixed inset-x-0 top-[112px] bottom-0 z-10 md:relative md:top-0 md:h-[calc(100vh-140px)]"
+        )}>
+            <div className="grid grid-cols-1 md:grid-cols-4 h-full md:gap-4 bg-white md:rounded-xl shadow-lg md:border border-gray-100 overflow-hidden relative">
                 {/* Sidebar (1 column) */}
                 <div className={cn(
                     "col-span-1 border-r border-gray-100 flex flex-col h-full bg-white md:bg-gray-50/50 md:min-w-[300px] overflow-hidden",
