@@ -12,13 +12,13 @@ import { ru } from 'date-fns/locale';
 interface Conversation {
     id: string;
     serviceTitle: string;
-    lastMessage: string;
-    updatedAt: string;
-    unreadCount: number;
-    interlocutor: {
+    lastMessage?: string;
+    lastMessageTime?: string;
+    unreadCount?: number;
+    interlocutor?: {
+        id: string;
         name: string | null;
         image: string | null;
-        email: string | null;
     };
 }
 
@@ -31,7 +31,7 @@ interface Message {
         id: string;
         name: string | null;
         image: string | null;
-    } | null;
+    };
 }
 
 export default function ChatPage() {
