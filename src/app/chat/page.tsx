@@ -149,18 +149,18 @@ export default function ChatPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 h-[calc(100vh-100px)] max-w-[1200px] mt-20">
-            <div className="grid grid-cols-1 md:grid-cols-4 h-full gap-6 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="container mx-auto px-4 h-[calc(100vh-140px)] max-w-[1200px] mt-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 h-full gap-4 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
                 {/* Sidebar (1 column) */}
                 <div className={cn(
-                    "col-span-1 border-r border-gray-100 flex-col h-full bg-gray-50/50 min-w-[300px]",
+                    "col-span-1 border-r border-gray-100 flex flex-col h-full bg-gray-50/50 min-w-[300px] overflow-hidden",
                     selectedChatId ? "hidden md:flex" : "flex"
                 )}>
-                    <div className="p-4 border-b border-gray-100 bg-white">
+                    <div className="p-4 border-b border-gray-100 bg-white flex-shrink-0">
                         <h2 className="font-bold text-lg">Сообщения</h2>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-2 space-y-2">
+                    <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-0">
                         {conversations.length === 0 ? (
                             <div className="text-center py-10 text-gray-400">
                                 <MessageSquare className="w-10 h-10 mx-auto mb-2 opacity-50" />
@@ -243,7 +243,7 @@ export default function ChatPage() {
                             {/* Messages */}
                             <div
                                 ref={messagesContainerRef}
-                                className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/30"
+                                className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/30 min-h-0"
                             >
                                 {messages.map((msg, idx) => {
                                     const isMe = msg.senderId === session.user.id;
@@ -313,7 +313,7 @@ export default function ChatPage() {
                 </div>
 
                 {/* Service Info Panel (1 column) */}
-                <div className="col-span-1 hidden md:flex flex-col h-full bg-gray-50/30 p-6 overflow-y-auto">
+                <div className="col-span-1 hidden md:flex flex-col h-full bg-gray-50/30 p-6 overflow-y-auto min-h-0">
                     {selectedChatId && currentService ? (
                         <div className="space-y-6">
                             <h3 className="font-bold text-gray-900 text-lg">Информация об услуге</h3>
