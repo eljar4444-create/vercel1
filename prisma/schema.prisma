@@ -4,8 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL")
-  directUrl = env("POSTGRES_URL_NON_POOLING")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -26,7 +25,51 @@ model User {
   reviews         Review[]         @relation("ClientReviews")
   sessions        Session[]
   chatMessages    ChatMessage[]
+  
+  // Link to new Directory Profile
+  directoryProfile Profile?
 }
+
+// --- NEW SERVICE DIRECTORY MODELS ---
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  icon        String?
+  form_schema Json      // Dynamic questions for the category
+  profiles    Profile[]
+}
+
+model Profile {
+  id          Int       @id @default(autoincrement())
+  user_email  String    @unique
+  name        String
+  city        String
+  address     String?
+  category_id Int
+  attributes  Json      // Flexible data: { "home_visit": true, etc. }
+  image_url   String?   // Vercel Blob link
+  is_vip      Boolean   @default(false)
+  created_at  DateTime  @default(now())
+
+  category    Category  @relation(fields: [category_id], references: [id])
+  services    DirectoryService[]
+  user        User?     @relation(fields: [user_email], references: [email])
+}
+
+model DirectoryService {
+  id         Int      @id @default(autoincrement())
+  profile_id Int
+  title      String
+  price      Decimal  @db.Decimal(10, 2)
+  duration   Int      // in minutes
+
+  profile    Profile  @relation(fields: [profile_id], references: [id])
+}
+
+// --- KEEPING EXISTING MODELS FOR COMPATIBILITY ---
+// (Renaming existing Service to avoid conflict)
 
 model Account {
   id                String   @id @default(uuid())
@@ -77,7 +120,7 @@ model ProviderProfile {
   age                Int?
   contactTime        String?
   education          String?
-  type               String                 @default("PRIVATE") // PRIVATE, SALON
+  type               String                 @default("PRIVATE")
   address            String?
   city               String?
   latitude           Float?
@@ -125,7 +168,7 @@ model Service {
   schedule          String?
   workTime          String?
   
-  priceList        String? // JSON string: [{description: string, price: number}]
+  priceList        String? // JSON string
 
   requests          Request[]
   reviews           Review[]
@@ -217,3 +260,4 @@ model ProviderSubscription {
   plan              SubscriptionPlan @relation(fields: [planId], references: [id])
   providerProfile   ProviderProfile  @relation(fields: [providerProfileId], references: [id], onDelete: Cascade)
 }
+
