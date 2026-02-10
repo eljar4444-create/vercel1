@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "build": "export DATABASE_URL=${DATABASE_URL:-$storage1_POSTGRES_PRISMA_URL} && node scripts/check-env.js && npx prisma generate && npx prisma db push && next build",
+        "build": "npx prisma generate && npx prisma db push && next build",
         "start": "next start",
         "lint": "next lint",
         "sync:categories": "ts-node scripts/sync-categories.ts"
