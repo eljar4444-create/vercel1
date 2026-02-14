@@ -17,8 +17,8 @@ interface User {
     image: string | null;
     bio: string | null;
     role: string;
-    _count: {
-        orders: number;
+    _count?: {
+        // orders: number; // Deleted
     }
 }
 
@@ -87,13 +87,7 @@ export function AccountView({ user }: { user: User }) {
 
                 <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                     <nav className="flex flex-col p-2">
-                        <Link href="/my-orders" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 transition">
-                            <Package className="w-5 h-5 text-blue-500" />
-                            <div>
-                                <div className="font-medium">Мои заказы</div>
-                                <div className="text-xs text-gray-400">Активных заказов: {user._count.orders}</div>
-                            </div>
-                        </Link>
+                        {/* Orders Link Removed */}
                         <button onClick={() => signOut()} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-red-600 transition text-left w-full mt-2">
                             <LogOut className="w-5 h-5" />
                             <div className="font-medium">Выйти</div>

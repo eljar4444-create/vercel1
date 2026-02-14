@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import { authConfig } from "./auth.config"
-import { PrismaAdapter } from "@auth/prisma-adapter"
+// import { PrismaAdapter } from "@auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
@@ -8,30 +8,13 @@ import { cookies } from "next/headers"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig,
-    adapter: PrismaAdapter(prisma),
+    // adapter: PrismaAdapter(prisma), // Disabled due to missing Account/Session tables
     session: { strategy: "jwt" },
-    events: {
-        async createUser({ user }) {
-            try {
-                const cookieStore = cookies()
-                const role = cookieStore.get("new-user-role")?.value
-
-                if (role === "PROVIDER") {
-                    await prisma.user.update({
-                        where: { id: user.id! },
-                        data: { role: "PROVIDER" },
-                    })
-
-                    await prisma.providerProfile.create({
-                        data: { userId: user.id! }
-                    })
-                }
-            } catch (error) {
-                console.error("Error in createUser event:", error)
-                // Do not throw, so the user session is still created
-            }
-        },
-    },
+    // events: {
+    //     async createUser({ user }) {
+    //         // Legacy profile creation removed
+    //     },
+    // },
     providers: [
         ...authConfig.providers,
         Credentials({
@@ -82,6 +65,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
 
             // On subsequent calls, fetch fresh data from DB to ensure sync
+            // Note: Use 'sub' to fetch user if needed, but be careful of performance
             if (!user && token.sub) {
                 try {
                     const freshUser = await prisma.user.findUnique({
@@ -104,7 +88,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
             return token
         },
-        session({ session, token }: any) {
+        async session({ session, token }: any) {
             if (session.user) {
                 session.user.role = token.role
                 session.user.id = token.id

@@ -15,11 +15,11 @@ export default async function AccountPage() {
 
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
-        include: {
-            _count: {
-                select: { orders: true }
-            }
-        }
+        // include: {
+        //     _count: {
+        //         select: { orders: true }
+        //     }
+        // }
     });
 
     if (!user) {
