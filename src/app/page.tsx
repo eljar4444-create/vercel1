@@ -27,8 +27,11 @@ export default async function Home() {
         take: 8,
         orderBy: { id: 'desc' },
         include: {
-            profile: true,
-            category: true
+            profile: {
+                include: {
+                    category: true
+                }
+            }
         }
     });
 
@@ -66,7 +69,8 @@ export default async function Home() {
                                     city: service.profile.city,
                                     image_url: service.profile.image_url,
                                     email: service.profile.user_email
-                                }
+                                },
+                                category: service.profile.category
                             }} />
                         ))}
                     </div>
