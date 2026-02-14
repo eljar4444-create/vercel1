@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_PRISMA_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -55,6 +55,7 @@ model DirectoryService {
   id         Int      @id @default(autoincrement())
   profile_id Int
   title      String
+  description String?
   price      Decimal  @db.Decimal(10, 2)
   duration   Int      // in minutes
 

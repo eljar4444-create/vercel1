@@ -3,6 +3,9 @@ import { SearchHero } from '@/components/SearchHero';
 import { HomeCategories } from '@/components/HomeCategories';
 import { ServiceCard } from '@/components/ServiceCard';
 import { auth } from '@/auth';
+import * as Icons from 'lucide-react';
+import Link from 'next/link';
+import { Card } from '@/components/ui/card';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +18,7 @@ export default async function Home() {
     });
 
     // Map Prisma categories to SearchHero format
-    const heroCategories = categoriesData.map(c => ({
+    const heroCategories = categoriesData.map((c: any) => ({
         id: c.id.toString(),
         name: c.name,
         slug: c.slug,
@@ -41,7 +44,25 @@ export default async function Home() {
             <SearchHero categories={heroCategories} user={session?.user} />
 
             {/* Categories Grid (Static/Icon based) */}
-            <HomeCategories />
+            <div className="container mx-auto px-4 py-12">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {/* We use categoriesData because we want icons */}
+                    {categoriesData.map((cat: any) => {
+                        // Dynamically render icon, fallback to Circle
+                        const Icon = (Icons as any)[cat.icon || 'Circle'] || Icons.Circle;
+                        return (
+                            <Link key={cat.id} href={`/search?category=${cat.slug}`} className="group">
+                                <Card className="p-8 hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center text-center gap-4 h-full border-transparent hover:border-blue-100 group-hover:-translate-y-1">
+                                    <div className="p-4 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                                        <Icon className="w-8 h-8" />
+                                    </div>
+                                    <div className="font-semibold text-lg text-gray-800">{cat.name}</div>
+                                </Card>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </div>
 
             {/* Recent Services Feed */}
             {services.length > 0 && (
@@ -51,11 +72,10 @@ export default async function Home() {
                             <h2 className="text-3xl font-bold text-gray-900">Новые задания</h2>
                             <p className="text-gray-500 mt-2">Последние опубликованные услуги и заявки</p>
                         </div>
-                        {/* <Link href="/search" className="text-blue-600 font-medium hover:underline">Смотреть все</Link> */}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {services.map(service => (
+                        {services.map((service: any) => (
                             <ServiceCard key={service.id} service={{
                                 ...service,
                                 id: service.id,
@@ -77,26 +97,26 @@ export default async function Home() {
                 </div>
             )}
 
-            {/* SEO / Info Section (Restoring generic content if needed) */}
+            {/* SEO / Info Section */}
             <div className="container mx-auto px-4 py-16 border-t border-gray-200 mt-12">
                 <div className="grid md:grid-cols-3 gap-12 text-center">
                     <div>
                         <div className="w-16 h-16 bg-blue-100/50 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6">
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <Icons.ShieldCheck className="w-8 h-8" />
                         </div>
                         <h3 className="text-xl font-bold mb-3">Проверенные специалисты</h3>
                         <p className="text-gray-500 leading-relaxed">Все исполнители проходят проверку документов и телефона.</p>
                     </div>
                     <div>
                         <div className="w-16 h-16 bg-purple-100/50 rounded-2xl flex items-center justify-center text-purple-600 mx-auto mb-6">
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            <Icons.Search className="w-8 h-8" />
                         </div>
                         <h3 className="text-xl font-bold mb-3">Быстрый поиск</h3>
                         <p className="text-gray-500 leading-relaxed">Создайте задание, и исполнители сами предложат свои услуги.</p>
                     </div>
                     <div>
                         <div className="w-16 h-16 bg-green-100/50 rounded-2xl flex items-center justify-center text-green-600 mx-auto mb-6">
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            <Icons.Lock className="w-8 h-8" />
                         </div>
                         <h3 className="text-xl font-bold mb-3">Безопасная сделка</h3>
                         <p className="text-gray-500 leading-relaxed">Оплата резервируется и переводится исполнителю только после выполнения работы.</p>
