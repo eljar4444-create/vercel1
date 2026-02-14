@@ -47,7 +47,12 @@ export function Header() {
 
                 {/* Navigation */}
                 <nav className="hidden xl:flex items-center gap-6 font-medium text-[14px] whitespace-nowrap">
-                    {/* Legacy links removed */}
+                    <Link href="/search" className="hover:text-blue-600 transition-colors">
+                        Services
+                    </Link>
+                    <Link href="/become-provider" className="hover:text-blue-600 transition-colors">
+                        Become a Pro
+                    </Link>
                 </nav>
 
                 {/* Right Actions */}

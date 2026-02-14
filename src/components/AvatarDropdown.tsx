@@ -67,34 +67,25 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
 
                         {/* Links */}
                         <div className="py-2 flex flex-col">
-                            <Link href="#" className="px-5 py-2 hover:bg-gray-50 text-gray-700 transition-colors">Почта</Link>
-                            <Link href="#" className="px-5 py-2 hover:bg-gray-50 text-gray-700 transition-colors">Написать письмо</Link>
-                            <Link href="#" className="px-5 py-2 hover:bg-gray-50 text-gray-700 transition-colors">Мой диск</Link>
+                            <Link href="/account" className="px-5 py-2 hover:bg-gray-50 text-gray-700 transition-colors">
+                                My Account
+                            </Link>
+                            {/* 
+                            <Link href="/my-orders" className="px-5 py-2 hover:bg-gray-50 text-gray-700 transition-colors">
+                                My Orders
+                            </Link> 
+                            */}
                         </div>
 
                         <div className="h-px bg-gray-100 mx-4" />
 
-                        {/* Add Account */}
-                        <div className="p-4">
-                            <button className="flex items-center gap-3 w-full text-left hover:bg-gray-50 p-2 -ml-2 rounded-lg transition-colors">
-                                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
-                                </div>
-                                <span className="text-gray-700 font-medium">Добавить аккаунт</span>
-                            </button>
-
+                        <div className="p-2">
                             <button
                                 onClick={() => signOut({ callbackUrl: '/' })}
-                                className="w-full text-left px-2 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors mt-1"
+                                className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
-                                Выйти
+                                Log Out
                             </button>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="bg-[#f5f5f7] px-5 py-3 flex justify-between text-xs text-gray-500">
-                            <Link href="#" className="hover:text-gray-800">Настройки</Link>
-                            <Link href="#" className="hover:text-gray-800">Справка</Link>
                         </div>
                     </div>
                 </div>
