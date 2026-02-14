@@ -59,6 +59,9 @@ export function Header() {
                 <div className="flex items-center gap-4 ml-4">
                     {user ? (
                         <div className="flex items-center gap-5 text-gray-400">
+                            <Link href="/chat" className="hover:text-blue-600 transition-colors">
+                                Chat
+                            </Link>
                             <div className="flex flex-col items-end mr-2">
                                 <span className="text-[10px] font-bold text-blue-600">{user.role}</span>
                                 <span className="text-[10px] text-gray-400 max-w-[100px] truncate">{user.email}</span>

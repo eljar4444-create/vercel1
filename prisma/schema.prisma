@@ -21,6 +21,10 @@ model User {
   
   // Link to new Directory Profile
   directoryProfile Profile?
+  
+  // Chat relations
+  chatParticipants ChatParticipant[]
+  sentMessages     Message[]
 }
 
 // --- NEW SERVICE DIRECTORY MODELS ---
@@ -60,6 +64,40 @@ model DirectoryService {
   duration   Int      // in minutes
 
   profile    Profile  @relation(fields: [profile_id], references: [id])
+}
+
+// --- CHAT SYSTEM ---
+
+model Chat {
+  id           String    @id @default(uuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  participants ChatParticipant[]
+  messages     Message[]
+}
+
+model ChatParticipant {
+  id        String   @id @default(uuid())
+  chatId    String
+  userId    String   // User.id
+  joinedAt  DateTime @default(now())
+
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  senderId  String   // User.id
+  content   String
+  createdAt DateTime @default(now())
+  read      Boolean  @default(false)
+
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 // --- KEEPING EXISTING MODELS FOR COMPATIBILITY ---
