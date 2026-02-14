@@ -64,6 +64,18 @@ model DirectoryService {
   duration   Int      // in minutes
 
   profile    Profile  @relation(fields: [profile_id], references: [id])
+
+  // Legacy fields restored for compatibility
+  subcategory  String?   // JSON or comma-separated
+  latitude     Float?
+  longitude    Float?
+  experience   Int?
+  equipment    String?
+  schedule     String?
+  workTime     String?
+  locationType String?   // "У клиента", "У себя", etc.
+  priceList    String?   // JSON
+  photos       Json?     // JSON array of photo URLs
 }
 
 // --- CHAT SYSTEM ---
@@ -103,4 +115,11 @@ model Message {
 // --- KEEPING EXISTING MODELS FOR COMPATIBILITY ---
 // (Renaming existing Service to avoid conflict)
 
-// ALL LEGACY MODELS DELETED
+// Legacy City model restored
+model City {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  latitude  Float?
+  longitude Float?
+}

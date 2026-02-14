@@ -1,112 +1,110 @@
 import { auth } from '@/auth';
-import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { Card, CardContent } from '@/components/ui/card';
-import { Settings, Plus, MapPin } from 'lucide-react';
 
-export default async function ProviderProfilePage() {
+import {
+    PassportVerificationCard, ServicePublicationCard, PublicProfileCard,
+    ProfileStatsGrid, ServicesList, AddSpecialtyButton, ServiceItem
+} from '@/components/provider/DashboardCards';
+import prisma from '@/lib/prisma';
+
+export default async function ProviderProfile() {
     const session = await auth();
-    if (!session?.user) redirect('/auth/login');
 
+    if (!session?.user?.email) {
+        redirect('/auth/login');
+    }
+
+    // Strict role check might be too aggressive if they just signed up, 
+    // but legacy code had it. We keep it or relax it? 
+    // Let's relax it slightly or redirect to "become provider".
+    // Actually, legacy code redirected to '/' if not provider.
+    // We'll keep it simple: if no profile, redirect to become-provider.
+
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+    });
+
+    if (!user) return redirect('/auth/login');
+
+    // Fetch provider profile using new Profile model
+    // We search by user_email
     const profile = await prisma.profile.findUnique({
-        where: { user_email: session.user.email || '' },
+        where: { user_email: user.email! },
         include: {
-            services: true,
+            services: {
+                orderBy: { id: 'desc' }
+            },
             category: true
         }
     });
 
     if (!profile) {
-        return (
-            <div className="container mx-auto px-4 py-24 text-center">
-                <h1 className="text-2xl font-bold mb-4">Профиль исполнителя не найден</h1>
-                <Button asChild>
-                    <Link href="/become-provider">Стать исполнителем</Link>
-                </Button>
-            </div>
-        );
+        // If they have PROVIDER role but no profile, maybe they need onboarding
+        if (user.role === 'PROVIDER') {
+            return redirect('/become-provider');
+        }
+        return redirect('/become-provider');
     }
 
+    // Map new fields to legacy expected props
+    const verificationStatus = profile.is_vip ? 'APPROVED' : 'IDLE';
+    const address = profile.address || profile.city || '';
+
+    // Bio is on User model in new schema
+    const bio = user.bio || '';
+
+    // Services mapping
+    const services: ServiceItem[] = profile.services.map(s => ({
+        id: s.id,
+        title: s.title,
+        description: s.description,
+        price: s.price,
+        categoryName: profile.category.name, // All services share profile category in new schema
+        status: 'APPROVED' // Default to approved for now as we don't have status in DirectoryService
+    }));
+
+    // Count unique specialties? In new schema, profile has ONE category.
+    // So specialties count is 1 if category exists.
+    const specialtiesCount = profile.category ? 1 : 0;
+
     return (
-        <div className="min-h-screen bg-gray-50 pt-24 pb-12">
-            <div className="container mx-auto px-4 max-w-5xl">
-                {/* Header Section */}
-                <div className="flex justify-between items-start mb-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="flex items-center gap-6">
-                        <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border border-gray-200">
-                            {profile.image_url ? (
-                                <img src={profile.image_url} alt={profile.name} className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="text-3xl font-bold text-gray-400">{profile.name[0]}</div>
-                            )}
-                        </div>
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">{profile.name}</h1>
-                            <div className="flex items-center gap-2 text-gray-500 mt-1">
-                                <MapPin className="w-4 h-4" />
-                                <span>{profile.city}</span>
-                            </div>
-                            <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-sm font-medium border border-blue-100">
-                                {profile.category.name}
-                            </div>
-                        </div>
-                    </div>
-                    <Button variant="outline" asChild>
-                        <Link href="/provider/settings" className="flex items-center gap-2">
-                            <Settings className="w-4 h-4" />
-                            Настройки
-                        </Link>
-                    </Button>
-                </div>
-
-                {/* Services Section */}
-                <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-gray-900">Мои услуги</h2>
-                        <Button asChild size="sm" className="bg-black hover:bg-gray-800 text-white">
-                            <Link href="/services/new" className="flex items-center gap-2">
-                                <Plus className="w-4 h-4" />
-                                Добавить услугу
-                            </Link>
-                        </Button>
-                    </div>
-
-                    <div className="grid gap-4">
-                        {profile.services.length > 0 ? (
-                            profile.services.map(service => (
-                                <Card key={service.id} className="group hover:shadow-md transition-shadow duration-200 border-gray-200">
-                                    <CardContent className="p-6 flex justify-between items-center">
-                                        <div>
-                                            <h3 className="font-semibold text-lg mb-1">{service.title}</h3>
-                                            <p className="text-gray-500 text-sm mb-2 max-w-xl truncate">{service.description || 'Без описания'}</p>
-                                            <div className="font-medium text-gray-900">
-                                                {Number(service.price).toFixed(2)} €
-                                                <span className="text-gray-400 text-sm font-normal ml-1">
-                                                    / {service.duration} мин
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Button variant="outline" size="sm" asChild>
-                                                <Link href={`/services/${service.id}`}>Просмотр</Link>
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))
-                        ) : (
-                            <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200">
-                                <p className="text-gray-500 mb-4">У вас пока нет активных услуг</p>
-                                <Button asChild variant="outline">
-                                    <Link href="/services/new">Создать первую услугу</Link>
-                                </Button>
-                            </div>
-                        )}
-                    </div>
+        <div className="container mx-auto px-4 py-8 max-w-7xl pt-24">
+            <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold mb-1">{profile.name}</h1>
+                <p className="text-red-500 font-bold flex items-center justify-center gap-2">
+                    {verificationStatus !== 'APPROVED' && (
+                        <>
+                            <span className="bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-[10px]">!</span>
+                            Профиль не прошёл проверку
+                        </>
+                    )}
+                    {verificationStatus === 'APPROVED' && (
+                        <span className="text-green-600">Профиль подтвержден</span>
+                    )}
+                </p>
+                <div className="mt-4">
+                    <a href="/provider/profile/edit" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">
+                        Редактировать профиль
+                    </a>
                 </div>
             </div>
+
+            <PassportVerificationCard status={verificationStatus} />
+
+            <ServicePublicationCard />
+
+            <PublicProfileCard />
+
+            <ProfileStatsGrid
+                hasPhoto={!!profile.image_url} // Use profile image or user image? Profile has image_url
+                hasAddress={!!address}
+                bioLength={bio.length}
+                specialtiesCount={specialtiesCount}
+            />
+
+            <ServicesList services={services} />
+
+            <AddSpecialtyButton />
         </div>
     );
 }
