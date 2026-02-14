@@ -4,7 +4,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "build": "rm -f .env .env.local .env.production && npx prisma generate && npx prisma db push && next build",
+        "build": "npx prisma generate && npx prisma db push && next build",
         "start": "next start",
         "lint": "next lint",
         "sync:categories": "ts-node scripts/sync-categories.ts"
