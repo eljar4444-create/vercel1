@@ -1,89 +1,101 @@
 import prisma from '@/lib/prisma';
-import Link from 'next/link';
-import * as Icons from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { SearchHero } from '@/components/SearchHero';
+import { HomeCategories } from '@/components/HomeCategories';
+import { ServiceCard } from '@/components/ServiceCard';
+import { auth } from '@/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-    const categories = await prisma.category.findMany({
+    const session = await auth();
+
+    // Fetch Categories for SearchHero
+    const categoriesData = await prisma.category.findMany({
         orderBy: { name: 'asc' }
+    });
+
+    // Map Prisma categories to SearchHero format
+    const heroCategories = categoriesData.map(c => ({
+        id: c.id.toString(),
+        name: c.name,
+        slug: c.slug,
+        image: null
+    }));
+
+    // Fetch Recent Services
+    const services = await prisma.directoryService.findMany({
+        take: 8,
+        orderBy: { id: 'desc' },
+        include: {
+            profile: true,
+            category: true
+        }
     });
 
     return (
         <div className="bg-[#f5f5f7] min-h-screen pb-20">
-            {/* Hero Section */}
-            <div className="bg-white border-b">
-                <div className="container mx-auto px-4 py-20 text-center max-w-4xl">
-                    <h1 className="text-4xl md:text-6xl font-bold mb-6 text-gray-900 tracking-tight">
-                        Find the perfect professional for any task
-                    </h1>
-                    <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-                        From home repairs to beauty services, connect with trusted local experts in minutes.
-                    </p>
-                    <div className="flex justify-center gap-4">
-                        <Link href="/search">
-                            <Button size="lg" className="rounded-full px-8 text-lg h-12">
-                                Browse Services
-                            </Button>
-                        </Link>
-                        <Link href="/become-provider">
-                            <Button variant="outline" size="lg" className="rounded-full px-8 text-lg h-12">
-                                Become a Pro
-                            </Button>
-                        </Link>
+            {/* Main Search Hero with Background */}
+            <SearchHero categories={heroCategories} user={session?.user} />
+
+            {/* Categories Grid (Static/Icon based) */}
+            <HomeCategories />
+
+            {/* Recent Services Feed */}
+            {services.length > 0 && (
+                <div className="container mx-auto px-4 py-12">
+                    <div className="flex justify-between items-end mb-8">
+                        <div>
+                            <h2 className="text-3xl font-bold text-gray-900">Новые задания</h2>
+                            <p className="text-gray-500 mt-2">Последние опубликованные услуги и заявки</p>
+                        </div>
+                        {/* <Link href="/search" className="text-blue-600 font-medium hover:underline">Смотреть все</Link> */}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {services.map(service => (
+                            <ServiceCard key={service.id} service={{
+                                ...service,
+                                id: service.id,
+                                title: service.title,
+                                price: service.price.toString(),
+                                description: null, // DirectoryService has no description
+                                // Use profile creation date as fallback or just null
+                                createdAt: service.profile.created_at,
+                                profile: {
+                                    name: service.profile.name,
+                                    city: service.profile.city,
+                                    image_url: service.profile.image_url,
+                                    email: service.profile.user_email
+                                }
+                            }} />
+                        ))}
                     </div>
                 </div>
-            </div>
+            )}
 
-            {/* Categories Grid */}
-            <div className="container mx-auto px-4 py-16">
-                <h2 className="text-2xl font-bold mb-8 text-gray-900">Popular Categories</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
-                    {categories.map((cat) => {
-                        // Dynamically render icon, fallback to Circle
-                        const Icon = (Icons as any)[cat.icon || 'Circle'] || Icons.Circle;
-                        return (
-                            <Link key={cat.id} href={`/search?category=${cat.slug}`} className="group">
-                                <Card className="p-8 hover:shadow-xl transition-all duration-300 flex flex-col items-center justify-center text-center gap-4 h-full border-transparent hover:border-blue-100 group-hover:-translate-y-1">
-                                    <div className="p-4 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                                        <Icon className="w-8 h-8" />
-                                    </div>
-                                    <div className="font-semibold text-lg text-gray-800">{cat.name}</div>
-                                </Card>
-                            </Link>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {/* Trust Section */}
-            <div className="bg-white py-20 border-t">
-                <div className="container mx-auto px-4 text-center">
-                    <h2 className="text-3xl font-bold mb-12">Why use Svoi.de?</h2>
-                    <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-2">
-                                <Icons.ShieldCheck className="w-8 h-8" />
-                            </div>
-                            <h3 className="font-bold text-xl">Verified Pros</h3>
-                            <p className="text-gray-600">Every professional goes through a rigorous verification process.</p>
+            {/* SEO / Info Section (Restoring generic content if needed) */}
+            <div className="container mx-auto px-4 py-16 border-t border-gray-200 mt-12">
+                <div className="grid md:grid-cols-3 gap-12 text-center">
+                    <div>
+                        <div className="w-16 h-16 bg-blue-100/50 rounded-2xl flex items-center justify-center text-blue-600 mx-auto mb-6">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 mb-2">
-                                <Icons.Zap className="w-8 h-8" />
-                            </div>
-                            <h3 className="font-bold text-xl">Fast Booking</h3>
-                            <p className="text-gray-600">Connect with experts and book services in just a few clicks.</p>
+                        <h3 className="text-xl font-bold mb-3">Проверенные специалисты</h3>
+                        <p className="text-gray-500 leading-relaxed">Все исполнители проходят проверку документов и телефона.</p>
+                    </div>
+                    <div>
+                        <div className="w-16 h-16 bg-purple-100/50 rounded-2xl flex items-center justify-center text-purple-600 mx-auto mb-6">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                         </div>
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 mb-2">
-                                <Icons.Heart className="w-8 h-8" />
-                            </div>
-                            <h3 className="font-bold text-xl">Satisfaction Guaranteed</h3>
-                            <p className="text-gray-600">We ensure high-quality service for every request you make.</p>
+                        <h3 className="text-xl font-bold mb-3">Быстрый поиск</h3>
+                        <p className="text-gray-500 leading-relaxed">Создайте задание, и исполнители сами предложат свои услуги.</p>
+                    </div>
+                    <div>
+                        <div className="w-16 h-16 bg-green-100/50 rounded-2xl flex items-center justify-center text-green-600 mx-auto mb-6">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                         </div>
+                        <h3 className="text-xl font-bold mb-3">Безопасная сделка</h3>
+                        <p className="text-gray-500 leading-relaxed">Оплата резервируется и переводится исполнителю только после выполнения работы.</p>
                     </div>
                 </div>
             </div>
