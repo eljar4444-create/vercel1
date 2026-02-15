@@ -4,9 +4,7 @@ import { SearchBar } from '@/components/search-bar';
 import { ProfileCard } from '@/components/ProfileCard';
 import { Search, Sparkles, Stethoscope } from 'lucide-react';
 
-/* ─────────────────────────────────────────────
-   SSR on every request — never serve stale cache
-   ───────────────────────────────────────────── */
+// 1. Отключить Кэш (Force Dynamic)
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -32,36 +30,40 @@ export default async function SearchPage({
     const categorySlug = typeof searchParams.category === 'string' ? searchParams.category : undefined;
     const query = typeof searchParams.q === 'string' ? searchParams.q : undefined;
 
-    // ── Debug: log incoming params ──
-    console.log('──── /search HIT ────');
-    console.log('Search Params:', JSON.stringify(searchParams));
-    console.log('categorySlug:', categorySlug, '| query:', query);
+    // 3. Отладка (Server Logs)
+    console.log('Search Params:', searchParams);
 
     let profiles: any[] = [];
     let categories = FALLBACK_CATEGORIES;
 
     try {
-        /* ── Build WHERE clause dynamically ── */
         const where: any = {};
 
-        // Filter by category slug if provided
+        // 2. Логика "Показать Всех" (Fallback)
+        let hasFilters = false;
+
+        // Если есть категория
         if (categorySlug) {
             where.category = { slug: categorySlug };
+            hasFilters = true;
         }
 
-        // Text search across name, city, service titles
+        // Если есть поисковый запрос
         if (query && query.trim().length > 0) {
             where.OR = [
                 { name: { contains: query, mode: 'insensitive' } },
                 { city: { contains: query, mode: 'insensitive' } },
                 { services: { some: { title: { contains: query, mode: 'insensitive' } } } },
             ];
+            hasFilters = true;
         }
 
-        // ★ KEY: If no filters at all → show ALL profiles (no empty where = return everything)
-        // Prisma with empty `where: {}` returns all rows — that's exactly what we want.
+        // ВАЖНО: Если параметров НЕТ (пустой объект), запрос должен вернуть ВСЕХ верифицированных мастеров
+        if (!hasFilters) {
+            where.is_verified = true;
+        }
 
-        console.log('Prisma WHERE:', JSON.stringify(where));
+        console.log('Prisma WHERE:', JSON.stringify(where, null, 2));
 
         profiles = await prisma.profile.findMany({
             where,
@@ -70,12 +72,11 @@ export default async function SearchPage({
                 services: true,
             },
             orderBy: { created_at: 'desc' },
-            take: 50, // Safety limit
         });
 
         console.log('Profiles found in DB:', profiles.length);
 
-        // Also load categories for filter pills
+        // Загрузка категорий для фильтров
         const dbCategories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
         if (dbCategories.length > 0) {
             categories = dbCategories.map((c: any) => ({
@@ -84,10 +85,8 @@ export default async function SearchPage({
                 name: c.name,
             }));
         }
-        console.log('Categories loaded:', categories.length);
     } catch (err) {
         console.error('❌ DB ERROR on /search:', err);
-        // DB unreachable — show empty state gracefully
     }
 
     /* ── Page title logic ── */
@@ -164,17 +163,17 @@ export default async function SearchPage({
                     </p>
                 </div>
 
-                {/* Results Grid or Empty State */}
+                {/* 4. UI/UX: Results Grid or Empty State */}
                 {profiles.length === 0 ? (
                     <div className="bg-white rounded-2xl p-16 text-center shadow-sm border border-gray-100">
                         <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
                             <Search className="w-10 h-10 text-gray-300" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">
-                            Пока нет мастеров
+                            Ничего не найдено
                         </h3>
                         <p className="text-gray-500 max-w-md mx-auto mb-8">
-                            Мы активно привлекаем новых специалистов. Скоро здесь появятся профессионалы, которые говорят на вашем языке.
+                            Попробуйте изменить параметры поиска или категорию.
                         </p>
                         <Link
                             href="/"
