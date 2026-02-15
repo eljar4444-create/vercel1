@@ -1,8 +1,8 @@
-import { CreateServiceForm } from '@/components/provider/CreateServiceForm';
 import prisma from '@/lib/prisma';
 import { Suspense } from 'react';
 import { auth } from '@/auth';
 import { notFound, redirect } from 'next/navigation';
+import Link from 'next/link';
 
 export default async function EditServicePage({ params }: { params: { id: string } }) {
     const session = await auth();
@@ -19,80 +19,83 @@ export default async function EditServicePage({ params }: { params: { id: string
 
     if (!profile) redirect('/provider/profile');
 
-    let service;
     const serviceIdInt = parseInt(params.id);
     if (isNaN(serviceIdInt)) notFound();
 
+    let service;
     try {
-        service = await prisma.directoryService.findUnique({
+        service = await prisma.service.findUnique({
             where: { id: serviceIdInt }
         });
     } catch (e) {
         console.error("DB Error:", e);
     }
 
-    if (!service) {
-        notFound();
-    }
+    if (!service) notFound();
 
     if (service.profile_id !== profile.id) {
         redirect('/provider/profile');
     }
 
     let categories: { id: string; name: string; slug: string }[] = [];
-    let cities: { id: string; name: string; slug: string }[] = [];
-
     try {
         const categoriesRaw = await prisma.category.findMany({
             select: { id: true, name: true, slug: true }
         });
         categories = categoriesRaw.map(c => ({ ...c, id: c.id.toString() }));
-
-        cities = await prisma.city.findMany({
-            select: { id: true, name: true, slug: true }
-        });
     } catch (e) {
         console.log("DB Load Error (meta)", e);
     }
 
-    // Attempt to map profile city name to ID
-    let cityId = "";
-    if (profile.city) {
-        const found = cities.find(c => c.name.toLowerCase() === profile.city?.toLowerCase());
-        if (found) cityId = found.id;
-    }
-
-    // Transform photos JSON to array
-    let photos: { id: string; url: string }[] = [];
-    if (service.photos && Array.isArray(service.photos)) {
-        photos = (service.photos as any[]).map((url: string, idx: number) => ({ id: `p-${idx}`, url }));
-    }
-
     return (
         <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
-            <CreateServiceForm
-                categories={categories}
-                cities={cities}
-                initialData={{
-                    id: service.id.toString(),
-                    title: service.title,
-                    description: service.description || "",
-                    price: Number(service.price) || 0,
-                    categoryId: profile.category_id.toString() || "",
-                    cityId: cityId,
-                    subcategory: service.subcategory,
-                    latitude: service.latitude,
-                    longitude: service.longitude,
-                    experience: service.experience,
-                    equipment: service.equipment,
-                    schedule: service.schedule,
-                    workTime: service.workTime,
-                    locationType: service.locationType,
-                    priceList: service.priceList,
-                    photos: photos
-                }}
-                serviceId={service.id.toString()}
-            />
+            <div className="container mx-auto px-4 py-8 max-w-2xl">
+                <Link href="/provider/profile" className="text-blue-600 hover:underline mb-6 inline-block">
+                    &larr; Назад к профилю
+                </Link>
+
+                <h1 className="text-2xl font-bold text-gray-900 mb-6">Редактировать услугу</h1>
+
+                <form action={`/api/services/${service.id}/update`} method="POST" className="space-y-6 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Название</label>
+                        <input
+                            name="title"
+                            type="text"
+                            defaultValue={service.title}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Цена (€)</label>
+                        <input
+                            name="price"
+                            type="number"
+                            step="0.01"
+                            defaultValue={Number(service.price)}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Длительность (мин)</label>
+                        <input
+                            name="duration_min"
+                            type="number"
+                            defaultValue={service.duration_min}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors"
+                    >
+                        Сохранить изменения
+                    </button>
+                </form>
+            </div>
         </Suspense>
     );
 }

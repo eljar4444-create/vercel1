@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Metadata } from 'next';
 import { MapPin, Calendar, Clock, Euro } from 'lucide-react';
 import Link from 'next/link';
-import ServiceMap from '@/components/ServiceMap';
 
 interface Props {
     params: { id: string };
@@ -15,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const id = parseInt(params.id);
     if (isNaN(id)) return { title: 'Service Not Found' };
 
-    const service = await prisma.directoryService.findUnique({
+    const service = await prisma.service.findUnique({
         where: { id },
         include: { profile: true }
     });
@@ -24,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     return {
         title: `${service.title} | ${service.profile.name} - Svoi.de`,
-        description: service.description || `Service by ${service.profile.name}`
+        description: `Service by ${service.profile.name}`
     };
 }
 
@@ -32,7 +31,7 @@ export default async function ServicePage({ params }: Props) {
     const id = parseInt(params.id);
     if (isNaN(id)) notFound();
 
-    const service = await prisma.directoryService.findUnique({
+    const service = await prisma.service.findUnique({
         where: { id },
         include: {
             profile: {
@@ -44,10 +43,6 @@ export default async function ServicePage({ params }: Props) {
     });
 
     if (!service) notFound();
-
-    // Mock coordinates for now if not in DB
-    const lat = 52.52;
-    const lng = 13.405;
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -68,18 +63,7 @@ export default async function ServicePage({ params }: Props) {
                         </div>
                     </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Description</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-gray-700 whitespace-pre-line leading-relaxed">
-                                {service.description || 'No description provided.'}
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    {/* Placeholder for Map */}
+                    {/* Location */}
                     <Card>
                         <CardHeader>
                             <CardTitle>Location</CardTitle>
@@ -87,7 +71,6 @@ export default async function ServicePage({ params }: Props) {
                         </CardHeader>
                         <CardContent className="h-64 bg-gray-100 flex items-center justify-center rounded-b-xl">
                             <p className="text-gray-500 italic">Map component will be restored here.</p>
-                            {/* Integration point for Map component */}
                         </CardContent>
                     </Card>
                 </div>
@@ -118,7 +101,7 @@ export default async function ServicePage({ params }: Props) {
 
                             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
                                 <span className="text-gray-600 flex items-center gap-2"><Clock className="w-4 h-4" /> Duration</span>
-                                <span className="font-semibold">{service.duration} min</span>
+                                <span className="font-semibold">{service.duration_min} min</span>
                             </div>
 
                             <Button className="w-full text-lg py-6 bg-blue-600 hover:bg-blue-700">

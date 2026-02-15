@@ -28,7 +28,7 @@ function SubmitButton({ isEditing, isLoading }: { isEditing: boolean, isLoading:
 
 interface CreateServiceFormProps {
     categories: { id: string; name: string; slug: string }[];
-    cities: { id: string; name: string; slug: string }[];
+    cities?: { id: string; name: string; slug: string }[];
     initialData?: {
         id: string;
         title: string;
@@ -60,7 +60,7 @@ const SUBCATEGORIES: Record<string, string[]> = {
     'computer-help': ['Установка ПО', 'Ремонт компьютеров', 'Настройка сетей', 'Удаление вирусов']
 };
 
-export function CreateServiceForm({ categories, cities, initialData, serviceId }: CreateServiceFormProps) {
+export function CreateServiceForm({ categories, cities = [], initialData, serviceId }: CreateServiceFormProps) {
     const isEditing = !!serviceId;
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
