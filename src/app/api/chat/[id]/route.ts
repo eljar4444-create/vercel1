@@ -1,6 +1,8 @@
 import { auth } from '@/auth';
-import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+
+// Chat models (Chat, ChatParticipant, Message) are not yet in the Prisma schema.
+// Returning stub responses until they are added.
 
 export async function GET(
     req: Request,
@@ -12,41 +14,7 @@ export async function GET(
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
-        const chat = await prisma.chat.findUnique({
-            where: {
-                id: params.id
-            },
-            include: {
-                messages: {
-                    include: {
-                        sender: true
-                    },
-                    orderBy: {
-                        createdAt: 'asc'
-                    }
-                }
-            }
-        });
-
-        if (!chat) {
-            return new NextResponse("Chat not found", { status: 404 });
-        }
-
-        // Verify participant
-        const isParticipant = await prisma.chatParticipant.findUnique({
-            where: {
-                chatId_userId: {
-                    chatId: chat.id,
-                    userId: session.user.id
-                }
-            }
-        });
-
-        if (!isParticipant) {
-            return new NextResponse("Unauthorized", { status: 401 });
-        }
-
-        return NextResponse.json({ messages: chat.messages });
+        return NextResponse.json({ messages: [] });
     } catch (error) {
         console.error('[CHAT_GET]', error);
         return new NextResponse("Internal Error", { status: 500 });
@@ -59,48 +27,11 @@ export async function POST(
 ) {
     try {
         const session = await auth();
-        const { content } = await req.json();
-
         if (!session?.user?.id) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
-        if (!content) {
-            return new NextResponse("Content missing", { status: 400 });
-        }
-
-        const chat = await prisma.chat.findUnique({
-            where: { id: params.id },
-            include: { participants: true }
-        });
-
-        if (!chat) {
-            return new NextResponse("Chat not found", { status: 404 });
-        }
-
-        // Verify participant
-        const isParticipant = chat.participants.some(p => p.userId === session.user?.id);
-        if (!isParticipant) {
-            return new NextResponse("Unauthorized", { status: 401 });
-        }
-
-        const message = await prisma.message.create({
-            data: {
-                content,
-                chatId: params.id,
-                senderId: session.user.id
-            },
-            include: {
-                sender: true
-            }
-        });
-
-        await prisma.chat.update({
-            where: { id: params.id },
-            data: { updatedAt: new Date() }
-        });
-
-        return NextResponse.json(message);
+        return new NextResponse("Chat not implemented yet", { status: 501 });
     } catch (error) {
         console.error('[CHAT_POST]', error);
         return new NextResponse("Internal Error", { status: 500 });
