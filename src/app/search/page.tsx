@@ -4,9 +4,13 @@ import { SearchBar } from '@/components/search-bar';
 import { ProfileCard } from '@/components/ProfileCard';
 import { Search, Sparkles, Stethoscope } from 'lucide-react';
 
+/* ─────────────────────────────────────────────
+   SSR on every request — never serve stale cache
+   ───────────────────────────────────────────── */
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// Fallback data for when DB is unreachable
+/* ── Fallback categories (if DB unreachable) ── */
 const FALLBACK_CATEGORIES = [
     { id: 1, slug: 'beauty', name: 'Красота и Уход' },
     { id: 2, slug: 'health', name: 'Медицина и Врачи' },
@@ -17,32 +21,47 @@ const CATEGORY_STYLE: Record<string, { icon: React.ReactNode }> = {
     health: { icon: <Stethoscope className="w-4 h-4 text-teal-500" /> },
 };
 
+/* ══════════════════════════════════════════════
+   SEARCH PAGE — Server Component
+   ══════════════════════════════════════════════ */
 export default async function SearchPage({
     searchParams,
 }: {
     searchParams: { [key: string]: string | string[] | undefined };
 }) {
-    const categorySlug = searchParams.category as string | undefined;
-    const query = searchParams.q as string | undefined;
+    const categorySlug = typeof searchParams.category === 'string' ? searchParams.category : undefined;
+    const query = typeof searchParams.q === 'string' ? searchParams.q : undefined;
 
-    // Resilient fetches
+    // ── Debug: log incoming params ──
+    console.log('──── /search HIT ────');
+    console.log('Search Params:', JSON.stringify(searchParams));
+    console.log('categorySlug:', categorySlug, '| query:', query);
+
     let profiles: any[] = [];
     let categories = FALLBACK_CATEGORIES;
 
     try {
+        /* ── Build WHERE clause dynamically ── */
         const where: any = {};
 
+        // Filter by category slug if provided
         if (categorySlug) {
             where.category = { slug: categorySlug };
         }
 
-        if (query) {
+        // Text search across name, city, service titles
+        if (query && query.trim().length > 0) {
             where.OR = [
                 { name: { contains: query, mode: 'insensitive' } },
                 { city: { contains: query, mode: 'insensitive' } },
                 { services: { some: { title: { contains: query, mode: 'insensitive' } } } },
             ];
         }
+
+        // ★ KEY: If no filters at all → show ALL profiles (no empty where = return everything)
+        // Prisma with empty `where: {}` returns all rows — that's exactly what we want.
+
+        console.log('Prisma WHERE:', JSON.stringify(where));
 
         profiles = await prisma.profile.findMany({
             where,
@@ -51,8 +70,12 @@ export default async function SearchPage({
                 services: true,
             },
             orderBy: { created_at: 'desc' },
+            take: 50, // Safety limit
         });
 
+        console.log('Profiles found in DB:', profiles.length);
+
+        // Also load categories for filter pills
         const dbCategories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
         if (dbCategories.length > 0) {
             categories = dbCategories.map((c: any) => ({
@@ -61,10 +84,13 @@ export default async function SearchPage({
                 name: c.name,
             }));
         }
-    } catch {
+        console.log('Categories loaded:', categories.length);
+    } catch (err) {
+        console.error('❌ DB ERROR on /search:', err);
         // DB unreachable — show empty state gracefully
     }
 
+    /* ── Page title logic ── */
     const activeCategoryName = categorySlug
         ? categories.find(c => c.slug === categorySlug)?.name || categorySlug
         : null;
@@ -75,6 +101,9 @@ export default async function SearchPage({
             ? `Результаты: "${query}"`
             : 'Все специалисты';
 
+    /* ══════════════════
+       RENDER
+       ══════════════════ */
     return (
         <div className="bg-[#f5f5f7] min-h-screen">
             {/* ── Search Header ── */}
@@ -125,7 +154,11 @@ export default async function SearchPage({
                     </h1>
                     <p className="text-gray-500 mt-1">
                         {profiles.length > 0
-                            ? `Найдено ${profiles.length} ${profiles.length === 1 ? 'специалист' : profiles.length < 5 ? 'специалиста' : 'специалистов'}`
+                            ? `Найдено ${profiles.length} ${profiles.length === 1
+                                ? 'специалист'
+                                : profiles.length < 5
+                                    ? 'специалиста'
+                                    : 'специалистов'}`
                             : 'Пока нет результатов'
                         }
                     </p>
@@ -138,7 +171,7 @@ export default async function SearchPage({
                             <Search className="w-10 h-10 text-gray-300" />
                         </div>
                         <h3 className="text-xl font-bold text-gray-900 mb-2">
-                            Пока нет мастеров в этой категории
+                            Пока нет мастеров
                         </h3>
                         <p className="text-gray-500 max-w-md mx-auto mb-8">
                             Мы активно привлекаем новых специалистов. Скоро здесь появятся профессионалы, которые говорят на вашем языке.
