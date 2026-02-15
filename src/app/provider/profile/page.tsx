@@ -47,7 +47,7 @@ export default async function ProviderProfile() {
     }
 
     // Map new fields to legacy expected props
-    const verificationStatus = profile.is_vip ? 'APPROVED' : 'IDLE';
+    const verificationStatus = profile.is_verified ? 'APPROVED' : 'IDLE';
     const address = profile.address || profile.city || '';
 
     // Bio is on User model in new schema
@@ -57,10 +57,10 @@ export default async function ProviderProfile() {
     const services: ServiceItem[] = profile.services.map(s => ({
         id: s.id,
         title: s.title,
-        description: s.description,
+        description: '', // Service model has no description field
         price: s.price,
-        categoryName: profile.category.name, // All services share profile category in new schema
-        status: 'APPROVED' // Default to approved for now as we don't have status in DirectoryService
+        categoryName: profile.category.name,
+        status: 'APPROVED'
     }));
 
     // Count unique specialties? In new schema, profile has ONE category.
