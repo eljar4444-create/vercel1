@@ -3,123 +3,66 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("POSTGRES_PRISMA_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
+
+// --- USER & AUTH (Preserved for Authentication) ---
 
 model User {
-  id              String           @id @default(uuid())
-  name            String?
-  email           String?          @unique
-  emailVerified   DateTime?
-  image           String?
-  password        String?
-  role            String           @default("CLIENT")
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  bio             String?
-  
-  // Link to new Directory Profile
-  directoryProfile Profile?
-  
-  // Chat relations
-  chatParticipants ChatParticipant[]
-  sentMessages     Message[]
+  id            String    @id @default(uuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("CLIENT")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bio           String?
+
+  profile       Profile?
 }
 
-// --- NEW SERVICE DIRECTORY MODELS ---
+// --- NEW MARKETPLACE VERTICALS (Hybrid Schema) ---
 
 model Category {
   id          Int       @id @default(autoincrement())
   name        String
   slug        String    @unique
   icon        String?
-  form_schema Json      // Dynamic questions for the category
+  form_schema Json      // Defines the structure of "attributes" for this category (e.g. questions)
   profiles    Profile[]
 }
 
 model Profile {
   id          Int       @id @default(autoincrement())
-  user_email  String    @unique
+  user_email  String    @unique // Link to auth User
   name        String
   city        String
   address     String?
   category_id Int
-  attributes  Json      // Flexible data: { "home_visit": true, etc. }
-  image_url   String?   // Vercel Blob link
-  is_vip      Boolean   @default(false)
+  attributes  Json      // Flexible JSONB for vertical-specific data
+  image_url   String?
+  is_verified Boolean   @default(false)
   created_at  DateTime  @default(now())
 
   category    Category  @relation(fields: [category_id], references: [id])
-  services    DirectoryService[]
   user        User?     @relation(fields: [user_email], references: [email])
+  services    Service[]
+
+  @@index([category_id])
 }
 
-model DirectoryService {
-  id         Int      @id @default(autoincrement())
-  profile_id Int
-  title      String
-  description String?
-  price      Decimal  @db.Decimal(10, 2)
-  duration   Int      // in minutes
+model Service {
+  id           Int      @id @default(autoincrement())
+  profile_id   Int
+  title        String
+  price        Decimal  @db.Decimal(10, 2)
+  duration_min Int
 
-  profile    Profile  @relation(fields: [profile_id], references: [id])
+  profile      Profile  @relation(fields: [profile_id], references: [id])
 
-  // Legacy fields restored for compatibility
-  subcategory  String?   // JSON or comma-separated
-  latitude     Float?
-  longitude    Float?
-  experience   Int?
-  equipment    String?
-  schedule     String?
-  workTime     String?
-  locationType String?   // "У клиента", "У себя", etc.
-  priceList    String?   // JSON
-  photos       Json?     // JSON array of photo URLs
-}
-
-// --- CHAT SYSTEM ---
-
-model Chat {
-  id           String    @id @default(uuid())
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  participants ChatParticipant[]
-  messages     Message[]
-}
-
-model ChatParticipant {
-  id        String   @id @default(uuid())
-  chatId    String
-  userId    String   // User.id
-  joinedAt  DateTime @default(now())
-
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([chatId, userId])
-}
-
-model Message {
-  id        String   @id @default(uuid())
-  chatId    String
-  senderId  String   // User.id
-  content   String
-  createdAt DateTime @default(now())
-  read      Boolean  @default(false)
-
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
-}
-
-// --- KEEPING EXISTING MODELS FOR COMPATIBILITY ---
-// (Renaming existing Service to avoid conflict)
-
-// Legacy City model restored
-model City {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  latitude  Float?
-  longitude Float?
+  @@index([profile_id])
 }
