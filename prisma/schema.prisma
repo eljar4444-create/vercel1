@@ -30,6 +30,7 @@ model Profile {
   
   category    Category  @relation(fields: [category_id], references: [id])
   services    Service[]
+  bookings    Booking[]
 
   @@index([category_id])
 }
@@ -42,6 +43,24 @@ model Service {
   duration_min Int
 
   profile      Profile @relation(fields: [profile_id], references: [id])
+  bookings     Booking[]
+
+  @@index([profile_id])
+}
+
+model Booking {
+  id          Int      @id @default(autoincrement())
+  profile_id  Int
+  service_id  Int?
+  date        DateTime
+  time        String
+  user_name   String
+  user_phone  String
+  status      String   @default("pending")
+  created_at  DateTime @default(now())
+
+  profile     Profile  @relation(fields: [profile_id], references: [id])
+  service     Service? @relation(fields: [service_id], references: [id])
 
   @@index([profile_id])
 }

@@ -1,17 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Calendar, Clock, User, Phone, CheckCircle } from 'lucide-react';
+import { X, Calendar, Clock, User, Phone, CheckCircle, Loader2 } from 'lucide-react';
+import { createBooking } from '@/app/actions/booking';
 
 interface BookingModalProps {
     isOpen: boolean;
     onClose: () => void;
     masterName: string;
+    profileId: number;
     selectedService?: {
+        id?: number;
         title: string;
         price: string;
     } | null;
-    accentColor?: string;   // e.g. 'rose' or 'teal'
+    accentColor?: string;
 }
 
 const TIME_SLOTS = [
@@ -24,6 +27,7 @@ export function BookingModal({
     isOpen,
     onClose,
     masterName,
+    profileId,
     selectedService,
     accentColor = 'rose',
 }: BookingModalProps) {
@@ -31,7 +35,9 @@ export function BookingModal({
     const [time, setTime] = useState('');
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     if (!isOpen) return null;
 
@@ -42,17 +48,35 @@ export function BookingModal({
     const accentText = isRose ? 'text-rose-600' : 'text-teal-600';
     const accentBg = isRose ? 'bg-rose-50' : 'bg-teal-50';
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitted(true);
-        setTimeout(() => {
-            setIsSubmitted(false);
-            setDate('');
-            setTime('');
-            setName('');
-            setPhone('');
-            onClose();
-        }, 2000);
+        setIsSubmitting(true);
+        setError(null);
+
+        const result = await createBooking({
+            profileId,
+            serviceId: selectedService?.id || null,
+            date,
+            time,
+            userName: name,
+            userPhone: phone,
+        });
+
+        setIsSubmitting(false);
+
+        if (result.success) {
+            setIsSubmitted(true);
+            setTimeout(() => {
+                setIsSubmitted(false);
+                setDate('');
+                setTime('');
+                setName('');
+                setPhone('');
+                onClose();
+            }, 2500);
+        } else {
+            setError(result.error || 'Произошла ошибка. Попробуйте позже.');
+        }
     };
 
     return (
@@ -110,6 +134,13 @@ export function BookingModal({
 
                         {/* ── Form ── */}
                         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                            {/* Error */}
+                            {error && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                                    {error}
+                                </div>
+                            )}
+
                             {/* Date */}
                             <div>
                                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
@@ -180,10 +211,20 @@ export function BookingModal({
                             {/* Submit */}
                             <button
                                 type="submit"
-                                className={`w-full h-14 ${btnClass} text-white font-semibold text-base rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-4 flex items-center justify-center gap-2`}
+                                disabled={isSubmitting}
+                                className={`w-full h-14 ${btnClass} text-white font-semibold text-base rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0`}
                             >
-                                <CheckCircle className="w-5 h-5" />
-                                Подтвердить запись
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        Отправка...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle className="w-5 h-5" />
+                                        Подтвердить запись
+                                    </>
+                                )}
                             </button>
                         </form>
                     </>

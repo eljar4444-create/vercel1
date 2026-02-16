@@ -111,7 +111,7 @@ const FAKE_REVIEWS = [
 // ═════════════════════════════════════════════════════════════════════
 export function ProfileClient({ profile }: ProfileClientProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedService, setSelectedService] = useState<{ title: string; price: string } | null>(null);
+    const [selectedService, setSelectedService] = useState<{ id?: number; title: string; price: string } | null>(null);
 
     // ─── Derived data ───────────────────────────────────────────────
     const catSlug = profile.category?.slug || 'beauty';
@@ -130,7 +130,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
     const createdYear = new Date(profile.created_at).getFullYear();
 
     // ─── Handlers ───────────────────────────────────────────────────
-    const openBooking = (service?: { title: string; price: string }) => {
+    const openBooking = (service?: { id?: number; title: string; price: string }) => {
         setSelectedService(service || null);
         setIsModalOpen(true);
     };
@@ -351,6 +351,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                                 </span>
                                                 <button
                                                     onClick={() => openBooking({
+                                                        id: service.id,
                                                         title: service.title,
                                                         price: `€${Number(service.price).toFixed(0)}`,
                                                     })}
@@ -423,6 +424,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 masterName={profile.name}
+                profileId={profile.id}
                 selectedService={selectedService}
                 accentColor={accent.accentKey}
             />
