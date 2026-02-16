@@ -11,6 +11,11 @@ export default async function SearchPage({
     searchParams: { [key: string]: string | string[] | undefined };
 }) {
     console.log("--- SEARCH PAGE RENDER START ---");
+    console.log("DATABASE_URL starts with:", process.env.DATABASE_URL?.substring(0, 30));
+
+    // Диагностика: показываем начало URL (без пароля)
+    const dbUrl = process.env.DATABASE_URL || "NOT SET";
+    const dbUrlPreview = dbUrl.substring(0, 30) + "...";
 
     // 1. Пробуем получить всех, игнорируя фильтры
     let profiles: any[] = [];
@@ -34,6 +39,13 @@ export default async function SearchPage({
                 <h1 className="text-3xl font-bold mb-6">🔍 ТЕСТ БАЗЫ ДАННЫХ</h1>
 
                 <Link href="/" className="text-blue-500 underline mb-8 block">← На главную</Link>
+
+                {/* Диагностика DATABASE_URL */}
+                <div className="bg-blue-100 border border-blue-500 text-blue-800 p-4 rounded mb-6">
+                    <p className="font-bold">🔧 DEBUG: DATABASE_URL</p>
+                    <p className="font-mono text-sm">{dbUrlPreview}</p>
+                    <p className="text-xs text-gray-500">Должно начинаться с: postgresql://</p>
+                </div>
 
                 {/* Блок ошибок */}
                 {error && (
