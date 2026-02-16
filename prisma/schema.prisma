@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL") // Или POSTGRES_PRISMA_URL, Vercel сам разберется
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // Uses Vercel's default env var
+  directUrl = env("POSTGRES_URL_NON_POOLING") // Required for migrations/push
 }
 
 model Category {
@@ -25,7 +26,7 @@ model Profile {
   category_id Int
   attributes  Json
   image_url   String?
-  is_verified Boolean   @default(false) // <--- ВОТ ЧЕГО НЕ ХВАТАЛО!
+  is_verified Boolean   @default(false)
   created_at  DateTime  @default(now())
   
   category    Category  @relation(fields: [category_id], references: [id])
@@ -46,7 +47,7 @@ model Service {
   @@index([profile_id])
 }
 
-// --- Auth Model (Preserved to prevent build errors) ---
+// --- Auth Model (Preserved) ---
 model User {
   id            String    @id @default(uuid())
   name          String?
