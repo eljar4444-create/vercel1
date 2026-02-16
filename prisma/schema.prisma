@@ -4,8 +4,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // Uses Vercel's default env var
-  directUrl = env("POSTGRES_URL_NON_POOLING") // Required for migrations/push
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Non-pooling connection for migrations/push
 }
 
 model Category {
