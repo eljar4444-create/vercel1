@@ -1,194 +1,62 @@
-import prisma from '@/lib/prisma';
-import Link from 'next/link';
-import { SearchBar } from '@/components/search-bar';
-import { ProfileCard } from '@/components/ProfileCard';
-import { Search, Sparkles, Stethoscope } from 'lucide-react';
 
-// 1. Отключить Кэш (Force Dynamic)
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'; // Отключаем кэш
 export const revalidate = 0;
 
-/* ── Fallback categories (if DB unreachable) ── */
-const FALLBACK_CATEGORIES = [
-    { id: 1, slug: 'beauty', name: 'Красота и Уход' },
-    { id: 2, slug: 'health', name: 'Медицина и Врачи' },
-];
+import prisma from "@/lib/prisma";
+import Link from "next/link";
 
-const CATEGORY_STYLE: Record<string, { icon: React.ReactNode }> = {
-    beauty: { icon: <Sparkles className="w-4 h-4 text-rose-400" /> },
-    health: { icon: <Stethoscope className="w-4 h-4 text-teal-500" /> },
-};
-
-/* ══════════════════════════════════════════════
-   SEARCH PAGE — Server Component
-   ══════════════════════════════════════════════ */
 export default async function SearchPage({
     searchParams,
 }: {
     searchParams: { [key: string]: string | string[] | undefined };
 }) {
-    const categorySlug = typeof searchParams.category === 'string' ? searchParams.category : undefined;
-    const query = typeof searchParams.q === 'string' ? searchParams.q : undefined;
+    console.log("--- SEARCH PAGE RENDER START ---");
 
-    // 3. Отладка (Server Logs)
-    console.log('Search Params:', searchParams);
-
+    // 1. Пробуем получить всех, игнорируя фильтры
     let profiles: any[] = [];
-    let categories = FALLBACK_CATEGORIES;
+    let error = null;
 
     try {
-        const where: any = {};
-
-        // 2. Логика "Показать Всех" (Fallback)
-        let hasFilters = false;
-
-        // Если есть категория
-        if (categorySlug) {
-            where.category = { slug: categorySlug };
-            hasFilters = true;
-        }
-
-        // Если есть поисковый запрос
-        if (query && query.trim().length > 0) {
-            where.OR = [
-                { name: { contains: query, mode: 'insensitive' } },
-                { city: { contains: query, mode: 'insensitive' } },
-                { services: { some: { title: { contains: query, mode: 'insensitive' } } } },
-            ];
-            hasFilters = true;
-        }
-
-        // ВАЖНО: Если параметров НЕТ (пустой объект), запрос должен вернуть ВСЕХ верифицированных мастеров
-        if (!hasFilters) {
-            where.is_verified = true;
-        }
-
-        console.log('Prisma WHERE:', JSON.stringify(where, null, 2));
-
         profiles = await prisma.profile.findMany({
-            where,
-            include: {
-                category: true,
-                services: true,
-            },
-            orderBy: { created_at: 'desc' },
+            // БЕЗ WHERE! Просто дай мне всё, что есть.
+            take: 10,
         });
-
-        console.log('Profiles found in DB:', profiles.length);
-
-        // Загрузка категорий для фильтров
-        const dbCategories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
-        if (dbCategories.length > 0) {
-            categories = dbCategories.map((c: any) => ({
-                id: c.id,
-                slug: c.slug,
-                name: c.name,
-            }));
-        }
-    } catch (err) {
-        console.error('❌ DB ERROR on /search:', err);
+        console.log("Profiles found:", profiles.length);
+    } catch (e: any) {
+        console.error("DB Error:", e);
+        error = e.message;
     }
 
-    /* ── Page title logic ── */
-    const activeCategoryName = categorySlug
-        ? categories.find(c => c.slug === categorySlug)?.name || categorySlug
-        : null;
-
-    const pageTitle = activeCategoryName
-        ? activeCategoryName
-        : query
-            ? `Результаты: "${query}"`
-            : 'Все специалисты';
-
-    /* ══════════════════
-       RENDER
-       ══════════════════ */
     return (
-        <div className="bg-[#f5f5f7] min-h-screen">
-            {/* ── Search Header ── */}
-            <div className="bg-white border-b border-gray-100">
-                <div className="container mx-auto px-4 max-w-6xl py-8">
-                    <SearchBar defaultQuery={query || ''} className="max-w-2xl mx-auto mb-6" />
+        <div className="p-10 bg-gray-50 min-h-screen text-black">
+            <div className="max-w-4xl mx-auto">
 
-                    {/* Category Filter Pills */}
-                    <div className="flex items-center justify-center gap-2 flex-wrap">
-                        <Link
-                            href="/search"
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
-                                ${!categorySlug
-                                    ? 'bg-gray-900 text-white shadow-md'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
-                        >
-                            Все
-                        </Link>
-                        {categories.map(cat => {
-                            const isActive = categorySlug === cat.slug;
-                            const style = CATEGORY_STYLE[cat.slug];
-                            return (
-                                <Link
-                                    key={cat.slug}
-                                    href={`/search?category=${cat.slug}`}
-                                    className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
-                                        ${isActive
-                                            ? 'bg-gray-900 text-white shadow-md'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        }`}
-                                >
-                                    {style?.icon}
-                                    {cat.name}
-                                </Link>
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
+                <h1 className="text-3xl font-bold mb-6">🔍 ТЕСТ БАЗЫ ДАННЫХ</h1>
 
-            {/* ── Results ── */}
-            <div className="container mx-auto px-4 max-w-6xl py-10">
-                {/* Heading */}
-                <div className="mb-8">
-                    <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-                        {pageTitle}
-                    </h1>
-                    <p className="text-gray-500 mt-1">
-                        {profiles.length > 0
-                            ? `Найдено ${profiles.length} ${profiles.length === 1
-                                ? 'специалист'
-                                : profiles.length < 5
-                                    ? 'специалиста'
-                                    : 'специалистов'}`
-                            : 'Пока нет результатов'
-                        }
-                    </p>
-                </div>
+                <Link href="/" className="text-blue-500 underline mb-8 block">← На главную</Link>
 
-                {/* 4. UI/UX: Results Grid or Empty State */}
-                {profiles.length === 0 ? (
-                    <div className="bg-white rounded-2xl p-16 text-center shadow-sm border border-gray-100">
-                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <Search className="w-10 h-10 text-gray-300" />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
-                            Ничего не найдено
-                        </h3>
-                        <p className="text-gray-500 max-w-md mx-auto mb-8">
-                            Попробуйте изменить параметры поиска или категорию.
-                        </p>
-                        <Link
-                            href="/"
-                            className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-medium px-6 py-3 rounded-xl transition-all duration-200"
-                        >
-                            Вернуться на главную
-                        </Link>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {profiles.map((profile: any) => (
-                            <ProfileCard key={profile.id} profile={profile} />
-                        ))}
+                {/* Блок ошибок */}
+                {error && (
+                    <div className="bg-red-100 border border-red-500 text-red-700 p-4 rounded mb-6">
+                        <h2 className="font-bold">ОШИБКА ПОДКЛЮЧЕНИЯ:</h2>
+                        <pre className="whitespace-pre-wrap">{error}</pre>
                     </div>
                 )}
+
+                {/* Блок успеха */}
+                <div className="bg-green-100 border border-green-500 text-green-800 p-4 rounded mb-6">
+                    <p className="font-bold text-xl">Найдено профилей: {profiles.length}</p>
+                    <p className="text-sm text-gray-600">Если тут 0 — значит база пустая или мы не в той базе.</p>
+                </div>
+
+                {/* Сырые данные */}
+                <div className="bg-white p-6 rounded shadow">
+                    <h3 className="font-bold mb-4">Данные из базы (RAW JSON):</h3>
+                    <pre className="bg-gray-900 text-green-400 p-4 rounded overflow-auto text-xs">
+                        {JSON.stringify(profiles, null, 2)}
+                    </pre>
+                </div>
+
             </div>
         </div>
     );
