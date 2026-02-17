@@ -8,6 +8,7 @@ import {
 import { BookingRow } from '@/components/dashboard/BookingRow';
 import { ServiceList } from '@/components/dashboard/ServiceList';
 import { AddServiceForm } from '@/components/dashboard/AddServiceForm';
+import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,25 +87,11 @@ export default async function DashboardPage({
                         Мой профиль
                     </Link>
 
-                    <div className="flex items-center gap-4">
-                        {profile.image_url ? (
-                            <img
-                                src={profile.image_url}
-                                alt={profile.name}
-                                className="w-14 h-14 rounded-full object-cover border-2 border-gray-100"
-                            />
-                        ) : (
-                            <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold text-gray-400">
-                                {profile.name.charAt(0)}
-                            </div>
-                        )}
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                Привет, {profile.name.split(' ')[0]} 👋
-                            </h1>
-                            <p className="text-sm text-gray-400">Личный кабинет мастера</p>
-                        </div>
-                    </div>
+                    <AvatarUpload
+                        profileId={profileId}
+                        profileName={profile.name}
+                        currentImageUrl={profile.image_url}
+                    />
                 </div>
             </div>
 
