@@ -362,7 +362,7 @@ export default function HomePage() {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
-                                href="/auth/register"
+                                href="/become-pro"
                                 className="h-14 px-8 bg-white hover:bg-gray-100 text-gray-900 font-semibold text-base rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg flex items-center justify-center gap-2"
                             >
                                 Стать партнёром
