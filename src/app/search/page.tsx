@@ -58,7 +58,9 @@ export default async function SearchPage({
     } catch { /* fallback to empty */ }
 
     // ─── Build the profile "where" clause ───────────────────────────
-    const where: any = {};
+    const where: any = {
+        is_verified: true, // Only show verified profiles
+    };
 
     if (categoryFilter) {
         const cat = categories.find(c => c.slug === categoryFilter);
@@ -194,8 +196,8 @@ export default async function SearchPage({
                     <Link
                         href="/search"
                         className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium border transition-all duration-200 hover:shadow-md ${!categoryFilter
-                                ? 'bg-gray-900 text-white border-gray-900 shadow-md'
-                                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+                            ? 'bg-gray-900 text-white border-gray-900 shadow-md'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
                             }`}
                     >
                         Все
@@ -209,8 +211,8 @@ export default async function SearchPage({
                                 key={cat.slug}
                                 href={`/search?category=${cat.slug}${cityFilter ? `&city=${cityFilter}` : ''}`}
                                 className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium border transition-all duration-200 hover:shadow-md ${isActive
-                                        ? `${config.activeBg} ${config.activeText} border-transparent shadow-md`
-                                        : `bg-white ${config.color} ${config.border} hover:${config.bg}`
+                                    ? `${config.activeBg} ${config.activeText} border-transparent shadow-md`
+                                    : `bg-white ${config.color} ${config.border} hover:${config.bg}`
                                     }`}
                             >
                                 {cat.icon || config.icon}
