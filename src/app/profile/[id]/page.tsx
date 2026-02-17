@@ -29,6 +29,8 @@ export default async function ProfileDetailPage({
         city: profile.city,
         address: profile.address,
         image_url: profile.image_url,
+        bio: profile.bio,
+        phone: profile.phone,
         is_verified: profile.is_verified,
         created_at: profile.created_at.toISOString(),
         attributes: profile.attributes,

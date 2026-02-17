@@ -16,6 +16,8 @@ interface ProfileData {
     city: string;
     address?: string | null;
     image_url?: string | null;
+    bio?: string | null;
+    phone?: string | null;
     is_verified: boolean;
     created_at: string; // serialized from server
     attributes: any;
@@ -303,11 +305,8 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         {/* About */}
                         <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-900 mb-4">О мастере</h2>
-                            <p className="text-gray-600 leading-relaxed">
-                                Профессионал с многолетним опытом работы.
-                                Индивидуальный подход к каждому клиенту, качественные материалы и внимание к деталям.
-                                Работаю аккуратно и стерильно.
-                                Буду рада видеть вас среди моих клиентов!
+                            <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                                {profile.bio || 'Профессионал с многолетним опытом работы. Индивидуальный подход к каждому клиенту, качественные материалы и внимание к деталям.'}
                             </p>
                             <div className="flex flex-wrap gap-3 mt-6">
                                 {profile.is_verified && (

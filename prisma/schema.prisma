@@ -25,6 +25,8 @@ model Profile {
   category_id Int
   attributes  Json
   image_url   String?
+  bio         String?
+  phone       String?
   is_verified Boolean   @default(false)
   created_at  DateTime  @default(now())
   

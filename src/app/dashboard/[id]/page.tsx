@@ -9,6 +9,7 @@ import { BookingRow } from '@/components/dashboard/BookingRow';
 import { ServiceList } from '@/components/dashboard/ServiceList';
 import { AddServiceForm } from '@/components/dashboard/AddServiceForm';
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
+import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,7 +24,7 @@ export default async function DashboardPage({
     // ─── Fetch master profile ───────────────────────────────────────
     const profile = await prisma.profile.findUnique({
         where: { id: profileId },
-        select: { id: true, name: true, image_url: true },
+        select: { id: true, name: true, image_url: true, bio: true, phone: true, city: true, address: true },
     });
 
     if (!profile) notFound();
@@ -179,9 +180,9 @@ export default async function DashboardPage({
                         )}
                     </div>
 
-                    {/* ── RIGHT: Services ── */}
+                    {/* ── RIGHT: Services + Edit Profile ── */}
                     <div className="w-full lg:w-[380px] flex-shrink-0">
-                        <div className="lg:sticky lg:top-6">
+                        <div className="lg:sticky lg:top-6 space-y-6">
                             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                                 <div className="flex items-center gap-3 mb-5">
                                     <div className="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center">
@@ -195,6 +196,19 @@ export default async function DashboardPage({
 
                                 <ServiceList services={serializedServices} />
                                 <AddServiceForm profileId={profileId} />
+                            </div>
+
+                            {/* ── Edit Profile ── */}
+                            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                                <h2 className="font-bold text-gray-900 mb-5">Редактировать профиль</h2>
+                                <EditProfileForm profile={{
+                                    id: profileId,
+                                    name: profile.name,
+                                    bio: profile.bio,
+                                    phone: profile.phone,
+                                    city: profile.city,
+                                    address: profile.address,
+                                }} />
                             </div>
                         </div>
                     </div>
