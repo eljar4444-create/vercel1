@@ -12,9 +12,9 @@ import {
     LogOut,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CancelBookingButton } from '@/components/client/CancelBookingButton';
+import { CancelBookingForm } from '@/components/client/CancelBookingForm';
 import { LinkLegacyBookingsForm } from '@/components/client/LinkLegacyBookingsForm';
-import { cancelClientBooking, logoutClientPortal } from './actions';
+import { logoutClientPortal } from './actions';
 import { findBookingsByUserId, buildBookingDateTime } from './lib';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
@@ -121,6 +121,21 @@ export default async function MyBookingsPage() {
                 </div>
 
                 <div className="mt-6 space-y-6">
+                    {bookings.length === 0 && (
+                        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
+                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
+                                <CalendarClock className="h-7 w-7 text-gray-500" />
+                            </div>
+                            <h2 className="text-xl font-bold text-gray-900">Пока нет записей</h2>
+                            <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
+                                Когда вы выберете мастера и забронируете время, ваши визиты появятся здесь.
+                            </p>
+                            <Button asChild className="mt-5 bg-gray-900 text-white hover:bg-gray-800">
+                                <Link href="/search">Найти мастера</Link>
+                            </Button>
+                        </div>
+                    )}
+
                     <LinkLegacyBookingsForm />
 
                     <div>
@@ -169,10 +184,7 @@ export default async function MyBookingsPage() {
                                                     <Link href={`/profile/${booking.profile.id}`}>Записаться снова</Link>
                                                 </Button>
                                                 {booking.isCancellable && (
-                                                    <form action={cancelClientBooking}>
-                                                        <input type="hidden" name="booking_id" value={booking.id} />
-                                                        <CancelBookingButton />
-                                                    </form>
+                                                    <CancelBookingForm bookingId={booking.id} />
                                                 )}
                                             </div>
                                         </article>

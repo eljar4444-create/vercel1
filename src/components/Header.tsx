@@ -4,21 +4,15 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-// import axios from 'axios';
 import { useEffect, useState } from 'react';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { AvatarDropdown } from '@/components/AvatarDropdown';
 
 export function Header() {
     const pathname = usePathname();
     const { data: session } = useSession(); // removed status
     const isAuthPage = pathname?.startsWith('/auth');
-    // const isProviderPage = pathname?.startsWith('/provider'); // Provider pages deleted
     const [scrolled, setScrolled] = useState(false);
-    const [isAvatarHovered, setIsAvatarHovered] = useState(false);
-    // const [unreadCount, setUnreadCount] = useState(0);
-
-    // Chat unread count logic removed
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -27,6 +21,14 @@ export function Header() {
     }, []);
 
     const user = session?.user;
+    const role = user?.role;
+    const roleCta = role === 'ADMIN'
+        ? { href: '/admin', label: 'Панель управления' }
+        : role === 'PROVIDER'
+            ? { href: '/provider/profile', label: 'В кабинет' }
+            : role === 'CLIENT'
+                ? { href: '/my-bookings', label: 'Мои записи' }
+                : null;
 
     if (isAuthPage) return null;
 
@@ -59,6 +61,11 @@ export function Header() {
                 <div className="flex items-center gap-4 ml-4">
                     {user ? (
                         <div className="flex items-center gap-5 text-gray-400">
+                            {roleCta && (
+                                <Button asChild className="h-9 rounded-md bg-gray-900 px-4 text-white hover:bg-gray-800">
+                                    <Link href={roleCta.href}>{roleCta.label}</Link>
+                                </Button>
+                            )}
                             <Link href="/chat" className="hover:text-blue-600 transition-colors">
                                 Chat
                             </Link>

@@ -9,13 +9,9 @@ export async function logoutClientPortal() {
     await signOut({ redirectTo: '/auth/login' });
 }
 
-export async function cancelClientBooking(formData: FormData): Promise<void> {
-    const session = await auth();
-    if (!session?.user?.id) return;
-
-    const bookingId = Number(formData.get('booking_id'));
+async function cancelClientBookingCore(userId: string, bookingId: number) {
     if (!Number.isInteger(bookingId)) {
-        return;
+        return { success: false, error: 'Некорректная запись' };
     }
 
     const booking = await prisma.booking.findUnique({
@@ -30,20 +26,20 @@ export async function cancelClientBooking(formData: FormData): Promise<void> {
     });
 
     if (!booking) {
-        return;
+        return { success: false, error: 'Запись не найдена' };
     }
 
-    if (booking.user_id !== session.user.id) {
-        return;
+    if (booking.user_id !== userId) {
+        return { success: false, error: 'Недостаточно прав' };
     }
 
     if (booking.status === 'cancelled') {
-        return;
+        return { success: false, error: 'Запись уже отменена' };
     }
 
     const bookingDateTime = buildBookingDateTime(booking.date, booking.time);
     if (bookingDateTime.getTime() < Date.now()) {
-        return;
+        return { success: false, error: 'Нельзя отменить прошедшую запись' };
     }
 
     await prisma.booking.update({
@@ -52,6 +48,29 @@ export async function cancelClientBooking(formData: FormData): Promise<void> {
     });
 
     revalidatePath('/my-bookings');
+    return { success: true, error: null };
+}
+
+export async function cancelClientBooking(formData: FormData): Promise<void> {
+    const session = await auth();
+    if (!session?.user?.id) return;
+
+    const bookingId = Number(formData.get('booking_id'));
+    await cancelClientBookingCore(session.user.id, bookingId);
+}
+
+export async function cancelClientBookingState(
+    _: { success: boolean; error: string | null },
+    formData: FormData
+) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: 'Войдите в аккаунт' };
+    }
+
+    const bookingId = Number(formData.get('booking_id'));
+    const result = await cancelClientBookingCore(session.user.id, bookingId);
+    return { success: result.success, error: result.error };
 }
 
 export async function linkLegacyBookingsState(

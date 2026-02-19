@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Loader2, CheckCircle, AlertCircle, Save } from 'lucide-react';
 import { updateProfile } from '@/app/actions/updateProfile';
+import toast from 'react-hot-toast';
 
 interface EditProfileFormProps {
     profile: {
@@ -34,9 +35,11 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
 
         if (result.success) {
             setSaved(true);
+            toast.success('Профиль сохранен');
             setTimeout(() => setSaved(false), 3000);
         } else {
             setError(result.error || 'Ошибка');
+            toast.error(result.error || 'Ошибка при сохранении профиля');
         }
     };
 

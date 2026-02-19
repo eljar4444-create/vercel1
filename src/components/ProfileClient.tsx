@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
     MapPin, Star, Clock, Euro, CheckCircle2, Shield,
@@ -8,6 +8,7 @@ import {
     Sparkles, Stethoscope, Phone, MessageCircle, ThumbsUp
 } from 'lucide-react';
 import { BookingModal } from '@/components/BookingModal';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface ProfileData {
@@ -112,6 +113,9 @@ const FAKE_REVIEWS = [
 // COMPONENT
 // ═════════════════════════════════════════════════════════════════════
 export function ProfileClient({ profile }: ProfileClientProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<{ id?: number; title: string; price: string; duration_min?: number } | null>(null);
 
@@ -130,12 +134,41 @@ export function ProfileClient({ profile }: ProfileClientProps) {
     )}`;
 
     const createdYear = new Date(profile.created_at).getFullYear();
+    const initialDate = searchParams.get('date') || undefined;
+    const initialTime = searchParams.get('time') || undefined;
 
     // ─── Handlers ───────────────────────────────────────────────────
     const openBooking = (service?: { id?: number; title: string; price: string; duration_min?: number }) => {
         setSelectedService(service || null);
         setIsModalOpen(true);
     };
+
+    useEffect(() => {
+        if (searchParams.get('book') !== '1') return;
+
+        const serviceIdParam = Number(searchParams.get('service'));
+        if (Number.isInteger(serviceIdParam)) {
+            const service = services.find((s) => s.id === serviceIdParam);
+            if (service) {
+                setSelectedService({
+                    id: service.id,
+                    title: service.title,
+                    price: `€${Number(service.price).toFixed(0)}`,
+                    duration_min: service.duration_min,
+                });
+            }
+        }
+
+        setIsModalOpen(true);
+
+        const next = new URLSearchParams(searchParams.toString());
+        next.delete('book');
+        next.delete('service');
+        next.delete('date');
+        next.delete('time');
+        const query = next.toString();
+        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    }, [pathname, router, searchParams, services]);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -426,6 +459,8 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                 masterName={profile.name}
                 profileId={profile.id}
                 selectedService={selectedService}
+                initialDate={initialDate}
+                initialTime={initialTime}
                 accentColor={accent.accentKey}
             />
         </div>

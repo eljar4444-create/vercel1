@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
     CalendarDays, Clock, Users, CheckCircle, XCircle,
-    Inbox, ArrowLeft, Briefcase
+    Inbox, ArrowLeft, Briefcase, ShieldCheck, AlertCircle, ListChecks
 } from 'lucide-react';
 import { BookingRow } from '@/components/dashboard/BookingRow';
 import { ServiceList } from '@/components/dashboard/ServiceList';
@@ -47,6 +47,7 @@ export default async function DashboardPage({
             phone: true,
             city: true,
             address: true,
+            is_verified: true,
             schedule: true,
         },
     });
@@ -69,8 +70,6 @@ export default async function DashboardPage({
             profile.user_id = session.user.id;
         }
     }
-    const workingSchedule = parseSchedule(profile.schedule);
-
     // ─── Fetch bookings ─────────────────────────────────────────────
     const bookings = await prisma.booking.findMany({
         where: { profile_id: profileId },
@@ -87,6 +86,11 @@ export default async function DashboardPage({
         where: { profile_id: profileId },
         orderBy: { title: 'asc' },
     });
+
+    const workingSchedule = parseSchedule(profile.schedule);
+    const hasServices = services.length > 0;
+    const hasScheduleConfigured = Boolean(profile.schedule);
+    const isProfileVerified = Boolean(profile.is_verified);
 
     // ─── Stats ──────────────────────────────────────────────────────
     const totalBookings = bookings.length;
@@ -135,6 +139,19 @@ export default async function DashboardPage({
                         profileName={profile.name}
                         currentImageUrl={profile.image_url}
                     />
+                    <div className="mt-4">
+                        {isProfileVerified ? (
+                            <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                                <ShieldCheck className="h-3.5 w-3.5" />
+                                Профиль активен
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                                <AlertCircle className="h-3.5 w-3.5" />
+                                Ожидает проверки администратором
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -186,6 +203,32 @@ export default async function DashboardPage({
             {/* MAIN CONTENT: Bookings + Services                      */}
             {/* ═══════════════════════════════════════════════════════ */}
             <div className="container mx-auto px-4 max-w-6xl pb-16">
+                {(!hasServices || !hasScheduleConfigured) && (
+                    <div className="mb-6 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-5 shadow-sm">
+                        <div className="flex items-start gap-3">
+                            <div className="rounded-xl bg-blue-100 p-2 text-blue-700">
+                                <ListChecks className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="text-sm font-bold text-blue-900">
+                                    Завершите настройку профиля
+                                </h2>
+                                <p className="mt-1 text-xs text-blue-800/80">
+                                    Это поможет клиентам быстрее находить вас и бронировать удобное время.
+                                </p>
+                                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                                    <div className={`rounded-lg border px-3 py-2 ${hasServices ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-white text-blue-900'}`}>
+                                        {hasServices ? '✅' : '1.'} Добавьте услуги
+                                    </div>
+                                    <div className={`rounded-lg border px-3 py-2 ${hasScheduleConfigured ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-white text-blue-900'}`}>
+                                        {hasScheduleConfigured ? '✅' : '2.'} Укажите рабочие часы
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex flex-col lg:flex-row gap-6">
 
                     {/* ── LEFT: Bookings ── */}
@@ -210,7 +253,7 @@ export default async function DashboardPage({
                                     У вас пока нет записей
                                 </h3>
                                 <p className="text-gray-500 max-w-md mx-auto mb-6">
-                                    Когда клиенты начнут бронировать ваши услуги, их заявки появятся здесь.
+                                    Как только клиент забронирует время, заявка появится здесь.
                                 </p>
                                 <Link
                                     href={`/profile/${profileId}`}

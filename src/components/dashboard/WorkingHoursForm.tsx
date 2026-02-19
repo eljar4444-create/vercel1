@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AlertCircle, CheckCircle, Clock3, Loader2 } from 'lucide-react';
 import { updateSchedule } from '@/app/actions/updateSchedule';
+import toast from 'react-hot-toast';
 
 type WorkingHoursFormProps = {
     profileId: number;
@@ -53,9 +54,11 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
 
         if (result.success) {
             setSaved(true);
+            toast.success('Рабочие часы сохранены');
             setTimeout(() => setSaved(false), 2500);
         } else {
             setError(result.error || 'Не удалось сохранить расписание.');
+            toast.error(result.error || 'Не удалось сохранить расписание');
         }
     };
 

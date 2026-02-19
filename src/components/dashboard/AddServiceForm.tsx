@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Plus, Loader2, AlertCircle } from 'lucide-react';
 import { addService } from '@/app/actions/services';
+import toast from 'react-hot-toast';
 
 interface AddServiceFormProps {
     profileId: number;
@@ -26,8 +27,10 @@ export function AddServiceForm({ profileId }: AddServiceFormProps) {
 
         if (result.success) {
             (e.target as HTMLFormElement).reset();
+            toast.success('Услуга добавлена');
         } else {
             setError(result.error || 'Ошибка');
+            toast.error(result.error || 'Ошибка при добавлении услуги');
         }
     };
 

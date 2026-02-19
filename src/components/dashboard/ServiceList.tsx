@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Trash2, Loader2, Clock, Euro } from 'lucide-react';
 import { deleteService } from '@/app/actions/services';
+import toast from 'react-hot-toast';
 
 interface ServiceData {
     id: number;
@@ -20,7 +21,12 @@ export function ServiceList({ services }: ServiceListProps) {
 
     const handleDelete = async (serviceId: number) => {
         setDeletingId(serviceId);
-        await deleteService(serviceId);
+        const result = await deleteService(serviceId);
+        if (result.success) {
+            toast.success('Услуга удалена');
+        } else {
+            toast.error(result.error || 'Не удалось удалить услугу');
+        }
         setDeletingId(null);
     };
 

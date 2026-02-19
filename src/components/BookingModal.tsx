@@ -5,6 +5,8 @@ import { X, Calendar, Clock, User, Phone, CheckCircle, Loader2 } from 'lucide-re
 import { createBooking, getAvailableSlots } from '@/app/actions/booking';
 import { useEffect } from 'react';
 import { useSession, signIn } from 'next-auth/react';
+import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 interface BookingModalProps {
     isOpen: boolean;
@@ -17,6 +19,8 @@ interface BookingModalProps {
         price: string;
         duration_min?: number;
     } | null;
+    initialDate?: string;
+    initialTime?: string;
     accentColor?: string;
 }
 
@@ -26,6 +30,8 @@ export function BookingModal({
     masterName,
     profileId,
     selectedService,
+    initialDate,
+    initialTime,
     accentColor = 'rose',
 }: BookingModalProps) {
     const { data: session, status } = useSession();
@@ -43,6 +49,15 @@ export function BookingModal({
     const selectedDuration = selectedService?.duration_min || 60;
 
     useEffect(() => {
+        if (!isOpen) return;
+        if (initialDate) setDate(initialDate);
+        if (initialTime) setTime(initialTime);
+        if (session?.user?.name && !name) {
+            setName(session.user.name);
+        }
+    }, [isOpen, initialDate, initialTime, session?.user?.name, name]);
+
+    useEffect(() => {
         if (!date) {
             setAvailableSlots([]);
             setTime('');
@@ -53,7 +68,6 @@ export function BookingModal({
         let isActive = true;
         setIsLoadingSlots(true);
         setSlotsError(null);
-        setTime('');
 
         getAvailableSlots({
             profileId,
@@ -64,6 +78,7 @@ export function BookingModal({
                 if (!isActive) return;
                 if (result.success) {
                     setAvailableSlots(result.slots);
+                    setTime((prev) => (prev && result.slots.includes(prev) ? prev : ''));
                 } else {
                     setAvailableSlots([]);
                     setSlotsError(result.error || 'Не удалось загрузить слоты');
@@ -111,19 +126,23 @@ export function BookingModal({
         setIsSubmitting(false);
 
         if (result.success) {
+            toast.success('Успешно! Вы записаны');
             setIsSubmitted(true);
-            setTimeout(() => {
-                setIsSubmitted(false);
-                setDate('');
-                setTime('');
-                setAvailableSlots([]);
-                setName('');
-                setPhone('');
-                onClose();
-            }, 2500);
         } else {
             setError(result.error || 'Произошла ошибка. Попробуйте позже.');
+            toast.error(result.error || 'Не удалось создать запись');
         }
+    };
+
+    const getSignInCallbackUrl = () => {
+        if (typeof window === 'undefined') return '/auth/login';
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('book', '1');
+        if (selectedService?.id) url.searchParams.set('service', String(selectedService.id));
+        if (date) url.searchParams.set('date', date);
+        if (time) url.searchParams.set('time', time);
+        return url.toString();
     };
 
     return (
@@ -147,6 +166,29 @@ export function BookingModal({
                         <p className="text-gray-500">
                             Мастер свяжется с вами для подтверждения записи.
                         </p>
+                        <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                            <Link
+                                href="/my-bookings"
+                                className="inline-flex h-11 items-center justify-center rounded-xl bg-gray-900 px-4 text-sm font-semibold text-white hover:bg-gray-800"
+                            >
+                                Перейти в мои записи
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsSubmitted(false);
+                                    setDate('');
+                                    setTime('');
+                                    setAvailableSlots([]);
+                                    setName('');
+                                    setPhone('');
+                                    onClose();
+                                }}
+                                className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            >
+                                Закрыть
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <>
@@ -286,7 +328,7 @@ export function BookingModal({
                             {status !== 'authenticated' ? (
                                 <button
                                     type="button"
-                                    onClick={() => signIn(undefined, { callbackUrl: window.location.href })}
+                                    onClick={() => signIn(undefined, { callbackUrl: getSignInCallbackUrl() })}
                                     className="w-full h-14 rounded-xl bg-gray-900 text-base font-semibold text-white transition-all duration-200 hover:bg-gray-800"
                                 >
                                     Войти, чтобы забронировать
