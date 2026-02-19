@@ -1,0 +1,62 @@
+Выполненная задача: Админ-панель модерации заявок мастеров
+
+1) Создана страница админки:
+- Файл: src/app/admin/page.tsx
+- Маршрут: /admin
+- Тип: Server Component (App Router)
+
+2) Реализована защита доступа:
+- Вход по ключу из URL: /admin?key=...
+- Проверка на сервере:
+  key из searchParams сравнивается с process.env.ADMIN_PANEL_KEY
+- При неверном или пустом ключе показывается строгий экран "Доступ запрещен" без вывода заявок
+
+3) Реализована загрузка заявок на модерацию:
+- Из Prisma выбираются профили Profile с is_verified = false
+- Выводятся поля:
+  - name
+  - user_email
+  - city
+  - category.name
+  - created_at
+- Сортировка: новые сверху (created_at desc)
+
+4) Реализован интерфейс "центр управления":
+- Тёмная верхняя панель админки
+- Светлый контентный блок
+- Карточки состояния:
+  - Ожидают модерации
+  - Одобрено (легенда)
+  - Отклонено (легенда)
+- Таблица заявок с действиями
+- Пустое состояние при отсутствии заявок
+
+5) Реализованы Server Actions:
+- Файл: src/app/admin/actions.ts
+- approveMaster(formData):
+  - Проверка admin_key
+  - Проверка profile_id
+  - Обновление Profile.is_verified = true
+  - revalidatePath('/admin') и revalidatePath('/search')
+- rejectMaster(formData):
+  - Проверка admin_key
+  - Проверка profile_id
+  - Удаление связанных данных в транзакции:
+    - Booking по profile_id
+    - Service по profile_id
+    - Profile по id
+  - revalidatePath('/admin') и revalidatePath('/search')
+
+6) Связка фронтенда и Server Actions:
+- В каждой строке таблицы добавлены 2 формы:
+  - "✅ Одобрить" -> action={approveMaster}
+  - "❌ Отклонить" -> action={rejectMaster}
+- В формы передаются скрытые поля:
+  - profile_id
+  - admin_key (из URL key)
+
+7) Важные замечания по запуску:
+- Для работы админки нужно задать env:
+  ADMIN_PANEL_KEY=<ваш_секретный_ключ>
+- Пример входа:
+  /admin?key=<ваш_секретный_ключ>

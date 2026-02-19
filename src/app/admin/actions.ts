@@ -5,19 +5,23 @@ import prisma from '@/lib/prisma';
 
 function isAdminKeyValid(key: FormDataEntryValue | null) {
     const expectedKey = process.env.ADMIN_PANEL_KEY;
-    return Boolean(expectedKey) && key === expectedKey;
+    return typeof key === 'string' && Boolean(expectedKey) && key === expectedKey;
+}
+
+function parseProfileId(formData: FormData) {
+    const profileId = Number(formData.get('profile_id'));
+    if (!Number.isInteger(profileId)) {
+        throw new Error('Некорректный ID заявки');
+    }
+    return profileId;
 }
 
 export async function approveMaster(formData: FormData) {
     const key = formData.get('admin_key');
-    const profileId = Number(formData.get('profile_id'));
+    const profileId = parseProfileId(formData);
 
     if (!isAdminKeyValid(key)) {
         throw new Error('Доступ запрещен');
-    }
-
-    if (!Number.isInteger(profileId)) {
-        throw new Error('Некорректный ID заявки');
     }
 
     await prisma.profile.update({
@@ -31,14 +35,10 @@ export async function approveMaster(formData: FormData) {
 
 export async function rejectMaster(formData: FormData) {
     const key = formData.get('admin_key');
-    const profileId = Number(formData.get('profile_id'));
+    const profileId = parseProfileId(formData);
 
     if (!isAdminKeyValid(key)) {
         throw new Error('Доступ запрещен');
-    }
-
-    if (!Number.isInteger(profileId)) {
-        throw new Error('Некорректный ID заявки');
     }
 
     await prisma.$transaction([
