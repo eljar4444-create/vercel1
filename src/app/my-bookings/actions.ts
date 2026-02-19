@@ -54,17 +54,17 @@ export async function logoutClientPortal() {
     revalidatePath('/my-bookings');
 }
 
-export async function cancelClientBooking(formData: FormData) {
+export async function cancelClientBooking(formData: FormData): Promise<void> {
     const bookingId = Number(formData.get('booking_id'));
     if (!Number.isInteger(bookingId)) {
-        return { success: false, error: 'Некорректный ID записи.' };
+        return;
     }
 
     const cookieStore = await cookies();
     const phoneFromCookie = cookieStore.get(CLIENT_PHONE_COOKIE)?.value;
 
     if (!phoneFromCookie) {
-        return { success: false, error: 'Сессия истекла. Войдите заново.' };
+        return;
     }
 
     const booking = await prisma.booking.findUnique({
@@ -79,21 +79,21 @@ export async function cancelClientBooking(formData: FormData) {
     });
 
     if (!booking) {
-        return { success: false, error: 'Запись не найдена.' };
+        return;
     }
 
     const sameClient = normalizePhone(booking.user_phone) === normalizePhone(phoneFromCookie);
     if (!sameClient) {
-        return { success: false, error: 'Недостаточно прав для отмены этой записи.' };
+        return;
     }
 
     if (booking.status === 'cancelled') {
-        return { success: false, error: 'Запись уже отменена.' };
+        return;
     }
 
     const bookingDateTime = buildBookingDateTime(booking.date, booking.time);
     if (bookingDateTime.getTime() < Date.now()) {
-        return { success: false, error: 'Нельзя отменить уже прошедшую запись.' };
+        return;
     }
 
     await prisma.booking.update({
@@ -102,5 +102,4 @@ export async function cancelClientBooking(formData: FormData) {
     });
 
     revalidatePath('/my-bookings');
-    return { success: true };
 }
