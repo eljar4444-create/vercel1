@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CancelBookingButton } from '@/components/client/CancelBookingButton';
+import { LinkLegacyBookingsForm } from '@/components/client/LinkLegacyBookingsForm';
 import { cancelClientBooking, logoutClientPortal } from './actions';
 import { findBookingsByUserId, buildBookingDateTime } from './lib';
 import { auth } from '@/auth';
@@ -120,6 +121,8 @@ export default async function MyBookingsPage() {
                 </div>
 
                 <div className="mt-6 space-y-6">
+                    <LinkLegacyBookingsForm />
+
                     <div>
                         <div className="mb-3 flex items-center gap-2">
                             <CalendarClock className="h-5 w-5 text-gray-700" />

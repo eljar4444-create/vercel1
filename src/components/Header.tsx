@@ -50,7 +50,7 @@ export function Header() {
                     <Link href="/search" className="hover:text-blue-600 transition-colors">
                         Services
                     </Link>
-                    <Link href="/become-provider" className="hover:text-blue-600 transition-colors">
+                    <Link href="/auth/register?role=provider" className="hover:text-blue-600 transition-colors">
                         Become a Pro
                     </Link>
                 </nav>
