@@ -27,6 +27,7 @@ model Profile {
   image_url   String?
   bio         String?
   phone       String?
+  schedule    Json?
   is_verified Boolean   @default(false)
   created_at  DateTime  @default(now())
   

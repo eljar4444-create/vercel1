@@ -10,6 +10,8 @@ import { ServiceList } from '@/components/dashboard/ServiceList';
 import { AddServiceForm } from '@/components/dashboard/AddServiceForm';
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
+import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
+import { parseSchedule } from '@/lib/scheduling';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,10 +26,10 @@ export default async function DashboardPage({
     // ─── Fetch master profile ───────────────────────────────────────
     const profile = await prisma.profile.findUnique({
         where: { id: profileId },
-        select: { id: true, name: true, image_url: true, bio: true, phone: true, city: true, address: true },
+        select: { id: true, name: true, image_url: true, bio: true, phone: true, city: true, address: true, schedule: true },
     });
-
     if (!profile) notFound();
+    const workingSchedule = parseSchedule(profile.schedule);
 
     // ─── Fetch bookings ─────────────────────────────────────────────
     const bookings = await prisma.booking.findMany({
@@ -209,6 +211,21 @@ export default async function DashboardPage({
                                     city: profile.city,
                                     address: profile.address,
                                 }} />
+                            </div>
+
+                            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                                <h2 className="font-bold text-gray-900 mb-1">Рабочие часы</h2>
+                                <p className="mb-5 text-xs text-gray-500">
+                                    Эти настройки используются для автоматического расчета свободных слотов в бронировании.
+                                </p>
+                                <WorkingHoursForm
+                                    profileId={profileId}
+                                    initialSchedule={{
+                                        startTime: workingSchedule.startTime,
+                                        endTime: workingSchedule.endTime,
+                                        workingDays: workingSchedule.workingDays,
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>

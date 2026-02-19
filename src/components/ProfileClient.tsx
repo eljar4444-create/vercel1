@@ -113,7 +113,7 @@ const FAKE_REVIEWS = [
 // ═════════════════════════════════════════════════════════════════════
 export function ProfileClient({ profile }: ProfileClientProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedService, setSelectedService] = useState<{ id?: number; title: string; price: string } | null>(null);
+    const [selectedService, setSelectedService] = useState<{ id?: number; title: string; price: string; duration_min?: number } | null>(null);
 
     // ─── Derived data ───────────────────────────────────────────────
     const catSlug = profile.category?.slug || 'beauty';
@@ -132,7 +132,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
     const createdYear = new Date(profile.created_at).getFullYear();
 
     // ─── Handlers ───────────────────────────────────────────────────
-    const openBooking = (service?: { id?: number; title: string; price: string }) => {
+    const openBooking = (service?: { id?: number; title: string; price: string; duration_min?: number }) => {
         setSelectedService(service || null);
         setIsModalOpen(true);
     };
@@ -353,6 +353,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                                         id: service.id,
                                                         title: service.title,
                                                         price: `€${Number(service.price).toFixed(0)}`,
+                                                        duration_min: service.duration_min,
                                                     })}
                                                     className={`${accent.selectBtn} ${accent.selectBtnHover} text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md whitespace-nowrap`}
                                                 >

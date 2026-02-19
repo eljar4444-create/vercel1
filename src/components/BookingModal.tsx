@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { X, Calendar, Clock, User, Phone, CheckCircle, Loader2 } from 'lucide-react';
-import { createBooking } from '@/app/actions/booking';
+import { createBooking, getAvailableSlots } from '@/app/actions/booking';
+import { useEffect } from 'react';
 
 interface BookingModalProps {
     isOpen: boolean;
@@ -13,15 +14,10 @@ interface BookingModalProps {
         id?: number;
         title: string;
         price: string;
+        duration_min?: number;
     } | null;
     accentColor?: string;
 }
-
-const TIME_SLOTS = [
-    '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00',
-    '17:00', '18:00',
-];
 
 export function BookingModal({
     isOpen,
@@ -38,6 +34,53 @@ export function BookingModal({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+    const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+    const [slotsError, setSlotsError] = useState<string | null>(null);
+
+    const selectedDuration = selectedService?.duration_min || 60;
+
+    useEffect(() => {
+        if (!date) {
+            setAvailableSlots([]);
+            setTime('');
+            setSlotsError(null);
+            return;
+        }
+
+        let isActive = true;
+        setIsLoadingSlots(true);
+        setSlotsError(null);
+        setTime('');
+
+        getAvailableSlots({
+            profileId,
+            date,
+            serviceDuration: selectedDuration,
+        })
+            .then((result) => {
+                if (!isActive) return;
+                if (result.success) {
+                    setAvailableSlots(result.slots);
+                } else {
+                    setAvailableSlots([]);
+                    setSlotsError(result.error || 'Не удалось загрузить слоты');
+                }
+            })
+            .catch(() => {
+                if (!isActive) return;
+                setAvailableSlots([]);
+                setSlotsError('Ошибка загрузки свободного времени');
+            })
+            .finally(() => {
+                if (!isActive) return;
+                setIsLoadingSlots(false);
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, [date, profileId, selectedDuration]);
 
     if (!isOpen) return null;
 
@@ -56,6 +99,7 @@ export function BookingModal({
         const result = await createBooking({
             profileId,
             serviceId: selectedService?.id || null,
+            serviceDuration: selectedDuration,
             date,
             time,
             userName: name,
@@ -70,6 +114,7 @@ export function BookingModal({
                 setIsSubmitted(false);
                 setDate('');
                 setTime('');
+                setAvailableSlots([]);
                 setName('');
                 setPhone('');
                 onClose();
@@ -161,19 +206,46 @@ export function BookingModal({
                             <div>
                                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                                     <Clock className="w-4 h-4 text-gray-400" />
-                                    Время
+                                    Свободное время
                                 </label>
-                                <select
-                                    required
-                                    value={time}
-                                    onChange={(e) => setTime(e.target.value)}
-                                    className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all appearance-none cursor-pointer"
-                                >
-                                    <option value="">Выберите время</option>
-                                    {TIME_SLOTS.map(slot => (
-                                        <option key={slot} value={slot}>{slot}</option>
-                                    ))}
-                                </select>
+                                {!date ? (
+                                    <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                                        Сначала выберите дату, затем появятся свободные слоты.
+                                    </div>
+                                ) : isLoadingSlots ? (
+                                    <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Загружаем свободное время...
+                                    </div>
+                                ) : slotsError ? (
+                                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                        {slotsError}
+                                    </div>
+                                ) : availableSlots.length === 0 ? (
+                                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                                        На выбранную дату нет свободных слотов.
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                                        {availableSlots.map((slot) => {
+                                            const isSelected = time === slot;
+                                            return (
+                                                <button
+                                                    key={slot}
+                                                    type="button"
+                                                    onClick={() => setTime(slot)}
+                                                    className={`h-10 rounded-lg border text-sm font-semibold transition-all ${
+                                                        isSelected
+                                                            ? 'border-gray-900 bg-gray-900 text-white'
+                                                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                                                    }`}
+                                                >
+                                                    {slot}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Name */}
@@ -211,7 +283,7 @@ export function BookingModal({
                             {/* Submit */}
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || !time}
                                 className={`w-full h-14 ${btnClass} text-white font-semibold text-base rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0`}
                             >
                                 {isSubmitting ? (

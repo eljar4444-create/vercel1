@@ -1,6 +1,13 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+import {
+    parseSchedule,
+    timeToMinutes,
+    minutesToTime,
+    weekdayFromDateString,
+} from '@/lib/scheduling';
 
 interface BookingInput {
     profileId: number;
@@ -9,20 +16,151 @@ interface BookingInput {
     time: string;       // "14:00"
     userName: string;
     userPhone: string;
+    serviceDuration?: number;
+}
+
+type BusyBooking = {
+    time: string;
+    service?: { duration_min: number } | null;
+};
+
+function normalizeDuration(duration: number | undefined) {
+    if (!duration || !Number.isFinite(duration)) return 60;
+    return Math.max(15, Math.min(240, Math.floor(duration)));
+}
+
+function calculateSlots(
+    workStartMin: number,
+    workEndMin: number,
+    serviceDuration: number,
+    busyBookings: BusyBooking[]
+) {
+    const busyIntervals = busyBookings.map((booking) => {
+        const start = timeToMinutes(booking.time);
+        const end = start + normalizeDuration(booking.service?.duration_min ?? serviceDuration);
+        return { start, end };
+    });
+
+    const result: string[] = [];
+    for (let slotStart = workStartMin; slotStart + serviceDuration <= workEndMin; slotStart += serviceDuration) {
+        const slotEnd = slotStart + serviceDuration;
+        const overlaps = busyIntervals.some((busy) => slotStart < busy.end && slotEnd > busy.start);
+        if (!overlaps) {
+            result.push(minutesToTime(slotStart));
+        }
+    }
+
+    return result;
+}
+
+async function fetchAvailableSlots(
+    db: Prisma.TransactionClient | typeof prisma,
+    profileId: number,
+    date: string,
+    serviceDuration: number
+) {
+    const profile = await db.profile.findUnique({
+        where: { id: profileId },
+        select: { schedule: true },
+    });
+
+    if (!profile) return [];
+
+    const schedule = parseSchedule(profile.schedule);
+    const weekday = weekdayFromDateString(date);
+
+    if (!schedule.workingDays.includes(weekday)) {
+        return [];
+    }
+
+    const workStartMin = timeToMinutes(schedule.startTime);
+    const workEndMin = timeToMinutes(schedule.endTime);
+    if (workEndMin <= workStartMin) {
+        return [];
+    }
+
+    const busyBookings = await db.booking.findMany({
+        where: {
+            profile_id: profileId,
+            date: new Date(date),
+            status: { in: ['pending', 'confirmed'] },
+        },
+        select: {
+            time: true,
+            service: {
+                select: { duration_min: true },
+            },
+        },
+    });
+
+    return calculateSlots(workStartMin, workEndMin, normalizeDuration(serviceDuration), busyBookings);
+}
+
+export async function getAvailableSlots(input: {
+    profileId: number;
+    date: string;
+    serviceDuration: number;
+}) {
+    const profileId = Number(input.profileId);
+    const duration = normalizeDuration(Number(input.serviceDuration));
+
+    if (!Number.isInteger(profileId) || !input.date) {
+        return { success: false, slots: [] as string[], error: 'Некорректные параметры' };
+    }
+
+    try {
+        const slots = await fetchAvailableSlots(prisma, profileId, input.date, duration);
+        return { success: true, slots };
+    } catch (error: any) {
+        console.error('getAvailableSlots error:', error);
+        return { success: false, slots: [] as string[], error: 'Ошибка загрузки слотов' };
+    }
 }
 
 export async function createBooking(input: BookingInput) {
+    const profileId = Number(input.profileId);
+    const serviceId = input.serviceId ? Number(input.serviceId) : null;
+    const serviceDuration = normalizeDuration(input.serviceDuration);
+
+    if (!Number.isInteger(profileId) || !input.date || !input.time || !input.userName || !input.userPhone) {
+        return { success: false, error: 'Пожалуйста, заполните все поля.' };
+    }
+
     try {
-        const booking = await prisma.booking.create({
-            data: {
-                profile_id: input.profileId,
-                service_id: input.serviceId || null,
-                date: new Date(input.date),
-                time: input.time,
-                user_name: input.userName,
-                user_phone: input.userPhone,
-                status: 'pending',
-            },
+        const booking = await prisma.$transaction(async (tx) => {
+            let duration = serviceDuration;
+
+            if (serviceId) {
+                const service = await tx.service.findUnique({
+                    where: { id: serviceId },
+                    select: { duration_min: true, profile_id: true },
+                });
+
+                if (!service || service.profile_id !== profileId) {
+                    throw new Error('Услуга не найдена');
+                }
+
+                duration = normalizeDuration(service.duration_min);
+            }
+
+            const slots = await fetchAvailableSlots(tx, profileId, input.date, duration);
+            if (!slots.includes(input.time)) {
+                throw new Error('Выбранное время уже занято. Обновите слоты и выберите другое время.');
+            }
+
+            return tx.booking.create({
+                data: {
+                    profile_id: profileId,
+                    service_id: serviceId,
+                    date: new Date(input.date),
+                    time: input.time,
+                    user_name: input.userName,
+                    user_phone: input.userPhone,
+                    status: 'pending',
+                },
+            });
+        }, {
+            isolationLevel: 'Serializable',
         });
 
         return { success: true, bookingId: booking.id };
