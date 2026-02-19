@@ -14,6 +14,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 const schema = z.object({
+    name: z.string().min(2, 'Имя должно быть не менее 2 символов'),
     email: z.string().email('Некорректный email'),
     password: z.string().min(6, 'Пароль должен быть не менее 6 символов'),
     confirmPassword: z.string().min(6, 'Пароль должен быть не менее 6 символов'),
@@ -41,7 +42,7 @@ function RegisterForm() {
         try {
             const payload = { ...data, role };
 
-            await axios.post('/api/register', payload);
+            await axios.post('/api/auth/register', payload);
 
             toast.success('Регистрация успешна! Вход в систему...');
 
@@ -88,6 +89,11 @@ function RegisterForm() {
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                        <div>
+                            <Input placeholder="Ваше имя" type="text" {...register('name')} />
+                            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+                        </div>
+
                         <div>
                             <Input placeholder="Email адрес" type="email" {...register('email')} />
                             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}

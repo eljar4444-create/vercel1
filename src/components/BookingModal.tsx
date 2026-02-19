@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, Calendar, Clock, User, Phone, CheckCircle, Loader2 } from 'lucide-react';
 import { createBooking, getAvailableSlots } from '@/app/actions/booking';
 import { useEffect } from 'react';
+import { useSession, signIn } from 'next-auth/react';
 
 interface BookingModalProps {
     isOpen: boolean;
@@ -27,6 +28,7 @@ export function BookingModal({
     selectedService,
     accentColor = 'rose',
 }: BookingModalProps) {
+    const { data: session, status } = useSession();
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     const [name, setName] = useState('');
@@ -281,23 +283,33 @@ export function BookingModal({
                             </div>
 
                             {/* Submit */}
-                            <button
-                                type="submit"
-                                disabled={isSubmitting || !time}
-                                className={`w-full h-14 ${btnClass} text-white font-semibold text-base rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0`}
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        Отправка...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle className="w-5 h-5" />
-                                        Подтвердить запись
-                                    </>
-                                )}
-                            </button>
+                            {status !== 'authenticated' ? (
+                                <button
+                                    type="button"
+                                    onClick={() => signIn(undefined, { callbackUrl: window.location.href })}
+                                    className="w-full h-14 rounded-xl bg-gray-900 text-base font-semibold text-white transition-all duration-200 hover:bg-gray-800"
+                                >
+                                    Войти, чтобы забронировать
+                                </button>
+                            ) : (
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting || !time || !session?.user}
+                                    className={`w-full h-14 ${btnClass} text-white font-semibold text-base rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-4 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0`}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            Отправка...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle className="w-5 h-5" />
+                                            Подтвердить запись
+                                        </>
+                                    )}
+                                </button>
+                            )}
                         </form>
                     </>
                 )}

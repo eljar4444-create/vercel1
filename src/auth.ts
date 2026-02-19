@@ -1,6 +1,6 @@
 import NextAuth from "next-auth"
 import { authConfig } from "./auth.config"
-// import { PrismaAdapter } from "@auth/prisma-adapter"
+import { PrismaAdapter } from "@auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
@@ -8,13 +8,8 @@ import { cookies } from "next/headers"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig,
-    // adapter: PrismaAdapter(prisma), // Disabled due to missing Account/Session tables
+    adapter: PrismaAdapter(prisma),
     session: { strategy: "jwt" },
-    // events: {
-    //     async createUser({ user }) {
-    //         // Legacy profile creation removed
-    //     },
-    // },
     providers: [
         ...authConfig.providers,
         Credentials({
@@ -55,6 +50,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
         }),
     ],
+    events: {
+        async createUser({ user }) {
+            try {
+                const cookieStore = await cookies();
+                const preferredRole = cookieStore.get('new-user-role')?.value;
+                if (preferredRole === 'PROVIDER' || preferredRole === 'CLIENT') {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { role: preferredRole },
+                    });
+                }
+            } catch (error) {
+                console.error('createUser role sync error:', error);
+            }
+        },
+    },
     callbacks: {
         async jwt({ token, user, trigger, session }: any) {
             // Initial sign in
@@ -70,12 +81,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 try {
                     const freshUser = await prisma.user.findUnique({
                         where: { id: token.sub },
-                        select: { image: true, role: true }
+                        select: { image: true, role: true, id: true }
                     });
 
                     if (freshUser) {
                         token.picture = freshUser.image;
                         token.role = freshUser.role;
+                        token.id = freshUser.id;
                     }
                 } catch (error) {
                     console.error("Error fetching fresh user data in JWT callback:", error);

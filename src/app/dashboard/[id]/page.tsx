@@ -1,5 +1,7 @@
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
     CalendarDays, Clock, Users, CheckCircle, XCircle,
@@ -23,12 +25,50 @@ export default async function DashboardPage({
     const profileId = parseInt(params.id, 10);
     if (isNaN(profileId)) notFound();
 
+    const session = await auth();
+    if (!session?.user) {
+        redirect('/auth/login');
+    }
+
+    if (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN') {
+        redirect('/');
+    }
+
     // ─── Fetch master profile ───────────────────────────────────────
     const profile = await prisma.profile.findUnique({
         where: { id: profileId },
-        select: { id: true, name: true, image_url: true, bio: true, phone: true, city: true, address: true, schedule: true },
+        select: {
+            id: true,
+            user_id: true,
+            user_email: true,
+            name: true,
+            image_url: true,
+            bio: true,
+            phone: true,
+            city: true,
+            address: true,
+            schedule: true,
+        },
     });
     if (!profile) notFound();
+
+    if (session.user.role !== 'ADMIN') {
+        const ownsByUserId = profile.user_id && profile.user_id === session.user.id;
+        const ownsByEmail = session.user.email && profile.user_email === session.user.email;
+
+        if (!ownsByUserId && !ownsByEmail) {
+            redirect('/');
+        }
+
+        // Auto-link legacy provider profiles to the authenticated user.
+        if (!profile.user_id && session.user.id) {
+            await prisma.profile.update({
+                where: { id: profile.id },
+                data: { user_id: session.user.id },
+            });
+            profile.user_id = session.user.id;
+        }
+    }
     const workingSchedule = parseSchedule(profile.schedule);
 
     // ─── Fetch bookings ─────────────────────────────────────────────

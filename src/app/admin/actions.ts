@@ -2,11 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import prisma from '@/lib/prisma';
-
-function isAdminKeyValid(key: FormDataEntryValue | null) {
-    const expectedKey = process.env.ADMIN_PANEL_KEY;
-    return typeof key === 'string' && Boolean(expectedKey) && key === expectedKey;
-}
+import { auth } from '@/auth';
 
 function parseProfileId(formData: FormData) {
     const profileId = Number(formData.get('profile_id'));
@@ -17,12 +13,12 @@ function parseProfileId(formData: FormData) {
 }
 
 export async function approveMaster(formData: FormData) {
-    const key = formData.get('admin_key');
-    const profileId = parseProfileId(formData);
-
-    if (!isAdminKeyValid(key)) {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'ADMIN') {
         throw new Error('Доступ запрещен');
     }
+
+    const profileId = parseProfileId(formData);
 
     await prisma.profile.update({
         where: { id: profileId },
@@ -34,12 +30,12 @@ export async function approveMaster(formData: FormData) {
 }
 
 export async function rejectMaster(formData: FormData) {
-    const key = formData.get('admin_key');
-    const profileId = parseProfileId(formData);
-
-    if (!isAdminKeyValid(key)) {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'ADMIN') {
         throw new Error('Доступ запрещен');
     }
+
+    const profileId = parseProfileId(formData);
 
     await prisma.$transaction([
         prisma.booking.deleteMany({ where: { profile_id: profileId } }),

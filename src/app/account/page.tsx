@@ -10,7 +10,21 @@ export default async function AccountPage() {
     }
 
     if (session.user.role === 'PROVIDER') {
-        redirect('/provider/profile');
+        const providerProfile = await prisma.profile.findFirst({
+            where: {
+                OR: [
+                    { user_id: session.user.id },
+                    ...(session.user.email ? [{ user_email: session.user.email }] : []),
+                ],
+            },
+            select: { id: true },
+        });
+
+        if (providerProfile) {
+            redirect(`/dashboard/${providerProfile.id}`);
+        }
+
+        redirect('/become-pro');
     }
 
     const user = await prisma.user.findUnique({

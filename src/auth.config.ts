@@ -9,18 +9,20 @@ export const authConfig = {
     },
 
     providers: [
-        Google({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            authorization: {
-                params: {
-                    prompt: "select_account",
-                    access_type: "offline",
-                    response_type: "code"
-                }
-            },
-            allowDangerousEmailAccountLinking: true,
-        }),
+        ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+            Google({
+                clientId: process.env.GOOGLE_CLIENT_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                authorization: {
+                    params: {
+                        prompt: "select_account",
+                        access_type: "offline",
+                        response_type: "code"
+                    }
+                },
+                allowDangerousEmailAccountLinking: true,
+            })
+        ] : []),
         ...(process.env.APPLE_ID ? [
             Apple({
                 clientId: process.env.APPLE_ID,

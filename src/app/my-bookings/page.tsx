@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import {
     CalendarClock,
     Clock3,
@@ -14,9 +13,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CancelBookingButton } from '@/components/client/CancelBookingButton';
-import { ClientPortalLoginForm } from '@/components/client/ClientPortalLoginForm';
 import { cancelClientBooking, logoutClientPortal } from './actions';
-import { findBookingsByPhone, buildBookingDateTime, CLIENT_PHONE_COOKIE } from './lib';
+import { findBookingsByUserId, buildBookingDateTime } from './lib';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,27 +48,16 @@ function getStatusMeta(status: string) {
 }
 
 export default async function MyBookingsPage() {
-    const cookieStore = await cookies();
-    const clientPhone = cookieStore.get(CLIENT_PHONE_COOKIE)?.value;
-
-    if (!clientPhone) {
-        return (
-            <section className="min-h-screen bg-gray-50 px-4 py-6">
-                <div className="mx-auto w-full max-w-md">
-                    <div className="mb-5 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-5 text-white shadow-lg">
-                        <p className="text-xs uppercase tracking-[0.18em] text-gray-300">Client Portal</p>
-                        <h1 className="mt-2 text-2xl font-bold">Мои записи</h1>
-                        <p className="mt-2 text-sm text-gray-300">
-                            Введите номер телефона и получите доступ к вашим визитам.
-                        </p>
-                    </div>
-                    <ClientPortalLoginForm />
-                </div>
-            </section>
-        );
+    const session = await auth();
+    if (!session?.user?.id) {
+        redirect('/auth/login');
     }
 
-    const bookings = await findBookingsByPhone(clientPhone);
+    if (session.user.role !== 'CLIENT' && session.user.role !== 'ADMIN') {
+        redirect('/');
+    }
+
+    const bookings = await findBookingsByUserId(session.user.id);
     const now = Date.now();
 
     const decorated = bookings.map((booking) => {
@@ -103,7 +92,7 @@ export default async function MyBookingsPage() {
                             <p className="text-xs uppercase tracking-[0.18em] text-gray-300">Client Portal</p>
                             <h1 className="mt-2 text-2xl font-extrabold">Мои записи</h1>
                             <p className="mt-1 text-sm text-gray-300">
-                                Ваш номер: <span className="font-mono">{clientPhone}</span>
+                                Аккаунт: <span className="font-mono">{session.user.email}</span>
                             </p>
                         </div>
                         <form action={logoutClientPortal}>
@@ -244,7 +233,7 @@ export default async function MyBookingsPage() {
 
                 <p className="mt-6 flex items-center gap-2 text-xs text-gray-500">
                     <Phone className="h-3.5 w-3.5" />
-                    Для входа используется номер телефона из заявки (MVP идентификация).
+                    Доступ к кабинету привязан к авторизованной учетной записи клиента.
                 </p>
                 <p className="mt-1 flex items-center gap-2 text-xs text-gray-500">
                     <CircleCheck className="h-3.5 w-3.5 text-green-600" />

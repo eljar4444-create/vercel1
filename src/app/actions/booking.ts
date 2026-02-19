@@ -8,6 +8,7 @@ import {
     minutesToTime,
     weekdayFromDateString,
 } from '@/lib/scheduling';
+import { auth } from '@/auth';
 
 interface BookingInput {
     profileId: number;
@@ -118,6 +119,11 @@ export async function getAvailableSlots(input: {
 }
 
 export async function createBooking(input: BookingInput) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: 'Для бронирования нужно войти в аккаунт.' };
+    }
+
     const profileId = Number(input.profileId);
     const serviceId = input.serviceId ? Number(input.serviceId) : null;
     const serviceDuration = normalizeDuration(input.serviceDuration);
@@ -152,6 +158,7 @@ export async function createBooking(input: BookingInput) {
                 data: {
                     profile_id: profileId,
                     service_id: serviceId,
+                    user_id: session.user.id,
                     date: new Date(input.date),
                     time: input.time,
                     user_name: input.userName,

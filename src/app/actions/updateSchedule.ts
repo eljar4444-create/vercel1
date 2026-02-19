@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { isValidTime, normalizeWorkingDays, timeToMinutes } from '@/lib/scheduling';
+import { auth } from '@/auth';
 
 interface UpdateScheduleResult {
     success: boolean;
@@ -10,6 +11,11 @@ interface UpdateScheduleResult {
 }
 
 export async function updateSchedule(formData: FormData): Promise<UpdateScheduleResult> {
+    const session = await auth();
+    if (!session?.user || (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN')) {
+        return { success: false, error: 'Unauthorized' };
+    }
+
     const profileId = Number(formData.get('profile_id'));
     const startTime = String(formData.get('start_time') || '');
     const endTime = String(formData.get('end_time') || '');
@@ -32,6 +38,20 @@ export async function updateSchedule(formData: FormData): Promise<UpdateSchedule
     const workingDays = normalizeWorkingDays(workingDaysRaw);
 
     try {
+        if (session.user.role !== 'ADMIN') {
+            const profile = await prisma.profile.findUnique({
+                where: { id: profileId },
+                select: { user_id: true, user_email: true },
+            });
+            if (!profile) return { success: false, error: 'Профиль не найден.' };
+
+            const ownsByUserId = profile.user_id && profile.user_id === session.user.id;
+            const ownsByEmail = session.user.email && profile.user_email === session.user.email;
+            if (!ownsByUserId && !ownsByEmail) {
+                return { success: false, error: 'Недостаточно прав.' };
+            }
+        }
+
         await prisma.profile.update({
             where: { id: profileId },
             data: {

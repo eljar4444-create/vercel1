@@ -3,6 +3,8 @@ import { ShieldAlert, ShieldCheck, Users, Clock3, CheckCircle2, XCircle } from '
 import prisma from '@/lib/prisma';
 import { approveMaster, rejectMaster } from './actions';
 import { Button } from '@/components/ui/button';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 import {
     Table,
     TableBody,
@@ -14,16 +16,6 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-type AdminPageProps = {
-    searchParams?: {
-        key?: string | string[];
-    };
-};
-
-function getSingleParam(param?: string | string[]) {
-    return Array.isArray(param) ? param[0] : param;
-}
-
 function formatDateTime(date: Date) {
     return new Intl.DateTimeFormat('ru-RU', {
         day: '2-digit',
@@ -34,12 +26,14 @@ function formatDateTime(date: Date) {
     }).format(date);
 }
 
-export default async function AdminPage({ searchParams }: AdminPageProps) {
-    const keyFromUrl = getSingleParam(searchParams?.key);
-    const adminKey = process.env.ADMIN_PANEL_KEY;
-    const hasAccess = Boolean(adminKey) && keyFromUrl === adminKey;
+export default async function AdminPage() {
+    const session = await auth();
+    const hasAccess = session?.user?.role === 'ADMIN';
 
     if (!hasAccess) {
+        if (!session?.user) {
+            redirect('/auth/login');
+        }
         return (
             <section className="min-h-screen bg-gray-100 px-4 py-10">
                 <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-800 shadow-2xl">
@@ -55,8 +49,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                         </div>
                         <h2 className="text-2xl font-bold text-gray-900">Доступ запрещен</h2>
                         <p className="mx-auto mt-3 max-w-md text-sm text-gray-500">
-                            Неверный ключ доступа к панели модерации. Передайте корректный ключ в URL:
-                            <span className="mt-1 block font-mono text-gray-700">/admin?key=ваш_секрет</span>
+                            У вашей учетной записи нет прав администратора.
                         </p>
                         <Button asChild variant="outline" className="mt-6">
                             <Link href="/">На главную</Link>
@@ -205,7 +198,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                                             <div className="flex justify-end gap-2">
                                                 <form action={approveMaster}>
                                                     <input type="hidden" name="profile_id" value={profile.id} />
-                                                    <input type="hidden" name="admin_key" value={keyFromUrl} />
                                                     <Button
                                                         type="submit"
                                                         className="h-9 bg-green-600 text-white hover:bg-green-700"
@@ -215,7 +207,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                                                 </form>
                                                 <form action={rejectMaster}>
                                                     <input type="hidden" name="profile_id" value={profile.id} />
-                                                    <input type="hidden" name="admin_key" value={keyFromUrl} />
                                                     <Button type="submit" variant="destructive" className="h-9">
                                                         ❌ Отклонить
                                                     </Button>

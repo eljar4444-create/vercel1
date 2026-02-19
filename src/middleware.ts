@@ -6,33 +6,53 @@ const { auth } = NextAuth(authConfig)
 
 export default auth((req) => {
     const { nextUrl } = req
-    const isLoggedIn = !!req.auth
-    const hasSiteAccess = req.cookies.get('site_access') // Check for cookie
+    const session = req.auth
+    const isLoggedIn = !!session?.user
+    const role = session?.user?.role
 
     const isApiRoute = nextUrl.pathname.startsWith('/api')
     const isStatic = nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.includes('.') // images, etc
-    const isLockPage = nextUrl.pathname === '/lock'
     const isAuthPage = nextUrl.pathname.startsWith('/auth')
+    const isAdminPage = nextUrl.pathname.startsWith('/admin')
+    const isClientPortal = nextUrl.pathname.startsWith('/my-bookings')
+    const isDashboard = nextUrl.pathname.startsWith('/dashboard/')
+    const isProviderArea = nextUrl.pathname.startsWith('/provider')
 
     // Always allow API, Static files, and Auth pages (Login/Register must work)
     if (isApiRoute || isStatic || isAuthPage) {
         return NextResponse.next();
     }
 
-    // Checking for Site Password
-    if (!hasSiteAccess && !isLockPage) {
-        // Redirect to Lock Screen
-        return NextResponse.redirect(new URL('/lock', nextUrl))
+    if (isAdminPage) {
+        if (!isLoggedIn) {
+            return NextResponse.redirect(new URL('/auth/login', nextUrl));
+        }
+        if (role !== 'ADMIN') {
+            return NextResponse.redirect(new URL('/', nextUrl));
+        }
     }
 
-    // If on Lock page but already has access, go home
-    if (hasSiteAccess && isLockPage) {
-        // return NextResponse.redirect(new URL('/', nextUrl)) // Optional: Redirect if trying to access lock while unlocked
+    if (isClientPortal) {
+        if (!isLoggedIn) {
+            return NextResponse.redirect(new URL('/auth/login', nextUrl));
+        }
+        if (role !== 'CLIENT' && role !== 'ADMIN') {
+            return NextResponse.redirect(new URL('/', nextUrl));
+        }
+    }
+
+    if (isDashboard || isProviderArea) {
+        if (!isLoggedIn) {
+            return NextResponse.redirect(new URL('/auth/login', nextUrl));
+        }
+        if (role !== 'PROVIDER' && role !== 'ADMIN') {
+            return NextResponse.redirect(new URL('/', nextUrl));
+        }
     }
 
     return NextResponse.next()
 })
 
 export const config = {
-    matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+    matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 }
