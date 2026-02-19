@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { updateBasicInfo, uploadProfilePhoto } from '@/app/actions/profile';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Camera, User as UserIcon, LogOut, Compass, CalendarClock, Sparkles, CheckCircle2, X } from 'lucide-react';
+import { Camera, User as UserIcon, LogOut, Compass, CalendarClock, Sparkles, CheckCircle2 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { toast } from 'react-hot-toast';
 
@@ -31,24 +31,7 @@ export function AccountView({ user, stats }: AccountViewProps) {
     const [name, setName] = useState(user.name || '');
     const [bio, setBio] = useState(user.bio || '');
     const [isSaving, setIsSaving] = useState(false);
-    const [showWelcomeWizard, setShowWelcomeWizard] = useState(false);
-    const [wizardStep, setWizardStep] = useState(0);
     const router = useRouter();
-
-    useEffect(() => {
-        if (stats.totalBookings > 0) return;
-        const key = `client-wizard-seen:${user.id}`;
-        const seen = window.localStorage.getItem(key);
-        if (!seen) {
-            setShowWelcomeWizard(true);
-        }
-    }, [stats.totalBookings, user.id]);
-
-    const closeWizard = () => {
-        const key = `client-wizard-seen:${user.id}`;
-        window.localStorage.setItem(key, '1');
-        setShowWelcomeWizard(false);
-    };
 
     async function handleSave(e: React.FormEvent) {
         e.preventDefault();
@@ -84,94 +67,6 @@ export function AccountView({ user, stats }: AccountViewProps) {
 
     return (
         <div className="space-y-6">
-            {showWelcomeWizard && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-                    <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-                        <button
-                            type="button"
-                            onClick={closeWizard}
-                            className="absolute right-3 top-3 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                        >
-                            <X className="h-5 w-5" />
-                        </button>
-
-                        <p className="text-xs uppercase tracking-[0.18em] text-gray-400">Добро пожаловать</p>
-                        <h2 className="mt-2 text-2xl font-bold text-gray-900">Быстрый старт</h2>
-
-                        <div className="mt-4">
-                            {wizardStep === 0 && (
-                                <div>
-                                    <p className="text-sm text-gray-600">
-                                        Шаг 1 из 3. Начните с поиска специалиста в вашем городе.
-                                    </p>
-                                    <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-                                        Используйте фильтры по категории и городу, чтобы быстрее найти нужного мастера.
-                                    </div>
-                                </div>
-                            )}
-                            {wizardStep === 1 && (
-                                <div>
-                                    <p className="text-sm text-gray-600">
-                                        Шаг 2 из 3. Выберите услугу и удобный свободный слот.
-                                    </p>
-                                    <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-                                        Если время занято, система сразу покажет только свободные варианты.
-                                    </div>
-                                </div>
-                            )}
-                            {wizardStep === 2 && (
-                                <div>
-                                    <p className="text-sm text-gray-600">
-                                        Шаг 3 из 3. Управляйте визитами в разделе «Мои записи».
-                                    </p>
-                                    <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
-                                        Там вы увидите предстоящие визиты, историю и сможете отменить запись.
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="mt-6 flex items-center justify-between">
-                            <div className="flex gap-1.5">
-                                {[0, 1, 2].map((dot) => (
-                                    <span
-                                        key={dot}
-                                        className={`h-1.5 w-6 rounded-full ${wizardStep === dot ? 'bg-gray-900' : 'bg-gray-200'}`}
-                                    />
-                                ))}
-                            </div>
-                            <div className="flex gap-2">
-                                {wizardStep > 0 && (
-                                    <Button variant="outline" onClick={() => setWizardStep((s) => s - 1)}>
-                                        Назад
-                                    </Button>
-                                )}
-                                {wizardStep < 2 ? (
-                                    <Button onClick={() => setWizardStep((s) => s + 1)}>Далее</Button>
-                                ) : (
-                                    <Button onClick={closeWizard}>Понятно</Button>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="mt-4 flex gap-2">
-                            <Button asChild className="w-full bg-gray-900 text-white hover:bg-gray-800">
-                                <Link href="/search" onClick={closeWizard}>
-                                    <Compass className="mr-2 h-4 w-4" />
-                                    Найти мастера
-                                </Link>
-                            </Button>
-                            <Button asChild variant="outline" className="w-full">
-                                <Link href="/my-bookings" onClick={closeWizard}>
-                                    <CalendarClock className="mr-2 h-4 w-4" />
-                                    Мои записи
-                                </Link>
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             <div className="rounded-3xl bg-gradient-to-br from-gray-900 to-gray-800 p-6 text-white shadow-lg">
                 <p className="text-xs uppercase tracking-[0.18em] text-gray-300">Client Area</p>
                 <h1 className="mt-2 text-3xl font-bold">

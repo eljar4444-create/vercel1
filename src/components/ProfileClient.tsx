@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import { BookingModal } from '@/components/BookingModal';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSession, signIn } from 'next-auth/react';
+import { startConversationWithProvider } from '@/app/actions/chat';
+import toast from 'react-hot-toast';
 
 // ─── Types ──────────────────────────────────────────────────────────
 interface ProfileData {
@@ -116,8 +119,10 @@ export function ProfileClient({ profile }: ProfileClientProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const { data: session, status } = useSession();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<{ id?: number; title: string; price: string; duration_min?: number } | null>(null);
+    const [isStartingChat, setIsStartingChat] = useState(false);
 
     // ─── Derived data ───────────────────────────────────────────────
     const catSlug = profile.category?.slug || 'beauty';
@@ -141,6 +146,29 @@ export function ProfileClient({ profile }: ProfileClientProps) {
     const openBooking = (service?: { id?: number; title: string; price: string; duration_min?: number }) => {
         setSelectedService(service || null);
         setIsModalOpen(true);
+    };
+
+    const startChat = async () => {
+        if (isStartingChat) return;
+
+        if (status !== 'authenticated' || !session?.user) {
+            if (typeof window === 'undefined') return;
+            const url = new URL(window.location.href);
+            url.searchParams.set('startChat', '1');
+            await signIn(undefined, { callbackUrl: url.toString() });
+            return;
+        }
+
+        setIsStartingChat(true);
+        const result = await startConversationWithProvider(profile.id);
+        setIsStartingChat(false);
+
+        if (!result.success || !result.conversationId) {
+            toast.error(result.error || 'Не удалось открыть чат');
+            return;
+        }
+
+        router.push(`/chat/${result.conversationId}`);
     };
 
     useEffect(() => {
@@ -169,6 +197,18 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         const query = next.toString();
         router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
     }, [pathname, router, searchParams, services]);
+
+    useEffect(() => {
+        if (searchParams.get('startChat') !== '1') return;
+        if (status !== 'authenticated' || !session?.user) return;
+
+        startChat();
+
+        const next = new URLSearchParams(searchParams.toString());
+        next.delete('startChat');
+        const query = next.toString();
+        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    }, [status, session?.user, pathname, router, searchParams]);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -296,9 +336,13 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                             <Phone className="w-4 h-4" />
                                             Позвонить
                                         </button>
-                                        <button className="flex-1 h-11 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors flex items-center justify-center gap-1.5 text-sm">
+                                        <button
+                                            onClick={startChat}
+                                            disabled={isStartingChat}
+                                            className="flex-1 h-11 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors flex items-center justify-center gap-1.5 text-sm disabled:opacity-60"
+                                        >
                                             <MessageCircle className="w-4 h-4" />
-                                            Написать
+                                            {isStartingChat ? 'Открываем...' : 'Написать'}
                                         </button>
                                     </div>
                                 </div>
