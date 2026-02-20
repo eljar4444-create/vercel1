@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { LogOut, UserCircle2, CalendarClock, LayoutDashboard, Shield, User, MessageCircle, Settings } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -52,6 +53,7 @@ export function getRoleMenuLinks(user: {
 export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
     const user = propUser;
     if (!user) return null;
+    const [resolvedProfileId, setResolvedProfileId] = useState<number | null | undefined>(user.profileId);
 
     const initials =
         user.name
@@ -61,9 +63,32 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
             .slice(0, 2)
             .toUpperCase() || 'U';
 
+    useEffect(() => {
+        setResolvedProfileId(user.profileId);
+    }, [user.profileId]);
+
+    useEffect(() => {
+        if (user.role !== 'PROVIDER' || resolvedProfileId) return;
+
+        let active = true;
+        fetch('/api/me/provider-profile', { cache: 'no-store' })
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+                if (!active || !data) return;
+                setResolvedProfileId(data.profileId ?? null);
+            })
+            .catch(() => {
+                if (active) setResolvedProfileId(null);
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [resolvedProfileId, user.role]);
+
     const roleLinks = getRoleMenuLinks({
         role: user.role,
-        profileId: user.profileId,
+        profileId: resolvedProfileId ?? null,
     });
 
     return (
