@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { getMyConversations } from '@/app/actions/chat';
+import { getConversationBookingContext, getMyConversations } from '@/app/actions/chat';
 import { MessengerClient } from '@/components/chat/MessengerClient';
 
 export const dynamic = 'force-dynamic';
@@ -13,12 +13,17 @@ export default async function ChatPage() {
 
     const result = await getMyConversations();
     const conversations = result.success ? result.conversations : [];
+    const initialConversationId = conversations[0]?.id ?? null;
+    const bookingContextResult = initialConversationId
+        ? await getConversationBookingContext(initialConversationId)
+        : { success: false, booking: null };
 
     return (
         <MessengerClient
             initialConversations={conversations}
-            initialConversationId={null}
+            initialConversationId={initialConversationId}
             currentUserId={session.user.id}
+            initialBookingContext={bookingContextResult.success ? bookingContextResult.booking : null}
         />
     );
 }

@@ -3,10 +3,15 @@
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Loader2, MessageSquare, Send, UserCircle } from 'lucide-react';
+import { CalendarDays, Loader2, MessageSquare, Send, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { getConversationMessages, getMyConversations, sendMessage } from '@/app/actions/chat';
+import {
+    getConversationBookingContext,
+    getConversationMessages,
+    getMyConversations,
+    sendMessage,
+} from '@/app/actions/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type ConversationItem = {
@@ -35,10 +40,19 @@ type MessageItem = {
     };
 };
 
+type BookingContext = {
+    id: number;
+    serviceTitle: string;
+    date: string;
+    time: string;
+    status: string;
+} | null;
+
 interface MessengerClientProps {
     initialConversations: ConversationItem[];
     initialConversationId: string | null;
     currentUserId: string;
+    initialBookingContext: BookingContext;
 }
 
 function getInitials(name?: string | null) {
@@ -51,6 +65,7 @@ export function MessengerClient({
     initialConversations,
     initialConversationId,
     currentUserId,
+    initialBookingContext,
 }: MessengerClientProps) {
     const [conversations, setConversations] = useState(initialConversations);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
@@ -59,6 +74,7 @@ export function MessengerClient({
     const [messages, setMessages] = useState<MessageItem[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+    const [bookingContext, setBookingContext] = useState<BookingContext>(initialBookingContext);
     const [isSending, startSending] = useTransition();
 
     const selectedConversation = useMemo(
@@ -87,6 +103,15 @@ export function MessengerClient({
         setIsLoadingMessages(false);
     };
 
+    const loadBookingContext = async (conversationId: string) => {
+        const result = await getConversationBookingContext(conversationId);
+        if (result.success) {
+            setBookingContext(result.booking);
+        } else {
+            setBookingContext(null);
+        }
+    };
+
     useEffect(() => {
         refreshConversations();
     }, []);
@@ -94,9 +119,11 @@ export function MessengerClient({
     useEffect(() => {
         if (!selectedConversationId) {
             setMessages([]);
+            setBookingContext(null);
             return;
         }
         loadMessages(selectedConversationId);
+        loadBookingContext(selectedConversationId);
     }, [selectedConversationId]);
 
     useEffect(() => {
@@ -125,9 +152,39 @@ export function MessengerClient({
         });
     };
 
+    const bookingStatus = useMemo(() => {
+        if (!bookingContext) return null;
+
+        if (bookingContext.status === 'confirmed') {
+            return {
+                label: 'Подтверждено',
+                className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+            };
+        }
+
+        if (bookingContext.status === 'pending') {
+            return {
+                label: 'Ожидает подтверждения',
+                className: 'border-amber-200 bg-amber-50 text-amber-700',
+            };
+        }
+
+        if (bookingContext.status === 'cancelled') {
+            return {
+                label: 'Отменено',
+                className: 'border-rose-200 bg-rose-50 text-rose-700',
+            };
+        }
+
+        return {
+            label: bookingContext.status,
+            className: 'border-slate-200 bg-slate-100 text-slate-700',
+        };
+    }, [bookingContext]);
+
     return (
-        <div className="h-[calc(100vh-80px)] w-full overflow-hidden">
-            <div className="flex h-full w-full overflow-hidden border border-slate-200 bg-white">
+        <div className="flex min-h-[calc(100vh-80px)] items-start justify-center bg-slate-50 px-4 py-8">
+            <div className="flex h-[700px] w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
                 <aside className="flex h-full w-72 shrink-0 flex-col border-r border-slate-200 bg-slate-50 md:w-80 md:max-w-md">
                     <div className="border-b border-gray-100 bg-white px-4 py-4">
                         <h2 className="text-lg font-bold text-gray-900">Чаты</h2>
@@ -199,6 +256,28 @@ export function MessengerClient({
                                     </p>
                                     <p className="truncate text-xs text-gray-500">{selectedConversation.interlocutor.subtitle || 'Диалог'}</p>
                                 </div>
+                            </div>
+
+                            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm md:px-6">
+                                {bookingContext ? (
+                                    <>
+                                        <div className="min-w-0 pr-2 text-slate-700">
+                                            <p className="flex items-center gap-2 truncate font-medium text-slate-800">
+                                                <CalendarDays className="h-4 w-4 shrink-0 text-slate-500" />
+                                                <span className="truncate">
+                                                    {bookingContext.serviceTitle} • {format(new Date(bookingContext.date), 'd MMMM', { locale: ru })} в {bookingContext.time}
+                                                </span>
+                                            </p>
+                                        </div>
+                                        {bookingStatus ? (
+                                            <span className={cn('inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-xs font-medium', bookingStatus.className)}>
+                                                {bookingStatus.label}
+                                            </span>
+                                        ) : null}
+                                    </>
+                                ) : (
+                                    <p className="text-xs text-slate-500">Нет связанной записи для этого диалога</p>
+                                )}
                             </div>
 
                             <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50/70 p-4 md:p-6">

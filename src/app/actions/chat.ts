@@ -261,3 +261,72 @@ export async function sendMessage(formData: FormData): Promise<void> {
     revalidatePath('/chat');
     revalidatePath(`/chat/${conversationId}`);
 }
+
+export async function getConversationBookingContext(conversationId: string) {
+    const user = await getAuthorizedUser();
+    if (!user) return { success: false, booking: null };
+
+    const allowed = await hasConversationAccess(conversationId, user.userId, user.role, user.email);
+    if (!allowed) return { success: false, booking: null };
+
+    const conversation = await prisma.conversation.findUnique({
+        where: { id: conversationId },
+        select: {
+            clientUserId: true,
+            providerProfileId: true,
+        },
+    });
+
+    if (!conversation) return { success: false, booking: null };
+
+    const activeBooking = await prisma.booking.findFirst({
+        where: {
+            profile_id: conversation.providerProfileId,
+            user_id: conversation.clientUserId,
+            status: { in: ['pending', 'confirmed'] },
+        },
+        select: {
+            id: true,
+            date: true,
+            time: true,
+            status: true,
+            service: {
+                select: { title: true },
+            },
+        },
+        orderBy: [{ date: 'desc' }, { created_at: 'desc' }],
+    });
+
+    const fallbackBooking = activeBooking
+        ? null
+        : await prisma.booking.findFirst({
+            where: {
+                profile_id: conversation.providerProfileId,
+                user_id: conversation.clientUserId,
+            },
+            select: {
+                id: true,
+                date: true,
+                time: true,
+                status: true,
+                service: {
+                    select: { title: true },
+                },
+            },
+            orderBy: [{ date: 'desc' }, { created_at: 'desc' }],
+        });
+
+    const booking = activeBooking || fallbackBooking;
+    if (!booking) return { success: true, booking: null };
+
+    return {
+        success: true,
+        booking: {
+            id: booking.id,
+            serviceTitle: booking.service?.title || 'Услуга',
+            date: booking.date.toISOString(),
+            time: booking.time,
+            status: booking.status,
+        },
+    };
+}

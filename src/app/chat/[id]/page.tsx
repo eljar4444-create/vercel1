@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { getMyConversations } from '@/app/actions/chat';
+import { getConversationBookingContext, getMyConversations } from '@/app/actions/chat';
 import { MessengerClient } from '@/components/chat/MessengerClient';
 
 export const dynamic = 'force-dynamic';
@@ -18,12 +18,14 @@ export default async function ChatByIdPage({
     const result = await getMyConversations();
     const conversations = result.success ? result.conversations : [];
     const hasAccess = conversations.some((conversation) => conversation.id === params.id);
+    const bookingContextResult = hasAccess ? await getConversationBookingContext(params.id) : { success: false, booking: null };
 
     return (
         <MessengerClient
             initialConversations={conversations}
             initialConversationId={hasAccess ? params.id : null}
             currentUserId={session.user.id}
+            initialBookingContext={bookingContextResult.success ? bookingContextResult.booking : null}
         />
     );
 }
