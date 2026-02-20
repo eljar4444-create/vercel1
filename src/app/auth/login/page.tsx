@@ -64,7 +64,7 @@ function LoginForm() {
                 toast.error('Неверный email или пароль');
             } else {
                 toast.success('Добро пожаловать!');
-                router.push(result?.url || callbackUrl);
+                router.replace(callbackUrl);
                 router.refresh(); // Refresh to update session state in UI
             }
 
