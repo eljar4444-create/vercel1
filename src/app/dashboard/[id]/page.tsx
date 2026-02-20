@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
     CalendarDays, Clock, Users, CheckCircle, XCircle,
-    Inbox, ArrowLeft, Briefcase, ShieldCheck, AlertCircle, ListChecks
+    Inbox, ArrowLeft, Briefcase, ShieldCheck, AlertCircle, ListChecks, Eye
 } from 'lucide-react';
 import { BookingRow } from '@/components/dashboard/BookingRow';
 import { ServiceList } from '@/components/dashboard/ServiceList';
@@ -134,23 +134,37 @@ export default async function DashboardPage({
                         Мой профиль
                     </Link>
 
-                    <AvatarUpload
-                        profileId={profileId}
-                        profileName={profile.name}
-                        currentImageUrl={profile.image_url}
-                    />
-                    <div className="mt-4">
-                        {isProfileVerified ? (
-                            <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                                <ShieldCheck className="h-3.5 w-3.5" />
-                                Профиль активен
-                            </span>
-                        ) : (
-                            <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                                <AlertCircle className="h-3.5 w-3.5" />
-                                Ожидает проверки администратором
-                            </span>
-                        )}
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div>
+                            <AvatarUpload
+                                profileId={profileId}
+                                profileName={profile.name}
+                                currentImageUrl={profile.image_url}
+                            />
+                            <div className="mt-4">
+                                {isProfileVerified ? (
+                                    <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                                        <ShieldCheck className="h-3.5 w-3.5" />
+                                        Профиль активен
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                                        <AlertCircle className="h-3.5 w-3.5" />
+                                        Ожидает проверки администратором
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        <Link
+                            href={`/profile/${profileId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                        >
+                            <Eye className="h-4 w-4" />
+                            Посмотреть профиль
+                        </Link>
                     </div>
                 </div>
             </div>
