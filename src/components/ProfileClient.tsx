@@ -16,6 +16,7 @@ import {
     Sparkles,
     Stethoscope,
     Calendar,
+    Zap,
 } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
@@ -53,6 +54,7 @@ interface ProfileData {
 
 interface ProfileClientProps {
     profile: ProfileData;
+    nextAvailableLabel?: string | null;
 }
 
 const ACCENT = {
@@ -74,7 +76,7 @@ const ACCENT = {
 
 const DEFAULT_ACCENT = ACCENT.beauty;
 
-export function ProfileClient({ profile }: ProfileClientProps) {
+export function ProfileClient({ profile, nextAvailableLabel }: ProfileClientProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -302,7 +304,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         <Card className={`rounded-3xl border-slate-200 bg-white shadow-xl shadow-slate-200/60 ring-1 ${accent.ring}`}>
                             <CardHeader className="p-6 pb-4">
                                 <CardTitle className="text-xl">Быстрая запись</CardTitle>
-                                <p className="text-sm text-slate-500">Выберите услугу и забронируйте слот за пару кликов.</p>
+                                <p className="text-sm text-slate-500">Запишитесь онлайн за пару кликов без звонков.</p>
                             </CardHeader>
                             <CardContent className="space-y-4 p-6 pt-0">
                                 {profile.category ? (
@@ -319,27 +321,15 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                     </div>
                                 ) : null}
 
-                                {services.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {services.slice(0, 3).map((service) => (
-                                            <button
-                                                key={`quick-${service.id}`}
-                                                onClick={() =>
-                                                    openBooking({
-                                                        id: service.id,
-                                                        title: service.title,
-                                                        price: `€${Number(service.price).toFixed(0)}`,
-                                                        duration_min: service.duration_min,
-                                                    })
-                                                }
-                                                className="flex w-full items-center justify-between rounded-xl border border-slate-200 px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50"
-                                            >
-                                                <span className="truncate pr-3 text-slate-700">{service.title}</span>
-                                                <span className="font-semibold text-slate-900">€{Number(service.price).toFixed(0)}</span>
-                                            </button>
-                                        ))}
+                                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
+                                    <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-700">
+                                        <Zap className="h-3.5 w-3.5" />
+                                        Ближайшее окно
                                     </div>
-                                ) : null}
+                                    <p className="mt-2 text-sm font-semibold text-emerald-800">
+                                        {nextAvailableLabel ? `⚡ Ближайшая запись: ${nextAvailableLabel}` : 'Проверить свободные даты'}
+                                    </p>
+                                </div>
 
                                 <Button onClick={() => openBooking()} className={`h-12 w-full text-base text-white ${accent.cta}`}>
                                     <Calendar className="mr-2 h-5 w-5" />
