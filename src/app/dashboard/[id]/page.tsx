@@ -52,6 +52,12 @@ export default async function DashboardPage({
             address: true,
             is_verified: true,
             schedule: true,
+            category: {
+                select: {
+                    name: true,
+                    slug: true,
+                },
+            },
         },
     });
     if (!profile) notFound();
@@ -338,7 +344,11 @@ export default async function DashboardPage({
                             </div>
                             <div className="space-y-6 p-5">
                                 <ServiceList services={serializedServices} />
-                                <AddServiceForm profileId={profileId} />
+                                <AddServiceForm
+                                    profileId={profileId}
+                                    profileCategorySlug={profile.category?.slug}
+                                    profileCategoryName={profile.category?.name}
+                                />
                             </div>
                         </div>
                     )}
