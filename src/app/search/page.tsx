@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Search, MapPin, SlidersHorizontal, Sparkles, Stethoscope, X } from "lucide-react";
+import { SearchFiltersForm } from "@/components/search/SearchFiltersForm";
 
 // ─── Category visual config ─────────────────────────────────────────
 const CAT_CONFIG: Record<string, {
@@ -75,6 +76,14 @@ export default async function SearchPage({
         where.OR = [
             { name: { contains: queryFilter, mode: 'insensitive' } },
             { city: { contains: queryFilter, mode: 'insensitive' } },
+            { category: { name: { contains: queryFilter, mode: 'insensitive' } } },
+            {
+                services: {
+                    some: {
+                        title: { contains: queryFilter, mode: 'insensitive' },
+                    },
+                },
+            },
         ];
     }
 
@@ -93,17 +102,6 @@ export default async function SearchPage({
     } catch (e: any) {
         console.error("DB Error:", e);
     }
-
-    // ─── Extract unique cities ──────────────────────────────────────
-    let allCities: string[] = [];
-    try {
-        const citiesRaw = await prisma.profile.findMany({
-            select: { city: true },
-            distinct: ['city'],
-            orderBy: { city: 'asc' },
-        });
-        allCities = citiesRaw.map((c: any) => c.city);
-    } catch { /* ignore */ }
 
     // ─── Active category info ───────────────────────────────────────
     const activeCat = categories.find(c => c.slug === categoryFilter);
@@ -143,46 +141,11 @@ export default async function SearchPage({
                     </p>
 
                     {/* ── Search / Filter Bar ── */}
-                    <form method="GET" action="/search" className="bg-white/10 backdrop-blur-md rounded-2xl p-2 flex flex-col md:flex-row gap-2 border border-white/10">
-                        {/* Category hidden (kept from current selection) */}
-                        {categoryFilter && <input type="hidden" name="category" value={categoryFilter} />}
-
-                        {/* Search Input */}
-                        <div className="relative flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="text"
-                                name="q"
-                                defaultValue={queryFilter || ''}
-                                placeholder="Поиск по имени..."
-                                className="w-full h-12 pl-12 pr-4 bg-white/10 text-white placeholder:text-gray-400 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm font-medium"
-                            />
-                        </div>
-
-                        {/* City Select */}
-                        <div className="relative flex-1 md:max-w-[220px]">
-                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                            <select
-                                name="city"
-                                defaultValue={cityFilter || ''}
-                                className="w-full h-12 pl-12 pr-4 bg-white/10 text-white rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm font-medium appearance-none cursor-pointer"
-                            >
-                                <option value="" className="text-gray-900">Все города</option>
-                                {allCities.map(city => (
-                                    <option key={city} value={city} className="text-gray-900">{city}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Submit */}
-                        <button
-                            type="submit"
-                            className="h-12 px-8 bg-white hover:bg-gray-100 text-gray-900 font-semibold rounded-xl transition-all duration-200 flex items-center gap-2 text-sm whitespace-nowrap"
-                        >
-                            <SlidersHorizontal className="w-4 h-4" />
-                            Найти
-                        </button>
-                    </form>
+                    <SearchFiltersForm
+                        categoryFilter={categoryFilter}
+                        queryFilter={queryFilter}
+                        cityFilter={cityFilter}
+                    />
                 </div>
             </section>
 

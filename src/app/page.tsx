@@ -1,13 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
     Search, ArrowRight, Sparkles, Stethoscope,
     CalendarCheck, UserCheck, Star, ChevronRight,
-    Shield, Clock, Heart, MapPin
+    Shield, Clock, Heart, MapPin, Loader2, LocateFixed
 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { GERMAN_CITY_SUGGESTIONS, POPULAR_SERVICES, resolveGermanCity } from '@/constants/searchSuggestions';
 
 // ─── Category Cards ─────────────────────────────────────────────────
 const CATEGORIES = [
@@ -73,10 +75,41 @@ const STATS = [
 // PAGE
 // ═════════════════════════════════════════════════════════════════════
 export default function HomePage() {
+    const formRef = useRef<HTMLFormElement>(null);
     const [query, setQuery] = useState('');
     const [city, setCity] = useState('');
     const [radius, setRadius] = useState('10');
+    const [queryOpen, setQueryOpen] = useState(false);
+    const [cityOpen, setCityOpen] = useState(false);
+    const [isGeoLoading, setIsGeoLoading] = useState(false);
     const router = useRouter();
+
+    const filteredServices = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        const base = q
+            ? POPULAR_SERVICES.filter((item) => item.toLowerCase().includes(q))
+            : POPULAR_SERVICES;
+        return base.slice(0, 8);
+    }, [query]);
+
+    const filteredCities = useMemo(() => {
+        const q = city.trim().toLowerCase();
+        const base = q
+            ? GERMAN_CITY_SUGGESTIONS.filter((item) => item.toLowerCase().includes(q))
+            : GERMAN_CITY_SUGGESTIONS;
+        return base.slice(0, 10);
+    }, [city]);
+
+    useEffect(() => {
+        const onClickOutside = (event: MouseEvent) => {
+            if (!formRef.current?.contains(event.target as Node)) {
+                setQueryOpen(false);
+                setCityOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', onClickOutside);
+        return () => document.removeEventListener('mousedown', onClickOutside);
+    }, []);
 
     const handleSearch = (e?: React.FormEvent) => {
         e?.preventDefault();
@@ -86,6 +119,52 @@ export default function HomePage() {
         if (city.trim()) params.set('city', city.trim());
         if (radius) params.set('radius', radius);
         router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
+    };
+
+    const handleGeo = async () => {
+        if (!navigator.geolocation || isGeoLoading) {
+            toast.error('Геолокация недоступна в вашем браузере');
+            return;
+        }
+
+        setIsGeoLoading(true);
+        try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000,
+                });
+            });
+
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10&addressdetails=1`,
+                { headers: { 'Accept-Language': 'de,en' } }
+            );
+            if (!response.ok) throw new Error('geo-failed');
+
+            const data = await response.json();
+            const address = data?.address || {};
+            const rawCity = address.city || address.town || address.municipality || address.county || '';
+            const resolved = resolveGermanCity(String(rawCity));
+
+            if (!resolved) {
+                toast.error('Ваш город не найден в базе. Выберите ближайший крупный город вручную');
+                return;
+            }
+
+            setCity(resolved);
+            setCityOpen(false);
+            toast.success(`Определен город: ${resolved}`);
+        } catch (error) {
+            if ((error as GeolocationPositionError)?.code === 1) {
+                toast.error('Доступ к геолокации запрещен');
+            } else {
+                toast.error('Не удалось определить город автоматически');
+            }
+        } finally {
+            setIsGeoLoading(false);
+        }
     };
 
     return (
@@ -132,31 +211,98 @@ export default function HomePage() {
 
                         {/* Search Bar */}
                         <form
+                            ref={formRef}
                             onSubmit={handleSearch}
                             className="relative mx-auto max-w-3xl"
                         >
                             <div className="rounded-2xl bg-white/95 p-2 shadow-2xl shadow-black/20 backdrop-blur-sm transition-all duration-300 focus-within:ring-4 focus-within:ring-rose-500/20 focus-within:shadow-rose-500/10">
                                 <div className="grid grid-cols-1 items-center gap-2 md:grid-cols-[1.3fr_1fr_auto_auto]">
-                                    <div className="flex h-14 items-center rounded-xl border border-transparent bg-white px-3 md:border-r md:border-r-gray-100 md:rounded-r-none">
+                                    <div className="relative flex h-14 items-center rounded-xl border border-transparent bg-white px-3 md:border-r md:border-r-gray-100 md:rounded-r-none">
                                         <Search className="h-5 w-5 flex-shrink-0 text-gray-400" />
                                         <input
                                             type="text"
                                             value={query}
+                                            onFocus={() => {
+                                                setQueryOpen(true);
+                                                setCityOpen(false);
+                                            }}
                                             onChange={(e) => setQuery(e.target.value)}
                                             placeholder="Что ищете: маникюр, стоматолог..."
                                             className="h-full w-full bg-transparent px-3 text-base text-gray-900 placeholder:text-gray-400 outline-none"
                                         />
+                                        {queryOpen && (
+                                            <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                                                <div className="px-3 py-2 text-xs font-semibold uppercase text-gray-400">Популярное</div>
+                                                <ul className="max-h-64 overflow-y-auto">
+                                                    {filteredServices.length ? (
+                                                        filteredServices.map((item) => (
+                                                            <li key={item}>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setQuery(item);
+                                                                        setQueryOpen(false);
+                                                                    }}
+                                                                    className="w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                                                >
+                                                                    {item}
+                                                                </button>
+                                                            </li>
+                                                        ))
+                                                    ) : (
+                                                        <li className="px-3 py-3 text-sm text-gray-500">Ничего не найдено</li>
+                                                    )}
+                                                </ul>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <div className="flex h-14 items-center rounded-xl border border-transparent bg-white px-3 md:rounded-none">
+                                    <div className="relative flex h-14 items-center rounded-xl border border-transparent bg-white px-3 md:rounded-none">
                                         <MapPin className="h-5 w-5 flex-shrink-0 text-gray-400" />
                                         <input
                                             type="text"
                                             value={city}
+                                            onFocus={() => {
+                                                setCityOpen(true);
+                                                setQueryOpen(false);
+                                            }}
                                             onChange={(e) => setCity(e.target.value)}
                                             placeholder="Где"
-                                            className="h-full w-full bg-transparent px-3 text-base text-gray-900 placeholder:text-gray-400 outline-none"
+                                            className="h-full w-full bg-transparent px-3 pr-9 text-base text-gray-900 placeholder:text-gray-400 outline-none"
                                         />
+                                        <button
+                                            type="button"
+                                            title="Определить мой город"
+                                            aria-label="Определить мой город"
+                                            onClick={handleGeo}
+                                            className="absolute right-1 inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+                                        >
+                                            {isGeoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+                                        </button>
+                                        {cityOpen && (
+                                            <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                                                <ul className="max-h-64 overflow-y-auto">
+                                                    {filteredCities.length ? (
+                                                        filteredCities.map((item) => (
+                                                            <li key={item}>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setCity(item);
+                                                                        setCityOpen(false);
+                                                                    }}
+                                                                    className="w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                                                >
+                                                                    {item}
+                                                                </button>
+                                                            </li>
+                                                        ))
+                                                    ) : (
+                                                        <li className="px-3 py-3 text-sm text-gray-500">Город не найден</li>
+                                                    )}
+                                                </ul>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="flex h-14 items-center rounded-xl bg-gray-50 px-3 md:justify-center">
