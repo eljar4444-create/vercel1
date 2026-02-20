@@ -1,13 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, X, Loader2, Calendar, Clock, User, Phone } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Check, X, Loader2, Clock, User, Phone, MessageCircle } from 'lucide-react';
 import { updateBookingStatus } from '@/app/actions/updateBookingStatus';
+import { getOrCreateConversationForProvider } from '@/app/actions/chat';
+import { Button } from '@/components/ui/button';
 
 interface BookingData {
     id: number;
     date: string;       // ISO string
     time: string;
+    user_id?: string | null;
     user_name: string;
     user_phone: string;
     status: string;
@@ -21,6 +25,7 @@ interface BookingData {
 
 interface BookingRowProps {
     booking: BookingData;
+    providerId: number;
 }
 
 // ─── Status config ──────────────────────────────────────────────────
@@ -57,8 +62,10 @@ const DEFAULT_STATUS = {
     dot: 'bg-gray-400',
 };
 
-export function BookingRow({ booking }: BookingRowProps) {
+export function BookingRow({ booking, providerId }: BookingRowProps) {
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
+    const [isOpeningChat, setIsOpeningChat] = useState(false);
+    const router = useRouter();
 
     const statusConfig = STATUS_CONFIG[booking.status] || DEFAULT_STATUS;
 
@@ -78,6 +85,22 @@ export function BookingRow({ booking }: BookingRowProps) {
         setIsUpdating(newStatus);
         await updateBookingStatus(booking.id, newStatus);
         setIsUpdating(null);
+    };
+
+    const handleOpenChat = async () => {
+        if (!booking.user_id || isOpeningChat) return;
+
+        setIsOpeningChat(true);
+        try {
+            const result = await getOrCreateConversationForProvider(providerId, booking.user_id);
+            if (!result?.success || !result.conversationId) {
+                alert(result?.error || 'Не удалось открыть чат');
+                return;
+            }
+            router.push(`/chat/${result.conversationId}`);
+        } finally {
+            setIsOpeningChat(false);
+        }
     };
 
     return (
@@ -113,6 +136,29 @@ export function BookingRow({ booking }: BookingRowProps) {
                         <a href={`tel:${booking.user_phone}`} className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
                             {booking.user_phone}
                         </a>
+                        <div className="relative group">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleOpenChat}
+                                disabled={!booking.user_id || isOpeningChat}
+                                title={!booking.user_id ? 'Клиент не зарегистрирован, свяжитесь по телефону' : 'Открыть чат'}
+                                className="h-8 px-2.5 text-xs"
+                            >
+                                {isOpeningChat ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                ) : (
+                                    <MessageCircle className="h-3.5 w-3.5" />
+                                )}
+                                <span className="ml-1">Написать</span>
+                            </Button>
+                            {!booking.user_id && (
+                                <div className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-56 -translate-x-1/2 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-600 shadow-sm group-hover:block">
+                                    Клиент не зарегистрирован, свяжитесь по телефону
+                                </div>
+                            )}
+                        </div>
                     </div>
                     {booking.service && (
                         <div className="mt-1.5 text-xs text-gray-500">

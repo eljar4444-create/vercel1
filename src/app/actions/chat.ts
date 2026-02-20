@@ -90,6 +90,55 @@ export async function startConversationWithProvider(providerProfileId: number) {
     return { success: true, conversationId: conversation.id };
 }
 
+export async function getOrCreateConversationForProvider(providerProfileId: number, clientUserId: string) {
+    const user = await getAuthorizedUser();
+    if (!user) return { success: false, error: 'Требуется вход в аккаунт' };
+
+    if (user.role !== 'PROVIDER' && user.role !== 'ADMIN') {
+        return { success: false, error: 'Доступно только мастерам' };
+    }
+
+    if (!clientUserId) {
+        return { success: false, error: 'Клиент не зарегистрирован' };
+    }
+
+    if (user.role !== 'ADMIN') {
+        const providerProfile = await prisma.profile.findUnique({
+            where: { id: providerProfileId },
+            select: { user_id: true, user_email: true },
+        });
+
+        if (!providerProfile) {
+            return { success: false, error: 'Профиль мастера не найден' };
+        }
+
+        const ownsByUserId = providerProfile.user_id === user.userId;
+        const ownsByEmail = Boolean(user.email) && providerProfile.user_email === user.email;
+        if (!ownsByUserId && !ownsByEmail) {
+            return { success: false, error: 'Доступ запрещен' };
+        }
+    }
+
+    const conversation = await prisma.conversation.upsert({
+        where: {
+            clientUserId_providerProfileId: {
+                clientUserId,
+                providerProfileId,
+            },
+        },
+        create: {
+            clientUserId,
+            providerProfileId,
+        },
+        update: {},
+        select: { id: true },
+    });
+
+    revalidatePath('/chat');
+    revalidatePath(`/chat/${conversation.id}`);
+    return { success: true, conversationId: conversation.id };
+}
+
 export async function getMyConversations() {
     const user = await getAuthorizedUser();
     if (!user) return { success: false, conversations: [] as any[] };

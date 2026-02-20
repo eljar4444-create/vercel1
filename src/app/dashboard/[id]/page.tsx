@@ -120,6 +120,7 @@ export default async function DashboardPage({
         id: b.id,
         date: b.date.toISOString(),
         time: b.time,
+        user_id: b.user_id,
         user_name: b.user_name,
         user_phone: b.user_phone,
         status: b.status,
@@ -308,7 +309,7 @@ export default async function DashboardPage({
                                 {serializedBookings.length > 0 ? (
                                     <div className="space-y-3">
                                         {serializedBookings.map((booking) => (
-                                            <BookingRow key={booking.id} booking={booking} />
+                                            <BookingRow key={booking.id} booking={booking} providerId={profileId} />
                                         ))}
                                     </div>
                                 ) : (
