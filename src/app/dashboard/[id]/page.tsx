@@ -4,7 +4,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
-    CalendarDays, Clock, Users, CheckCircle, XCircle,
+    CalendarDays, Clock, CheckCircle, XCircle,
     Inbox, ArrowLeft, Briefcase, ShieldCheck, AlertCircle, ListChecks, Eye
 } from 'lucide-react';
 import { BookingRow } from '@/components/dashboard/BookingRow';
@@ -14,6 +14,7 @@ import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
 import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
 import { parseSchedule } from '@/lib/scheduling';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -172,51 +173,48 @@ export default async function DashboardPage({
             {/* ═══════════════════════════════════════════════════════ */}
             {/* STATS CARDS                                            */}
             {/* ═══════════════════════════════════════════════════════ */}
-            <div className="container mx-auto px-4 max-w-6xl py-6">
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-sm transition-shadow">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                                <CalendarDays className="w-5 h-5 text-blue-600" />
+            <div className="container mx-auto max-w-6xl px-4 py-6">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50">
+                                <CalendarDays className="h-4 w-4 text-blue-600" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-gray-900">{totalBookings}</div>
-                        <div className="text-sm text-gray-400">Всего заявок</div>
+                        <div className="text-xl font-bold text-gray-900">{totalBookings}</div>
+                        <div className="text-xs text-gray-400">Всего заявок</div>
                     </div>
-                    <div className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-sm transition-shadow">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-amber-50 rounded-lg flex items-center justify-center">
-                                <Clock className="w-5 h-5 text-amber-600" />
+                    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
+                                <Clock className="h-4 w-4 text-amber-600" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-gray-900">{pendingCount}</div>
-                        <div className="text-sm text-gray-400">Ожидают подтверждения</div>
+                        <div className="text-xl font-bold text-gray-900">{pendingCount}</div>
+                        <div className="text-xs text-gray-400">Ожидают</div>
                     </div>
-                    <div className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-sm transition-shadow">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                                <CheckCircle className="w-5 h-5 text-green-600" />
+                    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
+                                <CheckCircle className="h-4 w-4 text-green-600" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-gray-900">{confirmedCount}</div>
-                        <div className="text-sm text-gray-400">Подтверждены</div>
+                        <div className="text-xl font-bold text-gray-900">{confirmedCount}</div>
+                        <div className="text-xs text-gray-400">Подтверждены</div>
                     </div>
-                    <div className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-sm transition-shadow">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                                <XCircle className="w-5 h-5 text-red-500" />
+                    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                        <div className="mb-2 flex items-center gap-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50">
+                                <XCircle className="h-4 w-4 text-red-500" />
                             </div>
                         </div>
-                        <div className="text-2xl font-bold text-gray-900">{cancelledCount}</div>
-                        <div className="text-sm text-gray-400">Отменены</div>
+                        <div className="text-xl font-bold text-gray-900">{cancelledCount}</div>
+                        <div className="text-xs text-gray-400">Отменены</div>
                     </div>
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* MAIN CONTENT: Bookings + Services                      */}
-            {/* ═══════════════════════════════════════════════════════ */}
-            <div className="container mx-auto px-4 max-w-6xl pb-16">
+            <div className="container mx-auto max-w-6xl px-4 pb-16">
                 {(!hasServices || !hasScheduleConfigured) && (
                     <div className="mb-6 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-5 shadow-sm">
                         <div className="flex items-start gap-3">
@@ -243,11 +241,21 @@ export default async function DashboardPage({
                     </div>
                 )}
 
-                <div className="flex flex-col lg:flex-row gap-6">
+                <Tabs defaultValue="bookings" className="w-full">
+                    <TabsList className="w-full justify-start overflow-x-auto whitespace-nowrap rounded-2xl border border-gray-100 bg-white p-1 shadow-sm">
+                        <TabsTrigger value="bookings" className="shrink-0">
+                            📥 Записи
+                        </TabsTrigger>
+                        <TabsTrigger value="services" className="shrink-0">
+                            ✂️ Мои услуги
+                        </TabsTrigger>
+                        <TabsTrigger value="schedule" className="shrink-0">
+                            🕒 Расписание
+                        </TabsTrigger>
+                    </TabsList>
 
-                    {/* ── LEFT: Bookings ── */}
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-4">
+                    <TabsContent value="bookings">
+                        <div className="mb-4 mt-1 flex items-center justify-between">
                             <h2 className="text-lg font-bold text-gray-900">Входящие записи</h2>
                             <span className="text-sm text-gray-400">{totalBookings} записей</span>
                         </div>
@@ -259,33 +267,32 @@ export default async function DashboardPage({
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
-                                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <Inbox className="w-10 h-10 text-gray-300" />
+                            <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center">
+                                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">
+                                    <Inbox className="h-8 w-8 text-gray-300" />
                                 </div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                                    У вас пока нет записей
-                                </h3>
-                                <p className="text-gray-500 max-w-md mx-auto mb-6">
+                                <h3 className="mb-2 text-xl font-bold text-gray-900">У вас пока нет записей</h3>
+                                <p className="mx-auto mb-6 max-w-md text-gray-500">
                                     Как только клиент забронирует время, заявка появится здесь.
                                 </p>
                                 <Link
                                     href={`/profile/${profileId}`}
-                                    className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-200"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
                                 >
-                                    Посмотреть профиль
+                                    Поделиться ссылкой на профиль
                                 </Link>
                             </div>
                         )}
-                    </div>
+                    </TabsContent>
 
-                    {/* ── RIGHT: Services + Edit Profile ── */}
-                    <div className="w-full lg:w-[380px] flex-shrink-0">
-                        <div className="lg:sticky lg:top-6 space-y-6">
-                            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                                <div className="flex items-center gap-3 mb-5">
-                                    <div className="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center">
-                                        <Briefcase className="w-5 h-5 text-violet-600" />
+                    <TabsContent value="services">
+                        <div className="space-y-6">
+                            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                                <div className="mb-5 flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50">
+                                        <Briefcase className="h-5 w-5 text-violet-600" />
                                     </div>
                                     <div>
                                         <h2 className="font-bold text-gray-900">Мои услуги</h2>
@@ -297,36 +304,39 @@ export default async function DashboardPage({
                                 <AddServiceForm profileId={profileId} />
                             </div>
 
-                            {/* ── Edit Profile ── */}
-                            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                                <h2 className="font-bold text-gray-900 mb-5">Редактировать профиль</h2>
-                                <EditProfileForm profile={{
-                                    id: profileId,
-                                    name: profile.name,
-                                    bio: profile.bio,
-                                    phone: profile.phone,
-                                    city: profile.city,
-                                    address: profile.address,
-                                }} />
-                            </div>
-
-                            <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                                <h2 className="font-bold text-gray-900 mb-1">Рабочие часы</h2>
-                                <p className="mb-5 text-xs text-gray-500">
-                                    Эти настройки используются для автоматического расчета свободных слотов в бронировании.
-                                </p>
-                                <WorkingHoursForm
-                                    profileId={profileId}
-                                    initialSchedule={{
-                                        startTime: workingSchedule.startTime,
-                                        endTime: workingSchedule.endTime,
-                                        workingDays: workingSchedule.workingDays,
+                            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                                <h2 className="mb-5 font-bold text-gray-900">Редактировать профиль</h2>
+                                <EditProfileForm
+                                    profile={{
+                                        id: profileId,
+                                        name: profile.name,
+                                        bio: profile.bio,
+                                        phone: profile.phone,
+                                        city: profile.city,
+                                        address: profile.address,
                                     }}
                                 />
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </TabsContent>
+
+                    <TabsContent value="schedule">
+                        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                            <h2 className="mb-1 font-bold text-gray-900">Рабочие часы</h2>
+                            <p className="mb-5 text-xs text-gray-500">
+                                Эти настройки используются для автоматического расчета свободных слотов в бронировании.
+                            </p>
+                            <WorkingHoursForm
+                                profileId={profileId}
+                                initialSchedule={{
+                                    startTime: workingSchedule.startTime,
+                                    endTime: workingSchedule.endTime,
+                                    workingDays: workingSchedule.workingDays,
+                                }}
+                            />
+                        </div>
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     );
