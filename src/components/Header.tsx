@@ -6,13 +6,18 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { AvatarDropdown } from '@/components/AvatarDropdown';
+import { signOut } from 'next-auth/react';
+import { AvatarDropdown, getRoleLabel, getRoleMenuLinks } from '@/components/AvatarDropdown';
+import { Menu, X, MessageCircle, LogOut } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 export function Header() {
     const pathname = usePathname();
     const { data: session } = useSession(); // removed status
     const isAuthPage = pathname?.startsWith('/auth');
     const [scrolled, setScrolled] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -21,14 +26,19 @@ export function Header() {
     }, []);
 
     const user = session?.user;
-    const role = user?.role;
-    const roleCta = role === 'ADMIN'
-        ? { href: '/admin', label: 'Панель управления' }
-        : role === 'PROVIDER'
-            ? { href: '/provider/profile', label: 'В кабинет' }
-            : role === 'CLIENT'
-                ? { href: '/my-bookings', label: 'Мои записи' }
-                : null;
+    const initials =
+        user?.name
+            ?.split(' ')
+            .map((part) => part[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase() || 'U';
+    const mobileRoleLinks = user
+        ? getRoleMenuLinks({
+            role: user.role,
+            profileId: user.profileId,
+        })
+        : [];
 
     if (isAuthPage) return null;
 
@@ -55,38 +65,125 @@ export function Header() {
                     <Link href="/auth/register?role=provider" className="hover:text-blue-600 transition-colors">
                         Become a Pro
                     </Link>
+                    <Link href="/chat" className="hover:text-blue-600 transition-colors">
+                        Chat
+                    </Link>
                 </nav>
 
                 {/* Right Actions */}
-                <div className="flex items-center gap-4 ml-4">
+                <div className="ml-4 flex items-center gap-2">
                     {user ? (
-                        <div className="flex items-center gap-5 text-gray-400">
-                            {roleCta && (
-                                <Button asChild className="h-9 rounded-md bg-gray-900 px-4 text-white hover:bg-gray-800">
-                                    <Link href={roleCta.href}>{roleCta.label}</Link>
-                                </Button>
-                            )}
-                            <Link href="/chat" className="hover:text-blue-600 transition-colors">
-                                Chat
-                            </Link>
-                            <div className="flex flex-col items-end mr-2">
-                                <span className="text-[10px] font-bold text-blue-600">{user.role}</span>
-                                <span className="text-[10px] text-gray-400 max-w-[100px] truncate">{user.email}</span>
-                            </div>
+                        <div className="hidden items-center xl:flex">
                             <AvatarDropdown user={user} />
                         </div>
                     ) : (
-                        <div className="flex items-center gap-3">
-                            <Button variant="ghost" asChild className="hover:bg-gray-100 text-black font-medium">
+                        <div className="hidden items-center gap-3 xl:flex">
+                            <Button variant="ghost" asChild className="h-9 rounded-md px-4 text-black hover:bg-gray-100">
                                 <Link href="/auth/login">Войти</Link>
                             </Button>
-                            <Button asChild className="bg-[#fc0] hover:bg-[#e6b800] text-black font-medium shadow-none rounded-md px-5 py-2 h-9">
+                            <Button asChild className="h-9 rounded-md bg-[#fc0] px-5 text-black shadow-none hover:bg-[#e6b800]">
                                 <Link href="/auth/register">Регистрация</Link>
                             </Button>
                         </div>
                     )}
+
+                    <button
+                        type="button"
+                        aria-label={mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
+                        onClick={() => setMobileMenuOpen((prev) => !prev)}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-gray-700 transition-colors hover:bg-gray-50 xl:hidden"
+                    >
+                        {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                    </button>
                 </div>
             </div>
+
+            {mobileMenuOpen && (
+                <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3 shadow-sm xl:hidden">
+                    <div className="mx-auto max-w-7xl space-y-2">
+                        <Link
+                            href="/search"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                            Services
+                        </Link>
+                        <Link
+                            href="/auth/register?role=provider"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="block rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                            Become a Pro
+                        </Link>
+                        <Link
+                            href="/chat"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                            <MessageCircle className="h-4 w-4 text-gray-400" />
+                            Chat
+                        </Link>
+
+                        <div className="my-2 h-px bg-gray-100" />
+
+                        {user ? (
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50/70 p-3">
+                                    <Avatar className="h-9 w-9">
+                                        <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
+                                        <AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
+                                            {initials}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-semibold text-gray-900">{user.name || 'Пользователь'}</p>
+                                        <p className="truncate text-xs text-gray-500">{user.email || 'Без email'}</p>
+                                    </div>
+                                    <Badge variant="outline" className="border-gray-200 bg-white text-[10px] font-medium text-gray-600">
+                                        {getRoleLabel(user.role)}
+                                    </Badge>
+                                </div>
+
+                                {mobileRoleLinks.map((link) => (
+                                    <Link
+                                        key={`mobile-${link.href}-${link.label}`}
+                                        href={link.href}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    >
+                                        {link.label}
+                                    </Link>
+                                ))}
+
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setMobileMenuOpen(false);
+                                        signOut({ callbackUrl: '/' });
+                                    }}
+                                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                    Выйти
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button variant="outline" asChild className="h-9">
+                                    <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
+                                        Войти
+                                    </Link>
+                                </Button>
+                                <Button asChild className="h-9 bg-[#fc0] text-black hover:bg-[#e6b800]">
+                                    <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}>
+                                        Регистрация
+                                    </Link>
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </header >
     );
 }

@@ -68,11 +68,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     callbacks: {
         async jwt({ token, user, trigger, session }: any) {
+            const syncProviderProfileId = async () => {
+                const role = token.role as string | undefined;
+                const userId = token.id as string | undefined;
+                const email = token.email as string | undefined;
+
+                if (!userId || (role !== 'PROVIDER' && role !== 'ADMIN')) {
+                    token.profileId = null;
+                    return;
+                }
+
+                const profile = await prisma.profile.findFirst({
+                    where: {
+                        OR: [
+                            { user_id: userId },
+                            ...(email ? [{ user_email: email }] : []),
+                        ],
+                    },
+                    select: { id: true },
+                });
+
+                token.profileId = profile?.id ?? null;
+            };
+
             // Initial sign in
             if (user) {
                 token.role = user.role
                 token.id = user.id
                 token.picture = user.image
+                await syncProviderProfileId();
             }
 
             // On subsequent calls, fetch fresh data from DB to ensure sync
@@ -88,6 +112,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         token.picture = freshUser.image;
                         token.role = freshUser.role;
                         token.id = freshUser.id;
+                        await syncProviderProfileId();
                     }
                 } catch (error) {
                     console.error("Error fetching fresh user data in JWT callback:", error);
@@ -105,6 +130,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 session.user.role = token.role
                 session.user.id = token.id
                 session.user.image = token.picture
+                session.user.profileId = token.profileId
             }
             return session
         }
