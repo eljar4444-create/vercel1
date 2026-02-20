@@ -19,6 +19,7 @@ type ConversationItem = {
     updatedAt: string;
     lastMessage: string;
     lastMessageAt: string;
+    unreadCount: number;
     interlocutor: {
         name: string | null;
         image: string | null;
@@ -92,15 +93,20 @@ export function MessengerClient({
         }
     };
 
-    const loadMessages = async (conversationId: string) => {
-        setIsLoadingMessages(true);
+    const loadMessages = async (conversationId: string, options?: { background?: boolean }) => {
+        const isBackground = Boolean(options?.background);
+        if (!isBackground) {
+            setIsLoadingMessages(true);
+        }
         const result = await getConversationMessages(conversationId);
         if (result.success) {
             setMessages(result.messages);
-        } else {
+        } else if (!isBackground) {
             setMessages([]);
         }
-        setIsLoadingMessages(false);
+        if (!isBackground) {
+            setIsLoadingMessages(false);
+        }
     };
 
     const loadBookingContext = async (conversationId: string) => {
@@ -124,13 +130,14 @@ export function MessengerClient({
         }
         loadMessages(selectedConversationId);
         loadBookingContext(selectedConversationId);
+        refreshConversations();
     }, [selectedConversationId]);
 
     useEffect(() => {
         const interval = setInterval(() => {
             refreshConversations();
             if (selectedConversationId) {
-                loadMessages(selectedConversationId);
+                loadMessages(selectedConversationId, { background: true });
             }
         }, 4000);
         return () => clearInterval(interval);
@@ -147,7 +154,7 @@ export function MessengerClient({
 
         startSending(async () => {
             await sendMessage(payload);
-            await loadMessages(selectedConversationId);
+            await loadMessages(selectedConversationId, { background: true });
             await refreshConversations();
         });
     };
@@ -222,12 +229,24 @@ export function MessengerClient({
                                             )}
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center justify-between gap-2">
-                                                    <p className="truncate text-sm font-semibold text-gray-900">
+                                                <p
+                                                    className={cn(
+                                                        'truncate text-sm text-gray-900',
+                                                        conversation.unreadCount > 0 ? 'font-semibold' : 'font-medium'
+                                                    )}
+                                                >
                                                         {conversation.interlocutor.name || 'Собеседник'}
                                                     </p>
+                                                <div className="flex items-center gap-2">
+                                                    {conversation.unreadCount > 0 && (
+                                                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-sky-600 px-1 text-[10px] font-semibold text-white">
+                                                            {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                                                        </span>
+                                                    )}
                                                     <span className="text-[10px] text-gray-400">
                                                         {format(new Date(conversation.lastMessageAt), 'HH:mm', { locale: ru })}
                                                     </span>
+                                                </div>
                                                 </div>
                                                 <p className="truncate text-xs text-gray-500">{conversation.lastMessage}</p>
                                             </div>
@@ -299,12 +318,12 @@ export function MessengerClient({
                                                         className={cn(
                                                             'max-w-[78%] rounded-2xl px-3 py-2 text-sm shadow-sm',
                                                             isMine
-                                                                ? 'rounded-br-md bg-gray-900 text-white'
-                                                                : 'rounded-bl-md border border-gray-200 bg-white text-gray-800'
+                                                                ? 'rounded-2xl rounded-tr-sm bg-slate-900 text-white'
+                                                                : 'rounded-2xl rounded-tl-sm bg-slate-100 text-slate-900'
                                                         )}
                                                     >
                                                         <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                                                        <p className={cn('mt-1 text-[10px]', isMine ? 'text-gray-300' : 'text-gray-400')}>
+                                                        <p className={cn('mt-1 text-xs opacity-70', isMine ? 'text-slate-200' : 'text-slate-500')}>
                                                             {format(new Date(message.createdAt), 'dd.MM HH:mm', { locale: ru })}
                                                         </p>
                                                     </div>

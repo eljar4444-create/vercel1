@@ -164,6 +164,16 @@ export async function getMyConversations() {
                 orderBy: { createdAt: 'desc' },
                 take: 1,
             },
+            _count: {
+                select: {
+                    messages: {
+                        where: {
+                            isRead: false,
+                            senderUserId: { not: user.userId },
+                        },
+                    },
+                },
+            },
         },
         orderBy: { updatedAt: 'desc' },
     });
@@ -175,6 +185,7 @@ export async function getMyConversations() {
             updatedAt: conversation.updatedAt.toISOString(),
             lastMessage: conversation.messages[0]?.content || 'Диалог создан',
             lastMessageAt: conversation.messages[0]?.createdAt?.toISOString() || conversation.updatedAt.toISOString(),
+            unreadCount: conversation._count.messages,
             interlocutor:
                 user.role === 'CLIENT'
                     ? {
