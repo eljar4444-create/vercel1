@@ -223,35 +223,34 @@ export default function HomePage() {
                                             type="text"
                                             value={query}
                                             onFocus={() => {
-                                                setQueryOpen(true);
+                                                setQueryOpen(query.trim().length > 0);
                                                 setCityOpen(false);
                                             }}
-                                            onChange={(e) => setQuery(e.target.value)}
+                                            onChange={(e) => {
+                                                const next = e.target.value;
+                                                setQuery(next);
+                                                setQueryOpen(next.trim().length > 0);
+                                            }}
                                             placeholder="Что ищете: маникюр, стоматолог..."
                                             className="h-full w-full bg-transparent px-3 text-base text-gray-900 placeholder:text-gray-400 outline-none"
                                         />
-                                        {queryOpen && (
+                                        {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
                                             <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
-                                                <div className="px-3 py-2 text-xs font-semibold uppercase text-gray-400">Популярное</div>
                                                 <ul className="max-h-64 overflow-y-auto">
-                                                    {filteredServices.length ? (
-                                                        filteredServices.map((item) => (
-                                                            <li key={item}>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        setQuery(item);
-                                                                        setQueryOpen(false);
-                                                                    }}
-                                                                    className="w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
-                                                                >
-                                                                    {item}
-                                                                </button>
-                                                            </li>
-                                                        ))
-                                                    ) : (
-                                                        <li className="px-3 py-3 text-sm text-gray-500">Ничего не найдено</li>
-                                                    )}
+                                                    {filteredServices.map((item) => (
+                                                        <li key={item}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setQuery(item);
+                                                                    setQueryOpen(false);
+                                                                }}
+                                                                className="w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                                            >
+                                                                {item}
+                                                            </button>
+                                                        </li>
+                                                    ))}
                                                 </ul>
                                             </div>
                                         )}
@@ -263,10 +262,14 @@ export default function HomePage() {
                                             type="text"
                                             value={city}
                                             onFocus={() => {
-                                                setCityOpen(true);
+                                                setCityOpen(city.trim().length > 0);
                                                 setQueryOpen(false);
                                             }}
-                                            onChange={(e) => setCity(e.target.value)}
+                                            onChange={(e) => {
+                                                const next = e.target.value;
+                                                setCity(next);
+                                                setCityOpen(next.trim().length > 0);
+                                            }}
                                             placeholder="Где"
                                             className="h-full w-full bg-transparent px-3 pr-9 text-base text-gray-900 placeholder:text-gray-400 outline-none"
                                         />
@@ -279,27 +282,23 @@ export default function HomePage() {
                                         >
                                             {isGeoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
                                         </button>
-                                        {cityOpen && (
+                                        {cityOpen && city.trim().length > 0 && filteredCities.length > 0 && (
                                             <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
                                                 <ul className="max-h-64 overflow-y-auto">
-                                                    {filteredCities.length ? (
-                                                        filteredCities.map((item) => (
-                                                            <li key={item}>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        setCity(item);
-                                                                        setCityOpen(false);
-                                                                    }}
-                                                                    className="w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
-                                                                >
-                                                                    {item}
-                                                                </button>
-                                                            </li>
-                                                        ))
-                                                    ) : (
-                                                        <li className="px-3 py-3 text-sm text-gray-500">Город не найден</li>
-                                                    )}
+                                                    {filteredCities.map((item) => (
+                                                        <li key={item}>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setCity(item);
+                                                                    setCityOpen(false);
+                                                                }}
+                                                                className="w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                                            >
+                                                                {item}
+                                                            </button>
+                                                        </li>
+                                                    ))}
                                                 </ul>
                                             </div>
                                         )}

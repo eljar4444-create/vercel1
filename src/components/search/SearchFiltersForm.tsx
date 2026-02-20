@@ -122,35 +122,34 @@ export function SearchFiltersForm({
                     type="text"
                     value={query}
                     onFocus={() => {
-                        setQueryOpen(true);
+                        setQueryOpen(query.trim().length > 0);
                         setCityOpen(false);
                     }}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => {
+                        const next = e.target.value;
+                        setQuery(next);
+                        setQueryOpen(next.trim().length > 0);
+                    }}
                     placeholder="Что ищем?"
                     className="w-full h-12 pl-12 pr-4 bg-white/10 text-white placeholder:text-gray-400 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm font-medium"
                 />
-                {queryOpen && (
+                {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
                     <div className="absolute top-full mt-2 w-full rounded-xl border border-gray-100 bg-white shadow-xl z-50 overflow-hidden">
-                        <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase">Популярное</div>
                         <ul className="max-h-64 overflow-y-auto">
-                            {filteredServices.length ? (
-                                filteredServices.map((item) => (
-                                    <li key={item}>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setQuery(item);
-                                                setQueryOpen(false);
-                                            }}
-                                            className="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                                        >
-                                            {item}
-                                        </button>
-                                    </li>
-                                ))
-                            ) : (
-                                <li className="px-3 py-3 text-sm text-gray-500">Ничего не найдено</li>
-                            )}
+                            {filteredServices.map((item) => (
+                                <li key={item}>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setQuery(item);
+                                            setQueryOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                                    >
+                                        {item}
+                                    </button>
+                                </li>
+                            ))}
                         </ul>
                     </div>
                 )}
@@ -162,10 +161,14 @@ export function SearchFiltersForm({
                     type="text"
                     value={city}
                     onFocus={() => {
-                        setCityOpen(true);
+                        setCityOpen(city.trim().length > 0);
                         setQueryOpen(false);
                     }}
-                    onChange={(e) => setCity(e.target.value)}
+                    onChange={(e) => {
+                        const next = e.target.value;
+                        setCity(next);
+                        setCityOpen(next.trim().length > 0);
+                    }}
                     placeholder="Где?"
                     className="w-full h-12 pl-12 pr-12 bg-white/10 text-white placeholder:text-gray-400 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm font-medium"
                 />
@@ -178,27 +181,23 @@ export function SearchFiltersForm({
                 >
                     {isGeoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LocateFixed className="w-4 h-4" />}
                 </button>
-                {cityOpen && (
+                {cityOpen && city.trim().length > 0 && filteredCities.length > 0 && (
                     <div className="absolute top-full mt-2 w-full rounded-xl border border-gray-100 bg-white shadow-xl z-50 overflow-hidden">
                         <ul className="max-h-64 overflow-y-auto">
-                            {filteredCities.length ? (
-                                filteredCities.map((item) => (
-                                    <li key={item}>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setCity(item);
-                                                setCityOpen(false);
-                                            }}
-                                            className="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                                        >
-                                            {item}
-                                        </button>
-                                    </li>
-                                ))
-                            ) : (
-                                <li className="px-3 py-3 text-sm text-gray-500">Город не найден</li>
-                            )}
+                            {filteredCities.map((item) => (
+                                <li key={item}>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setCity(item);
+                                            setCityOpen(false);
+                                        }}
+                                        className="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                                    >
+                                        {item}
+                                    </button>
+                                </li>
+                            ))}
                         </ul>
                     </div>
                 )}
