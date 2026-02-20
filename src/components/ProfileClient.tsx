@@ -3,17 +3,30 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-    MapPin, Star, Clock, Euro, CheckCircle2, Shield,
-    ExternalLink, Calendar, Globe, UserCircle, ChevronLeft,
-    Sparkles, Stethoscope, Phone, MessageCircle, ThumbsUp
+    MapPin,
+    Star,
+    Clock,
+    Euro,
+    CheckCircle2,
+    ChevronLeft,
+    Phone,
+    MessageCircle,
+    ExternalLink,
+    UserCircle2,
+    Sparkles,
+    Stethoscope,
+    Calendar,
 } from 'lucide-react';
-import { BookingModal } from '@/components/BookingModal';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
-import { startConversationWithProvider } from '@/app/actions/chat';
 import toast from 'react-hot-toast';
 
-// ─── Types ──────────────────────────────────────────────────────────
+import { BookingModal } from '@/components/BookingModal';
+import { startConversationWithProvider } from '@/app/actions/chat';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
 interface ProfileData {
     id: number;
     name: string;
@@ -23,7 +36,7 @@ interface ProfileData {
     bio?: string | null;
     phone?: string | null;
     is_verified: boolean;
-    created_at: string; // serialized from server
+    created_at: string;
     attributes: any;
     category: {
         id: number;
@@ -33,7 +46,7 @@ interface ProfileData {
     services: {
         id: number;
         title: string;
-        price: string; // serialized Decimal
+        price: string;
         duration_min: number;
     }[];
 }
@@ -42,107 +55,54 @@ interface ProfileClientProps {
     profile: ProfileData;
 }
 
-// ─── Category accent config ─────────────────────────────────────────
-const ACCENT: Record<string, {
-    primary: string;
-    primaryHover: string;
-    badge: string;
-    badgeText: string;
-    light: string;
-    primaryBg: string;
-    icon: React.ReactNode;
-    selectBtn: string;
-    selectBtnHover: string;
-    accentKey: string;
-}> = {
+const ACCENT = {
     beauty: {
-        primary: 'bg-rose-600',
-        primaryBg: 'bg-rose-50',
-        primaryHover: 'hover:bg-rose-700',
-        badge: 'bg-rose-50',
-        badgeText: 'text-rose-700',
-        light: 'text-rose-600',
-        icon: <Sparkles className="w-4 h-4" />,
-        selectBtn: 'bg-rose-600',
-        selectBtnHover: 'hover:bg-rose-700',
+        cta: 'bg-rose-600 hover:bg-rose-700',
+        light: 'bg-rose-50 text-rose-700',
+        ring: 'ring-rose-100',
+        icon: <Sparkles className="h-4 w-4" />,
         accentKey: 'rose',
     },
     health: {
-        primary: 'bg-teal-600',
-        primaryBg: 'bg-teal-50',
-        primaryHover: 'hover:bg-teal-700',
-        badge: 'bg-teal-50',
-        badgeText: 'text-teal-700',
-        light: 'text-teal-600',
-        icon: <Stethoscope className="w-4 h-4" />,
-        selectBtn: 'bg-teal-600',
-        selectBtnHover: 'hover:bg-teal-700',
+        cta: 'bg-teal-600 hover:bg-teal-700',
+        light: 'bg-teal-50 text-teal-700',
+        ring: 'ring-teal-100',
+        icon: <Stethoscope className="h-4 w-4" />,
         accentKey: 'teal',
     },
-};
+} as const;
 
 const DEFAULT_ACCENT = ACCENT.beauty;
 
-// ─── Language flags ─────────────────────────────────────────────────
-const LANG_FLAGS: Record<string, { flag: string; label: string }> = {
-    RU: { flag: '🇷🇺', label: 'Русский' },
-    DE: { flag: '🇩🇪', label: 'Deutsch' },
-    EN: { flag: '🇬🇧', label: 'English' },
-    UA: { flag: '🇺🇦', label: 'Українська' },
-    TR: { flag: '🇹🇷', label: 'Türkçe' },
-};
-
-// ─── Fake reviews ───────────────────────────────────────────────────
-const FAKE_REVIEWS = [
-    {
-        name: 'Ольга М.',
-        initials: 'ОМ',
-        date: '12 января 2026',
-        rating: 5,
-        text: 'Отличный специалист! Очень аккуратная работа, результат превзошёл ожидания. Обязательно приду снова. Рекомендую всем!',
-        bg: 'bg-pink-100 text-pink-600',
-    },
-    {
-        name: 'Анна К.',
-        initials: 'АК',
-        date: '3 февраля 2026',
-        rating: 5,
-        text: 'Приятная атмосфера, мастер всё объяснила, подобрала именно то, что нужно. Результатом очень довольна!',
-        bg: 'bg-blue-100 text-blue-600',
-    },
-];
-
-// ═════════════════════════════════════════════════════════════════════
-// COMPONENT
-// ═════════════════════════════════════════════════════════════════════
 export function ProfileClient({ profile }: ProfileClientProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const { data: session, status } = useSession();
+
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedService, setSelectedService] = useState<{ id?: number; title: string; price: string; duration_min?: number } | null>(null);
     const [isStartingChat, setIsStartingChat] = useState(false);
+    const [selectedService, setSelectedService] = useState<{
+        id?: number;
+        title: string;
+        price: string;
+        duration_min?: number;
+    } | null>(null);
 
-    // ─── Derived data ───────────────────────────────────────────────
-    const catSlug = profile.category?.slug || 'beauty';
+    const catSlug = profile.category?.slug === 'health' ? 'health' : 'beauty';
     const accent = ACCENT[catSlug] || DEFAULT_ACCENT;
-    const attrs = profile.attributes || {};
-    const languages: string[] = attrs.languages || attrs.sprachen || [];
     const services = profile.services || [];
-    const cheapest = services.length > 0
-        ? services.reduce((min, s) => Number(s.price) < Number(min.price) ? s : min, services[0])
-        : null;
+    const cheapest =
+        services.length > 0
+            ? services.reduce((min, current) => (Number(current.price) < Number(min.price) ? current : min), services[0])
+            : null;
 
+    const initialDate = searchParams.get('date') || undefined;
+    const initialTime = searchParams.get('time') || undefined;
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
         `${profile.address || ''} ${profile.city}`
     )}`;
 
-    const createdYear = new Date(profile.created_at).getFullYear();
-    const initialDate = searchParams.get('date') || undefined;
-    const initialTime = searchParams.get('time') || undefined;
-
-    // ─── Handlers ───────────────────────────────────────────────────
     const openBooking = (service?: { id?: number; title: string; price: string; duration_min?: number }) => {
         setSelectedService(service || null);
         setIsModalOpen(true);
@@ -176,7 +136,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
 
         const serviceIdParam = Number(searchParams.get('service'));
         if (Number.isInteger(serviceIdParam)) {
-            const service = services.find((s) => s.id === serviceIdParam);
+            const service = services.find((item) => item.id === serviceIdParam);
             if (service) {
                 setSelectedService({
                     id: service.id,
@@ -211,292 +171,199 @@ export function ProfileClient({ profile }: ProfileClientProps) {
     }, [status, session?.user, pathname, router, searchParams]);
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* TOP BAR                                                */}
-            {/* ═══════════════════════════════════════════════════════ */}
-            <div className="bg-white border-b border-gray-100 sticky top-0 z-30">
-                <div className="container mx-auto px-4 max-w-6xl">
-                    <div className="flex items-center h-14 gap-4">
-                        <Link
-                            href={`/search${catSlug ? `?category=${catSlug}` : ''}`}
-                            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-                        >
-                            <ChevronLeft className="w-4 h-4" />
-                            Назад к поиску
-                        </Link>
-                        <div className="ml-auto flex items-center gap-2">
-                            {profile.category && (
-                                <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full ${accent.badge} ${accent.badgeText}`}>
-                                    {accent.icon}
-                                    {profile.category.name}
-                                </span>
-                            )}
-                        </div>
-                    </div>
+        <div className="min-h-screen bg-slate-50/60">
+            <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+                <div className="container mx-auto flex h-14 max-w-6xl items-center px-4">
+                    <Link
+                        href={`/search${profile.category?.slug ? `?category=${profile.category.slug}` : ''}`}
+                        className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-900"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                        Назад к поиску
+                    </Link>
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* MAIN CONTENT - 2 Column Layout                         */}
-            {/* ═══════════════════════════════════════════════════════ */}
-            <div className="container mx-auto px-4 max-w-6xl py-8">
-                <div className="flex flex-col lg:flex-row gap-8">
+            <div className="container mx-auto max-w-6xl px-4 py-8 sm:py-10">
+                <Card className="rounded-3xl border-slate-200 bg-white shadow-lg shadow-slate-200/40">
+                    <CardContent className="p-6 sm:p-8">
+                        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+                            <div className="h-32 w-32 overflow-hidden rounded-3xl bg-slate-100 shadow-lg shadow-slate-200/60 sm:h-40 sm:w-40">
+                                {profile.image_url ? (
+                                    <img src={profile.image_url} alt={profile.name} className="h-full w-full object-cover" />
+                                ) : (
+                                    <div className="flex h-full w-full items-center justify-center">
+                                        <UserCircle2 className="h-16 w-16 text-slate-300 sm:h-20 sm:w-20" />
+                                    </div>
+                                )}
+                            </div>
 
-                    {/* ── LEFT COLUMN: Sticky Sidebar ── */}
-                    <div className="w-full lg:w-[360px] flex-shrink-0">
-                        <div className="lg:sticky lg:top-20 space-y-4">
-                            {/* Photo Card */}
-                            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-                                {/* Big Photo */}
-                                <div className="relative aspect-[4/3] bg-gradient-to-br from-gray-100 to-gray-200">
-                                    {profile.image_url ? (
-                                        <img
-                                            src={profile.image_url}
-                                            alt={profile.name}
-                                            className="absolute inset-0 w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <UserCircle className="w-24 h-24 text-gray-300" />
-                                        </div>
-                                    )}
-                                    {profile.is_verified && (
-                                        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-bold text-green-600 shadow-sm border border-green-100 flex items-center gap-1.5">
-                                            <CheckCircle2 className="w-3.5 h-3.5" />
-                                            Проверен
-                                        </div>
-                                    )}
+                            <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{profile.name}</h1>
+                                    {profile.is_verified ? (
+                                        <Badge className="border border-blue-200 bg-blue-50 text-blue-700">
+                                            <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                                            Verified
+                                        </Badge>
+                                    ) : null}
                                 </div>
 
-                                {/* Info below photo */}
-                                <div className="p-6">
-                                    <h1 className="text-2xl font-bold text-gray-900 mb-1">{profile.name}</h1>
+                                <p className="mt-1 text-lg text-slate-500">{profile.category?.name || 'Специалист'}</p>
+                                <div className="mt-2 inline-flex items-center gap-1.5 text-sm text-slate-500">
+                                    <MapPin className="h-4 w-4" />
+                                    {profile.city}
+                                </div>
 
-                                    {/* Rating */}
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="flex items-center gap-1 bg-amber-50 px-2.5 py-1 rounded-full">
-                                            <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                                            <span className="text-sm font-bold text-amber-700">5.0</span>
-                                        </div>
-                                        <span className="text-sm text-gray-400">2 отзыва</span>
-                                    </div>
-
-                                    {/* Location */}
-                                    <div className="flex items-start gap-2 text-gray-600 mb-2">
-                                        <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" />
-                                        <span className="text-sm">
-                                            {profile.address ? `${profile.address}, ` : ''}{profile.city}
-                                        </span>
-                                    </div>
-
-                                    {/* Show on map */}
+                                <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-600">
+                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
+                                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                                        5.0
+                                    </span>
+                                    <span>Новый мастер</span>
                                     <a
                                         href={googleMapsUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors mb-6"
+                                        className="inline-flex items-center gap-1 text-blue-600 transition-colors hover:text-blue-700"
                                     >
-                                        <ExternalLink className="w-3.5 h-3.5" />
+                                        <ExternalLink className="h-3.5 w-3.5" />
                                         Показать на карте
                                     </a>
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                                    {/* Languages */}
-                                    {languages.length > 0 && (
-                                        <div className="flex items-center gap-2 mb-6 flex-wrap">
-                                            <Globe className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                            {languages.map((lang: string) => {
-                                                const info = LANG_FLAGS[lang.toUpperCase()];
-                                                if (!info) return null;
-                                                return (
-                                                    <span
-                                                        key={lang}
-                                                        className="inline-flex items-center gap-1 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md text-xs font-medium"
-                                                        title={info.label}
-                                                    >
-                                                        {info.flag} {lang.toUpperCase()}
-                                                    </span>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+                    <div className="space-y-6">
+                        <Card className="rounded-3xl border-slate-200 bg-white shadow-lg shadow-slate-200/40">
+                            <CardHeader className="p-7 pb-4">
+                                <CardTitle className="text-2xl">О мастере</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-7 pt-0">
+                                <p className="leading-relaxed text-slate-600">
+                                    {profile.bio ||
+                                        'Профессионал с многолетним опытом работы. Индивидуальный подход к каждому клиенту, качественные материалы и внимание к деталям.'}
+                                </p>
+                            </CardContent>
+                        </Card>
 
-                                    {/* Main CTA */}
-                                    <button
-                                        onClick={() => openBooking()}
-                                        className={`w-full h-14 ${accent.primary} ${accent.primaryHover} text-white font-semibold text-lg rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-gray-200 hover:-translate-y-0.5`}
-                                    >
-                                        <Calendar className="w-5 h-5" />
-                                        Забронировать
-                                    </button>
-
-                                    {/* Secondary actions */}
-                                    <div className="flex gap-2 mt-3">
-                                        <button className="flex-1 h-11 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors flex items-center justify-center gap-1.5 text-sm">
-                                            <Phone className="w-4 h-4" />
-                                            Позвонить
-                                        </button>
-                                        <button
-                                            onClick={startChat}
-                                            disabled={isStartingChat}
-                                            className="flex-1 h-11 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors flex items-center justify-center gap-1.5 text-sm disabled:opacity-60"
+                        <Card className="rounded-3xl border-slate-200 bg-white shadow-lg shadow-slate-200/40">
+                            <CardHeader className="flex-row items-center justify-between space-y-0 p-7 pb-4">
+                                <CardTitle className="text-2xl">Услуги</CardTitle>
+                                <span className="text-sm text-slate-500">{services.length} услуг</span>
+                            </CardHeader>
+                            <CardContent className="space-y-3 p-7 pt-0">
+                                {services.length > 0 ? (
+                                    services.map((service) => (
+                                        <div
+                                            key={service.id}
+                                            className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
                                         >
-                                            <MessageCircle className="w-4 h-4" />
-                                            {isStartingChat ? 'Открываем...' : 'Написать'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Stats Card */}
-                            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                                <h3 className="font-bold text-xs text-gray-400 uppercase tracking-wider mb-4">Статистика</h3>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-gray-500">На сервисе</span>
-                                        <span className="font-medium text-gray-900">с {createdYear} года</span>
-                                    </div>
-                                    <div className="flex justify-between items-center text-sm">
-                                        <span className="text-gray-500">Услуг</span>
-                                        <span className="font-medium text-gray-900">{services.length}</span>
-                                    </div>
-                                    {cheapest && (
-                                        <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-500">Цена от</span>
-                                            <span className="font-bold text-gray-900">€{Number(cheapest.price).toFixed(0)}</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="h-px bg-gray-100 my-4" />
-                                <div className="flex items-center gap-2 text-sm text-gray-500">
-                                    <ThumbsUp className="w-4 h-4 text-green-500" />
-                                    <span>Рекомендуют 100% клиентов</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ── RIGHT COLUMN: Content ── */}
-                    <div className="flex-1 min-w-0 space-y-6">
-
-                        {/* About */}
-                        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                            <h2 className="text-xl font-bold text-gray-900 mb-4">О мастере</h2>
-                            <p className="text-gray-600 leading-relaxed whitespace-pre-line">
-                                {profile.bio || 'Профессионал с многолетним опытом работы. Индивидуальный подход к каждому клиенту, качественные материалы и внимание к деталям.'}
-                            </p>
-                            <div className="flex flex-wrap gap-3 mt-6">
-                                {profile.is_verified && (
-                                    <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-4 py-2 rounded-xl border border-green-100">
-                                        <Shield className="w-4 h-4" />
-                                        Верифицирован
-                                    </div>
-                                )}
-                                <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
-                                    <CheckCircle2 className="w-4 h-4 text-blue-500" />
-                                    Паспорт проверен
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Services */}
-                        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-bold text-gray-900">Услуги и цены</h2>
-                                <span className="text-sm text-gray-400">{services.length} услуг</span>
-                            </div>
-
-                            {services.length > 0 ? (
-                                <div className="divide-y divide-gray-100">
-                                    {services.map((service) => (
-                                        <div key={service.id} className="flex items-center justify-between py-5 group">
-                                            <div className="flex-1 min-w-0 mr-4">
-                                                <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-                                                    {service.title}
-                                                </h3>
-                                                <div className="flex items-center gap-3 mt-1">
-                                                    <span className="flex items-center gap-1 text-sm text-gray-400">
-                                                        <Clock className="w-3.5 h-3.5" />
-                                                        {service.duration_min} мин
-                                                    </span>
+                                            <div className="min-w-0">
+                                                <h3 className="text-base font-semibold text-slate-900 sm:text-lg">{service.title}</h3>
+                                                <div className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-500">
+                                                    <Clock className="h-4 w-4" />
+                                                    {service.duration_min} мин
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-4 flex-shrink-0">
-                                                <span className="text-lg font-bold text-gray-900">
-                                                    €{Number(service.price).toFixed(0)}
-                                                </span>
-                                                <button
-                                                    onClick={() => openBooking({
+
+                                            <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 sm:min-w-[180px] sm:justify-end">
+                                                <span className="text-xl font-bold text-slate-900">€{Number(service.price).toFixed(0)}</span>
+                                                <Button
+                                                    onClick={() =>
+                                                        openBooking({
+                                                            id: service.id,
+                                                            title: service.title,
+                                                            price: `€${Number(service.price).toFixed(0)}`,
+                                                            duration_min: service.duration_min,
+                                                        })
+                                                    }
+                                                    className={`${accent.cta} text-white`}
+                                                >
+                                                    Выбрать
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-10 text-center">
+                                        <Euro className="mx-auto mb-3 h-8 w-8 text-slate-300" />
+                                        <p className="text-slate-500">Услуги пока не добавлены</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className="lg:sticky lg:top-24 lg:self-start">
+                        <Card className={`rounded-3xl border-slate-200 bg-white shadow-xl shadow-slate-200/60 ring-1 ${accent.ring}`}>
+                            <CardHeader className="p-6 pb-4">
+                                <CardTitle className="text-xl">Быстрая запись</CardTitle>
+                                <p className="text-sm text-slate-500">Выберите услугу и забронируйте слот за пару кликов.</p>
+                            </CardHeader>
+                            <CardContent className="space-y-4 p-6 pt-0">
+                                {profile.category ? (
+                                    <Badge className={`${accent.light} border-0`}>
+                                        {accent.icon}
+                                        <span className="ml-1">{profile.category.name}</span>
+                                    </Badge>
+                                ) : null}
+
+                                {cheapest ? (
+                                    <div className="rounded-2xl bg-slate-50 p-4">
+                                        <p className="text-xs uppercase tracking-wide text-slate-400">Цена от</p>
+                                        <p className="mt-1 text-3xl font-bold text-slate-900">€{Number(cheapest.price).toFixed(0)}</p>
+                                    </div>
+                                ) : null}
+
+                                {services.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {services.slice(0, 3).map((service) => (
+                                            <button
+                                                key={`quick-${service.id}`}
+                                                onClick={() =>
+                                                    openBooking({
                                                         id: service.id,
                                                         title: service.title,
                                                         price: `€${Number(service.price).toFixed(0)}`,
                                                         duration_min: service.duration_min,
-                                                    })}
-                                                    className={`${accent.selectBtn} ${accent.selectBtnHover} text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md whitespace-nowrap`}
-                                                >
-                                                    Выбрать
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12">
-                                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <Euro className="w-8 h-8 text-gray-300" />
-                                    </div>
-                                    <p className="text-gray-500">Услуги пока не добавлены</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Reviews */}
-                        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-bold text-gray-900">Отзывы</h2>
-                                <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-1">
-                                        {[1, 2, 3, 4, 5].map(i => (
-                                            <Star key={i} className="w-4 h-4 text-amber-400 fill-amber-400" />
+                                                    })
+                                                }
+                                                className="flex w-full items-center justify-between rounded-xl border border-slate-200 px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50"
+                                            >
+                                                <span className="truncate pr-3 text-slate-700">{service.title}</span>
+                                                <span className="font-semibold text-slate-900">€{Number(service.price).toFixed(0)}</span>
+                                            </button>
                                         ))}
                                     </div>
-                                    <span className="text-sm text-gray-400">2 отзыва</span>
+                                ) : null}
+
+                                <Button onClick={() => openBooking()} className={`h-12 w-full text-base text-white ${accent.cta}`}>
+                                    <Calendar className="mr-2 h-5 w-5" />
+                                    Забронировать
+                                </Button>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button asChild variant="outline" className="h-11">
+                                        <a href={profile.phone ? `tel:${profile.phone}` : '#'} aria-disabled={!profile.phone}>
+                                            <Phone className="mr-2 h-4 w-4" />
+                                            Позвонить
+                                        </a>
+                                    </Button>
+                                    <Button onClick={startChat} disabled={isStartingChat} variant="outline" className="h-11">
+                                        <MessageCircle className="mr-2 h-4 w-4" />
+                                        {isStartingChat ? 'Открываем...' : 'Написать'}
+                                    </Button>
                                 </div>
-                            </div>
-                            <div className="space-y-6">
-                                {FAKE_REVIEWS.map((review, index) => (
-                                    <div key={index} className={index < FAKE_REVIEWS.length - 1 ? 'pb-6 border-b border-gray-100' : ''}>
-                                        <div className="flex items-center gap-3 mb-3">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${review.bg}`}>
-                                                {review.initials}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="font-semibold text-gray-900 text-sm">{review.name}</div>
-                                                <div className="text-xs text-gray-400">{review.date}</div>
-                                            </div>
-                                            <div className="flex gap-0.5">
-                                                {Array.from({ length: review.rating }).map((_, i) => (
-                                                    <Star key={i} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <p className="text-gray-600 text-sm leading-relaxed pl-[52px]">
-                                            {review.text}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                            <button className="w-full mt-8 h-12 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors text-sm">
-                                Написать отзыв
-                            </button>
-                        </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* BOOKING MODAL                                          */}
-            {/* ═══════════════════════════════════════════════════════ */}
             <BookingModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
