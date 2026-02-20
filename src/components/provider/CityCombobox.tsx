@@ -146,11 +146,13 @@ export function CityCombobox({
             if (resolved) return resolved;
         }
 
-        for (const [alias, valueFromMap] of aliasMap.entries()) {
-            if (alias.includes(normalized) || normalized.includes(alias)) {
-                return valueFromMap;
+        let fuzzyMatch: string | null = null;
+        aliasMap.forEach((valueFromMap, alias) => {
+            if (!fuzzyMatch && (alias.includes(normalized) || normalized.includes(alias))) {
+                fuzzyMatch = valueFromMap;
             }
-        }
+        });
+        if (fuzzyMatch) return fuzzyMatch;
 
         return null;
     };
