@@ -7,6 +7,7 @@ import { Loader2, MessageSquare, Send, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { getConversationMessages, getMyConversations, sendMessage } from '@/app/actions/chat';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 type ConversationItem = {
     id: string;
@@ -38,6 +39,12 @@ interface MessengerClientProps {
     initialConversations: ConversationItem[];
     initialConversationId: string | null;
     currentUserId: string;
+}
+
+function getInitials(name?: string | null) {
+    if (!name) return 'U';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || 'U';
 }
 
 export function MessengerClient({
@@ -119,15 +126,15 @@ export function MessengerClient({
     };
 
     return (
-        <div className="mx-auto mt-24 h-[calc(100vh-7rem)] max-w-6xl px-4 pb-6">
-            <div className="grid h-full grid-cols-1 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm md:grid-cols-[320px_1fr]">
-                <aside className="border-b border-gray-100 bg-gray-50 md:border-b-0 md:border-r">
+        <div className="h-[calc(100vh-80px)] w-full overflow-hidden">
+            <div className="flex h-full w-full overflow-hidden border border-slate-200 bg-white">
+                <aside className="flex h-full w-72 shrink-0 flex-col border-r border-slate-200 bg-slate-50 md:w-80 md:max-w-md">
                     <div className="border-b border-gray-100 bg-white px-4 py-4">
                         <h2 className="text-lg font-bold text-gray-900">Чаты</h2>
                         <p className="text-xs text-gray-500">Личные сообщения с клиентами и мастерами</p>
                     </div>
 
-                    <div className="h-[280px] overflow-y-auto md:h-[calc(100vh-11.5rem)]">
+                    <div className="min-h-0 flex-1 overflow-y-auto">
                         {conversations.length === 0 ? (
                             <div className="p-8 text-center text-gray-500">
                                 <MessageSquare className="mx-auto mb-2 h-10 w-10 text-gray-300" />
@@ -175,17 +182,26 @@ export function MessengerClient({
                     </div>
                 </aside>
 
-                <section className="flex h-full flex-col">
+                <section className="flex h-full min-w-0 flex-1 flex-col">
                     {selectedConversation ? (
                         <>
-                            <div className="border-b border-gray-100 px-4 py-3">
-                                <p className="text-sm font-semibold text-gray-900">
-                                    {selectedConversation.interlocutor.name || 'Собеседник'}
-                                </p>
-                                <p className="text-xs text-gray-500">{selectedConversation.interlocutor.subtitle || 'Диалог'}</p>
+                            <div className="flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4">
+                                <Avatar className="h-9 w-9">
+                                    <AvatarImage
+                                        src={selectedConversation.interlocutor.image || undefined}
+                                        alt={selectedConversation.interlocutor.name || 'Собеседник'}
+                                    />
+                                    <AvatarFallback>{getInitials(selectedConversation.interlocutor.name)}</AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-gray-900">
+                                        {selectedConversation.interlocutor.name || 'Собеседник'}
+                                    </p>
+                                    <p className="truncate text-xs text-gray-500">{selectedConversation.interlocutor.subtitle || 'Диалог'}</p>
+                                </div>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto bg-gray-50/50 px-4 py-4">
+                            <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50/70 p-4 md:p-6">
                                 {isLoadingMessages ? (
                                     <div className="flex h-full items-center justify-center">
                                         <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -220,15 +236,19 @@ export function MessengerClient({
                                 )}
                             </div>
 
-                            <form onSubmit={handleSend} className="border-t border-gray-100 bg-white p-3">
+                            <form onSubmit={handleSend} className="border-t border-slate-200 bg-white p-4">
                                 <div className="flex items-center gap-2">
                                     <input
                                         value={newMessage}
                                         onChange={(event) => setNewMessage(event.target.value)}
                                         placeholder="Введите сообщение..."
-                                        className="h-11 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm outline-none focus:border-gray-400"
+                                        className="h-11 flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-slate-400"
                                     />
-                                    <Button type="submit" disabled={!newMessage.trim() || isSending} className="h-11">
+                                    <Button
+                                        type="submit"
+                                        disabled={!newMessage.trim() || isSending}
+                                        className="h-11 rounded-full bg-slate-900 px-4 text-white hover:bg-slate-800"
+                                    >
                                         {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                     </Button>
                                 </div>
