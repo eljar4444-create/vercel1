@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { createProviderProfile } from '@/app/actions/providerOnboarding';
+import { CityCombobox } from '@/components/provider/CityCombobox';
 
 type Category = { id: number; name: string; icon: string | null };
 
@@ -20,9 +21,14 @@ export function ProviderOnboardingForm({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [city, setCity] = useState('');
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!city) {
+            setError('Выберите город из списка');
+            return;
+        }
         setIsSubmitting(true);
         setError(null);
         setSuccess(null);
@@ -80,12 +86,7 @@ export function ProviderOnboardingForm({
 
             <div>
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">Город</label>
-                <input
-                    name="city"
-                    required
-                    placeholder="Berlin"
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 outline-none focus:border-transparent focus:ring-2 focus:ring-gray-300"
-                />
+                <CityCombobox name="city" value={city} onValueChange={setCity} />
             </div>
 
             <div>

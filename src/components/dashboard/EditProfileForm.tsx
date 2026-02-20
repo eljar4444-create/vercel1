@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Loader2, CheckCircle, AlertCircle, Save } from 'lucide-react';
 import { updateProfile } from '@/app/actions/updateProfile';
 import toast from 'react-hot-toast';
+import { CityCombobox } from '@/components/provider/CityCombobox';
 
 interface EditProfileFormProps {
     profile: {
@@ -20,9 +21,14 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [city, setCity] = useState(profile.city);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!city) {
+            setError('Выберите город из списка');
+            return;
+        }
         setIsSubmitting(true);
         setError(null);
         setSaved(false);
@@ -101,13 +107,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
             {/* City */}
             <div>
                 <label className={labelClass}>Город</label>
-                <input
-                    name="city"
-                    type="text"
-                    required
-                    defaultValue={profile.city}
-                    className={inputClass}
-                />
+                <CityCombobox name="city" value={city} onValueChange={setCity} />
             </div>
 
             {/* Address */}
