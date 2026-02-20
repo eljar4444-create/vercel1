@@ -20,10 +20,33 @@ export default async function ProfileDetailPage({
 
     const profile = await prisma.profile.findUnique({
         where: { id: profileId },
-        include: {
-            category: true,
-            services: true,
+        select: {
+            id: true,
+            name: true,
+            city: true,
+            address: true,
+            image_url: true,
+            bio: true,
+            phone: true,
+            is_verified: true,
+            created_at: true,
+            attributes: true,
             schedule: true,
+            category: {
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                },
+            },
+            services: {
+                select: {
+                    id: true,
+                    title: true,
+                    price: true,
+                    duration_min: true,
+                },
+            },
             bookings: {
                 where: {
                     status: { in: ['pending', 'confirmed'] },
