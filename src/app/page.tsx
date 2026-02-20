@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
     Search, ArrowRight, Sparkles, Stethoscope,
     CalendarCheck, UserCheck, Star, ChevronRight,
-    Shield, Clock, Heart
+    Shield, Clock, Heart, Dumbbell, GraduationCap
 } from 'lucide-react';
 
 // ─── Category Cards ─────────────────────────────────────────────────
@@ -14,28 +14,54 @@ const CATEGORIES = [
     {
         name: 'Красота',
         slug: 'beauty',
-        description: 'Маникюр, причёски, уход за лицом и body care в одном месте',
-        eyebrow: 'Top Category',
+        description: 'Маникюр, парикмахерские услуги, уход и эстетика нового уровня',
+        eyebrow: 'Most Popular',
         icon: Sparkles,
-        spotlight: 'from-rose-500/15 via-fuchsia-500/10 to-transparent',
-        chipClass: 'bg-rose-100/70 text-rose-700 ring-rose-200/60',
+        spotlight: 'from-rose-500/20 via-fuchsia-500/10 to-white',
+        iconWrap: 'from-rose-100 to-fuchsia-100',
+        chipClass: 'bg-rose-100/65 text-rose-700 hover:bg-rose-200/70',
         iconClass: 'text-rose-600',
-        ctaClass: 'from-rose-500 to-fuchsia-500',
-        featured: true,
+        layoutClass: 'md:col-span-2 md:row-span-2 md:min-h-[470px]',
         services: ['Маникюр', 'Педикюр', 'Парикмахер', 'Косметолог'],
     },
     {
         name: 'Медицина и Врачи',
         slug: 'health',
-        description: 'Проверенные специалисты: диагностика, терапия и восстановление',
+        description: 'Проверенные специалисты для диагностики, терапии и восстановления',
         eyebrow: 'Trusted Care',
         icon: Stethoscope,
-        spotlight: 'from-teal-500/15 via-emerald-500/10 to-transparent',
-        chipClass: 'bg-teal-100/70 text-teal-700 ring-teal-200/60',
+        spotlight: 'from-teal-500/20 via-emerald-500/10 to-white',
+        iconWrap: 'from-teal-100 to-emerald-100',
+        chipClass: 'bg-teal-100/65 text-teal-700 hover:bg-teal-200/70',
         iconClass: 'text-teal-600',
-        ctaClass: 'from-teal-500 to-emerald-500',
-        featured: false,
+        layoutClass: 'md:col-span-2 md:row-span-1 md:min-h-[220px]',
         services: ['Стоматолог', 'Терапевт', 'Массаж', 'Диагностика'],
+    },
+    {
+        name: 'Спорт и Реабилитация',
+        slug: 'sport',
+        description: 'Тренировки, восстановление после нагрузок и персональный коучинг',
+        eyebrow: 'Performance',
+        icon: Dumbbell,
+        spotlight: 'from-blue-500/20 via-indigo-500/10 to-white',
+        iconWrap: 'from-blue-100 to-indigo-100',
+        chipClass: 'bg-blue-100/65 text-blue-700 hover:bg-blue-200/70',
+        iconClass: 'text-blue-600',
+        layoutClass: 'md:col-span-1 md:row-span-1 md:min-h-[220px]',
+        services: ['Фитнес', 'Реабилитация', 'Йога', 'Персональный тренер'],
+    },
+    {
+        name: 'Обучение',
+        slug: 'education',
+        description: 'Частные занятия, языковые курсы и развитие профессиональных навыков',
+        eyebrow: 'Growth',
+        icon: GraduationCap,
+        spotlight: 'from-amber-500/20 via-orange-500/10 to-white',
+        iconWrap: 'from-amber-100 to-orange-100',
+        chipClass: 'bg-amber-100/65 text-amber-700 hover:bg-amber-200/70',
+        iconClass: 'text-amber-600',
+        layoutClass: 'md:col-span-1 md:row-span-1 md:min-h-[220px]',
+        services: ['Языки', 'Репетитор', 'Карьерный коуч', 'Мастер-классы'],
     },
 ];
 
@@ -198,11 +224,11 @@ export default function HomePage() {
             {/* ═══════════════════════════════════════════════════════ */}
             {/* POPULAR CATEGORIES                                     */}
             {/* ═══════════════════════════════════════════════════════ */}
-            <section className="bg-white py-20 sm:py-24">
+            <section className="bg-gradient-to-b from-white via-slate-50/40 to-white py-20 sm:py-24">
                 <div className="container mx-auto px-4 max-w-6xl">
                     {/* Section header */}
                     <div className="mb-12 text-center">
-                        <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+                        <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl">
                             Популярные категории
                         </h2>
                         <p className="mx-auto max-w-md text-lg text-gray-500">
@@ -211,32 +237,31 @@ export default function HomePage() {
                     </div>
 
                     {/* Premium Bento Grid */}
-                    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3 md:auto-rows-[220px]">
-                        {CATEGORIES.map((cat) => {
+                    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 md:grid-cols-4 md:auto-rows-[220px]">
+                        {CATEGORIES.map((cat, index) => {
                             const Icon = cat.icon;
 
                             return (
                                 <Link
                                     key={cat.slug}
                                     href={`/search?category=${cat.slug}`}
-                                    className={`group relative overflow-hidden rounded-3xl border border-slate-200/50 bg-white p-7 shadow-[0_4px_24px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-300/35 ${
-                                        cat.featured ? 'md:col-span-2 md:row-span-2 md:p-9' : 'md:col-span-1'
-                                    }`}
+                                    className={`group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50/80 p-7 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-[1.02] hover:-translate-y-0.5 hover:from-white hover:to-slate-50 hover:shadow-[0_26px_70px_rgba(15,23,42,0.14)] ${cat.layoutClass}`}
                                 >
                                     <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${cat.spotlight} opacity-90`} />
-                                    <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-white/60 blur-3xl transition-transform duration-300 group-hover:scale-125" />
+                                    <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/70 blur-3xl transition-transform duration-500 group-hover:scale-125" />
+                                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white/70 to-transparent" />
 
                                     <div className="relative">
-                                        <div className="mb-5 flex items-start justify-between">
+                                        <div className="mb-6 flex items-start justify-between">
                                             <div className="space-y-2">
-                                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
                                                     {cat.eyebrow}
                                                 </p>
-                                                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white ring-1 ring-black/5 ${cat.iconClass}`}>
+                                                <div className={`inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ${cat.iconWrap} ring-1 ring-white/80 shadow-sm ${cat.iconClass}`}>
                                                     <Icon className="h-8 w-8" />
                                                 </div>
                                             </div>
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-slate-500 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-slate-700">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-slate-500 transition-all duration-500 group-hover:translate-x-0.5 group-hover:text-slate-700">
                                                 <ChevronRight className="h-5 w-5" />
                                             </div>
                                         </div>
@@ -244,33 +269,28 @@ export default function HomePage() {
                                         <h3 className="mb-2 text-2xl font-bold tracking-tight text-slate-900">
                                             {cat.name}
                                         </h3>
-                                        <p className={`text-sm leading-relaxed text-slate-600 ${cat.featured ? 'max-w-xl' : ''}`}>
+                                        <p className={`text-sm leading-relaxed text-slate-600 ${index === 0 ? 'max-w-xl' : ''}`}>
                                             {cat.description}
                                         </p>
 
-                                        <div className="mt-6 flex flex-wrap gap-2">
+                                        <div className="mt-6 flex flex-wrap gap-2.5">
                                             {cat.services.map((service) => (
                                                 <span
                                                     key={service}
-                                                    className={`rounded-full px-3 py-1.5 text-sm font-medium ring-1 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white ${cat.chipClass}`}
+                                                    className={`cursor-pointer rounded-full px-3 py-1.5 text-sm font-medium ring-1 ring-white/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm ${cat.chipClass}`}
                                                 >
                                                     {service}
                                                 </span>
                                             ))}
                                         </div>
-
-                                        <div className="mt-7 flex items-center gap-2">
-                                            <span className={`h-1.5 w-16 rounded-full bg-gradient-to-r ${cat.ctaClass}`} />
-                                            <span className="text-sm font-medium text-slate-500">Перейти к специалистам</span>
-                                        </div>
                                     </div>
-                                </div>
+                                </Link>
                             );
                         })}
 
                         <Link
                             href="/search"
-                            className="group relative overflow-hidden rounded-3xl border border-slate-200/50 bg-slate-950 p-7 text-white shadow-[0_12px_40px_rgba(15,23,42,0.22)] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl md:col-span-1"
+                            className="group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-slate-950 p-7 text-white shadow-[0_18px_60px_rgba(15,23,42,0.2)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-[0_28px_80px_rgba(15,23,42,0.28)] md:col-span-2"
                         >
                             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_58%)]" />
                             <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Explore</p>
