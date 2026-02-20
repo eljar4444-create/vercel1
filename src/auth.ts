@@ -96,28 +96,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 token.role = user.role
                 token.id = user.id
                 token.picture = user.image
-                await syncProviderProfileId();
+                token.email = user.email
             }
 
-            // On subsequent calls, fetch fresh data from DB to ensure sync
-            // Note: Use 'sub' to fetch user if needed, but be careful of performance
-            if (!user && token.sub) {
+            // Ensure token has user id for every request
+            if (!token.id && token.sub) {
+                token.id = token.sub;
+            }
+
+            // Keep token in sync with DB so provider links always resolve to profile id.
+            if (token.id) {
                 try {
                     const freshUser = await prisma.user.findUnique({
-                        where: { id: token.sub },
-                        select: { image: true, role: true, id: true }
+                        where: { id: token.id as string },
+                        select: { image: true, role: true, id: true, email: true },
                     });
 
                     if (freshUser) {
                         token.picture = freshUser.image;
                         token.role = freshUser.role;
                         token.id = freshUser.id;
-                        await syncProviderProfileId();
+                        token.email = freshUser.email;
                     }
                 } catch (error) {
                     console.error("Error fetching fresh user data in JWT callback:", error);
                 }
             }
+
+            await syncProviderProfileId();
 
             // Handle client-side update trigger (backup)
             if (trigger === "update" && session?.image) {
