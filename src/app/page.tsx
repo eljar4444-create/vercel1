@@ -385,17 +385,11 @@ export default function HomePage() {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Link
-                                href="/become-pro"
+                                href="/auth/register?role=provider"
                                 className="h-14 px-8 bg-white hover:bg-gray-100 text-gray-900 font-semibold text-base rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg flex items-center justify-center gap-2"
                             >
                                 Стать партнёром
                                 <ArrowRight className="w-5 h-5" />
-                            </Link>
-                            <Link
-                                href="/dashboard/2"
-                                className="h-14 px-8 bg-white/10 hover:bg-white/15 border border-white/10 text-white font-medium text-base rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
-                            >
-                                Демо кабинета
                             </Link>
                         </div>
                     </div>

@@ -45,7 +45,10 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
         if (existingByEmail) {
             await prisma.profile.update({
                 where: { id: existingByEmail.id },
-                data: { user_id: session.user.id },
+                data: {
+                    user_id: session.user.id,
+                    is_verified: true,
+                },
             });
             return { success: true, profileId: existingByEmail.id };
         }
@@ -59,7 +62,7 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
                 category_id: categoryId,
                 attributes: {},
                 image_url: null,
-                is_verified: false,
+                is_verified: true,
             },
             select: { id: true },
         });

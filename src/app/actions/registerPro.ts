@@ -36,7 +36,7 @@ export async function registerPro(formData: FormData): Promise<RegisterProResult
                 category_id: categoryId,
                 attributes: {},
                 image_url: null,
-                is_verified: false,
+                is_verified: true,
             },
         });
 

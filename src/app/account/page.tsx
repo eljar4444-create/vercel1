@@ -24,7 +24,7 @@ export default async function AccountPage() {
             redirect(`/dashboard/${providerProfile.id}`);
         }
 
-        redirect('/become-pro');
+        redirect('/provider/onboarding');
     }
 
     const user = await prisma.user.findUnique({
