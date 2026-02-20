@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
     Search, ArrowRight, Sparkles, Stethoscope,
     CalendarCheck, UserCheck, Star, ChevronRight,
-    Shield, Clock, Heart
+    Shield, Clock, Heart, MapPin
 } from 'lucide-react';
 
 // ─── Category Cards ─────────────────────────────────────────────────
@@ -74,16 +74,18 @@ const STATS = [
 // ═════════════════════════════════════════════════════════════════════
 export default function HomePage() {
     const [query, setQuery] = useState('');
+    const [city, setCity] = useState('');
+    const [radius, setRadius] = useState('10');
     const router = useRouter();
 
     const handleSearch = (e?: React.FormEvent) => {
         e?.preventDefault();
         const trimmed = query.trim();
-        if (trimmed) {
-            router.push(`/search?q=${encodeURIComponent(trimmed)}`);
-        } else {
-            router.push('/search');
-        }
+        const params = new URLSearchParams();
+        if (trimmed) params.set('q', trimmed);
+        if (city.trim()) params.set('city', city.trim());
+        if (radius) params.set('radius', radius);
+        router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
     };
 
     return (
@@ -131,23 +133,57 @@ export default function HomePage() {
                         {/* Search Bar */}
                         <form
                             onSubmit={handleSearch}
-                            className="relative max-w-xl mx-auto"
+                            className="relative mx-auto max-w-3xl"
                         >
-                            <div className="relative flex items-center bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-black/20 overflow-hidden transition-all duration-300 focus-within:ring-4 focus-within:ring-rose-500/20 focus-within:shadow-rose-500/10">
-                                <Search className="w-5 h-5 text-gray-400 ml-5 flex-shrink-0" />
-                                <input
-                                    type="text"
-                                    value={query}
-                                    onChange={(e) => setQuery(e.target.value)}
-                                    placeholder="Маникюр, стоматолог, массаж..."
-                                    className="flex-1 h-16 px-4 text-gray-900 text-base placeholder:text-gray-400 bg-transparent outline-none"
-                                />
-                                <button
-                                    type="submit"
-                                    className="h-12 px-7 mr-2 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg text-sm flex-shrink-0"
-                                >
-                                    Найти
-                                </button>
+                            <div className="rounded-2xl bg-white/95 p-2 shadow-2xl shadow-black/20 backdrop-blur-sm transition-all duration-300 focus-within:ring-4 focus-within:ring-rose-500/20 focus-within:shadow-rose-500/10">
+                                <div className="grid grid-cols-1 items-center gap-2 md:grid-cols-[1.3fr_1fr_auto_auto]">
+                                    <div className="flex h-14 items-center rounded-xl border border-transparent bg-white px-3 md:border-r md:border-r-gray-100 md:rounded-r-none">
+                                        <Search className="h-5 w-5 flex-shrink-0 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            value={query}
+                                            onChange={(e) => setQuery(e.target.value)}
+                                            placeholder="Что ищете: маникюр, стоматолог..."
+                                            className="h-full w-full bg-transparent px-3 text-base text-gray-900 placeholder:text-gray-400 outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="flex h-14 items-center rounded-xl border border-transparent bg-white px-3 md:rounded-none">
+                                        <MapPin className="h-5 w-5 flex-shrink-0 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            value={city}
+                                            onChange={(e) => setCity(e.target.value)}
+                                            placeholder="Где"
+                                            className="h-full w-full bg-transparent px-3 text-base text-gray-900 placeholder:text-gray-400 outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="flex h-14 items-center rounded-xl bg-gray-50 px-3 md:justify-center">
+                                        <label htmlFor="search-radius" className="mr-2 text-sm font-medium text-gray-500">
+                                            Радиус
+                                        </label>
+                                        <select
+                                            id="search-radius"
+                                            value={radius}
+                                            onChange={(e) => setRadius(e.target.value)}
+                                            className="bg-transparent text-sm font-semibold text-gray-800 outline-none"
+                                        >
+                                            <option value="5">5 км</option>
+                                            <option value="10">10 км</option>
+                                            <option value="20">20 км</option>
+                                            <option value="30">30 км</option>
+                                            <option value="50">50 км</option>
+                                        </select>
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        className="h-12 px-7 bg-gray-900 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-lg rounded-xl"
+                                    >
+                                        Найти
+                                    </button>
+                                </div>
                             </div>
                         </form>
 
