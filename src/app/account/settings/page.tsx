@@ -21,6 +21,12 @@ export default async function AccountSettingsPage() {
         },
     });
 
+    const latestPhoneBooking = await prisma.booking.findFirst({
+        where: { user_id: session.user.id },
+        orderBy: { created_at: 'desc' },
+        select: { user_phone: true },
+    });
+
     if (!user) {
         redirect('/auth/login');
     }
@@ -28,7 +34,12 @@ export default async function AccountSettingsPage() {
     return (
         <div className="min-h-screen bg-gray-50 pb-12 pt-24">
             <div className="container mx-auto max-w-4xl px-4">
-                <AccountSettingsView user={user} />
+                <AccountSettingsView
+                    user={{
+                        ...user,
+                        phone: latestPhoneBooking?.user_phone ?? null,
+                    }}
+                />
             </div>
         </div>
     );
