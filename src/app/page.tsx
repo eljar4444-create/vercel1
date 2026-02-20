@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
     Search, ArrowRight, Sparkles, Stethoscope,
     CalendarCheck, UserCheck, Star, ChevronRight,
-    Shield, Clock, Heart, Dumbbell, GraduationCap
+    Shield, Clock, Heart
 } from 'lucide-react';
 
 // ─── Category Cards ─────────────────────────────────────────────────
@@ -37,32 +37,7 @@ const CATEGORIES = [
         layoutClass: 'md:col-span-2 md:row-span-1 md:min-h-[220px]',
         services: ['Стоматолог', 'Терапевт', 'Массаж', 'Диагностика'],
     },
-    {
-        name: 'Спорт и Реабилитация',
-        slug: 'sport',
-        description: 'Тренировки, восстановление после нагрузок и персональный коучинг',
-        eyebrow: 'Performance',
-        icon: Dumbbell,
-        spotlight: 'from-blue-500/20 via-indigo-500/10 to-white',
-        iconWrap: 'from-blue-100 to-indigo-100',
-        chipClass: 'bg-blue-100/65 text-blue-700 hover:bg-blue-200/70',
-        iconClass: 'text-blue-600',
-        layoutClass: 'md:col-span-1 md:row-span-1 md:min-h-[220px]',
-        services: ['Фитнес', 'Реабилитация', 'Йога', 'Персональный тренер'],
-    },
-    {
-        name: 'Обучение',
-        slug: 'education',
-        description: 'Частные занятия, языковые курсы и развитие профессиональных навыков',
-        eyebrow: 'Growth',
-        icon: GraduationCap,
-        spotlight: 'from-amber-500/20 via-orange-500/10 to-white',
-        iconWrap: 'from-amber-100 to-orange-100',
-        chipClass: 'bg-amber-100/65 text-amber-700 hover:bg-amber-200/70',
-        iconClass: 'text-amber-600',
-        layoutClass: 'md:col-span-1 md:row-span-1 md:min-h-[220px]',
-        services: ['Языки', 'Репетитор', 'Карьерный коуч', 'Мастер-классы'],
-    },
+    
 ];
 
 // ─── How It Works ───────────────────────────────────────────────────
