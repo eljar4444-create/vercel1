@@ -17,11 +17,11 @@ const CATEGORIES = [
         description: 'Маникюр, парикмахерские услуги, уход и эстетика нового уровня',
         eyebrow: 'Most Popular',
         icon: Sparkles,
+        cardBg: 'from-white to-rose-50/80',
         spotlight: 'from-rose-500/20 via-fuchsia-500/10 to-white',
         iconWrap: 'from-rose-100 to-fuchsia-100',
         chipClass: 'bg-rose-100/65 text-rose-700 hover:bg-rose-200/70',
         iconClass: 'text-rose-600',
-        layoutClass: 'md:col-span-2 md:row-span-2 md:min-h-[470px]',
         services: ['Маникюр', 'Педикюр', 'Парикмахер', 'Косметолог'],
     },
     {
@@ -30,11 +30,11 @@ const CATEGORIES = [
         description: 'Проверенные специалисты для диагностики, терапии и восстановления',
         eyebrow: 'Trusted Care',
         icon: Stethoscope,
+        cardBg: 'from-white to-teal-50/80',
         spotlight: 'from-teal-500/20 via-emerald-500/10 to-white',
         iconWrap: 'from-teal-100 to-emerald-100',
         chipClass: 'bg-teal-100/65 text-teal-700 hover:bg-teal-200/70',
         iconClass: 'text-teal-600',
-        layoutClass: 'md:col-span-2 md:row-span-1 md:min-h-[220px]',
         services: ['Стоматолог', 'Терапевт', 'Массаж', 'Диагностика'],
     },
     
@@ -204,23 +204,23 @@ export default function HomePage() {
                     {/* Section header */}
                     <div className="mb-12 text-center">
                         <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl">
-                            Популярные категории
+                            Выберите направление
                         </h2>
-                        <p className="mx-auto max-w-md text-lg text-gray-500">
-                            Выберите направление и найдите лучших специалистов
+                        <p className="mx-auto max-w-xl text-lg text-gray-500">
+                            Найдите проверенных специалистов в сфере красоты и здоровья
                         </p>
                     </div>
 
-                    {/* Premium Bento Grid */}
-                    <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 md:grid-cols-4 md:auto-rows-[220px]">
-                        {CATEGORIES.map((cat, index) => {
+                    {/* Symmetric two-card grid */}
+                    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2">
+                        {CATEGORIES.map((cat) => {
                             const Icon = cat.icon;
 
                             return (
                                 <Link
                                     key={cat.slug}
                                     href={`/search?category=${cat.slug}`}
-                                    className={`group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-gradient-to-br from-white to-slate-50/80 p-7 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-[1.02] hover:-translate-y-0.5 hover:from-white hover:to-slate-50 hover:shadow-[0_26px_70px_rgba(15,23,42,0.14)] ${cat.layoutClass}`}
+                                    className={`group relative min-h-[360px] overflow-hidden rounded-3xl border border-slate-200/60 bg-gradient-to-br ${cat.cardBg} p-8 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-[1.02] hover:-translate-y-1 hover:brightness-[1.02] hover:shadow-[0_30px_80px_rgba(15,23,42,0.16)]`}
                                 >
                                     <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${cat.spotlight} opacity-90`} />
                                     <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/70 blur-3xl transition-transform duration-500 group-hover:scale-125" />
@@ -244,7 +244,7 @@ export default function HomePage() {
                                         <h3 className="mb-2 text-2xl font-bold tracking-tight text-slate-900">
                                             {cat.name}
                                         </h3>
-                                        <p className={`text-sm leading-relaxed text-slate-600 ${index === 0 ? 'max-w-xl' : ''}`}>
+                                        <p className="text-sm leading-relaxed text-slate-600">
                                             {cat.description}
                                         </p>
 
@@ -262,22 +262,6 @@ export default function HomePage() {
                                 </Link>
                             );
                         })}
-
-                        <Link
-                            href="/search"
-                            className="group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-slate-950 p-7 text-white shadow-[0_18px_60px_rgba(15,23,42,0.2)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-[0_28px_80px_rgba(15,23,42,0.28)] md:col-span-2"
-                        >
-                            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_58%)]" />
-                            <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Explore</p>
-                            <h3 className="relative mt-3 text-2xl font-bold tracking-tight">Все направления</h3>
-                            <p className="relative mt-2 text-sm text-white/70">
-                                Полный каталог специалистов по услугам и городам.
-                            </p>
-                            <div className="relative mt-6 inline-flex items-center gap-2 text-sm font-medium text-white/90">
-                                Открыть каталог
-                                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                            </div>
-                        </Link>
                     </div>
 
                     {/* Browse all */}
