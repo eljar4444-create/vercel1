@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
     CalendarDays, Clock, CheckCircle, XCircle,
-    Inbox, ArrowLeft, Briefcase, ShieldCheck, AlertCircle, ListChecks, Eye
+    Inbox, ArrowLeft, Briefcase, ShieldCheck, AlertCircle, ListChecks, Eye, UserCircle2
 } from 'lucide-react';
 import { BookingRow } from '@/components/dashboard/BookingRow';
 import { ServiceList } from '@/components/dashboard/ServiceList';
@@ -14,18 +14,16 @@ import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
 import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
 import { parseSchedule } from '@/lib/scheduling';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage({
     params,
+    searchParams,
 }: {
     params: { id: string };
+    searchParams?: { section?: string };
 }) {
     const profileId = parseInt(params.id, 10);
     if (isNaN(profileId)) notFound();
@@ -102,6 +100,14 @@ export default async function DashboardPage({
     const pendingCount = bookings.filter(b => b.status === 'pending').length;
     const confirmedCount = bookings.filter(b => b.status === 'confirmed').length;
     const cancelledCount = bookings.filter(b => b.status === 'cancelled').length;
+    const setupCompletedSteps = Number(hasServices) + Number(hasScheduleConfigured);
+    const setupProgressPercent = Math.round((setupCompletedSteps / 2) * 100);
+    const currentSection =
+        searchParams?.section === 'services' ||
+        searchParams?.section === 'schedule' ||
+        searchParams?.section === 'profile'
+            ? searchParams.section
+            : 'bookings';
 
     // ─── Serialize for client ───────────────────────────────────────
     const serializedBookings = bookings.map(b => ({
@@ -124,31 +130,66 @@ export default async function DashboardPage({
         duration_min: s.duration_min,
     }));
 
+    const navItems = [
+        { key: 'bookings', label: 'Записи', icon: Inbox },
+        { key: 'services', label: 'Услуги', icon: Briefcase },
+        { key: 'schedule', label: 'Расписание', icon: Clock },
+        { key: 'profile', label: 'Профиль', icon: UserCircle2 },
+    ] as const;
+
     return (
-        <div className="min-h-screen bg-gray-50/80">
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* HEADER                                                 */}
-            {/* ═══════════════════════════════════════════════════════ */}
-            <div className="bg-white border-b border-gray-100">
-                <div className="container mx-auto px-4 max-w-6xl py-8">
+        <div className="relative min-h-screen overflow-hidden bg-white">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(125,211,252,0.22),transparent_42%),radial-gradient(circle_at_top_left,rgba(244,114,182,0.16),transparent_35%)]" />
+            <div className="relative mx-auto flex w-full max-w-7xl gap-6 px-4 pb-24 pt-6 md:pb-8">
+                <aside className="sticky top-6 hidden h-fit w-64 shrink-0 md:block">
+                    <div className="rounded-[2rem] border border-white/50 bg-white/75 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5">
+                        <div className="mb-3 px-2 pb-3">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">svoi.de</p>
+                            <h2 className="mt-1 text-lg font-semibold text-slate-900">Provider Cockpit</h2>
+                        </div>
+                        <nav className="space-y-1">
+                            {navItems.map((item) => {
+                                const Icon = item.icon;
+                                const isActive = currentSection === item.key;
+                                return (
+                                    <Link
+                                        key={item.key}
+                                        href={`/dashboard/${profileId}?section=${item.key}`}
+                                        className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                                            isActive
+                                                ? 'bg-slate-900/6 text-slate-900'
+                                                : 'text-slate-500 hover:bg-slate-100/70 hover:text-slate-900'
+                                        }`}
+                                    >
+                                        {isActive ? <span className="absolute left-0 top-2 h-7 w-1 rounded-r-full bg-slate-900/70" /> : null}
+                                        <Icon className="h-4 w-4" />
+                                        {item.label}
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+                    </div>
+                </aside>
+
+                <main className="min-w-0 flex-1 space-y-5">
                     <Link
                         href={`/profile/${profileId}`}
-                        className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-700 transition-colors mb-6"
+                        className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-800"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Мой профиль
                     </Link>
 
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div className="flex flex-col gap-4 rounded-[2rem] border border-white/50 bg-white/80 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5 md:flex-row md:items-start md:justify-between">
                         <div>
                             <AvatarUpload
                                 profileId={profileId}
                                 profileName={profile.name}
                                 currentImageUrl={profile.image_url}
                             />
-                            <div className="mt-4">
+                            <div className="mt-3">
                                 {isProfileVerified ? (
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                                    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                                         <ShieldCheck className="h-3.5 w-3.5" />
                                         Профиль активен
                                     </span>
@@ -165,96 +206,99 @@ export default async function DashboardPage({
                             href={`/profile/${profileId}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-white hover:text-slate-900"
                         >
                             <Eye className="h-4 w-4" />
                             Посмотреть профиль
                         </Link>
                     </div>
-                </div>
-            </div>
 
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* STATS CARDS                                            */}
-            {/* ═══════════════════════════════════════════════════════ */}
-            <div className="container mx-auto max-w-6xl px-4 py-6">
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                    <div className="h-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                        <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-                                <CalendarDays className="h-4 w-4 text-blue-600" />
+                    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+                        <div className="rounded-[1.5rem] border border-white/50 bg-white/80 p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-md ring-1 ring-slate-900/5">
+                            <div className="mb-2 flex items-center gap-2">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100">
+                                    <CalendarDays className="h-4 w-4 text-blue-600" />
+                                </div>
+                            </div>
+                            <div className="text-2xl font-bold text-slate-900">{totalBookings}</div>
+                            <div className="text-xs text-slate-500">Всего заявок</div>
+                        </div>
+                        <div className="rounded-[1.5rem] border border-white/50 bg-white/80 p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-md ring-1 ring-slate-900/5">
+                            <div className="mb-2 flex items-center gap-2">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 to-orange-100">
+                                    <Clock className="h-4 w-4 text-amber-600" />
+                                </div>
+                            </div>
+                            <div className="text-2xl font-bold text-slate-900">{pendingCount}</div>
+                            <div className="text-xs text-slate-500">Ожидают</div>
+                        </div>
+                        <div className="rounded-[1.5rem] border border-white/50 bg-white/80 p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-md ring-1 ring-slate-900/5">
+                            <div className="mb-2 flex items-center gap-2">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-100 to-green-100">
+                                    <CheckCircle className="h-4 w-4 text-emerald-600" />
+                                </div>
+                            </div>
+                            <div className="text-2xl font-bold text-slate-900">{confirmedCount}</div>
+                            <div className="text-xs text-slate-500">Подтверждены</div>
+                        </div>
+                        <div className="rounded-[1.5rem] border border-white/50 bg-white/80 p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-md ring-1 ring-slate-900/5">
+                            <div className="mb-2 flex items-center gap-2">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-100 to-rose-100">
+                                    <XCircle className="h-4 w-4 text-red-500" />
+                                </div>
+                            </div>
+                            <div className="text-2xl font-bold text-slate-900">{cancelledCount}</div>
+                            <div className="text-xs text-slate-500">Отменены</div>
+                        </div>
+                    </div>
+
+                    {(!hasServices || !hasScheduleConfigured) && (
+                        <div className="rounded-[2rem] border border-white/50 bg-white/80 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5">
+                            <div className="flex items-start gap-4">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-700">
+                                    <ListChecks className="h-5 w-5" />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <h2 className="text-sm font-semibold text-slate-900">Ваш прогресс</h2>
+                                        <span className="text-xs font-medium text-slate-500">{setupProgressPercent}% готово</span>
+                                    </div>
+                                    <div className="mt-2 h-2 rounded-full bg-slate-200/70">
+                                        <div
+                                            className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all"
+                                            style={{ width: `${setupProgressPercent}%` }}
+                                        />
+                                    </div>
+                                    <div className="mt-3 space-y-2 text-sm">
+                                        <Link
+                                            href={`/dashboard/${profileId}?section=services`}
+                                            className={`block rounded-lg px-2 py-1 transition ${
+                                                hasServices ? 'text-emerald-700' : 'text-slate-700 hover:bg-slate-100/60'
+                                            }`}
+                                        >
+                                            {hasServices ? '✅' : '○'} Добавьте услуги
+                                        </Link>
+                                        <Link
+                                            href={`/dashboard/${profileId}?section=schedule`}
+                                            className={`block rounded-lg px-2 py-1 transition ${
+                                                hasScheduleConfigured ? 'text-emerald-700' : 'text-slate-700 hover:bg-slate-100/60'
+                                            }`}
+                                        >
+                                            {hasScheduleConfigured ? '✅' : '○'} Укажите рабочие часы
+                                        </Link>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="text-xl font-bold text-gray-900">{totalBookings}</div>
-                        <div className="text-xs text-gray-400">Всего заявок</div>
-                    </div>
-                    <div className="h-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                        <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
-                                <Clock className="h-4 w-4 text-amber-600" />
-                            </div>
-                        </div>
-                        <div className="text-xl font-bold text-gray-900">{pendingCount}</div>
-                        <div className="text-xs text-gray-400">Ожидают</div>
-                    </div>
-                    <div className="h-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                        <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                            </div>
-                        </div>
-                        <div className="text-xl font-bold text-gray-900">{confirmedCount}</div>
-                        <div className="text-xs text-gray-400">Подтверждены</div>
-                    </div>
-                    <div className="h-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                        <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100">
-                                <XCircle className="h-4 w-4 text-red-500" />
-                            </div>
-                        </div>
-                        <div className="text-xl font-bold text-gray-900">{cancelledCount}</div>
-                        <div className="text-xs text-gray-400">Отменены</div>
-                    </div>
-                </div>
-            </div>
+                    )}
 
-            <div className="container mx-auto max-w-6xl px-4 pb-16">
-                {(!hasServices || !hasScheduleConfigured) && (
-                    <Alert className="mb-5 border-blue-200 bg-blue-50/70 text-blue-900">
-                        <ListChecks className="h-4 w-4 text-blue-700" />
-                        <AlertTitle>Завершите настройку профиля</AlertTitle>
-                        <AlertDescription className="flex flex-wrap items-center gap-2 text-blue-900/90">
-                            <span>Чтобы клиенты быстрее находили вас:</span>
-                            <Badge variant="outline" className={hasServices ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-white text-blue-800'}>
-                                {hasServices ? '✅ Услуги добавлены' : '1. Добавьте услуги'}
-                            </Badge>
-                            <Badge variant="outline" className={hasScheduleConfigured ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-white text-blue-800'}>
-                                {hasScheduleConfigured ? '✅ Часы настроены' : '2. Укажите рабочие часы'}
-                            </Badge>
-                        </AlertDescription>
-                    </Alert>
-                )}
-
-                <Tabs defaultValue="bookings" className="w-full">
-                    <TabsList className="grid h-auto w-full grid-cols-3 rounded-t-xl rounded-b-none border border-slate-200 bg-slate-100 p-1">
-                        <TabsTrigger value="bookings" className="rounded-md">
-                            📥 Записи
-                        </TabsTrigger>
-                        <TabsTrigger value="services" className="rounded-md">
-                            ✂️ Мои услуги
-                        </TabsTrigger>
-                        <TabsTrigger value="schedule" className="rounded-md">
-                            🕒 Расписание
-                        </TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="bookings" className="mt-0">
-                        <Card className="rounded-t-none border-slate-200 shadow-sm">
-                            <CardHeader className="flex-row items-center justify-between space-y-0 border-b border-slate-100">
-                                <CardTitle className="text-lg">Входящие записи</CardTitle>
-                                <span className="text-sm text-gray-400">{totalBookings} записей</span>
-                            </CardHeader>
-                            <CardContent className="p-5">
+                    {currentSection === 'bookings' && (
+                        <div className="rounded-[2rem] border border-white/50 bg-white/80 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5">
+                            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+                                <h2 className="text-lg font-semibold text-slate-900">Входящие записи</h2>
+                                <span className="text-sm text-slate-500">{totalBookings} записей</span>
+                            </div>
+                            <div className="p-5">
                                 {serializedBookings.length > 0 ? (
                                     <div className="space-y-3">
                                         {serializedBookings.map((booking) => (
@@ -262,65 +306,52 @@ export default async function DashboardPage({
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-12 text-center">
-                                        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-white">
-                                            <Inbox className="h-10 w-10 text-slate-400" />
+                                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-12 text-center">
+                                        <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-white">
+                                            <Inbox className="h-12 w-12 text-slate-400" />
                                         </div>
                                         <h3 className="mb-2 text-xl font-semibold text-slate-900">У вас пока нет записей</h3>
                                         <p className="mx-auto mb-6 max-w-md text-slate-500">
-                                            Как только клиент забронирует время, заявка появится здесь.
+                                            Поделитесь ссылкой на профиль, чтобы клиенты начали бронировать услуги.
                                         </p>
-                                        <Button asChild variant="outline">
+                                        <Button asChild className="bg-slate-900 text-white shadow-[0_0_0_1px_rgba(255,255,255,0.4),0_10px_30px_rgba(15,23,42,0.22)] hover:bg-slate-800">
                                             <Link href={`/profile/${profileId}`} target="_blank" rel="noopener noreferrer">
                                                 Поделиться ссылкой на профиль
                                             </Link>
                                         </Button>
                                     </div>
                                 )}
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                            </div>
+                        </div>
+                    )}
 
-                    <TabsContent value="services" className="mt-0">
-                        <Card className="rounded-t-none border-slate-200 shadow-sm">
-                            <CardHeader className="flex-row items-center gap-3 space-y-0 border-b border-slate-100">
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-100">
+                    {currentSection === 'services' && (
+                        <div className="rounded-[2rem] border border-white/50 bg-white/80 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5">
+                            <div className="flex items-center gap-3 border-b border-slate-100 px-6 py-5">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-indigo-100">
                                     <Briefcase className="h-5 w-5 text-violet-600" />
                                 </div>
                                 <div>
-                                    <CardTitle className="text-lg">Мои услуги</CardTitle>
-                                    <p className="text-xs text-gray-400">{services.length} услуг</p>
+                                    <h2 className="text-lg font-semibold text-slate-900">Мои услуги</h2>
+                                    <p className="text-xs text-slate-500">{services.length} услуг</p>
                                 </div>
-                            </CardHeader>
-                            <CardContent className="space-y-6 p-5">
+                            </div>
+                            <div className="space-y-6 p-5">
                                 <ServiceList services={serializedServices} />
                                 <AddServiceForm profileId={profileId} />
-                                <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
-                                    <h3 className="mb-4 text-sm font-semibold text-slate-900">Редактировать профиль</h3>
-                                    <EditProfileForm
-                                        profile={{
-                                            id: profileId,
-                                            name: profile.name,
-                                            bio: profile.bio,
-                                            phone: profile.phone,
-                                            city: profile.city,
-                                            address: profile.address,
-                                        }}
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                            </div>
+                        </div>
+                    )}
 
-                    <TabsContent value="schedule" className="mt-0">
-                        <Card className="rounded-t-none border-slate-200 shadow-sm">
-                            <CardHeader className="border-b border-slate-100">
-                                <CardTitle className="text-lg">Рабочие часы</CardTitle>
-                                <p className="text-xs text-gray-500">
-                                    Эти настройки используются для автоматического расчета свободных слотов в бронировании.
+                    {currentSection === 'schedule' && (
+                        <div className="rounded-[2rem] border border-white/50 bg-white/80 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5">
+                            <div className="border-b border-slate-100 px-6 py-5">
+                                <h2 className="text-lg font-semibold text-slate-900">Расписание</h2>
+                                <p className="text-xs text-slate-500">
+                                    Эти настройки используются для автоматического расчета свободных слотов.
                                 </p>
-                            </CardHeader>
-                            <CardContent className="p-5">
+                            </div>
+                            <div className="p-5">
                                 <WorkingHoursForm
                                     profileId={profileId}
                                     initialSchedule={{
@@ -329,11 +360,57 @@ export default async function DashboardPage({
                                         workingDays: workingSchedule.workingDays,
                                     }}
                                 />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
+                            </div>
+                        </div>
+                    )}
+
+                    {currentSection === 'profile' && (
+                        <div className="rounded-[2rem] border border-white/50 bg-white/80 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5">
+                            <div className="border-b border-slate-100 px-6 py-5">
+                                <h2 className="text-lg font-semibold text-slate-900">Профиль мастера</h2>
+                                <p className="text-xs text-slate-500">
+                                    Обновите описание, контакты и данные витрины для клиентов.
+                                </p>
+                            </div>
+                            <div className="p-5">
+                                <EditProfileForm
+                                    profile={{
+                                        id: profileId,
+                                        name: profile.name,
+                                        bio: profile.bio,
+                                        phone: profile.phone,
+                                        city: profile.city,
+                                        address: profile.address,
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </main>
             </div>
+
+            <nav className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl border border-white/60 bg-white/85 p-1.5 shadow-[0_20px_50px_rgba(15,23,42,0.2)] backdrop-blur-md ring-1 ring-slate-900/5 md:hidden">
+                <div className="grid grid-cols-4 gap-1">
+                    {navItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = currentSection === item.key;
+                        return (
+                            <Link
+                                key={`mobile-${item.key}`}
+                                href={`/dashboard/${profileId}?section=${item.key}`}
+                                className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-medium transition ${
+                                    isActive
+                                        ? 'bg-slate-900 text-white'
+                                        : 'text-slate-500 hover:bg-slate-100/70 hover:text-slate-900'
+                                }`}
+                            >
+                                <Icon className="mb-1 h-4 w-4" />
+                                {item.label}
+                            </Link>
+                        );
+                    })}
+                </div>
+            </nav>
         </div>
     );
 }
