@@ -16,7 +16,6 @@ import {
     Sparkles,
     Stethoscope,
     Calendar,
-    Zap,
 } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
@@ -54,7 +53,6 @@ interface ProfileData {
 
 interface ProfileClientProps {
     profile: ProfileData;
-    nextAvailableLabel?: string | null;
 }
 
 const ACCENT = {
@@ -76,7 +74,7 @@ const ACCENT = {
 
 const DEFAULT_ACCENT = ACCENT.beauty;
 
-export function ProfileClient({ profile, nextAvailableLabel }: ProfileClientProps) {
+export function ProfileClient({ profile }: ProfileClientProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -320,16 +318,6 @@ export function ProfileClient({ profile, nextAvailableLabel }: ProfileClientProp
                                         <p className="mt-1 text-3xl font-bold text-slate-900">€{Number(cheapest.price).toFixed(0)}</p>
                                     </div>
                                 ) : null}
-
-                                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
-                                    <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                                        <Zap className="h-3.5 w-3.5" />
-                                        Ближайшее окно
-                                    </div>
-                                    <p className="mt-2 text-sm font-semibold text-emerald-800">
-                                        {nextAvailableLabel ? `⚡ Ближайшая запись: ${nextAvailableLabel}` : 'Проверить свободные даты'}
-                                    </p>
-                                </div>
 
                                 <Button onClick={() => openBooking()} className={`h-12 w-full text-base text-white ${accent.cta}`}>
                                     <Calendar className="mr-2 h-5 w-5" />
