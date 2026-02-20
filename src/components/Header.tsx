@@ -65,19 +65,30 @@ export function Header() {
                     <Link href="/auth/register?role=provider" className="hover:text-blue-600 transition-colors">
                         Become a Pro
                     </Link>
-                    <Link href="/chat" className="hover:text-blue-600 transition-colors">
-                        Chat
-                    </Link>
                 </nav>
 
                 {/* Right Actions */}
                 <div className="ml-4 flex items-center gap-2">
                     {user ? (
-                        <div className="hidden items-center xl:flex">
+                        <div className="hidden items-center gap-2 xl:flex">
+                            <Link
+                                href="/chat"
+                                aria-label="Открыть чат"
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:text-gray-900 hover:shadow-md"
+                            >
+                                <MessageCircle className="h-4 w-4" />
+                            </Link>
                             <AvatarDropdown user={user} />
                         </div>
                     ) : (
                         <div className="hidden items-center gap-3 xl:flex">
+                            <Link
+                                href="/chat"
+                                aria-label="Открыть чат"
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:text-gray-900 hover:shadow-md"
+                            >
+                                <MessageCircle className="h-4 w-4" />
+                            </Link>
                             <Button variant="ghost" asChild className="h-9 rounded-md px-4 text-black hover:bg-gray-100">
                                 <Link href="/auth/login">Войти</Link>
                             </Button>

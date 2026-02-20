@@ -34,18 +34,18 @@ export function getRoleMenuLinks(user: {
     return role === 'ADMIN'
         ? [
             { href: '/admin', label: 'Панель управления', icon: Shield },
-            { href: '/account', label: 'Настройки аккаунта', icon: Settings },
+            { href: '/account/settings', label: 'Настройки аккаунта', icon: Settings },
         ]
         : role === 'PROVIDER'
             ? [
                 { href: providerDashboardLink, label: 'Кабинет мастера', icon: LayoutDashboard },
                 { href: providerPublicLink, label: 'Моя страница', icon: UserCircle2 },
-                { href: '/account', label: 'Настройки аккаунта', icon: Settings },
+                { href: '/account/settings', label: 'Настройки аккаунта', icon: Settings },
             ]
             : [
                 { href: '/account', label: 'Личный кабинет', icon: UserCircle2 },
                 { href: '/my-bookings', label: 'Мои записи', icon: CalendarClock },
-                { href: '/account', label: 'Настройки аккаунта', icon: Settings },
+                { href: '/account/settings', label: 'Настройки аккаунта', icon: Settings },
             ];
 }
 
