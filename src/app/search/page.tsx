@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Search, MapPin, SlidersHorizontal, Sparkles, Stethoscope, X } from "lucide-react";
 import { SearchFiltersForm } from "@/components/search/SearchFiltersForm";
+import { getCityFilterVariants } from "@/constants/searchSuggestions";
 
 // ─── Category visual config ─────────────────────────────────────────
 const CAT_CONFIG: Record<string, {
@@ -59,33 +60,44 @@ export default async function SearchPage({
     } catch { /* fallback to empty */ }
 
     // ─── Build the profile "where" clause ───────────────────────────
-    const where: any = {
-        is_verified: true, // Only show verified profiles
-    };
+    const andConditions: any[] = [
+        { is_verified: true }, // Only show verified profiles
+    ];
 
     if (categoryFilter) {
         const cat = categories.find(c => c.slug === categoryFilter);
-        if (cat) where.category_id = cat.id;
+        if (cat) {
+            andConditions.push({ category_id: cat.id });
+        }
     }
 
     if (cityFilter) {
-        where.city = { contains: cityFilter, mode: 'insensitive' };
+        const cityVariants = getCityFilterVariants(cityFilter);
+        andConditions.push({
+            OR: cityVariants.map((variant) => ({
+                city: { contains: variant, mode: 'insensitive' },
+            })),
+        });
     }
 
     if (queryFilter) {
-        where.OR = [
-            { name: { contains: queryFilter, mode: 'insensitive' } },
-            { city: { contains: queryFilter, mode: 'insensitive' } },
-            { category: { name: { contains: queryFilter, mode: 'insensitive' } } },
-            {
-                services: {
-                    some: {
-                        title: { contains: queryFilter, mode: 'insensitive' },
+        andConditions.push({
+            OR: [
+                { name: { contains: queryFilter, mode: 'insensitive' } },
+                { city: { contains: queryFilter, mode: 'insensitive' } },
+                { category: { name: { contains: queryFilter, mode: 'insensitive' } } },
+                {
+                    services: {
+                        some: {
+                            title: { contains: queryFilter, mode: 'insensitive' },
+                        },
                     },
                 },
-            },
-        ];
+            ],
+        });
     }
+
+    const where: any = { AND: andConditions };
 
     // ─── Fetch profiles ─────────────────────────────────────────────
     let profiles: any[] = [];

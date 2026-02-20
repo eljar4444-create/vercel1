@@ -32,6 +32,7 @@ function normalizeCityName(value: string) {
 type CityRecord = {
     value: string;
     aliases: string[];
+    rawAliases: string[];
 };
 
 const CITY_RECORDS: CityRecord[] = GERMAN_CITIES.map((city: any) => {
@@ -39,11 +40,15 @@ const CITY_RECORDS: CityRecord[] = GERMAN_CITIES.map((city: any) => {
     const cyrillicName = names.find((name: string) => /[а-яё]/i.test(name));
     const primaryName = cyrillicName || names[0] || city.data?.display_name?.split(',')?.[0] || '';
     const value = prettifyCity(String(primaryName).trim());
+    const displayCity = String(city.data?.display_name || '').split(',')[0]?.trim();
+    const rawAliases = [value, ...names.map((n: string) => prettifyCity(String(n))), displayCity]
+        .map((part) => String(part).trim())
+        .filter(Boolean);
     const aliases = [...names, city.data?.display_name || '', value]
         .map((part) => normalizeCityName(String(part)))
         .filter(Boolean);
 
-    return { value, aliases };
+    return { value, aliases, rawAliases };
 }).filter((city) => city.value);
 
 const seen = new Set<string>();
@@ -62,6 +67,11 @@ CITY_RECORDS.forEach((city) => {
             CITY_ALIAS_MAP.set(alias, city.value);
         }
     });
+});
+
+const CITY_BY_VALUE = new Map<string, CityRecord>();
+CITY_RECORDS.forEach((city) => {
+    CITY_BY_VALUE.set(normalizeCityName(city.value), city);
 });
 
 const FALLBACK_CITY_ALIASES: Record<string, string> = {
@@ -92,5 +102,31 @@ export function resolveGermanCity(rawCity: string): string | null {
         }
     });
     return fuzzy;
+}
+
+export function getCityFilterVariants(rawCity: string): string[] {
+    const input = String(rawCity || '').trim();
+    if (!input) return [];
+
+    const normalizedInput = normalizeCityName(input);
+    const variants = new Set<string>([input]);
+    const resolved = resolveGermanCity(input);
+
+    if (resolved) {
+        variants.add(resolved);
+        const cityRecord = CITY_BY_VALUE.get(normalizeCityName(resolved));
+        if (cityRecord) {
+            cityRecord.rawAliases.forEach((alias) => variants.add(alias));
+        }
+    } else if (normalizedInput) {
+        CITY_RECORDS.forEach((city) => {
+            if (city.aliases.some((alias) => alias.includes(normalizedInput) || normalizedInput.includes(alias))) {
+                variants.add(city.value);
+                city.rawAliases.forEach((alias) => variants.add(alias));
+            }
+        });
+    }
+
+    return Array.from(variants).filter(Boolean);
 }
 
