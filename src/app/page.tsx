@@ -13,22 +13,28 @@ import {
 const CATEGORIES = [
     {
         name: 'Красота',
-        emoji: '💅',
         slug: 'beauty',
-        description: 'Маникюр, причёски, макияж, уход за лицом',
-        gradient: 'from-rose-500 to-pink-600',
-        bgLight: 'bg-rose-50',
-        hover: 'hover:shadow-rose-200',
+        description: 'Маникюр, причёски, уход за лицом и body care в одном месте',
+        eyebrow: 'Top Category',
+        icon: Sparkles,
+        spotlight: 'from-rose-500/15 via-fuchsia-500/10 to-transparent',
+        chipClass: 'bg-rose-100/70 text-rose-700 ring-rose-200/60',
+        iconClass: 'text-rose-600',
+        ctaClass: 'from-rose-500 to-fuchsia-500',
+        featured: true,
         services: ['Маникюр', 'Педикюр', 'Парикмахер', 'Косметолог'],
     },
     {
         name: 'Медицина и Врачи',
-        emoji: '🏥',
         slug: 'health',
-        description: 'Стоматология, терапия, массаж, диагностика',
-        gradient: 'from-teal-500 to-emerald-600',
-        bgLight: 'bg-teal-50',
-        hover: 'hover:shadow-teal-200',
+        description: 'Проверенные специалисты: диагностика, терапия и восстановление',
+        eyebrow: 'Trusted Care',
+        icon: Stethoscope,
+        spotlight: 'from-teal-500/15 via-emerald-500/10 to-transparent',
+        chipClass: 'bg-teal-100/70 text-teal-700 ring-teal-200/60',
+        iconClass: 'text-teal-600',
+        ctaClass: 'from-teal-500 to-emerald-500',
+        featured: false,
         services: ['Стоматолог', 'Терапевт', 'Массаж', 'Диагностика'],
     },
 ];
@@ -192,53 +198,91 @@ export default function HomePage() {
             {/* ═══════════════════════════════════════════════════════ */}
             {/* POPULAR CATEGORIES                                     */}
             {/* ═══════════════════════════════════════════════════════ */}
-            <section className="bg-white py-20">
+            <section className="bg-white py-20 sm:py-24">
                 <div className="container mx-auto px-4 max-w-6xl">
                     {/* Section header */}
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">
+                    <div className="mb-12 text-center">
+                        <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
                             Популярные категории
                         </h2>
-                        <p className="text-gray-500 text-lg max-w-md mx-auto">
+                        <p className="mx-auto max-w-md text-lg text-gray-500">
                             Выберите направление и найдите лучших специалистов
                         </p>
                     </div>
 
-                    {/* Category grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                        {CATEGORIES.map((cat) => (
-                            <Link
-                                key={cat.slug}
-                                href={`/search?category=${cat.slug}`}
-                                className={`group relative bg-white rounded-2xl border border-gray-100 p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${cat.hover}`}
-                            >
-                                {/* Top row */}
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className="text-5xl">{cat.emoji}</div>
-                                    <div className={`w-10 h-10 ${cat.bgLight} rounded-full flex items-center justify-center text-gray-400 group-hover:text-gray-600 transition-colors`}>
-                                        <ChevronRight className="w-5 h-5" />
+                    {/* Premium Bento Grid */}
+                    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3 md:auto-rows-[220px]">
+                        {CATEGORIES.map((cat) => {
+                            const Icon = cat.icon;
+
+                            return (
+                                <Link
+                                    key={cat.slug}
+                                    href={`/search?category=${cat.slug}`}
+                                    className={`group relative overflow-hidden rounded-3xl border border-slate-200/50 bg-white p-7 shadow-[0_4px_24px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-300/35 ${
+                                        cat.featured ? 'md:col-span-2 md:row-span-2 md:p-9' : 'md:col-span-1'
+                                    }`}
+                                >
+                                    <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${cat.spotlight} opacity-90`} />
+                                    <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-white/60 blur-3xl transition-transform duration-300 group-hover:scale-125" />
+
+                                    <div className="relative">
+                                        <div className="mb-5 flex items-start justify-between">
+                                            <div className="space-y-2">
+                                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                                    {cat.eyebrow}
+                                                </p>
+                                                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white ring-1 ring-black/5 ${cat.iconClass}`}>
+                                                    <Icon className="h-8 w-8" />
+                                                </div>
+                                            </div>
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-slate-500 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-slate-700">
+                                                <ChevronRight className="h-5 w-5" />
+                                            </div>
+                                        </div>
+
+                                        <h3 className="mb-2 text-2xl font-bold tracking-tight text-slate-900">
+                                            {cat.name}
+                                        </h3>
+                                        <p className={`text-sm leading-relaxed text-slate-600 ${cat.featured ? 'max-w-xl' : ''}`}>
+                                            {cat.description}
+                                        </p>
+
+                                        <div className="mt-6 flex flex-wrap gap-2">
+                                            {cat.services.map((service) => (
+                                                <span
+                                                    key={service}
+                                                    className={`rounded-full px-3 py-1.5 text-sm font-medium ring-1 transition-all duration-300 hover:-translate-y-0.5 hover:bg-white ${cat.chipClass}`}
+                                                >
+                                                    {service}
+                                                </span>
+                                            ))}
+                                        </div>
+
+                                        <div className="mt-7 flex items-center gap-2">
+                                            <span className={`h-1.5 w-16 rounded-full bg-gradient-to-r ${cat.ctaClass}`} />
+                                            <span className="text-sm font-medium text-slate-500">Перейти к специалистам</span>
+                                        </div>
                                     </div>
                                 </div>
+                            );
+                        })}
 
-                                {/* Title */}
-                                <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors">
-                                    {cat.name}
-                                </h3>
-                                <p className="text-sm text-gray-500 mb-5">{cat.description}</p>
-
-                                {/* Tags */}
-                                <div className="flex flex-wrap gap-2">
-                                    {cat.services.map(s => (
-                                        <span key={s} className={`${cat.bgLight} text-gray-600 text-xs font-medium px-3 py-1.5 rounded-lg`}>
-                                            {s}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                {/* Bottom gradient line */}
-                                <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${cat.gradient} rounded-b-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                            </Link>
-                        ))}
+                        <Link
+                            href="/search"
+                            className="group relative overflow-hidden rounded-3xl border border-slate-200/50 bg-slate-950 p-7 text-white shadow-[0_12px_40px_rgba(15,23,42,0.22)] transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl md:col-span-1"
+                        >
+                            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_58%)]" />
+                            <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Explore</p>
+                            <h3 className="relative mt-3 text-2xl font-bold tracking-tight">Все направления</h3>
+                            <p className="relative mt-2 text-sm text-white/70">
+                                Полный каталог специалистов по услугам и городам.
+                            </p>
+                            <div className="relative mt-6 inline-flex items-center gap-2 text-sm font-medium text-white/90">
+                                Открыть каталог
+                                <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                            </div>
+                        </Link>
                     </div>
 
                     {/* Browse all */}
