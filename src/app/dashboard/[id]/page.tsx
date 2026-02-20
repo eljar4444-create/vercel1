@@ -15,6 +15,10 @@ import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
 import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
 import { parseSchedule } from '@/lib/scheduling';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 export const dynamic = 'force-dynamic';
 
@@ -175,36 +179,36 @@ export default async function DashboardPage({
             {/* ═══════════════════════════════════════════════════════ */}
             <div className="container mx-auto max-w-6xl px-4 py-6">
                 <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <div className="h-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
                                 <CalendarDays className="h-4 w-4 text-blue-600" />
                             </div>
                         </div>
                         <div className="text-xl font-bold text-gray-900">{totalBookings}</div>
                         <div className="text-xs text-gray-400">Всего заявок</div>
                     </div>
-                    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <div className="h-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
                                 <Clock className="h-4 w-4 text-amber-600" />
                             </div>
                         </div>
                         <div className="text-xl font-bold text-gray-900">{pendingCount}</div>
                         <div className="text-xs text-gray-400">Ожидают</div>
                     </div>
-                    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <div className="h-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-50">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
                                 <CheckCircle className="h-4 w-4 text-green-600" />
                             </div>
                         </div>
                         <div className="text-xl font-bold text-gray-900">{confirmedCount}</div>
                         <div className="text-xs text-gray-400">Подтверждены</div>
                     </div>
-                    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                    <div className="h-full rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-50">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100">
                                 <XCircle className="h-4 w-4 text-red-500" />
                             </div>
                         </div>
@@ -216,125 +220,117 @@ export default async function DashboardPage({
 
             <div className="container mx-auto max-w-6xl px-4 pb-16">
                 {(!hasServices || !hasScheduleConfigured) && (
-                    <div className="mb-6 rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-5 shadow-sm">
-                        <div className="flex items-start gap-3">
-                            <div className="rounded-xl bg-blue-100 p-2 text-blue-700">
-                                <ListChecks className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1">
-                                <h2 className="text-sm font-bold text-blue-900">
-                                    Завершите настройку профиля
-                                </h2>
-                                <p className="mt-1 text-xs text-blue-800/80">
-                                    Это поможет клиентам быстрее находить вас и бронировать удобное время.
-                                </p>
-                                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-                                    <div className={`rounded-lg border px-3 py-2 ${hasServices ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-white text-blue-900'}`}>
-                                        {hasServices ? '✅' : '1.'} Добавьте услуги
-                                    </div>
-                                    <div className={`rounded-lg border px-3 py-2 ${hasScheduleConfigured ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-white text-blue-900'}`}>
-                                        {hasScheduleConfigured ? '✅' : '2.'} Укажите рабочие часы
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <Alert className="mb-5 border-blue-200 bg-blue-50/70 text-blue-900">
+                        <ListChecks className="h-4 w-4 text-blue-700" />
+                        <AlertTitle>Завершите настройку профиля</AlertTitle>
+                        <AlertDescription className="flex flex-wrap items-center gap-2 text-blue-900/90">
+                            <span>Чтобы клиенты быстрее находили вас:</span>
+                            <Badge variant="outline" className={hasServices ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-white text-blue-800'}>
+                                {hasServices ? '✅ Услуги добавлены' : '1. Добавьте услуги'}
+                            </Badge>
+                            <Badge variant="outline" className={hasScheduleConfigured ? 'border-green-200 bg-green-50 text-green-700' : 'border-blue-200 bg-white text-blue-800'}>
+                                {hasScheduleConfigured ? '✅ Часы настроены' : '2. Укажите рабочие часы'}
+                            </Badge>
+                        </AlertDescription>
+                    </Alert>
                 )}
 
                 <Tabs defaultValue="bookings" className="w-full">
-                    <TabsList className="w-full justify-start overflow-x-auto whitespace-nowrap rounded-2xl border border-gray-100 bg-white p-1 shadow-sm">
-                        <TabsTrigger value="bookings" className="shrink-0">
+                    <TabsList className="grid h-auto w-full grid-cols-3 rounded-t-xl rounded-b-none border border-slate-200 bg-slate-100 p-1">
+                        <TabsTrigger value="bookings" className="rounded-md">
                             📥 Записи
                         </TabsTrigger>
-                        <TabsTrigger value="services" className="shrink-0">
+                        <TabsTrigger value="services" className="rounded-md">
                             ✂️ Мои услуги
                         </TabsTrigger>
-                        <TabsTrigger value="schedule" className="shrink-0">
+                        <TabsTrigger value="schedule" className="rounded-md">
                             🕒 Расписание
                         </TabsTrigger>
                     </TabsList>
 
-                    <TabsContent value="bookings">
-                        <div className="mb-4 mt-1 flex items-center justify-between">
-                            <h2 className="text-lg font-bold text-gray-900">Входящие записи</h2>
-                            <span className="text-sm text-gray-400">{totalBookings} записей</span>
-                        </div>
-
-                        {serializedBookings.length > 0 ? (
-                            <div className="space-y-3">
-                                {serializedBookings.map((booking) => (
-                                    <BookingRow key={booking.id} booking={booking} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="rounded-2xl border border-gray-100 bg-white p-12 text-center">
-                                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">
-                                    <Inbox className="h-8 w-8 text-gray-300" />
-                                </div>
-                                <h3 className="mb-2 text-xl font-bold text-gray-900">У вас пока нет записей</h3>
-                                <p className="mx-auto mb-6 max-w-md text-gray-500">
-                                    Как только клиент забронирует время, заявка появится здесь.
-                                </p>
-                                <Link
-                                    href={`/profile/${profileId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
-                                >
-                                    Поделиться ссылкой на профиль
-                                </Link>
-                            </div>
-                        )}
+                    <TabsContent value="bookings" className="mt-0">
+                        <Card className="rounded-t-none border-slate-200 shadow-sm">
+                            <CardHeader className="flex-row items-center justify-between space-y-0 border-b border-slate-100">
+                                <CardTitle className="text-lg">Входящие записи</CardTitle>
+                                <span className="text-sm text-gray-400">{totalBookings} записей</span>
+                            </CardHeader>
+                            <CardContent className="p-5">
+                                {serializedBookings.length > 0 ? (
+                                    <div className="space-y-3">
+                                        {serializedBookings.map((booking) => (
+                                            <BookingRow key={booking.id} booking={booking} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-12 text-center">
+                                        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-white">
+                                            <Inbox className="h-10 w-10 text-slate-400" />
+                                        </div>
+                                        <h3 className="mb-2 text-xl font-semibold text-slate-900">У вас пока нет записей</h3>
+                                        <p className="mx-auto mb-6 max-w-md text-slate-500">
+                                            Как только клиент забронирует время, заявка появится здесь.
+                                        </p>
+                                        <Button asChild variant="outline">
+                                            <Link href={`/profile/${profileId}`} target="_blank" rel="noopener noreferrer">
+                                                Поделиться ссылкой на профиль
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     </TabsContent>
 
-                    <TabsContent value="services">
-                        <div className="space-y-6">
-                            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                                <div className="mb-5 flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50">
-                                        <Briefcase className="h-5 w-5 text-violet-600" />
-                                    </div>
-                                    <div>
-                                        <h2 className="font-bold text-gray-900">Мои услуги</h2>
-                                        <p className="text-xs text-gray-400">{services.length} услуг</p>
-                                    </div>
+                    <TabsContent value="services" className="mt-0">
+                        <Card className="rounded-t-none border-slate-200 shadow-sm">
+                            <CardHeader className="flex-row items-center gap-3 space-y-0 border-b border-slate-100">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-100">
+                                    <Briefcase className="h-5 w-5 text-violet-600" />
                                 </div>
-
+                                <div>
+                                    <CardTitle className="text-lg">Мои услуги</CardTitle>
+                                    <p className="text-xs text-gray-400">{services.length} услуг</p>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-6 p-5">
                                 <ServiceList services={serializedServices} />
                                 <AddServiceForm profileId={profileId} />
-                            </div>
-
-                            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                                <h2 className="mb-5 font-bold text-gray-900">Редактировать профиль</h2>
-                                <EditProfileForm
-                                    profile={{
-                                        id: profileId,
-                                        name: profile.name,
-                                        bio: profile.bio,
-                                        phone: profile.phone,
-                                        city: profile.city,
-                                        address: profile.address,
-                                    }}
-                                />
-                            </div>
-                        </div>
+                                <div className="rounded-xl border border-slate-200 bg-slate-50/40 p-4">
+                                    <h3 className="mb-4 text-sm font-semibold text-slate-900">Редактировать профиль</h3>
+                                    <EditProfileForm
+                                        profile={{
+                                            id: profileId,
+                                            name: profile.name,
+                                            bio: profile.bio,
+                                            phone: profile.phone,
+                                            city: profile.city,
+                                            address: profile.address,
+                                        }}
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
                     </TabsContent>
 
-                    <TabsContent value="schedule">
-                        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                            <h2 className="mb-1 font-bold text-gray-900">Рабочие часы</h2>
-                            <p className="mb-5 text-xs text-gray-500">
-                                Эти настройки используются для автоматического расчета свободных слотов в бронировании.
-                            </p>
-                            <WorkingHoursForm
-                                profileId={profileId}
-                                initialSchedule={{
-                                    startTime: workingSchedule.startTime,
-                                    endTime: workingSchedule.endTime,
-                                    workingDays: workingSchedule.workingDays,
-                                }}
-                            />
-                        </div>
+                    <TabsContent value="schedule" className="mt-0">
+                        <Card className="rounded-t-none border-slate-200 shadow-sm">
+                            <CardHeader className="border-b border-slate-100">
+                                <CardTitle className="text-lg">Рабочие часы</CardTitle>
+                                <p className="text-xs text-gray-500">
+                                    Эти настройки используются для автоматического расчета свободных слотов в бронировании.
+                                </p>
+                            </CardHeader>
+                            <CardContent className="p-5">
+                                <WorkingHoursForm
+                                    profileId={profileId}
+                                    initialSchedule={{
+                                        startTime: workingSchedule.startTime,
+                                        endTime: workingSchedule.endTime,
+                                        workingDays: workingSchedule.workingDays,
+                                    }}
+                                />
+                            </CardContent>
+                        </Card>
                     </TabsContent>
                 </Tabs>
             </div>
