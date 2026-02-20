@@ -1,24 +1,21 @@
-import NextAuth from "next-auth"
-import { authConfig } from "./auth.config"
-import { NextResponse } from "next/server"
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-const { auth } = NextAuth(authConfig)
+export async function middleware(req: NextRequest) {
+    const { nextUrl } = req;
+    const token = await getToken({ req, secret: process.env.AUTH_SECRET });
+    const isLoggedIn = Boolean(token);
+    const role = typeof token?.role === 'string' ? token.role : undefined;
 
-export default auth((req) => {
-    const { nextUrl } = req
-    const session = req.auth
-    const isLoggedIn = !!session?.user
-    const role = session?.user?.role
+    const isApiRoute = nextUrl.pathname.startsWith('/api');
+    const isStatic = nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.includes('.');
+    const isAuthPage = nextUrl.pathname.startsWith('/auth');
+    const isAdminPage = nextUrl.pathname.startsWith('/admin');
+    const isClientPortal = nextUrl.pathname.startsWith('/my-bookings');
+    const isDashboard = nextUrl.pathname.startsWith('/dashboard/');
+    const isProviderArea = nextUrl.pathname.startsWith('/provider');
 
-    const isApiRoute = nextUrl.pathname.startsWith('/api')
-    const isStatic = nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.includes('.') // images, etc
-    const isAuthPage = nextUrl.pathname.startsWith('/auth')
-    const isAdminPage = nextUrl.pathname.startsWith('/admin')
-    const isClientPortal = nextUrl.pathname.startsWith('/my-bookings')
-    const isDashboard = nextUrl.pathname.startsWith('/dashboard/')
-    const isProviderArea = nextUrl.pathname.startsWith('/provider')
-
-    // Always allow API, Static files, and Auth pages (Login/Register must work)
     if (isApiRoute || isStatic || isAuthPage) {
         return NextResponse.next();
     }
@@ -50,8 +47,8 @@ export default auth((req) => {
         }
     }
 
-    return NextResponse.next()
-})
+    return NextResponse.next();
+}
 
 export const config = {
     matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
