@@ -101,7 +101,7 @@ export default async function SearchPage({
     });
 
     return (
-        <div className="h-[calc(100vh-64px)] overflow-hidden bg-slate-50">
+        <div className="h-[calc(100vh-64px)] overflow-hidden bg-white">
             <div className="border-b border-slate-200 bg-white px-4 py-2">
                 <div className="mx-auto max-w-7xl">
                     <SearchFiltersForm
@@ -113,9 +113,9 @@ export default async function SearchPage({
             </div>
 
             <div className="flex h-[calc(100%-64px)] flex-col lg:flex-row">
-                <div className="h-full w-full overflow-y-auto p-4 pb-24 md:p-6 lg:w-[55%] xl:w-[60%]">
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                        <h1 className="text-xl font-semibold text-slate-900">
+                <div className="h-full w-full overflow-y-auto bg-[#fbfbfb] p-4 pb-24 md:p-5 lg:w-[48%] xl:w-[46%]">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <h1 className="text-lg font-semibold text-slate-900">
                             {profiles.length > 0
                                 ? `Найдено ${profiles.length} специалистов`
                                 : 'Специалисты не найдены'}
@@ -125,7 +125,7 @@ export default async function SearchPage({
                         </Link>
                     </div>
 
-                    <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+                    <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
                         {QUICK_FILTERS.map((filter) => {
                             const params = new URLSearchParams();
                             if (cityFilter) params.set('city', cityFilter);
@@ -141,7 +141,7 @@ export default async function SearchPage({
                                 <Link
                                     key={filter}
                                     href={`/search?${params.toString()}`}
-                                    className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                                    className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 transition hover:bg-slate-50"
                                 >
                                     {filter}
                                 </Link>
@@ -150,7 +150,7 @@ export default async function SearchPage({
                     </div>
 
                     {(cityFilter || queryFilter) && (
-                        <div className="mb-5 flex flex-wrap items-center gap-2">
+                        <div className="mb-4 flex flex-wrap items-center gap-2">
                             {cityFilter && (
                                 <Link
                                     href={`/search${queryFilter ? `?q=${encodeURIComponent(queryFilter)}` : ''}`}
@@ -208,7 +208,7 @@ export default async function SearchPage({
                     )}
                 </div>
 
-                <aside className="relative hidden h-full bg-slate-100 lg:block lg:w-[45%] xl:w-[40%]">
+                <aside className="relative hidden h-full border-l border-slate-200 bg-slate-100 lg:block lg:w-[52%] xl:w-[54%]">
                     <SearchResultsMap markers={mapMarkers} />
                 </aside>
             </div>
