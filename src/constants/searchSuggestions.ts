@@ -127,14 +127,15 @@ const FALLBACK_CITY_ALIASES: Record<string, string> = {
 
 export function resolveGermanCity(rawCity: string): string | null {
     const normalizedCandidates = buildNormalizedCandidates(rawCity);
+    const normalizedCandidateList = Array.from(normalizedCandidates);
     if (normalizedCandidates.size === 0) return null;
 
-    for (const normalized of normalizedCandidates) {
+    for (const normalized of normalizedCandidateList) {
         const direct = CITY_ALIAS_MAP.get(normalized);
         if (direct) return direct;
     }
 
-    for (const normalized of normalizedCandidates) {
+    for (const normalized of normalizedCandidateList) {
         const mapped = FALLBACK_CITY_ALIASES[normalized];
         if (mapped) {
             const byMapped = CITY_ALIAS_MAP.get(mapped);
@@ -143,7 +144,7 @@ export function resolveGermanCity(rawCity: string): string | null {
     }
 
     let fuzzy: string | null = null;
-    for (const normalized of normalizedCandidates) {
+    for (const normalized of normalizedCandidateList) {
         CITY_ALIAS_MAP.forEach((value, alias) => {
             if (!fuzzy && (alias.includes(normalized) || normalized.includes(alias))) {
                 fuzzy = value;
