@@ -32,6 +32,7 @@ model Profile {
   category_id Int
   attributes  Json
   image_url   String?
+  gallery     String[]  @default([])
   bio         String?
   phone       String?
   schedule    Json?

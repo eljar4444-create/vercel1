@@ -1,21 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
-    MapPin,
-    Star,
     Clock,
-    Euro,
-    CheckCircle2,
     ChevronLeft,
-    Phone,
     MessageCircle,
-    ExternalLink,
-    UserCircle2,
+    Star,
+    MapPin,
     Sparkles,
-    Stethoscope,
-    Calendar,
 } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
@@ -23,9 +16,8 @@ import toast from 'react-hot-toast';
 
 import { BookingModal } from '@/components/BookingModal';
 import { startConversationWithProvider } from '@/app/actions/chat';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { ProfileLocationMap } from '@/components/ProfileLocationMap';
 
 interface ProfileData {
     id: number;
@@ -33,10 +25,13 @@ interface ProfileData {
     city: string;
     address?: string | null;
     image_url?: string | null;
+    gallery: string[];
     bio?: string | null;
     phone?: string | null;
     is_verified: boolean;
     created_at: string;
+    latitude: number;
+    longitude: number;
     attributes: any;
     category: {
         id: number;
@@ -55,24 +50,12 @@ interface ProfileClientProps {
     profile: ProfileData;
 }
 
-const ACCENT = {
-    beauty: {
-        cta: 'bg-rose-600 hover:bg-rose-700',
-        light: 'bg-rose-50 text-rose-700',
-        ring: 'ring-rose-100',
-        icon: <Sparkles className="h-4 w-4" />,
-        accentKey: 'rose',
-    },
-    health: {
-        cta: 'bg-teal-600 hover:bg-teal-700',
-        light: 'bg-teal-50 text-teal-700',
-        ring: 'ring-teal-100',
-        icon: <Stethoscope className="h-4 w-4" />,
-        accentKey: 'teal',
-    },
-} as const;
-
-const DEFAULT_ACCENT = ACCENT.beauty;
+const RATING_BREAKDOWN = [
+    { label: 'Качество', score: 5.0 },
+    { label: 'Чистота', score: 4.9 },
+    { label: 'Сервис', score: 5.0 },
+    { label: 'Атмосфера', score: 4.9 },
+];
 
 export function ProfileClient({ profile }: ProfileClientProps) {
     const router = useRouter();
@@ -89,19 +72,34 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         duration_min?: number;
     } | null>(null);
 
-    const catSlug = profile.category?.slug === 'health' ? 'health' : 'beauty';
-    const accent = ACCENT[catSlug] || DEFAULT_ACCENT;
     const services = profile.services || [];
-    const cheapest =
+    const cheapestService =
         services.length > 0
             ? services.reduce((min, current) => (Number(current.price) < Number(min.price) ? current : min), services[0])
             : null;
+    const fullAddress = [profile.address, profile.city].filter(Boolean).join(', ');
+    const priceLevel = useMemo(() => {
+        if (services.length === 0) return '€€€';
+        const avg = services.reduce((sum, item) => sum + Number(item.price), 0) / services.length;
+        if (avg < 50) return '€';
+        if (avg < 90) return '€€';
+        return '€€€';
+    }, [services]);
+    const groupedServices = useMemo(() => {
+        const groups = new Map<string, ProfileData['services']>();
+        services.forEach((service) => {
+            const parts = service.title.split(' - ');
+            const category = parts.length > 1 ? parts[0] : 'Популярные услуги';
+            const group = groups.get(category) || [];
+            group.push(service);
+            groups.set(category, group);
+        });
+        return Array.from(groups.entries());
+    }, [services]);
 
     const initialDate = searchParams.get('date') || undefined;
     const initialTime = searchParams.get('time') || undefined;
-    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        `${profile.address || ''} ${profile.city}`
-    )}`;
+    const openStreetMapUrl = `https://www.openstreetmap.org/?mlat=${profile.latitude}&mlon=${profile.longitude}#map=15/${profile.latitude}/${profile.longitude}`;
 
     const openBooking = (service?: { id?: number; title: string; price: string; duration_min?: number }) => {
         setSelectedService(service || null);
@@ -172,7 +170,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
 
     return (
         <div className="min-h-screen bg-slate-50/60">
-            <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+            <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
                 <div className="container mx-auto flex h-14 max-w-6xl items-center px-4">
                     <Link
                         href={`/search${profile.category?.slug ? `?category=${profile.category.slug}` : ''}`}
@@ -185,161 +183,182 @@ export function ProfileClient({ profile }: ProfileClientProps) {
             </div>
 
             <div className="container mx-auto max-w-6xl px-4 py-8 sm:py-10">
-                <Card className="rounded-3xl border-slate-200 bg-white shadow-lg shadow-slate-200/40">
-                    <CardContent className="p-6 sm:p-8">
-                        <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-                            <div className="h-32 w-32 overflow-hidden rounded-3xl bg-slate-100 shadow-lg shadow-slate-200/60 sm:h-40 sm:w-40">
-                                {profile.image_url ? (
-                                    <img src={profile.image_url} alt={profile.name} className="h-full w-full object-cover" />
-                                ) : (
-                                    <div className="flex h-full w-full items-center justify-center">
-                                        <UserCircle2 className="h-16 w-16 text-slate-300 sm:h-20 sm:w-20" />
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{profile.name}</h1>
-                                    {profile.is_verified ? (
-                                        <Badge className="border border-blue-200 bg-blue-50 text-blue-700">
-                                            <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-                                            Verified
-                                        </Badge>
-                                    ) : null}
-                                </div>
-
-                                <p className="mt-1 text-lg text-slate-500">{profile.category?.name || 'Специалист'}</p>
-                                <div className="mt-2 inline-flex items-center gap-1.5 text-sm text-slate-500">
-                                    <MapPin className="h-4 w-4" />
-                                    {profile.city}
-                                </div>
-
-                                <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-amber-700">
-                                        <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                                        5.0
-                                    </span>
-                                    <span>Новый мастер</span>
-                                    <a
-                                        href={googleMapsUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1 text-blue-600 transition-colors hover:text-blue-700"
-                                    >
-                                        <ExternalLink className="h-3.5 w-3.5" />
-                                        Показать на карте
-                                    </a>
-                                </div>
+                <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div>
+                            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{profile.name}</h1>
+                            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-600">
+                                <span className="inline-flex items-center gap-1.5">
+                                    <MapPin className="h-4 w-4 text-slate-500" />
+                                    {fullAddress || profile.city}
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                                    5.0
+                                </span>
+                                <span>{priceLevel}</span>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
 
-                <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
-                    <div className="space-y-6">
-                        <Card className="rounded-3xl border-slate-200 bg-white shadow-lg shadow-slate-200/40">
-                            <CardHeader className="p-7 pb-4">
-                                <CardTitle className="text-2xl">О мастере</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-7 pt-0">
-                                <p className="leading-relaxed text-slate-600">
-                                    {profile.bio ||
-                                        'Профессионал с многолетним опытом работы. Индивидуальный подход к каждому клиенту, качественные материалы и внимание к деталям.'}
-                                </p>
-                            </CardContent>
-                        </Card>
+                        <Button onClick={() => openBooking()} className="h-11 rounded-xl bg-slate-900 px-6 text-white hover:bg-slate-800">
+                            Забронировать
+                        </Button>
+                    </div>
 
-                        <Card className="rounded-3xl border-slate-200 bg-white shadow-lg shadow-slate-200/40">
-                            <CardHeader className="flex-row items-center justify-between space-y-0 p-7 pb-4">
-                                <CardTitle className="text-2xl">Услуги</CardTitle>
+                    <div className="grid grid-cols-4 gap-2 h-[400px] rounded-2xl overflow-hidden mt-6">
+                        <div className="group relative col-span-4 overflow-hidden md:col-span-2 md:row-span-2">
+                            <img
+                                src={profile.gallery[0]}
+                                alt={`${profile.name} photo 1`}
+                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                            />
+                        </div>
+                        <div className="group relative col-span-2 hidden overflow-hidden md:block">
+                            <img
+                                src={profile.gallery[1] || profile.gallery[0]}
+                                alt={`${profile.name} photo 2`}
+                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                            />
+                        </div>
+                        <div className="group relative col-span-2 hidden overflow-hidden md:block">
+                            <img
+                                src={profile.gallery[2] || profile.gallery[0]}
+                                alt={`${profile.name} photo 3`}
+                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                <section className="grid grid-cols-1 gap-8 mt-12 md:grid-cols-3">
+                    <div className="space-y-6 md:col-span-2">
+                        <article className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+                            <h2 className="text-2xl font-semibold text-slate-900">О мастере</h2>
+                            <p className="mt-4 leading-relaxed text-slate-600">
+                                {profile.bio ||
+                                    'Премиальный сервис с акцентом на комфорт, эстетику и персональный подход к каждому клиенту.'}
+                            </p>
+                        </article>
+
+                        <article className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-2xl font-semibold text-slate-900">Услуги</h2>
                                 <span className="text-sm text-slate-500">{services.length} услуг</span>
-                            </CardHeader>
-                            <CardContent className="space-y-3 p-7 pt-0">
-                                {services.length > 0 ? (
-                                    services.map((service) => (
-                                        <div
-                                            key={service.id}
-                                            className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between"
-                                        >
-                                            <div className="min-w-0">
-                                                <h3 className="text-base font-semibold text-slate-900 sm:text-lg">{service.title}</h3>
-                                                <div className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-500">
-                                                    <Clock className="h-4 w-4" />
-                                                    {service.duration_min} мин
-                                                </div>
-                                            </div>
+                            </div>
 
-                                            <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 sm:min-w-[180px] sm:justify-end">
-                                                <span className="text-xl font-bold text-slate-900">€{Number(service.price).toFixed(0)}</span>
-                                                <Button
-                                                    onClick={() =>
-                                                        openBooking({
-                                                            id: service.id,
-                                                            title: service.title,
-                                                            price: `€${Number(service.price).toFixed(0)}`,
-                                                            duration_min: service.duration_min,
-                                                        })
-                                                    }
-                                                    className={`${accent.cta} text-white`}
-                                                >
-                                                    Выбрать
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-10 text-center">
-                                        <Euro className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-                                        <p className="text-slate-500">Услуги пока не добавлены</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <div className="lg:sticky lg:top-24 lg:self-start">
-                        <Card className={`rounded-3xl border-slate-200 bg-white shadow-xl shadow-slate-200/60 ring-1 ${accent.ring}`}>
-                            <CardHeader className="p-6 pb-4">
-                                <CardTitle className="text-xl">Быстрая запись</CardTitle>
-                                <p className="text-sm text-slate-500">Запишитесь онлайн за пару кликов без звонков.</p>
-                            </CardHeader>
-                            <CardContent className="space-y-4 p-6 pt-0">
-                                {profile.category ? (
-                                    <Badge className={`${accent.light} border-0`}>
-                                        {accent.icon}
-                                        <span className="ml-1">{profile.category.name}</span>
-                                    </Badge>
-                                ) : null}
-
-                                {cheapest ? (
-                                    <div className="rounded-2xl bg-slate-50 p-4">
-                                        <p className="text-xs uppercase tracking-wide text-slate-400">Цена от</p>
-                                        <p className="mt-1 text-3xl font-bold text-slate-900">€{Number(cheapest.price).toFixed(0)}</p>
-                                    </div>
-                                ) : null}
-
-                                <Button onClick={() => openBooking()} className={`h-12 w-full text-base text-white ${accent.cta}`}>
-                                    <Calendar className="mr-2 h-5 w-5" />
-                                    Забронировать
-                                </Button>
-
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button asChild variant="outline" className="h-11">
-                                        <a href={profile.phone ? `tel:${profile.phone}` : '#'} aria-disabled={!profile.phone}>
-                                            <Phone className="mr-2 h-4 w-4" />
-                                            Позвонить
-                                        </a>
-                                    </Button>
-                                    <Button onClick={startChat} disabled={isStartingChat} variant="outline" className="h-11">
-                                        <MessageCircle className="mr-2 h-4 w-4" />
-                                        {isStartingChat ? 'Открываем...' : 'Написать'}
-                                    </Button>
+                            {services.length === 0 ? (
+                                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
+                                    Список услуг пока пуст.
                                 </div>
-                            </CardContent>
-                        </Card>
+                            ) : (
+                                <div className="mt-6 space-y-6">
+                                    {groupedServices.map(([groupTitle, groupItems]) => (
+                                        <div key={groupTitle} className="space-y-3">
+                                            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{groupTitle}</h3>
+                                            {groupItems.map((service) => (
+                                                <div
+                                                    key={service.id}
+                                                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                                                >
+                                                    <div>
+                                                        <p className="text-base font-semibold text-slate-900">{service.title}</p>
+                                                        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-500">
+                                                            <Clock className="h-4 w-4" />
+                                                            {service.duration_min} мин
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center justify-between gap-3 sm:min-w-[190px] sm:justify-end">
+                                                        <p className="text-xl font-semibold text-slate-900">€{Number(service.price).toFixed(0)}</p>
+                                                        <Button
+                                                            onClick={() =>
+                                                                openBooking({
+                                                                    id: service.id,
+                                                                    title: service.title,
+                                                                    price: `€${Number(service.price).toFixed(0)}`,
+                                                                    duration_min: service.duration_min,
+                                                                })
+                                                            }
+                                                            className="h-10 rounded-xl bg-slate-900 px-4 text-white hover:bg-slate-800"
+                                                        >
+                                                            Выбрать
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </article>
                     </div>
-                </div>
+
+                    <aside className="md:col-span-1 md:sticky md:top-24 md:self-start">
+                        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                            <h2 className="text-xl font-semibold text-slate-900">Рейтинг и отзывы</h2>
+                            <div className="mt-5 flex items-end gap-2">
+                                <p className="text-5xl font-semibold leading-none text-slate-900">5.0</p>
+                                <p className="pb-1 text-sm text-slate-500">48 отзывов</p>
+                            </div>
+                            <div className="mt-5 space-y-3">
+                                {RATING_BREAKDOWN.map((item) => (
+                                    <div key={item.label}>
+                                        <div className="mb-1 flex items-center justify-between text-sm text-slate-600">
+                                            <span>{item.label}</span>
+                                            <span>{item.score.toFixed(1)}</span>
+                                        </div>
+                                        <div className="h-2 rounded-full bg-slate-100">
+                                            <div
+                                                className="h-2 rounded-full bg-slate-900"
+                                                style={{ width: `${(item.score / 5) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-6 rounded-2xl bg-slate-50 p-4">
+                                <p className="text-xs uppercase tracking-wide text-slate-400">Цена от</p>
+                                <p className="mt-1 text-3xl font-semibold text-slate-900">
+                                    {cheapestService ? `€${Number(cheapestService.price).toFixed(0)}` : '—'}
+                                </p>
+                            </div>
+
+                            <Button
+                                onClick={startChat}
+                                disabled={isStartingChat}
+                                variant="outline"
+                                className="mt-4 h-11 w-full rounded-xl border-slate-200"
+                            >
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                {isStartingChat ? 'Открываем...' : 'Написать мастеру'}
+                            </Button>
+                        </div>
+                    </aside>
+                </section>
+
+                <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+                    <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 className="text-2xl font-semibold text-slate-900">Как нас найти</h2>
+                            <p className="mt-1 text-sm text-slate-600">{fullAddress || profile.city}</p>
+                        </div>
+                        <a
+                            href={openStreetMapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                        >
+                            <Sparkles className="h-4 w-4" />
+                            Открыть в OpenStreetMap
+                        </a>
+                    </div>
+                    <ProfileLocationMap
+                        lat={profile.latitude}
+                        lng={profile.longitude}
+                        title={profile.name}
+                        address={fullAddress || profile.city}
+                    />
+                </section>
             </div>
 
             <BookingModal
@@ -350,7 +369,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                 selectedService={selectedService}
                 initialDate={initialDate}
                 initialTime={initialTime}
-                accentColor={accent.accentKey}
+                accentColor="rose"
             />
         </div>
     );
