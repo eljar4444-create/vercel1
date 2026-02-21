@@ -5,28 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
     Search, ArrowRight, Sparkles,
-    CalendarCheck, UserCheck, Star, ChevronRight,
+    CalendarCheck, UserCheck, Star,
     Shield, Clock, Heart, MapPin, Loader2, LocateFixed
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { GERMAN_CITY_SUGGESTIONS, POPULAR_SERVICES, resolveGermanCity } from '@/constants/searchSuggestions';
-
-// ─── Category Cards ─────────────────────────────────────────────────
-const CATEGORIES = [
-    {
-        name: 'Красота',
-        slug: 'beauty',
-        description: 'Маникюр, парикмахерские услуги, уход и эстетика нового уровня',
-        eyebrow: 'Most Popular',
-        icon: Sparkles,
-        cardBg: 'from-white to-rose-50/80',
-        spotlight: 'from-rose-500/20 via-fuchsia-500/10 to-white',
-        iconWrap: 'from-rose-100 to-fuchsia-100',
-        chipClass: 'bg-rose-100/65 text-rose-700 hover:bg-rose-200/70',
-        iconClass: 'text-rose-600',
-        services: ['Маникюр', 'Педикюр', 'Парикмахер', 'Косметолог'],
-    },
-];
 
 // ─── How It Works ───────────────────────────────────────────────────
 const STEPS = [
@@ -156,52 +139,29 @@ export default function HomePage() {
     return (
         <div className="min-h-screen bg-white font-sans">
 
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* HERO SECTION                                           */}
-            {/* ═══════════════════════════════════════════════════════ */}
-            <section className="relative overflow-hidden">
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-rose-900/30 via-transparent to-teal-900/20" />
+            <section className="relative flex h-[600px] w-full flex-col items-center justify-center overflow-hidden md:h-[70vh]">
+                <img
+                    src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=2200&q=80"
+                    alt="Beauty salon interior"
+                    className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/50" />
 
-                {/* Subtle pattern overlay */}
-                <div className="absolute inset-0 opacity-[0.03]" style={{
-                    backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'1\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-                }} />
-
-                {/* Floating orbs */}
-                <div className="absolute top-20 left-10 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-10 right-10 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl" />
-
-                <div className="relative container mx-auto px-4 max-w-6xl py-20 sm:py-28 lg:py-36">
-                    <div className="max-w-3xl mx-auto text-center">
-                        {/* Badge */}
-                        <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/10 text-white/80 text-sm font-medium px-4 py-2 rounded-full mb-8">
-                            <Sparkles className="w-4 h-4 text-rose-400" />
-                            Сервис онлайн-бронирования в Германии
-                        </div>
-
-                        {/* Heading */}
-                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6 tracking-tight">
-                            Найди своего мастера
-                            <span className="block bg-gradient-to-r from-rose-400 via-pink-400 to-teal-400 bg-clip-text text-transparent mt-2">
-                                красоты и ухода
-                            </span>
+                <div className="relative z-10 w-full px-4">
+                    <div className="mx-auto max-w-5xl text-center">
+                        <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
+                            Найди своего бьюти-мастера
                         </h1>
-
-                        {/* Subtitle */}
-                        <p className="text-lg sm:text-xl text-white/60 mb-10 max-w-xl mx-auto leading-relaxed">
-                            Маникюр, стрижка, массаж — всё рядом с домом.
-                            Бронируй в пару кликов.
+                        <p className="mx-auto mt-4 max-w-2xl text-base text-white/80 sm:text-lg">
+                            Маникюр, стрижка, массаж — быстро, просто, 24/7
                         </p>
 
-                        {/* Search Bar */}
                         <form
                             ref={formRef}
                             onSubmit={handleSearch}
-                            className="relative mx-auto max-w-3xl"
+                            className="relative mx-auto mt-8 max-w-4xl"
                         >
-                            <div className="rounded-2xl bg-white/95 p-2 shadow-2xl shadow-black/20 backdrop-blur-sm transition-all duration-300 focus-within:ring-4 focus-within:ring-rose-500/20 focus-within:shadow-rose-500/10">
+                            <div className="rounded-2xl bg-white p-2 shadow-2xl md:rounded-full md:p-3">
                                 <div className="grid grid-cols-1 items-center gap-2 md:grid-cols-[1.3fr_1fr_auto_auto]">
                                     <div className="relative flex h-14 items-center rounded-xl border border-transparent bg-white px-3 md:border-r md:border-r-gray-100 md:rounded-r-none">
                                         <Search className="h-5 w-5 flex-shrink-0 text-gray-400" />
@@ -221,7 +181,7 @@ export default function HomePage() {
                                             className="h-full w-full bg-transparent px-3 text-base text-gray-900 placeholder:text-gray-400 outline-none"
                                         />
                                         {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
-                                            <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                                            <div className="absolute left-0 top-full z-[60] mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
                                                 <ul className="max-h-64 overflow-y-auto">
                                                     {filteredServices.map((item) => (
                                                         <li key={item}>
@@ -256,7 +216,7 @@ export default function HomePage() {
                                                 setCity(next);
                                                 setCityOpen(next.trim().length > 0);
                                             }}
-                                            placeholder="Где"
+                                            placeholder="Город"
                                             className="h-full w-full bg-transparent px-3 pr-9 text-base text-gray-900 placeholder:text-gray-400 outline-none"
                                         />
                                         <button
@@ -269,7 +229,7 @@ export default function HomePage() {
                                             {isGeoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
                                         </button>
                                         {cityOpen && city.trim().length > 0 && filteredCities.length > 0 && (
-                                            <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                                            <div className="absolute left-0 top-full z-[60] mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
                                                 <ul className="max-h-64 overflow-y-auto">
                                                     {filteredCities.map((item) => (
                                                         <li key={item}>
@@ -310,35 +270,14 @@ export default function HomePage() {
 
                                     <button
                                         type="submit"
-                                        className="h-12 px-7 bg-gray-900 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-gray-800 hover:shadow-lg rounded-xl"
+                                        className="h-12 rounded-xl bg-black px-8 text-sm font-semibold text-white transition-all duration-200 hover:bg-gray-800 md:rounded-full"
                                     >
                                         Найти
                                     </button>
                                 </div>
                             </div>
                         </form>
-
-                        {/* Quick links */}
-                        <div className="flex items-center justify-center gap-3 mt-6 flex-wrap">
-                            <span className="text-sm text-white/40">Популярное:</span>
-                            {['Маникюр', 'Стрижка', 'Массаж', 'Парикмахер'].map(tag => (
-                                <Link
-                                    key={tag}
-                                    href={`/search?q=${encodeURIComponent(tag)}`}
-                                    className="text-sm text-white/60 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-200"
-                                >
-                                    {tag}
-                                </Link>
-                            ))}
-                        </div>
                     </div>
-                </div>
-
-                {/* Bottom wave */}
-                <div className="absolute bottom-0 left-0 right-0">
-                    <svg viewBox="0 0 1440 56" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-                        <path d="M0 56h1440V28C1320 4 1200 0 1080 12 960 24 840 48 720 52 600 56 480 40 360 24 240 8 120 0 0 8v48z" fill="white" />
-                    </svg>
                 </div>
             </section>
 
@@ -359,86 +298,6 @@ export default function HomePage() {
                                 </div>
                             </div>
                         ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* POPULAR CATEGORIES                                     */}
-            {/* ═══════════════════════════════════════════════════════ */}
-            <section className="bg-gradient-to-b from-white via-slate-50/40 to-white py-20 sm:py-24">
-                <div className="container mx-auto px-4 max-w-6xl">
-                    {/* Section header */}
-                    <div className="mb-12 text-center">
-                        <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl">
-                            Выберите направление
-                        </h2>
-                        <p className="mx-auto max-w-xl text-lg text-gray-500">
-                            Найдите проверенных специалистов в сфере красоты и ухода
-                        </p>
-                    </div>
-
-                    <div className="mx-auto grid max-w-3xl grid-cols-1 gap-8">
-                        {CATEGORIES.map((cat) => {
-                            const Icon = cat.icon;
-
-                            return (
-                                <Link
-                                    key={cat.slug}
-                                    href={`/search?category=${cat.slug}`}
-                                    className={`group relative min-h-[360px] overflow-hidden rounded-3xl border border-slate-200/60 bg-gradient-to-br ${cat.cardBg} p-8 shadow-[0_18px_60px_rgba(15,23,42,0.08)] transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] hover:scale-[1.02] hover:-translate-y-1 hover:brightness-[1.02] hover:shadow-[0_30px_80px_rgba(15,23,42,0.16)]`}
-                                >
-                                    <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${cat.spotlight} opacity-90`} />
-                                    <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/70 blur-3xl transition-transform duration-500 group-hover:scale-125" />
-                                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white/70 to-transparent" />
-
-                                    <div className="relative">
-                                        <div className="mb-6 flex items-start justify-between">
-                                            <div className="space-y-2">
-                                                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-                                                    {cat.eyebrow}
-                                                </p>
-                                                <div className={`inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ${cat.iconWrap} ring-1 ring-white/80 shadow-sm ${cat.iconClass}`}>
-                                                    <Icon className="h-8 w-8" />
-                                                </div>
-                                            </div>
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-slate-500 transition-all duration-500 group-hover:translate-x-0.5 group-hover:text-slate-700">
-                                                <ChevronRight className="h-5 w-5" />
-                                            </div>
-                                        </div>
-
-                                        <h3 className="mb-2 text-2xl font-bold tracking-tight text-slate-900">
-                                            {cat.name}
-                                        </h3>
-                                        <p className="text-sm leading-relaxed text-slate-600">
-                                            {cat.description}
-                                        </p>
-
-                                        <div className="mt-6 flex flex-wrap gap-2.5">
-                                            {cat.services.map((service) => (
-                                                <span
-                                                    key={service}
-                                                    className={`cursor-pointer rounded-full px-3 py-1.5 text-sm font-medium ring-1 ring-white/70 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm ${cat.chipClass}`}
-                                                >
-                                                    {service}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </Link>
-                            );
-                        })}
-                    </div>
-
-                    {/* Browse all */}
-                    <div className="text-center mt-10">
-                        <Link
-                            href="/search"
-                            className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 font-semibold text-sm transition-colors group"
-                        >
-                            Смотреть всех специалистов
-                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </Link>
                     </div>
                 </div>
             </section>
