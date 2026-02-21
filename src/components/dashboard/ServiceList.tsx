@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 interface ServiceData {
     id: number;
     title: string;
+    description?: string | null;
+    images?: string[];
     price: string;
     duration_min: number;
 }
@@ -44,6 +46,21 @@ export function ServiceList({ services }: ServiceListProps) {
                 <div key={service.id} className="flex items-center justify-between py-4 group">
                     <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-medium text-gray-900 truncate">{service.title}</h4>
+                        {service.description ? (
+                            <p className="mt-1 text-xs text-gray-500 line-clamp-2">{service.description}</p>
+                        ) : null}
+                        {service.images && service.images.length > 0 ? (
+                            <div className="mt-2 flex gap-1.5">
+                                {service.images.slice(0, 3).map((image, index) => (
+                                    <img
+                                        key={`${service.id}-preview-${index}`}
+                                        src={image}
+                                        alt={`${service.title} preview ${index + 1}`}
+                                        className="h-10 w-10 rounded-md object-cover border border-gray-200"
+                                    />
+                                ))}
+                            </div>
+                        ) : null}
                         <div className="flex items-center gap-3 mt-1">
                             <span className="flex items-center gap-1 text-xs text-gray-400">
                                 <Euro className="w-3 h-3" />

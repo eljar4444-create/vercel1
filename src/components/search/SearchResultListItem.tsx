@@ -36,24 +36,29 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
     return (
         <article className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="flex flex-col md:flex-row">
-                <div className="h-52 w-full overflow-hidden bg-slate-100 md:h-auto md:min-h-[200px] md:w-48 md:flex-shrink-0">
+                <Link
+                    href={`/profile/${profile.id}`}
+                    className="block h-52 w-full cursor-pointer overflow-hidden bg-slate-100 md:h-auto md:min-h-[200px] md:w-48 md:flex-shrink-0"
+                >
                     {profile.image_url ? (
                         <img src={profile.image_url} alt={profile.name} className="h-full w-full object-cover" />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">No photo</div>
                     )}
-                </div>
+                </Link>
 
                 <div className="min-w-0 flex-1 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                            <h3 className="text-[17px] font-semibold leading-tight text-slate-900">{profile.name}</h3>
+                        <Link href={`/profile/${profile.id}`} className="block cursor-pointer">
+                            <h3 className="text-[17px] font-semibold leading-tight text-slate-900 transition-colors hover:text-blue-600">
+                                {profile.name}
+                            </h3>
                             <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-500">
                                 <MapPin className="h-4 w-4" />
                                 {[profile.address, profile.city].filter(Boolean).join(', ')}
                             </p>
                             <p className="mt-1 text-xs text-slate-500">4.8 (5 отзывов) · €€€</p>
-                        </div>
+                        </Link>
                         <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
                             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                             5.0

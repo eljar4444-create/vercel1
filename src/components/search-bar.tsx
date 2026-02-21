@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, LocateFixed, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { resolveGermanCity } from '@/constants/searchSuggestions';
+import { getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 
 interface SearchBarProps {
     /** Additional classes for the outer wrapper */
@@ -20,13 +20,15 @@ export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' 
     const [query, setQuery] = useState(defaultQuery);
     const [city, setCity] = useState(defaultCity);
     const [isLocating, setIsLocating] = useState(false);
+    const suggestions = getGermanCitySuggestions(city, 8);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         const trimmed = query.trim();
+        const normalizedCity = resolveGermanCity(city.trim()) || city.trim();
         const params = new URLSearchParams();
         if (trimmed) params.set('q', trimmed);
-        if (city.trim()) params.set('city', city.trim());
+        if (normalizedCity) params.set('city', normalizedCity);
         router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
     };
 
@@ -121,6 +123,23 @@ export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' 
                             <LocateFixed className="w-4 h-4" />
                         )}
                     </button>
+                    {city.trim().length > 0 && suggestions.length > 0 && (
+                        <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                            <ul className="max-h-64 overflow-y-auto">
+                                {suggestions.map((item) => (
+                                    <li key={item}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setCity(item)}
+                                            className="w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                        >
+                                            {item}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                 </div>
                 <button
                     type="submit"

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, LocateFixed, MapPin, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { GERMAN_CITY_SUGGESTIONS, POPULAR_SERVICES, resolveGermanCity } from '@/constants/searchSuggestions';
+import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 
 interface SearchFiltersFormProps {
     categoryFilter?: string;
@@ -35,11 +35,7 @@ export function SearchFiltersForm({
     }, [query]);
 
     const filteredCities = useMemo(() => {
-        const q = city.trim().toLowerCase();
-        const base = q
-            ? GERMAN_CITY_SUGGESTIONS.filter((item) => item.toLowerCase().includes(q))
-            : GERMAN_CITY_SUGGESTIONS;
-        return base.slice(0, 10);
+        return getGermanCitySuggestions(city, 10);
     }, [city]);
 
     useEffect(() => {
@@ -58,7 +54,8 @@ export function SearchFiltersForm({
         const params = new URLSearchParams();
         if (categoryFilter) params.set('category', categoryFilter);
         if (query.trim()) params.set('q', query.trim());
-        if (city.trim()) params.set('city', city.trim());
+        const normalizedCity = resolveGermanCity(city.trim()) || city.trim();
+        if (normalizedCity) params.set('city', normalizedCity);
         router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
         setQueryOpen(false);
         setCityOpen(false);

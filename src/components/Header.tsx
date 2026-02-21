@@ -13,6 +13,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { SearchFiltersForm } from '@/components/search/SearchFiltersForm';
 
+const QUICK_BEAUTY_LINKS = [
+    { label: 'Стрижка', href: '/search?q=Стрижка' },
+    { label: 'Маникюр', href: '/search?q=Маникюр' },
+    { label: 'Брови и ресницы', href: '/search?q=Брови и ресницы' },
+    { label: 'Косметология', href: '/search?q=Косметология' },
+    { label: 'Массаж', href: '/search?q=Массаж' },
+];
+
 export function Header() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -71,13 +79,16 @@ export function Header() {
                 ) : null}
 
                 {!isSearchPage ? (
-                    <nav className="hidden lg:flex items-center gap-6 font-medium text-[14px] whitespace-nowrap ml-auto">
-                        <Link href="/search" className="hover:text-blue-600 transition-colors">
-                            Services
-                        </Link>
-                        <Link href="/auth/register?role=provider" className="hover:text-blue-600 transition-colors">
-                            Become a Pro
-                        </Link>
+                    <nav className="hidden md:flex flex-1 items-center justify-center gap-6 lg:gap-8">
+                        {QUICK_BEAUTY_LINKS.map((item) => (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+                            >
+                                {item.label}
+                            </Link>
+                        ))}
                     </nav>
                 ) : null}
 
@@ -85,6 +96,12 @@ export function Header() {
                 <div className={cn("ml-auto flex items-center gap-2", isSearchPage && "lg:ml-0")}>
                     {user ? (
                         <div className="hidden items-center gap-2 xl:flex">
+                            <Link
+                                href="/auth/register?role=provider"
+                                className="mr-1 text-sm font-semibold text-slate-900 transition-opacity hover:opacity-80"
+                            >
+                                Стать специалистом
+                            </Link>
                             <Link
                                 href="/chat"
                                 aria-label="Открыть чат"
@@ -96,6 +113,12 @@ export function Header() {
                         </div>
                     ) : (
                         <div className="hidden items-center gap-3 xl:flex">
+                            <Link
+                                href="/auth/register?role=provider"
+                                className="text-sm font-semibold text-slate-900 transition-opacity hover:opacity-80"
+                            >
+                                Стать специалистом
+                            </Link>
                             <Link
                                 href="/chat"
                                 aria-label="Открыть чат"

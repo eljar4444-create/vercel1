@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
 import {
     Clock,
@@ -41,6 +42,8 @@ interface ProfileData {
     services: {
         id: number;
         title: string;
+        description?: string | null;
+        images?: string[];
         price: string;
         duration_min: number;
     }[];
@@ -72,7 +75,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         duration_min?: number;
     } | null>(null);
 
-    const services = profile.services || [];
+    const services = useMemo(() => profile.services || [], [profile.services]);
     const cheapestService =
         services.length > 0
             ? services.reduce((min, current) => (Number(current.price) < Number(min.price) ? current : min), services[0])
@@ -106,7 +109,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         setIsModalOpen(true);
     };
 
-    const startChat = async () => {
+    const startChat = useCallback(async () => {
         if (isStartingChat) return;
 
         if (status !== 'authenticated' || !session?.user) {
@@ -127,7 +130,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         }
 
         router.push(`/chat/${result.conversationId}`);
-    };
+    }, [isStartingChat, status, session?.user, profile.id, router]);
 
     useEffect(() => {
         if (searchParams.get('book') !== '1') return;
@@ -166,7 +169,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         next.delete('startChat');
         const query = next.toString();
         router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-    }, [status, session?.user, pathname, router, searchParams]);
+    }, [status, session?.user, pathname, router, searchParams, startChat]);
 
     return (
         <div className="min-h-screen bg-slate-50/60">
@@ -262,10 +265,25 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                                 >
                                                     <div>
                                                         <p className="text-base font-semibold text-slate-900">{service.title}</p>
+                                                        {service.description ? (
+                                                            <p className="mt-1 text-sm leading-relaxed text-slate-600">{service.description}</p>
+                                                        ) : null}
                                                         <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-500">
                                                             <Clock className="h-4 w-4" />
                                                             {service.duration_min} мин
                                                         </p>
+                                                        {service.images && service.images.length > 0 ? (
+                                                            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                                                                {service.images.slice(0, 6).map((imageUrl, imageIndex) => (
+                                                                    <img
+                                                                        key={`${service.id}-work-${imageIndex}`}
+                                                                        src={imageUrl}
+                                                                        alt={`${service.title} работа ${imageIndex + 1}`}
+                                                                        className="h-14 w-14 flex-shrink-0 rounded-lg border border-slate-200 object-cover"
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                        ) : null}
                                                     </div>
                                                     <div className="flex items-center justify-between gap-3 sm:min-w-[190px] sm:justify-end">
                                                         <p className="text-xl font-semibold text-slate-900">€{Number(service.price).toFixed(0)}</p>

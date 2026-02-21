@@ -60,6 +60,8 @@ export default async function ProfileDetailPage({
                 select: {
                     id: true,
                     title: true,
+                    description: true,
+                    images: true,
                     price: true,
                     duration_min: true,
                 },
@@ -99,6 +101,8 @@ export default async function ProfileDetailPage({
         services: profile.services.map(s => ({
             id: s.id,
             title: s.title,
+            description: s.description,
+            images: s.images,
             price: s.price.toString(),
             duration_min: s.duration_min,
         })),

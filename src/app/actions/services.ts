@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
+import { isBeautyServiceTitle } from '@/lib/constants/services-taxonomy';
 
 export async function addService(formData: FormData) {
     const session = await auth();
@@ -14,9 +15,25 @@ export async function addService(formData: FormData) {
     const title = formData.get('title') as string;
     const price = parseFloat(formData.get('price') as string);
     const duration = parseInt(formData.get('duration') as string, 10);
+    const description = (formData.get('description') as string | null)?.trim() || null;
+    const rawImages = formData.get('images') as string | null;
+    let images: string[] = [];
 
     if (!title || isNaN(price) || isNaN(duration) || isNaN(profileId)) {
         return { success: false, error: 'Заполните все поля корректно.' };
+    }
+    if (!isBeautyServiceTitle(title)) {
+        return { success: false, error: 'Можно выбрать только услугу из справочника.' };
+    }
+    if (rawImages) {
+        try {
+            const parsed = JSON.parse(rawImages);
+            if (Array.isArray(parsed)) {
+                images = parsed.filter((value): value is string => typeof value === 'string' && value.length > 0);
+            }
+        } catch {
+            return { success: false, error: 'Некорректный формат изображений.' };
+        }
     }
 
     try {
@@ -38,6 +55,8 @@ export async function addService(formData: FormData) {
             data: {
                 profile_id: profileId,
                 title,
+                description,
+                images,
                 price,
                 duration_min: duration,
             },

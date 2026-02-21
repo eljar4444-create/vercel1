@@ -9,7 +9,7 @@ import {
     Shield, Clock, Heart, MapPin, Loader2, LocateFixed
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { GERMAN_CITY_SUGGESTIONS, POPULAR_SERVICES, resolveGermanCity } from '@/constants/searchSuggestions';
+import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 
 // ─── How It Works ───────────────────────────────────────────────────
 const STEPS = [
@@ -62,11 +62,7 @@ export default function HomePage() {
     }, [query]);
 
     const filteredCities = useMemo(() => {
-        const q = city.trim().toLowerCase();
-        const base = q
-            ? GERMAN_CITY_SUGGESTIONS.filter((item) => item.toLowerCase().includes(q))
-            : GERMAN_CITY_SUGGESTIONS;
-        return base.slice(0, 10);
+        return getGermanCitySuggestions(city, 10);
     }, [city]);
 
     useEffect(() => {
@@ -83,9 +79,10 @@ export default function HomePage() {
     const handleSearch = (e?: React.FormEvent) => {
         e?.preventDefault();
         const trimmed = query.trim();
+        const normalizedCity = resolveGermanCity(city.trim()) || city.trim();
         const params = new URLSearchParams();
         if (trimmed) params.set('q', trimmed);
-        if (city.trim()) params.set('city', city.trim());
+        if (normalizedCity) params.set('city', normalizedCity);
         if (radius) params.set('radius', radius);
         router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
     };

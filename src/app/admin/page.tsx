@@ -114,7 +114,7 @@ export default async function AdminPage() {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500">Одобрено</p>
-                                <p className="text-lg font-semibold text-gray-700">Через кнопку "Одобрить"</p>
+                                <p className="text-lg font-semibold text-gray-700">Через кнопку «Одобрить»</p>
                             </div>
                         </div>
                     </div>

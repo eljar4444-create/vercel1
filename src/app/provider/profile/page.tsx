@@ -57,7 +57,7 @@ export default async function ProviderProfile() {
     const services: ServiceItem[] = profile.services.map(s => ({
         id: s.id,
         title: s.title,
-        description: '', // Service model has no description field
+        description: s.description,
         price: s.price,
         categoryName: profile.category.name,
         status: 'APPROVED'

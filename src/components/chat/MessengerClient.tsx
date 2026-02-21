@@ -1,6 +1,7 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { CalendarDays, Loader2, MessageSquare, Send, UserCircle } from 'lucide-react';
@@ -83,7 +84,7 @@ export function MessengerClient({
         [conversations, selectedConversationId]
     );
 
-    const refreshConversations = async () => {
+    const refreshConversations = useCallback(async () => {
         const result = await getMyConversations();
         if (result.success) {
             setConversations(result.conversations);
@@ -91,9 +92,9 @@ export function MessengerClient({
                 setSelectedConversationId(result.conversations[0].id);
             }
         }
-    };
+    }, [selectedConversationId]);
 
-    const loadMessages = async (conversationId: string, options?: { background?: boolean }) => {
+    const loadMessages = useCallback(async (conversationId: string, options?: { background?: boolean }) => {
         const isBackground = Boolean(options?.background);
         if (!isBackground) {
             setIsLoadingMessages(true);
@@ -107,20 +108,20 @@ export function MessengerClient({
         if (!isBackground) {
             setIsLoadingMessages(false);
         }
-    };
+    }, []);
 
-    const loadBookingContext = async (conversationId: string) => {
+    const loadBookingContext = useCallback(async (conversationId: string) => {
         const result = await getConversationBookingContext(conversationId);
         if (result.success) {
             setBookingContext(result.booking);
         } else {
             setBookingContext(null);
         }
-    };
+    }, []);
 
     useEffect(() => {
         refreshConversations();
-    }, []);
+    }, [refreshConversations]);
 
     useEffect(() => {
         if (!selectedConversationId) {
@@ -131,7 +132,7 @@ export function MessengerClient({
         loadMessages(selectedConversationId);
         loadBookingContext(selectedConversationId);
         refreshConversations();
-    }, [selectedConversationId]);
+    }, [selectedConversationId, loadBookingContext, loadMessages, refreshConversations]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -141,7 +142,7 @@ export function MessengerClient({
             }
         }, 4000);
         return () => clearInterval(interval);
-    }, [selectedConversationId]);
+    }, [selectedConversationId, loadMessages, refreshConversations]);
 
     const handleSend = (event: React.FormEvent) => {
         event.preventDefault();

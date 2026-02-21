@@ -51,12 +51,10 @@ export function getRoleMenuLinks(user: {
 }
 
 export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
-    const user = propUser;
-    if (!user) return null;
-    const [resolvedProfileId, setResolvedProfileId] = useState<number | null | undefined>(user.profileId);
+    const [resolvedProfileId, setResolvedProfileId] = useState<number | null | undefined>(propUser?.profileId);
 
     const initials =
-        user.name
+        propUser?.name
             ?.split(' ')
             .map((part) => part[0])
             .join('')
@@ -64,11 +62,11 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
             .toUpperCase() || 'U';
 
     useEffect(() => {
-        setResolvedProfileId(user.profileId);
-    }, [user.profileId]);
+        setResolvedProfileId(propUser?.profileId);
+    }, [propUser?.profileId]);
 
     useEffect(() => {
-        if (user.role !== 'PROVIDER' || resolvedProfileId) return;
+        if (!propUser || propUser.role !== 'PROVIDER' || resolvedProfileId) return;
 
         let active = true;
         fetch('/api/me/provider-profile', { cache: 'no-store' })
@@ -84,10 +82,12 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
         return () => {
             active = false;
         };
-    }, [resolvedProfileId, user.role]);
+    }, [propUser, resolvedProfileId]);
+
+    if (!propUser) return null;
 
     const roleLinks = getRoleMenuLinks({
-        role: user.role,
+        role: propUser.role,
         profileId: resolvedProfileId ?? null,
     });
 
@@ -100,9 +100,9 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                     aria-label="Открыть меню пользователя"
                 >
                     <Avatar className="h-9 w-9">
-                        <AvatarImage src={user.image || undefined} alt={user.name || 'User'} />
+                        <AvatarImage src={propUser.image || undefined} alt={propUser.name || 'User'} />
                         <AvatarFallback className="bg-gray-100 text-xs font-semibold text-gray-700">
-                            {user.image ? <User className="h-4 w-4" /> : initials}
+                            {propUser.image ? <User className="h-4 w-4" /> : initials}
                         </AvatarFallback>
                     </Avatar>
                 </button>
@@ -110,12 +110,12 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
             <PopoverContent align="end" className="w-72 overflow-hidden border-gray-200 bg-white/95 p-0 backdrop-blur supports-[backdrop-filter]:bg-white/90">
                 <div className="bg-gradient-to-b from-gray-50 to-white p-4">
                     <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-semibold text-gray-900">{user.name || 'Пользователь'}</p>
+                        <p className="truncate text-sm font-semibold text-gray-900">{propUser.name || 'Пользователь'}</p>
                         <Badge variant="outline" className="border-gray-200 bg-white text-[10px] font-medium text-gray-600">
-                            {getRoleLabel(user.role)}
+                            {getRoleLabel(propUser.role)}
                         </Badge>
                     </div>
-                    <p className="truncate text-xs text-gray-500">{user.email || 'Без email'}</p>
+                    <p className="truncate text-xs text-gray-500">{propUser.email || 'Без email'}</p>
                 </div>
 
                 <div className="h-px bg-gray-100" />

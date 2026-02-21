@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { X, Clock, User, Phone, CheckCircle, Loader2, MapPin, Star, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { createBooking, getAvailableSlots } from '@/app/actions/booking';
 import { useEffect } from 'react';
@@ -150,7 +150,7 @@ export function BookingModal({
         }
     }, [isOpen, initialDate, initialTime, session?.user?.name, name, today]);
 
-    const loadWeekSlots = async (startDate: Date) => {
+    const loadWeekSlots = useCallback(async (startDate: Date) => {
         const days = Array.from({ length: 7 }, (_, index) => addDays(startDate, index));
         const entries = await Promise.all(
             days.map(async (day) => {
@@ -170,7 +170,7 @@ export function BookingModal({
         );
 
         return Object.fromEntries(entries) as Record<string, string[]>;
-    };
+    }, [profileId, selectedDuration]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -201,7 +201,7 @@ export function BookingModal({
         return () => {
             isActive = false;
         };
-    }, [isOpen, weekStart, profileId, selectedDuration, date]);
+    }, [isOpen, weekStart, date, loadWeekSlots]);
 
     if (!isOpen) return null;
 

@@ -133,6 +133,8 @@ export default async function DashboardPage({
     const serializedServices = services.map(s => ({
         id: s.id,
         title: s.title,
+        description: s.description,
+        images: s.images,
         price: s.price.toString(),
         duration_min: s.duration_min,
     }));
@@ -345,11 +347,7 @@ export default async function DashboardPage({
                             </div>
                             <div className="space-y-6 p-5">
                                 <ServiceList services={serializedServices} />
-                                <AddServiceForm
-                                    profileId={profileId}
-                                    profileCategorySlug={profile.category?.slug}
-                                    profileCategoryName={profile.category?.name}
-                                />
+                                <AddServiceForm profileId={profileId} />
                             </div>
                         </div>
                     )}
