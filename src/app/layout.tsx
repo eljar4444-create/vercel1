@@ -5,6 +5,7 @@ import { Providers } from '@/components/Providers';
 import './globals.css';
 import { Footer } from '@/components/Footer';
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 const outfit = localFont({
     src: '../../public/fonts/Outfit-Latin.woff2',
@@ -26,7 +27,9 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${outfit.className} antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col`}>
                 <Providers>
-                    <Header />
+                    <Suspense fallback={<div className="fixed left-0 right-0 top-0 z-50 h-16 border-b border-slate-200 bg-white" />}>
+                        <Header />
+                    </Suspense>
                     <main className="flex-1 pt-16">
                         {children}
                     </main>
