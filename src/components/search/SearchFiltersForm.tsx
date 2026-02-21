@@ -114,102 +114,104 @@ export function SearchFiltersForm({
         <form
             ref={wrapperRef}
             onSubmit={handleSubmit}
-            className="bg-white/10 backdrop-blur-md rounded-2xl p-2 flex flex-col md:flex-row gap-2 border border-white/10"
+            className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm"
         >
-            <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                    type="text"
-                    value={query}
-                    onFocus={() => {
-                        setQueryOpen(query.trim().length > 0);
-                        setCityOpen(false);
-                    }}
-                    onChange={(e) => {
-                        const next = e.target.value;
-                        setQuery(next);
-                        setQueryOpen(next.trim().length > 0);
-                    }}
-                    placeholder="Что ищем?"
-                    className="w-full h-12 pl-12 pr-4 bg-white/10 text-white placeholder:text-gray-400 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm font-medium"
-                />
-                {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
-                    <div className="absolute top-full mt-2 w-full rounded-xl border border-gray-100 bg-white shadow-xl z-50 overflow-hidden">
-                        <ul className="max-h-64 overflow-y-auto">
-                            {filteredServices.map((item) => (
-                                <li key={item}>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setQuery(item);
-                                            setQueryOpen(false);
-                                        }}
-                                        className="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                                    >
-                                        {item}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </div>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_280px_auto]">
+                <div className="relative">
+                    <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <input
+                        type="text"
+                        value={query}
+                        onFocus={() => {
+                            setQueryOpen(query.trim().length > 0);
+                            setCityOpen(false);
+                        }}
+                        onChange={(e) => {
+                            const next = e.target.value;
+                            setQuery(next);
+                            setQueryOpen(next.trim().length > 0);
+                        }}
+                        placeholder="Маникюр, стрижка, массаж, салон..."
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                    />
+                    {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
+                        <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                            <ul className="max-h-64 overflow-y-auto">
+                                {filteredServices.map((item) => (
+                                    <li key={item}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setQuery(item);
+                                                setQueryOpen(false);
+                                            }}
+                                            className="w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                        >
+                                            {item}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
 
-            <div className="relative flex-1 md:max-w-[260px]">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                <input
-                    type="text"
-                    value={city}
-                    onFocus={() => {
-                        setCityOpen(city.trim().length > 0);
-                        setQueryOpen(false);
-                    }}
-                    onChange={(e) => {
-                        const next = e.target.value;
-                        setCity(next);
-                        setCityOpen(next.trim().length > 0);
-                    }}
-                    placeholder="Где?"
-                    className="w-full h-12 pl-12 pr-12 bg-white/10 text-white placeholder:text-gray-400 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm font-medium"
-                />
+                <div className="relative">
+                    <MapPin className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <input
+                        type="text"
+                        value={city}
+                        onFocus={() => {
+                            setCityOpen(city.trim().length > 0);
+                            setQueryOpen(false);
+                        }}
+                        onChange={(e) => {
+                            const next = e.target.value;
+                            setCity(next);
+                            setCityOpen(next.trim().length > 0);
+                        }}
+                        placeholder="Город"
+                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                    />
+                    <button
+                        type="button"
+                        title="Определить мой город"
+                        aria-label="Определить мой город"
+                        onClick={handleGeo}
+                        className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                    >
+                        {isGeoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+                    </button>
+                    {cityOpen && city.trim().length > 0 && filteredCities.length > 0 && (
+                        <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                            <ul className="max-h-64 overflow-y-auto">
+                                {filteredCities.map((item) => (
+                                    <li key={item}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setCity(item);
+                                                setCityOpen(false);
+                                            }}
+                                            className="w-full px-3 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                        >
+                                            {item}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+
                 <button
-                    type="button"
-                    title="Определить мой город"
-                    aria-label="Определить мой город"
-                    onClick={handleGeo}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-300 hover:bg-white/15 hover:text-white transition"
+                    type="submit"
+                    className="flex h-12 items-center justify-center gap-2 rounded-xl bg-black px-8 text-sm font-semibold text-white transition-all duration-200 hover:bg-slate-800"
                 >
-                    {isGeoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <LocateFixed className="w-4 h-4" />}
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Найти
                 </button>
-                {cityOpen && city.trim().length > 0 && filteredCities.length > 0 && (
-                    <div className="absolute top-full mt-2 w-full rounded-xl border border-gray-100 bg-white shadow-xl z-50 overflow-hidden">
-                        <ul className="max-h-64 overflow-y-auto">
-                            {filteredCities.map((item) => (
-                                <li key={item}>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setCity(item);
-                                            setCityOpen(false);
-                                        }}
-                                        className="w-full text-left px-3 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                                    >
-                                        {item}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
             </div>
-
-            <button
-                type="submit"
-                className="h-12 px-8 bg-white hover:bg-gray-100 text-gray-900 font-semibold rounded-xl transition-all duration-200 flex items-center gap-2 text-sm whitespace-nowrap"
-            >
-                <SlidersHorizontal className="w-4 h-4" />
-                Найти
-            </button>
         </form>
     );
 }
