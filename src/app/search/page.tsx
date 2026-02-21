@@ -4,7 +4,6 @@ export const revalidate = 0;
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
-import { SearchFiltersForm } from "@/components/search/SearchFiltersForm";
 import { getCityFilterVariants } from "@/constants/searchSuggestions";
 import { GERMAN_CITIES } from "@/constants/germanCities";
 import { SearchResultListItem } from "@/components/search/SearchResultListItem";
@@ -102,17 +101,7 @@ export default async function SearchPage({
 
     return (
         <div className="h-[calc(100vh-64px)] overflow-hidden bg-white">
-            <div className="border-b border-slate-200 bg-white px-4 py-2">
-                <div className="mx-auto max-w-7xl">
-                    <SearchFiltersForm
-                        categoryFilter={categoryFilter}
-                        queryFilter={queryFilter}
-                        cityFilter={cityFilter}
-                    />
-                </div>
-            </div>
-
-            <div className="flex h-[calc(100%-64px)] flex-col lg:flex-row">
+            <div className="flex h-full flex-col lg:flex-row">
                 <div className="h-full w-full overflow-y-auto bg-[#fbfbfb] p-4 pb-24 md:p-5 lg:w-[48%] xl:w-[46%]">
                     <div className="mb-3 flex items-center justify-between gap-3">
                         <h1 className="text-lg font-semibold text-slate-900">
@@ -125,28 +114,36 @@ export default async function SearchPage({
                         </Link>
                     </div>
 
-                    <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
-                        {QUICK_FILTERS.map((filter) => {
+                    <div className="sticky top-0 z-10 -mx-4 mb-4 border-b border-slate-200 bg-[#fbfbfb] px-4 py-2 md:-mx-5 md:px-5">
+                        <div className="flex gap-2 overflow-x-auto pb-0.5">
+                            {[ 'Все', ...QUICK_FILTERS].map((filter) => {
                             const params = new URLSearchParams();
-                            if (cityFilter) params.set('city', cityFilter);
+                            if (filter === 'Все') {
+                                if (cityFilter) params.set('city', cityFilter);
+                                if (queryFilter) params.set('q', queryFilter);
+                            } else if (cityFilter) {
+                                params.set('city', cityFilter);
+                            }
+
                             if (filter === 'Рядом со мной') {
                                 if (queryFilter) params.set('q', queryFilter);
                             } else if (filter === 'Топ рейтинг') {
                                 params.set('sort', 'rating');
                                 if (queryFilter) params.set('q', queryFilter);
-                            } else {
+                            } else if (filter !== 'Все') {
                                 params.set('q', filter);
                             }
                             return (
                                 <Link
                                     key={filter}
                                     href={`/search?${params.toString()}`}
-                                    className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-700 transition hover:bg-slate-50"
+                                    className="whitespace-nowrap rounded-full border border-slate-200 bg-transparent px-3 py-1.5 text-xs text-slate-700 transition hover:border-slate-300 hover:bg-white"
                                 >
                                     {filter}
                                 </Link>
                             );
-                        })}
+                            })}
+                        </div>
                     </div>
 
                     {(cityFilter || queryFilter) && (

@@ -34,9 +34,9 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
     const previewServices = profile.services.slice(0, 2);
 
     return (
-        <article className="mb-3 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-            <div className="flex flex-col gap-3 md:flex-row">
-                <div className="h-28 w-full overflow-hidden rounded-lg bg-slate-100 md:h-28 md:w-36 md:flex-shrink-0">
+        <article className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex flex-col md:flex-row">
+                <div className="h-52 w-full overflow-hidden bg-slate-100 md:h-auto md:min-h-[200px] md:w-48 md:flex-shrink-0">
                     {profile.image_url ? (
                         <img src={profile.image_url} alt={profile.name} className="h-full w-full object-cover" />
                     ) : (
@@ -44,8 +44,8 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                     )}
                 </div>
 
-                <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0 flex-1 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
                             <h3 className="text-[17px] font-semibold leading-tight text-slate-900">{profile.name}</h3>
                             <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-500">
@@ -60,14 +60,14 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                         </div>
                     </div>
 
-                    <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50/70 p-2.5">
+                    <div className="mt-3">
                         <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Быстрые слоты</p>
                         <div className="mt-1.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
                             <div>
                                 <p className="text-[10px] font-semibold uppercase text-slate-500">Утро</p>
                                 <div className="mt-1 flex flex-wrap gap-1.5">
                                     {slots.morning.map((slot) => (
-                                        <span key={slot} className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] text-slate-700">
+                                        <span key={slot} className="rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600">
                                             {slot}
                                         </span>
                                     ))}
@@ -77,7 +77,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                                 <p className="text-[10px] font-semibold uppercase text-slate-500">Вечер</p>
                                 <div className="mt-1 flex flex-wrap gap-1.5">
                                     {slots.evening.map((slot) => (
-                                        <span key={slot} className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] text-slate-700">
+                                        <span key={slot} className="rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600">
                                             {slot}
                                         </span>
                                     ))}
@@ -97,16 +97,16 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                                 >
                                     <div>
                                         <p className="text-sm font-medium text-slate-900">{service.title}</p>
-                                        <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-slate-500">
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <p className="inline-flex items-center gap-1 text-xs text-slate-500">
                                             <Clock3 className="h-3.5 w-3.5" />
                                             {service.duration_min} мин
                                         </p>
-                                    </div>
-                                    <div className="flex items-center gap-3">
                                         <p className="text-sm font-semibold text-slate-900">€{service.price.toFixed(0)}</p>
                                         <Link
                                             href={`/profile/${profile.id}?book=1&service=${service.id}`}
-                                            className="inline-flex h-7 items-center rounded-md border border-slate-900 px-3 text-[11px] font-medium text-slate-900 transition hover:bg-slate-900 hover:text-white"
+                                            className="inline-flex h-7 items-center rounded-md bg-slate-100 px-3 text-[11px] font-medium text-slate-900 transition hover:bg-slate-200"
                                         >
                                             Выбрать
                                         </Link>
@@ -116,6 +116,15 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                         ) : (
                             <p className="text-sm text-slate-500">Услуги появятся скоро</p>
                         )}
+                    </div>
+
+                    <div className="mt-3 flex justify-end border-t border-slate-100 pt-3">
+                        <Link
+                            href={`/profile/${profile.id}?book=1`}
+                            className="inline-flex h-8 items-center rounded-md bg-black px-4 text-xs font-semibold text-white transition hover:bg-slate-800"
+                        >
+                            Записаться
+                        </Link>
                     </div>
                 </div>
             </div>

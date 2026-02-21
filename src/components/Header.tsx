@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
@@ -11,11 +11,14 @@ import { AvatarDropdown, getRoleLabel, getRoleMenuLinks } from '@/components/Ava
 import { Menu, X, MessageCircle, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { SearchFiltersForm } from '@/components/search/SearchFiltersForm';
 
 export function Header() {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const { data: session } = useSession(); // removed status
     const isAuthPage = pathname?.startsWith('/auth');
+    const isSearchPage = pathname === '/search';
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -48,27 +51,38 @@ export function Header() {
 
     return (
         <header className={cn(
-            "fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 min-h-[6rem] flex flex-col justify-center transition-all duration-200",
+            "fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white transition-all duration-200",
             scrolled && "shadow-sm"
         )}>
-            <div className="container mx-auto px-4 flex justify-between items-center h-24 max-w-7xl w-full">
+            <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2">
-                    <img src="/logo.png?v=6" alt="Svoi.de" className="h-20 w-auto object-contain" />
+                <Link href="/" className="flex items-center gap-2 shrink-0">
+                    <img src="/logo.png?v=6" alt="Svoi.de" className="h-11 w-auto object-contain" />
                 </Link>
 
-                {/* Navigation */}
-                <nav className="hidden xl:flex items-center gap-6 font-medium text-[14px] whitespace-nowrap">
-                    <Link href="/search" className="hover:text-blue-600 transition-colors">
-                        Services
-                    </Link>
-                    <Link href="/auth/register?role=provider" className="hover:text-blue-600 transition-colors">
-                        Become a Pro
-                    </Link>
-                </nav>
+                {isSearchPage ? (
+                    <div className="hidden lg:block flex-1 min-w-0">
+                        <SearchFiltersForm
+                            categoryFilter={typeof searchParams.get('category') === 'string' ? searchParams.get('category') || undefined : undefined}
+                            queryFilter={typeof searchParams.get('q') === 'string' ? searchParams.get('q') || undefined : undefined}
+                            cityFilter={typeof searchParams.get('city') === 'string' ? searchParams.get('city') || undefined : undefined}
+                        />
+                    </div>
+                ) : null}
+
+                {!isSearchPage ? (
+                    <nav className="hidden lg:flex items-center gap-6 font-medium text-[14px] whitespace-nowrap ml-auto">
+                        <Link href="/search" className="hover:text-blue-600 transition-colors">
+                            Services
+                        </Link>
+                        <Link href="/auth/register?role=provider" className="hover:text-blue-600 transition-colors">
+                            Become a Pro
+                        </Link>
+                    </nav>
+                ) : null}
 
                 {/* Right Actions */}
-                <div className="ml-4 flex items-center gap-2">
+                <div className={cn("ml-auto flex items-center gap-2", isSearchPage && "lg:ml-0")}>
                     {user ? (
                         <div className="hidden items-center gap-2 xl:flex">
                             <Link

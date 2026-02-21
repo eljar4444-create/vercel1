@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, LocateFixed, MapPin, Search, SlidersHorizontal } from 'lucide-react';
+import { Loader2, LocateFixed, MapPin, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { GERMAN_CITY_SUGGESTIONS, POPULAR_SERVICES, resolveGermanCity } from '@/constants/searchSuggestions';
 
@@ -116,16 +116,7 @@ export function SearchFiltersForm({
             onSubmit={handleSubmit}
             className="rounded-xl border border-slate-200 bg-white p-1"
         >
-            <div className="grid grid-cols-1 gap-1.5 md:grid-cols-[44px_1fr_240px_112px]">
-                <button
-                    type="button"
-                    className="hidden h-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 md:inline-flex"
-                    title="Фильтры"
-                    aria-label="Фильтры"
-                >
-                    <SlidersHorizontal className="h-4 w-4" />
-                </button>
-
+            <div className="grid grid-cols-1 gap-1.5 md:grid-cols-[1fr_240px_112px]">
                 <div className="relative">
                     <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                     <input
