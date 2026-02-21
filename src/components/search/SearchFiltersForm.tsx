@@ -114,7 +114,7 @@ export function SearchFiltersForm({
         <form
             ref={wrapperRef}
             onSubmit={handleSubmit}
-            className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm"
+            className="rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm"
         >
             <div className="grid grid-cols-1 gap-2 md:grid-cols-[1fr_280px_auto]">
                 <div className="relative">
@@ -132,7 +132,7 @@ export function SearchFiltersForm({
                             setQueryOpen(next.trim().length > 0);
                         }}
                         placeholder="Маникюр, стрижка, массаж, салон..."
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                        className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
                     />
                     {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
                         <div className="absolute top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
@@ -157,7 +157,7 @@ export function SearchFiltersForm({
                 </div>
 
                 <div className="relative">
-                    <MapPin className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <MapPin className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <input
                         type="text"
                         value={city}
@@ -171,14 +171,14 @@ export function SearchFiltersForm({
                             setCityOpen(next.trim().length > 0);
                         }}
                         placeholder="Город"
-                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                        className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-11 pr-11 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
                     />
                     <button
                         type="button"
                         title="Определить мой город"
                         aria-label="Определить мой город"
                         onClick={handleGeo}
-                        className="absolute right-2 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                        className="absolute right-1.5 top-1/2 inline-flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
                     >
                         {isGeoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
                     </button>
@@ -206,7 +206,7 @@ export function SearchFiltersForm({
 
                 <button
                     type="submit"
-                    className="flex h-12 items-center justify-center gap-2 rounded-xl bg-black px-8 text-sm font-semibold text-white transition-all duration-200 hover:bg-slate-800"
+                    className="flex h-10 items-center justify-center gap-2 rounded-lg bg-black px-6 text-sm font-semibold text-white transition-all duration-200 hover:bg-slate-800"
                 >
                     <SlidersHorizontal className="h-4 w-4" />
                     Найти

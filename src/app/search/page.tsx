@@ -101,8 +101,8 @@ export default async function SearchPage({
     });
 
     return (
-        <div className="h-[calc(100vh-80px)] overflow-hidden bg-slate-50">
-            <div className="border-b border-slate-200 bg-white px-4 py-3">
+        <div className="h-[calc(100vh-64px)] overflow-hidden bg-slate-50">
+            <div className="border-b border-slate-200 bg-white px-4 py-2">
                 <div className="mx-auto max-w-7xl">
                     <SearchFiltersForm
                         categoryFilter={categoryFilter}
@@ -112,7 +112,7 @@ export default async function SearchPage({
                 </div>
             </div>
 
-            <div className="flex h-[calc(100%-76px)] flex-col lg:flex-row">
+            <div className="flex h-[calc(100%-64px)] flex-col lg:flex-row">
                 <div className="h-full w-full overflow-y-auto p-4 pb-24 md:p-6 lg:w-[55%] xl:w-[60%]">
                     <div className="mb-4 flex items-center justify-between gap-3">
                         <h1 className="text-xl font-semibold text-slate-900">
