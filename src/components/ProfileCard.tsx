@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin, Sparkles, Stethoscope, Globe, UserCircle } from 'lucide-react';
+import { MapPin, Sparkles, Globe, UserCircle } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────
 interface ProfileCardProps {
@@ -38,12 +38,6 @@ const CAT_STYLE: Record<string, {
         accentBg: 'bg-rose-50',
         accentBorder: 'border-rose-100',
         icon: <Sparkles className="w-3.5 h-3.5" />,
-    },
-    health: {
-        accent: 'text-teal-600',
-        accentBg: 'bg-teal-50',
-        accentBorder: 'border-teal-100',
-        icon: <Stethoscope className="w-3.5 h-3.5" />,
     },
 };
 
@@ -118,7 +112,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
                         <span className="truncate">{profile.city}{profile.address ? `, ${profile.address}` : ''}</span>
                     </div>
 
-                    {/* Language Badges (for doctors / health) */}
+                    {/* Language Badges */}
                     {languages.length > 0 && (
                         <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                             <Globe className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
@@ -175,11 +169,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
                 {/* CTA */}
                 <Link
                     href={`/profile/${profile.id}`}
-                    className={`inline-flex items-center gap-1.5 font-semibold text-sm px-5 py-2.5 rounded-xl transition-all duration-200 hover:shadow-md hover:-translate-y-0.5
-                        ${catSlug === 'health'
-                            ? 'bg-teal-600 hover:bg-teal-700 text-white'
-                            : 'bg-rose-500 hover:bg-rose-600 text-white'
-                        }`}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-rose-600 hover:shadow-md"
                 >
                     Записаться
                 </Link>

@@ -94,7 +94,7 @@ export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' 
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Найти: Маникюр, Стоматолог, Педиатр..."
+                        placeholder="Маникюр, стрижка, массаж, салон..."
                         className="w-full py-3 text-base text-gray-800 placeholder-gray-400 bg-transparent outline-none"
                     />
                 </div>

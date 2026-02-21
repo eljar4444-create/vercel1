@@ -9,7 +9,6 @@ export const POPULAR_SERVICES = [
     'Наращивание ресниц',
     'Шугаринг',
     'Косметолог',
-    'Стоматолог',
 ];
 
 function prettifyCity(raw: string) {

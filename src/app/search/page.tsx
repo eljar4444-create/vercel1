@@ -4,7 +4,7 @@ export const revalidate = 0;
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { ProfileCard } from "@/components/ProfileCard";
-import { Search, MapPin, SlidersHorizontal, Sparkles, Stethoscope, X } from "lucide-react";
+import { Search, MapPin, X } from "lucide-react";
 import { SearchFiltersForm } from "@/components/search/SearchFiltersForm";
 import { getCityFilterVariants } from "@/constants/searchSuggestions";
 
@@ -23,14 +23,6 @@ const CAT_CONFIG: Record<string, {
         bg: 'bg-rose-50',
         border: 'border-rose-200',
         activeBg: 'bg-rose-600',
-        activeText: 'text-white',
-    },
-    health: {
-        icon: '🩺',
-        color: 'text-teal-600',
-        bg: 'bg-teal-50',
-        border: 'border-teal-200',
-        activeBg: 'bg-teal-600',
         activeText: 'text-white',
     },
 };
@@ -58,13 +50,12 @@ export default async function SearchPage({
     try {
         categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
     } catch { /* fallback to empty */ }
+    categories = categories.filter((cat) => cat.slug !== 'health');
 
     // ─── Build the profile "where" clause ───────────────────────────
-    const andConditions: any[] = [
-        { is_verified: true }, // Only show verified profiles
-    ];
+    const andConditions: any[] = [{ is_verified: true }, { category: { slug: { not: 'health' } } }];
 
-    if (categoryFilter) {
+    if (categoryFilter && categoryFilter !== 'health') {
         const cat = categories.find(c => c.slug === categoryFilter);
         if (cat) {
             andConditions.push({ category_id: cat.id });

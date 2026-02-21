@@ -25,39 +25,14 @@ export const SERVICE_TREE = {
             'Лазерная эпиляция',
         ],
     },
-    health: {
-        'Стоматология': [
-            'Консультация и осмотр',
-            'Лечение кариеса',
-            'Профессиональная чистка (AirFlow)',
-            'Отбеливание зубов',
-            'Удаление зубов',
-        ],
-        'Терапия': ['Первичный прием', 'Повторный прием', 'Расшифровка анализов', 'Оформление справок'],
-        'Массаж и Реабилитация': [
-            'Лечебный массаж',
-            'Спортивный массаж',
-            'Мануальная терапия',
-            'ЛФК',
-        ],
-        'Диагностика': ['УЗИ', 'ЭКГ', 'Забор анализов'],
-    },
 } as const;
 
 export type ServiceTreeKey = keyof typeof SERVICE_TREE;
 
 export function resolveServiceTreeKey(input?: string | null): ServiceTreeKey | null {
-    if (!input) return null;
+    if (!input) return 'beauty';
     const normalized = input.trim().toLowerCase();
 
     if (normalized === 'beauty' || normalized === 'красота') return 'beauty';
-    if (
-        normalized === 'health' ||
-        normalized === 'медицина' ||
-        normalized === 'медицина и врачи'
-    ) {
-        return 'health';
-    }
-
-    return null;
+    return 'beauty';
 }

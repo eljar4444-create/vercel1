@@ -21,9 +21,9 @@ export default async function CreateServicePage() {
         // Fallback for local dev without DB
         categories = [
             { id: '1', name: 'Красота', slug: 'beauty' },
-            { id: '2', name: 'Медицина', slug: 'health' }
         ];
     }
+    categories = categories.filter((category) => category.slug !== 'health');
 
     return (
         <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>

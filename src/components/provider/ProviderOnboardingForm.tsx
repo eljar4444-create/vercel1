@@ -6,16 +6,14 @@ import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { createProviderProfile } from '@/app/actions/providerOnboarding';
 import { CityCombobox } from '@/components/provider/CityCombobox';
 
-type Category = { id: number; name: string; icon: string | null };
-
 export function ProviderOnboardingForm({
-    categories,
     email,
     defaultName,
+    defaultCategoryId,
 }: {
-    categories: Category[];
     email: string;
     defaultName?: string | null;
+    defaultCategoryId?: number | null;
 }) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,22 +87,7 @@ export function ProviderOnboardingForm({
                 <CityCombobox name="city" value={city} onValueChange={setCity} />
             </div>
 
-            <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">Категория</label>
-                <select
-                    name="category_id"
-                    required
-                    defaultValue=""
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 outline-none focus:border-transparent focus:ring-2 focus:ring-gray-300"
-                >
-                    <option value="" disabled>Выберите категорию</option>
-                    {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                            {category.icon ? `${category.icon} ` : ''}{category.name}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            <input type="hidden" name="category_id" value={defaultCategoryId ?? ''} />
 
             <button
                 type="submit"

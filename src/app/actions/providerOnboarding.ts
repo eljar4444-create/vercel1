@@ -22,13 +22,19 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
 
     const name = String(formData.get('name') || '').trim();
     const city = String(formData.get('city') || '').trim();
-    const categoryId = Number(formData.get('category_id'));
-
-    if (!name || !city || !Number.isInteger(categoryId)) {
-        return { success: false, error: 'Заполните все обязательные поля.' };
-    }
+    const submittedCategoryId = Number(formData.get('category_id'));
 
     try {
+        const beautyCategory = await prisma.category.findFirst({
+            where: { slug: 'beauty' },
+            select: { id: true },
+        });
+        const categoryId = beautyCategory?.id ?? submittedCategoryId;
+
+        if (!name || !city || !Number.isInteger(categoryId)) {
+            return { success: false, error: 'Заполните все обязательные поля.' };
+        }
+
         const existingByUserId = await prisma.profile.findFirst({
             where: { user_id: session.user.id },
             select: { id: true },

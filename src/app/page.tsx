@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-    Search, ArrowRight, Sparkles, Stethoscope,
+    Search, ArrowRight, Sparkles,
     CalendarCheck, UserCheck, Star, ChevronRight,
     Shield, Clock, Heart, MapPin, Loader2, LocateFixed
 } from 'lucide-react';
@@ -26,20 +26,6 @@ const CATEGORIES = [
         iconClass: 'text-rose-600',
         services: ['Маникюр', 'Педикюр', 'Парикмахер', 'Косметолог'],
     },
-    {
-        name: 'Медицина и Врачи',
-        slug: 'health',
-        description: 'Проверенные специалисты для диагностики, терапии и восстановления',
-        eyebrow: 'Trusted Care',
-        icon: Stethoscope,
-        cardBg: 'from-white to-teal-50/80',
-        spotlight: 'from-teal-500/20 via-emerald-500/10 to-white',
-        iconWrap: 'from-teal-100 to-emerald-100',
-        chipClass: 'bg-teal-100/65 text-teal-700 hover:bg-teal-200/70',
-        iconClass: 'text-teal-600',
-        services: ['Стоматолог', 'Терапевт', 'Массаж', 'Диагностика'],
-    },
-    
 ];
 
 // ─── How It Works ───────────────────────────────────────────────────
@@ -199,13 +185,13 @@ export default function HomePage() {
                         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight mb-6 tracking-tight">
                             Найди своего мастера
                             <span className="block bg-gradient-to-r from-rose-400 via-pink-400 to-teal-400 bg-clip-text text-transparent mt-2">
-                                красоты и здоровья
+                                красоты и ухода
                             </span>
                         </h1>
 
                         {/* Subtitle */}
                         <p className="text-lg sm:text-xl text-white/60 mb-10 max-w-xl mx-auto leading-relaxed">
-                            Маникюр, стоматология, массаж — всё рядом с домом.
+                            Маникюр, стрижка, массаж — всё рядом с домом.
                             Бронируй в пару кликов.
                         </p>
 
@@ -231,7 +217,7 @@ export default function HomePage() {
                                                 setQuery(next);
                                                 setQueryOpen(next.trim().length > 0);
                                             }}
-                                            placeholder="Что ищете: маникюр, стоматолог..."
+                                            placeholder="Маникюр, стрижка, массаж, салон..."
                                             className="h-full w-full bg-transparent px-3 text-base text-gray-900 placeholder:text-gray-400 outline-none"
                                         />
                                         {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
@@ -335,7 +321,7 @@ export default function HomePage() {
                         {/* Quick links */}
                         <div className="flex items-center justify-center gap-3 mt-6 flex-wrap">
                             <span className="text-sm text-white/40">Популярное:</span>
-                            {['Маникюр', 'Стоматолог', 'Массаж', 'Парикмахер'].map(tag => (
+                            {['Маникюр', 'Стрижка', 'Массаж', 'Парикмахер'].map(tag => (
                                 <Link
                                     key={tag}
                                     href={`/search?q=${encodeURIComponent(tag)}`}
@@ -388,12 +374,11 @@ export default function HomePage() {
                             Выберите направление
                         </h2>
                         <p className="mx-auto max-w-xl text-lg text-gray-500">
-                            Найдите проверенных специалистов в сфере красоты и здоровья
+                            Найдите проверенных специалистов в сфере красоты и ухода
                         </p>
                     </div>
 
-                    {/* Symmetric two-card grid */}
-                    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 md:grid-cols-2">
+                    <div className="mx-auto grid max-w-3xl grid-cols-1 gap-8">
                         {CATEGORIES.map((cat) => {
                             const Icon = cat.icon;
 
@@ -551,7 +536,7 @@ export default function HomePage() {
                 <div className="relative container mx-auto px-4 max-w-6xl py-20">
                     <div className="max-w-2xl mx-auto text-center">
                         <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 text-white/70 text-sm font-medium px-4 py-2 rounded-full mb-6">
-                            <Stethoscope className="w-4 h-4" />
+                            <Sparkles className="w-4 h-4" />
                             Для специалистов
                         </div>
 

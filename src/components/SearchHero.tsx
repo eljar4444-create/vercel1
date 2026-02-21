@@ -36,6 +36,7 @@ interface SearchHeroProps {
 
 export function SearchHero({ categories = [], user }: SearchHeroProps) {
     const router = useRouter();
+    const beautyCategories = useMemo(() => categories.filter((category) => category.slug !== 'health'), [categories]);
     const [serviceQuery, setServiceQuery] = useState('');
     const [locationQuery, setLocationQuery] = useState('');
     const [radius, setRadius] = useState(10);
@@ -55,7 +56,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
         const items: SearchItem[] = [];
 
         // Add main categories
-        categories.forEach(cat => {
+        beautyCategories.forEach(cat => {
             items.push({
                 id: cat.id,
                 name: cat.name,
@@ -83,7 +84,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
         });
 
         return items;
-    }, [categories]);
+    }, [beautyCategories]);
 
     const [filteredItems, setFilteredItems] = useState<SearchItem[]>([]);
 
@@ -121,7 +122,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
         const params = new URLSearchParams();
 
         // Use explicitly selected params if the query matches the selected item name
-        if (selectedParams && serviceQuery === (selectedParams.subcategory || categories.find(c => c.slug === selectedParams.category)?.name)) {
+        if (selectedParams && serviceQuery === (selectedParams.subcategory || beautyCategories.find(c => c.slug === selectedParams.category)?.name)) {
             if (selectedParams.category) params.set('category', selectedParams.category);
             if (selectedParams.subcategory) params.set('subcategory', selectedParams.subcategory);
         } else if (selectedParams) {
@@ -212,7 +213,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
                                     <div className="flex max-h-[50vh] md:max-h-[400px]">
                                         {/* Left Col: Categories */}
                                         <div className="w-1/2 overflow-y-auto border-r border-gray-100 bg-gray-50/50">
-                                            {categories.map((cat) => (
+                                            {beautyCategories.map((cat) => (
                                                 <div
                                                     key={cat.id}
                                                     onMouseEnter={() => setHoveredCategory(cat.slug)}
@@ -240,13 +241,13 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
                                             {hoveredCategory && SUB_CATEGORIES[hoveredCategory] ? (
                                                 <>
                                                     <div className="px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
-                                                        {categories.find(c => c.slug === hoveredCategory)?.name}
+                                                        {beautyCategories.find(c => c.slug === hoveredCategory)?.name}
                                                     </div>
                                                     {SUB_CATEGORIES[hoveredCategory].map((sub) => (
                                                         <div
                                                             key={sub}
                                                             onClick={() => {
-                                                                const parentCat = categories.find(c => c.slug === hoveredCategory);
+                                                                const parentCat = beautyCategories.find(c => c.slug === hoveredCategory);
                                                                 if (parentCat) {
                                                                     handleSelectItem({
                                                                         id: `${parentCat.id}-${sub}`,

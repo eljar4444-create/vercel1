@@ -30,9 +30,9 @@ export default async function ProviderOnboardingPage() {
         redirect(`/dashboard/${existingProfile.id}`);
     }
 
-    const categories = await prisma.category.findMany({
-        select: { id: true, name: true, icon: true },
-        orderBy: { name: 'asc' },
+    const beautyCategory = await prisma.category.findFirst({
+        where: { slug: 'beauty' },
+        select: { id: true },
     });
 
     return (
@@ -47,9 +47,9 @@ export default async function ProviderOnboardingPage() {
                 </div>
 
                 <ProviderOnboardingForm
-                    categories={categories}
                     email={session.user.email}
                     defaultName={session.user.name}
+                    defaultCategoryId={beautyCategory?.id ?? null}
                 />
             </div>
         </section>
