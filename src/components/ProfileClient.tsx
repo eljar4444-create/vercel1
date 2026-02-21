@@ -365,6 +365,8 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 masterName={profile.name}
+                masterAddress={fullAddress || profile.city}
+                rating={5}
                 profileId={profile.id}
                 selectedService={selectedService}
                 initialDate={initialDate}
