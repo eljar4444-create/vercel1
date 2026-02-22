@@ -5,7 +5,7 @@ import { DashboardView } from '@/components/client/DashboardView';
 
 export const dynamic = 'force-dynamic';
 
-export function buildBookingDateTime(date: Date, time: string) {
+function buildBookingDateTime(date: Date, time: string) {
     const [h, m] = time.split(':').map((v) => Number(v));
     const dt = new Date(date);
     dt.setHours(Number.isFinite(h) ? h : 0, Number.isFinite(m) ? m : 0, 0, 0);
