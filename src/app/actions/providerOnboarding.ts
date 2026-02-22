@@ -84,7 +84,7 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
         });
 
         revalidatePath('/search');
-        revalidatePath('/account');
+        revalidatePath('/dashboard');
         return { success: true, profileId: created.id };
     } catch (error: any) {
         console.error('createProviderProfile error:', error);

@@ -44,8 +44,7 @@ export function getRoleMenuLinks(user: {
                 { href: '/account/settings', label: 'Настройки аккаунта', icon: Settings },
             ]
             : [
-                { href: '/account', label: 'Личный кабинет', icon: UserCircle2 },
-                { href: '/my-bookings', label: 'Мои записи', icon: CalendarClock },
+                { href: '/dashboard', label: 'Мой кабинет', icon: LayoutDashboard },
                 { href: '/account/settings', label: 'Настройки аккаунта', icon: Settings },
             ];
 }

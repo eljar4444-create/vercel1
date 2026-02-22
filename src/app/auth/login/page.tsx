@@ -31,7 +31,7 @@ function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const rawCallback = searchParams.get('callbackUrl');
-    let callbackUrl = '/account';
+    let callbackUrl = '/dashboard';
     if (rawCallback) {
         if (rawCallback.startsWith('/') && !rawCallback.startsWith('//')) {
             callbackUrl = rawCallback;

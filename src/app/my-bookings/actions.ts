@@ -47,7 +47,7 @@ async function cancelClientBookingCore(userId: string, bookingId: number) {
         data: { status: 'cancelled' },
     });
 
-    revalidatePath('/my-bookings');
+    revalidatePath('/dashboard');
     return { success: true, error: null };
 }
 
@@ -109,7 +109,7 @@ export async function linkLegacyBookingsState(
         data: { user_id: session.user.id },
     });
 
-    revalidatePath('/my-bookings');
+    revalidatePath('/dashboard');
     return {
         success: true,
         error: null,

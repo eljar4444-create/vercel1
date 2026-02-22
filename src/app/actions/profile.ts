@@ -23,7 +23,7 @@ export async function updateBasicInfo(formData: FormData) {
         },
     });
 
-    revalidatePath('/account');
+    revalidatePath('/dashboard');
     revalidatePath('/account/settings');
 
     return { success: true };
@@ -63,7 +63,7 @@ export async function uploadProfilePhoto(formData: FormData) {
         data: { image: blob.url },
     });
 
-    revalidatePath('/account');
+    revalidatePath('/dashboard');
     revalidatePath('/account/settings');
 
     return { success: true, imageUrl: blob.url };
