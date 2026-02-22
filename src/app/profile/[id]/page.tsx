@@ -81,6 +81,7 @@ export default async function ProfileDetailPage({
             address: true,
             image_url: true,
             gallery: true,
+            studioImages: true,
             bio: true,
             phone: true,
             is_verified: true,
@@ -124,14 +125,8 @@ export default async function ProfileDetailPage({
         city: profile.city,
         address: profile.address,
         image_url: profile.image_url,
-        gallery:
-            profile.gallery.length > 0
-                ? profile.gallery
-                : [
-                      'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1600&q=80',
-                      'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1600&q=80',
-                      'https://images.unsplash.com/photo-1633681926035-ec1ac984418a?auto=format&fit=crop&w=1600&q=80',
-                  ],
+        gallery: profile.gallery,
+        studioImages: profile.studioImages,
         bio: profile.bio,
         phone: profile.phone,
         is_verified: profile.is_verified,

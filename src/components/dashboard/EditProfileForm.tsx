@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, CheckCircle, AlertCircle, Save } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, Save, Upload, X } from 'lucide-react';
 import { updateProfile } from '@/app/actions/updateProfile';
+import { uploadServicePhoto } from '@/app/actions/upload';
 import toast from 'react-hot-toast';
 import { CityCombobox } from '@/components/provider/CityCombobox';
 
@@ -15,6 +16,7 @@ interface EditProfileFormProps {
         phone: string | null;
         city: string;
         address: string | null;
+        studioImages: string[];
     };
 }
 
@@ -24,6 +26,36 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     const [error, setError] = useState<string | null>(null);
     const [city, setCity] = useState(profile.city);
     const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE'>(profile.providerType);
+    const [studioImages, setStudioImages] = useState<string[]>(profile.studioImages || []);
+    const [isUploadingStudio, setIsUploadingStudio] = useState(false);
+
+    const handleUploadStudioImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+
+        setIsUploadingStudio(true);
+        try {
+            let currentCount = studioImages.length;
+            for (const file of Array.from(files)) {
+                if (currentCount >= 8) {
+                    toast.error('Можно загрузить максимум 8 фото студии.');
+                    break;
+                }
+                const payload = new FormData();
+                payload.append('photo', file);
+                const result = await uploadServicePhoto(payload);
+                if (result.success && result.imageUrl) {
+                    currentCount += 1;
+                    setStudioImages((prev) => [...prev, result.imageUrl]);
+                }
+            }
+        } catch (uploadError: any) {
+            toast.error(uploadError?.message || 'Не удалось загрузить фото');
+        } finally {
+            setIsUploadingStudio(false);
+            event.target.value = '';
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -37,6 +69,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
 
         const formData = new FormData(e.currentTarget);
         formData.set('profile_id', profile.id.toString());
+        formData.set('studioImages', JSON.stringify(studioImages));
 
         const result = await updateProfile(formData);
         setIsSubmitting(false);
@@ -122,6 +155,38 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                 />
             </div>
 
+            <div className="space-y-2">
+                <label className={labelClass}>Фотографии студии / Интерьер</label>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {studioImages.map((url, idx) => (
+                        <div key={`${url}-${idx}`} className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+                            <img src={url} alt={`studio-${idx + 1}`} className="h-full w-full object-cover" />
+                            <button
+                                type="button"
+                                onClick={() => setStudioImages((prev) => prev.filter((_, i) => i !== idx))}
+                                className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/65 text-white opacity-0 transition group-hover:opacity-100"
+                                aria-label="Удалить фото"
+                            >
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                        </div>
+                    ))}
+                    <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:border-gray-400">
+                        {isUploadingStudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                        <span className="mt-1 text-[11px]">Добавить</span>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={handleUploadStudioImages}
+                            disabled={isUploadingStudio || studioImages.length >= 8}
+                        />
+                    </label>
+                </div>
+                <p className="text-xs text-gray-500">До 8 фото ({studioImages.length}/8)</p>
+            </div>
+
             {/* Phone */}
             <div>
                 <label className={labelClass}>Телефон</label>
@@ -157,7 +222,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
             {/* Submit */}
             <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploadingStudio}
                 className="w-full h-10 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
                 {isSubmitting ? (

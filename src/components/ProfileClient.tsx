@@ -28,6 +28,7 @@ interface ProfileData {
     address?: string | null;
     image_url?: string | null;
     gallery: string[];
+    studioImages: string[];
     bio?: string | null;
     phone?: string | null;
     is_verified: boolean;
@@ -102,6 +103,14 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         return Array.from(groups.entries());
     }, [services]);
     const trimmedBio = (profile.bio || '').trim();
+    const fallbackStudioImage =
+        'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=2000&q=80';
+    const studioImages =
+        profile.studioImages && profile.studioImages.length > 0
+            ? profile.studioImages
+            : profile.gallery && profile.gallery.length > 0
+              ? profile.gallery
+              : [fallbackStudioImage];
 
     const initialDate = searchParams.get('date') || undefined;
     const initialTime = searchParams.get('time') || undefined;
@@ -211,28 +220,71 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         </Button>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2 h-[400px] rounded-2xl overflow-hidden mt-6">
-                        <div className="group relative col-span-4 overflow-hidden md:col-span-2 md:row-span-2">
-                            <img
-                                src={profile.gallery[0]}
-                                alt={`${profile.name} photo 1`}
-                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                            />
+                    <div className="mt-6 md:hidden">
+                        <div className="flex gap-2 overflow-x-auto pb-1">
+                            {studioImages.map((image, index) => (
+                                <div key={`${image}-${index}`} className="group relative h-44 w-64 flex-shrink-0 overflow-hidden rounded-2xl">
+                                    <img
+                                        src={image}
+                                        alt={`${profile.name} studio ${index + 1}`}
+                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                                    />
+                                </div>
+                            ))}
                         </div>
-                        <div className="group relative col-span-2 hidden overflow-hidden md:block">
-                            <img
-                                src={profile.gallery[1] || profile.gallery[0]}
-                                alt={`${profile.name} photo 2`}
-                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                            />
-                        </div>
-                        <div className="group relative col-span-2 hidden overflow-hidden md:block">
-                            <img
-                                src={profile.gallery[2] || profile.gallery[0]}
-                                alt={`${profile.name} photo 3`}
-                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                            />
-                        </div>
+                    </div>
+
+                    <div className="mt-6 hidden h-[400px] overflow-hidden rounded-2xl md:block">
+                        {studioImages.length >= 3 ? (
+                            <div className="grid h-full grid-cols-4 gap-2">
+                                <div className="group relative col-span-2 row-span-2 overflow-hidden">
+                                    <img
+                                        src={studioImages[0]}
+                                        alt={`${profile.name} studio 1`}
+                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                                    />
+                                </div>
+                                <div className="group relative col-span-2 overflow-hidden">
+                                    <img
+                                        src={studioImages[1]}
+                                        alt={`${profile.name} studio 2`}
+                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                                    />
+                                </div>
+                                <div className="group relative col-span-2 overflow-hidden">
+                                    <img
+                                        src={studioImages[2]}
+                                        alt={`${profile.name} studio 3`}
+                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                                    />
+                                </div>
+                            </div>
+                        ) : studioImages.length === 2 ? (
+                            <div className="grid h-full grid-cols-4 gap-2">
+                                <div className="group relative col-span-3 overflow-hidden">
+                                    <img
+                                        src={studioImages[0]}
+                                        alt={`${profile.name} studio 1`}
+                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                                    />
+                                </div>
+                                <div className="group relative col-span-1 overflow-hidden">
+                                    <img
+                                        src={studioImages[1]}
+                                        alt={`${profile.name} studio 2`}
+                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                                    />
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="group relative h-full overflow-hidden">
+                                <img
+                                    src={studioImages[0]}
+                                    alt={`${profile.name} studio`}
+                                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                                />
+                            </div>
+                        )}
                     </div>
                 </section>
 

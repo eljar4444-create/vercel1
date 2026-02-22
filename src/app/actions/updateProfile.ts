@@ -18,6 +18,21 @@ export async function updateProfile(formData: FormData) {
     const city = formData.get('city') as string;
     const address = formData.get('address') as string;
     const providerType = providerTypeRaw === 'SALON' ? 'SALON' : 'PRIVATE';
+    const studioImagesRaw = formData.get('studioImages');
+    let studioImages: string[] = [];
+
+    if (typeof studioImagesRaw === 'string' && studioImagesRaw.trim()) {
+        try {
+            const parsed = JSON.parse(studioImagesRaw);
+            if (Array.isArray(parsed)) {
+                studioImages = parsed
+                    .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+                    .slice(0, 8);
+            }
+        } catch {
+            return { success: false, error: 'Некорректный формат фотографий студии.' };
+        }
+    }
 
     if (isNaN(profileId) || !name || !city) {
         return { success: false, error: 'Имя и город обязательны.' };
@@ -50,6 +65,7 @@ export async function updateProfile(formData: FormData) {
                 phone: phone || null,
                 city,
                 address: providerType === 'SALON' ? address || null : null,
+                studioImages,
             },
         });
 

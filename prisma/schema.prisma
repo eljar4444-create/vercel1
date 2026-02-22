@@ -39,6 +39,7 @@ model Profile {
   attributes  Json
   image_url   String?
   gallery     String[]  @default([])
+  studioImages String[] @default([])
   bio         String?
   phone       String?
   schedule    Json?

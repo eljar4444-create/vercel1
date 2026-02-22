@@ -47,6 +47,7 @@ export default async function DashboardPage({
             name: true,
             provider_type: true,
             image_url: true,
+            studioImages: true,
             bio: true,
             phone: true,
             city: true,
@@ -392,6 +393,7 @@ export default async function DashboardPage({
                                         phone: profile.phone,
                                         city: profile.city,
                                         address: profile.address,
+                                        studioImages: profile.studioImages,
                                     }}
                                 />
                             </div>
