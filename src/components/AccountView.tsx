@@ -1,8 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Compass, CalendarClock, Sparkles, Settings } from 'lucide-react';
+import { CalendarClock, Heart, Settings, ArrowRight } from 'lucide-react';
 
 interface User {
     id: string;
@@ -22,81 +21,78 @@ interface AccountViewProps {
 }
 
 export function AccountView({ user, stats }: AccountViewProps) {
+    const firstName = user.name?.split(' ')[0] || '';
+
     return (
-        <div className="space-y-6">
-            <div className="rounded-3xl bg-gradient-to-br from-gray-900 to-gray-800 p-6 text-white shadow-lg">
-                <p className="text-xs uppercase tracking-[0.18em] text-gray-300">Client Area</p>
-                <h1 className="mt-2 text-3xl font-bold">
-                    {user.name ? `Привет, ${user.name}!` : 'Добро пожаловать!'}
+        <div className="space-y-8">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                    {firstName ? `Привет, ${firstName}! 👋` : 'Добро пожаловать! 👋'}
                 </h1>
-                <p className="mt-2 max-w-2xl text-sm text-gray-300">
-                    Здесь вы управляете профилем и записями: находите мастеров, бронируете время и отслеживаете визиты.
-                </p>
-                <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <div className="rounded-xl bg-white/10 px-4 py-3">
-                        <p className="text-[11px] text-gray-300">Всего записей</p>
-                        <p className="text-2xl font-bold">{stats.totalBookings}</p>
+                <p className="mt-1.5 text-sm text-slate-500">{user.email}</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <Link
+                    href="/my-bookings"
+                    className="group rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+                            <CalendarClock className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-slate-300 transition-colors group-hover:text-slate-500" />
                     </div>
-                    <div className="rounded-xl bg-white/10 px-4 py-3">
-                        <p className="text-[11px] text-gray-300">Предстоящие</p>
-                        <p className="text-2xl font-bold">{stats.upcomingBookings}</p>
+                    <p className="mt-4 text-2xl font-bold text-slate-900">{stats.upcomingBookings}</p>
+                    <p className="text-sm text-slate-500">Мои записи</p>
+                </Link>
+
+                <Link
+                    href="/search"
+                    className="group rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50">
+                            <Heart className="h-5 w-5 text-rose-500" />
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-slate-300 transition-colors group-hover:text-slate-500" />
                     </div>
-                    <div className="rounded-xl bg-white/10 px-4 py-3">
-                        <p className="text-[11px] text-gray-300">Статус</p>
-                        <p className="text-lg font-semibold">{user.role === 'CLIENT' ? 'Клиент' : user.role}</p>
+                    <p className="mt-4 text-2xl font-bold text-slate-900">{stats.totalBookings}</p>
+                    <p className="text-sm text-slate-500">Всего визитов</p>
+                </Link>
+
+                <Link
+                    href="/account/settings"
+                    className="group rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                >
+                    <div className="flex items-center justify-between">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100">
+                            <Settings className="h-5 w-5 text-slate-600" />
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-slate-300 transition-colors group-hover:text-slate-500" />
                     </div>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-2">
-                    <Button asChild className="bg-[#fc0] text-black hover:bg-[#e6b800]">
-                        <Link href="/search">
-                            <Compass className="mr-2 h-4 w-4" />
-                            Найти мастера
-                        </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20">
-                        <Link href="/my-bookings">
-                            <CalendarClock className="mr-2 h-4 w-4" />
-                            Мои записи
-                        </Link>
-                    </Button>
-                    <Button asChild variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20">
-                        <Link href="/account/settings">
-                            <Settings className="mr-2 h-4 w-4" />
-                            Настройки аккаунта
-                        </Link>
-                    </Button>
-                </div>
+                    <p className="mt-4 text-sm font-semibold text-slate-900">Настройки</p>
+                    <p className="text-sm text-slate-500">Профиль и аккаунт</p>
+                </Link>
             </div>
 
             {stats.totalBookings === 0 && (
-                <div className="rounded-2xl border border-blue-200 bg-blue-50 p-5">
-                    <h2 className="text-sm font-bold text-blue-900">Что делать дальше</h2>
-                    <div className="mt-3 grid gap-2 text-sm text-blue-900 sm:grid-cols-3">
-                        <div className="rounded-lg border border-blue-200 bg-white px-3 py-2">
-                            <span className="font-semibold">1.</span> Выберите услугу в поиске
-                        </div>
-                        <div className="rounded-lg border border-blue-200 bg-white px-3 py-2">
-                            <span className="font-semibold">2.</span> Забронируйте удобный слот
-                        </div>
-                        <div className="rounded-lg border border-blue-200 bg-white px-3 py-2">
-                            <span className="font-semibold">3.</span> Следите за записью в кабинете
-                        </div>
+                <div className="rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-sm">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-50">
+                        <CalendarClock className="h-6 w-6 text-slate-400" />
                     </div>
-                    <Button asChild className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">
-                        <Link href="/search">Перейти к поиску</Link>
-                    </Button>
+                    <p className="text-base font-semibold text-slate-900">У вас пока нет записей</p>
+                    <p className="mx-auto mt-1 max-w-sm text-sm text-slate-500">
+                        Найдите мастера и забронируйте удобное время
+                    </p>
+                    <Link
+                        href="/search"
+                        className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+                    >
+                        Найти мастера
+                    </Link>
                 </div>
             )}
-
-            <div className="rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-600">
-                <div className="flex items-center gap-2 font-semibold text-gray-900">
-                    <Sparkles className="h-4 w-4 text-yellow-500" />
-                    Подсказка
-                </div>
-                <p className="mt-2">
-                    В разделе «Настройки аккаунта» можно обновить имя, аватар и информацию «О себе».
-                </p>
-            </div>
         </div>
     );
 }

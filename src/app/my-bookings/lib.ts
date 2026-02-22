@@ -21,7 +21,7 @@ export async function findBookingsByUserId(userId: string) {
         where: { user_id: userId },
         include: {
             profile: {
-                select: { id: true, name: true, city: true },
+                select: { id: true, name: true, city: true, image_url: true },
             },
             service: {
                 select: { id: true, title: true, price: true },
