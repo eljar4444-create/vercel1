@@ -9,6 +9,7 @@ const DEFAULT_CITY_COORDS = {
     lat: 52.52,
     lng: 13.405,
 };
+const addressCoordsCache = new Map<string, { lat: number; lng: number }>();
 
 function resolveCityCoordinates(city: string) {
     const normalized = city.trim().toLowerCase();
@@ -24,6 +25,42 @@ function resolveCityCoordinates(city: string) {
         lat: Number(match.data.lat) || DEFAULT_CITY_COORDS.lat,
         lng: Number(match.data.lon) || DEFAULT_CITY_COORDS.lng,
     };
+}
+
+async function resolveAddressCoordinates(address: string, city: string) {
+    const query = [address, city, 'Deutschland'].filter(Boolean).join(', ').trim();
+    if (!query) return null;
+
+    const cached = addressCoordsCache.get(query);
+    if (cached) return cached;
+
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`,
+            {
+                headers: {
+                    'Accept-Language': 'de,en',
+                    'User-Agent': 'svoi.de/1.0 (support@svoi.de)',
+                },
+                cache: 'no-store',
+            }
+        );
+        if (!response.ok) return null;
+
+        const payload = (await response.json()) as Array<{ lat: string; lon: string }>;
+        const first = payload?.[0];
+        if (!first) return null;
+
+        const lat = Number(first.lat);
+        const lng = Number(first.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+        const coords = { lat, lng };
+        addressCoordsCache.set(query, coords);
+        return coords;
+    } catch {
+        return null;
+    }
 }
 
 export default async function ProfileDetailPage({
@@ -73,6 +110,11 @@ export default async function ProfileDetailPage({
     if (!profile) notFound();
 
     const cityCoordinates = resolveCityCoordinates(profile.city);
+    const preciseCoordinates =
+        profile.provider_type === 'SALON' && profile.address
+            ? await resolveAddressCoordinates(profile.address, profile.city)
+            : null;
+    const mapCoordinates = preciseCoordinates || cityCoordinates;
 
     // Serialize for client component (Decimal → string, Date → string)
     const serialized = {
@@ -94,8 +136,8 @@ export default async function ProfileDetailPage({
         phone: profile.phone,
         is_verified: profile.is_verified,
         created_at: profile.created_at.toISOString(),
-        latitude: cityCoordinates.lat,
-        longitude: cityCoordinates.lng,
+        latitude: mapCoordinates.lat,
+        longitude: mapCoordinates.lng,
         attributes: profile.attributes,
         category: profile.category
             ? { id: profile.category.id, name: profile.category.name, slug: profile.category.slug }
