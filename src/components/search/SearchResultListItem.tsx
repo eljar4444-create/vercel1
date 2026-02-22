@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Building2, Clock3, MapPin, Star, UserRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
@@ -43,9 +44,16 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                 <Link
                     href={`/profile/${profile.id}`}
                     className="block h-52 w-full cursor-pointer overflow-hidden bg-slate-100 md:h-auto md:min-h-[200px] md:w-48 md:flex-shrink-0"
+                    aria-label={`Открыть профиль ${profile.name}`}
                 >
                     {profile.image_url ? (
-                        <img src={profile.image_url} alt={profile.name} className="h-full w-full object-cover" />
+                        <Image
+                            src={profile.image_url}
+                            alt={`${profile.name} — мастер в ${profile.city}`}
+                            width={400}
+                            height={400}
+                            className="h-full w-full object-cover"
+                        />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">No photo</div>
                     )}
@@ -54,9 +62,9 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                 <div className="min-w-0 flex-1 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <Link href={`/profile/${profile.id}`} className="block cursor-pointer">
-                            <h3 className="text-[17px] font-semibold leading-tight text-slate-900 transition-colors hover:text-blue-600">
+                            <h2 className="text-[17px] font-semibold leading-tight text-slate-900 transition-colors hover:text-blue-600">
                                 {profile.name}
-                            </h3>
+                            </h2>
                             <Badge variant="outline" className="mt-1 inline-flex border-slate-200 bg-slate-50 text-[10px] font-medium text-slate-600">
                                 {isSalon ? <Building2 className="mr-1 h-3 w-3" /> : <UserRound className="mr-1 h-3 w-3" />}
                                 {isSalon ? 'Салон' : 'Частный мастер'}
@@ -67,7 +75,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                             </p>
                             <p className="mt-1 text-xs text-slate-500">4.8 (5 отзывов) · €€€</p>
                         </Link>
-                        <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                        <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700" aria-label="Рейтинг 5.0">
                             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                             5.0
                         </div>
@@ -80,7 +88,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                                 <p className="text-[10px] font-semibold uppercase text-slate-500">Утро</p>
                                 <div className="mt-1 flex flex-wrap gap-1.5">
                                     {slots.morning.map((slot) => (
-                                        <span key={slot} className="rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600">
+                                        <span key={slot} className="min-h-[44px] flex items-center rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600">
                                             {slot}
                                         </span>
                                     ))}
@@ -90,7 +98,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                                 <p className="text-[10px] font-semibold uppercase text-slate-500">Вечер</p>
                                 <div className="mt-1 flex flex-wrap gap-1.5">
                                     {slots.evening.map((slot) => (
-                                        <span key={slot} className="rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600">
+                                        <span key={slot} className="min-h-[44px] flex items-center rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600">
                                             {slot}
                                         </span>
                                     ))}
@@ -104,9 +112,8 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                             previewServices.map((service, index) => (
                                 <div
                                     key={service.id}
-                                    className={`flex flex-col justify-between gap-2 px-0 py-2 sm:flex-row sm:items-center ${
-                                        index > 0 ? 'border-t border-slate-100' : ''
-                                    }`}
+                                    className={`flex flex-col justify-between gap-2 px-0 py-2 sm:flex-row sm:items-center ${index > 0 ? 'border-t border-slate-100' : ''
+                                        }`}
                                 >
                                     <div>
                                         <p className="text-sm font-medium text-slate-900">{service.title}</p>
@@ -119,7 +126,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                                         <p className="text-sm font-semibold text-slate-900">€{service.price.toFixed(0)}</p>
                                         <Link
                                             href={`/profile/${profile.id}?book=1&service=${service.id}`}
-                                            className="inline-flex h-7 items-center rounded-md bg-slate-100 px-3 text-[11px] font-medium text-slate-900 transition hover:bg-slate-200"
+                                            className="inline-flex min-h-[44px] items-center rounded-md bg-slate-100 px-3 text-[11px] font-medium text-slate-900 transition hover:bg-slate-200"
                                         >
                                             Выбрать
                                         </Link>
@@ -134,7 +141,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                     <div className="mt-3 flex justify-end border-t border-slate-100 pt-3">
                         <Link
                             href={`/profile/${profile.id}?book=1`}
-                            className="inline-flex h-8 items-center rounded-md bg-black px-4 text-xs font-semibold text-white transition hover:bg-slate-800"
+                            className="inline-flex min-h-[44px] items-center rounded-md bg-black px-4 text-xs font-semibold text-white transition hover:bg-slate-800"
                         >
                             Записаться
                         </Link>

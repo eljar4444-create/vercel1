@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-/* eslint-disable @next/next/no-img-element */
 import Link from 'next/link';
+import Image from 'next/image';
 import {
     Clock,
     ChevronLeft,
@@ -109,8 +109,8 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         profile.studioImages && profile.studioImages.length > 0
             ? profile.studioImages
             : profile.gallery && profile.gallery.length > 0
-              ? profile.gallery
-              : [fallbackStudioImage];
+                ? profile.gallery
+                : [fallbackStudioImage];
 
     const initialDate = searchParams.get('date') || undefined;
     const initialTime = searchParams.get('time') || undefined;
@@ -185,17 +185,18 @@ export function ProfileClient({ profile }: ProfileClientProps) {
 
     return (
         <div className="min-h-screen bg-slate-50/60">
-            <div className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+            <nav aria-label="Навигация" className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
                 <div className="container mx-auto flex h-14 max-w-6xl items-center px-4">
                     <Link
                         href={`/search${profile.category?.slug ? `?category=${profile.category.slug}` : ''}`}
-                        className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-900"
+                        className="inline-flex min-h-[44px] items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-900"
+                        aria-label="Назад к поиску"
                     >
                         <ChevronLeft className="h-4 w-4" />
                         Назад к поиску
                     </Link>
                 </div>
-            </div>
+            </nav>
 
             <div className="container mx-auto max-w-6xl px-4 py-8 sm:py-10">
                 <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
@@ -215,7 +216,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                             </div>
                         </div>
 
-                        <Button onClick={() => openBooking()} className="h-11 rounded-xl bg-slate-900 px-6 text-white hover:bg-slate-800">
+                        <Button onClick={() => openBooking()} className="min-h-[44px] h-11 rounded-xl bg-slate-900 px-6 text-white hover:bg-slate-800">
                             Забронировать
                         </Button>
                     </div>
@@ -224,10 +225,13 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         <div className="flex gap-2 overflow-x-auto pb-1">
                             {studioImages.map((image, index) => (
                                 <div key={`${image}-${index}`} className="group relative h-44 w-64 flex-shrink-0 overflow-hidden rounded-2xl">
-                                    <img
+                                    <Image
                                         src={image}
-                                        alt={`${profile.name} studio ${index + 1}`}
+                                        alt={`${profile.name} — фото студии ${index + 1}`}
+                                        width={256}
+                                        height={176}
                                         className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
+                                        {...(index === 0 ? { priority: true } : {})}
                                     />
                                 </div>
                             ))}
@@ -238,23 +242,30 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         {studioImages.length >= 3 ? (
                             <div className="grid h-full grid-cols-4 gap-2">
                                 <div className="group relative col-span-2 row-span-2 overflow-hidden">
-                                    <img
+                                    <Image
                                         src={studioImages[0]}
-                                        alt={`${profile.name} studio 1`}
+                                        alt={`${profile.name} — главное фото студии`}
+                                        width={800}
+                                        height={400}
+                                        priority
                                         className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
                                     />
                                 </div>
                                 <div className="group relative col-span-2 overflow-hidden">
-                                    <img
+                                    <Image
                                         src={studioImages[1]}
-                                        alt={`${profile.name} studio 2`}
+                                        alt={`${profile.name} — фото студии 2`}
+                                        width={400}
+                                        height={200}
                                         className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
                                     />
                                 </div>
                                 <div className="group relative col-span-2 overflow-hidden">
-                                    <img
+                                    <Image
                                         src={studioImages[2]}
-                                        alt={`${profile.name} studio 3`}
+                                        alt={`${profile.name} — фото студии 3`}
+                                        width={400}
+                                        height={200}
                                         className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
                                     />
                                 </div>
@@ -262,25 +273,33 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         ) : studioImages.length === 2 ? (
                             <div className="grid h-full grid-cols-4 gap-2">
                                 <div className="group relative col-span-3 overflow-hidden">
-                                    <img
+                                    <Image
                                         src={studioImages[0]}
-                                        alt={`${profile.name} studio 1`}
+                                        alt={`${profile.name} — главное фото студии`}
+                                        width={600}
+                                        height={400}
+                                        priority
                                         className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
                                     />
                                 </div>
                                 <div className="group relative col-span-1 overflow-hidden">
-                                    <img
+                                    <Image
                                         src={studioImages[1]}
-                                        alt={`${profile.name} studio 2`}
+                                        alt={`${profile.name} — фото студии 2`}
+                                        width={200}
+                                        height={400}
                                         className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
                                     />
                                 </div>
                             </div>
                         ) : (
                             <div className="group relative h-full overflow-hidden">
-                                <img
+                                <Image
                                     src={studioImages[0]}
-                                    alt={`${profile.name} studio`}
+                                    alt={`${profile.name} — фото студии`}
+                                    width={800}
+                                    height={400}
+                                    priority
                                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
                                 />
                             </div>
@@ -329,10 +348,12 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                                         {service.images && service.images.length > 0 ? (
                                                             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                                                                 {service.images.slice(0, 6).map((imageUrl, imageIndex) => (
-                                                                    <img
+                                                                    <Image
                                                                         key={`${service.id}-work-${imageIndex}`}
                                                                         src={imageUrl}
-                                                                        alt={`${service.title} работа ${imageIndex + 1}`}
+                                                                        alt={`${service.title} — работа ${imageIndex + 1} от ${profile.name}`}
+                                                                        width={56}
+                                                                        height={56}
                                                                         className="h-14 w-14 flex-shrink-0 rounded-lg border border-slate-200 object-cover"
                                                                     />
                                                                 ))}
@@ -350,7 +371,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                                                     duration_min: service.duration_min,
                                                                 })
                                                             }
-                                                            className="h-10 rounded-xl bg-slate-900 px-4 text-white hover:bg-slate-800"
+                                                            className="min-h-[44px] h-11 rounded-xl bg-slate-900 px-4 text-white hover:bg-slate-800"
                                                         >
                                                             Выбрать
                                                         </Button>
@@ -399,7 +420,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                 onClick={startChat}
                                 disabled={isStartingChat}
                                 variant="outline"
-                                className="mt-4 h-11 w-full rounded-xl border-slate-200"
+                                className="mt-4 min-h-[44px] h-11 w-full rounded-xl border-slate-200"
                             >
                                 <MessageCircle className="mr-2 h-4 w-4" />
                                 {isStartingChat ? 'Открываем...' : 'Написать мастеру'}
