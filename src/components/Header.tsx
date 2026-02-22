@@ -37,6 +37,7 @@ export function Header() {
     }, []);
 
     const user = session?.user;
+    const isProvider = user?.role === 'PROVIDER' || user?.role === 'ADMIN';
     const initials =
         user?.name
             ?.split(' ')
@@ -96,12 +97,14 @@ export function Header() {
                 <div className={cn("ml-auto flex items-center gap-2", isSearchPage && "lg:ml-0")}>
                     {user ? (
                         <div className="hidden items-center gap-2 xl:flex">
-                            <Link
-                                href="/auth/register?role=provider"
-                                className="mr-1 text-sm font-semibold text-slate-900 transition-opacity hover:opacity-80"
-                            >
-                                Стать специалистом
-                            </Link>
+                            {!isProvider ? (
+                                <Link
+                                    href="/auth/register?role=provider"
+                                    className="mr-1 text-sm font-semibold text-slate-900 transition-opacity hover:opacity-80"
+                                >
+                                    Стать специалистом
+                                </Link>
+                            ) : null}
                             <Link
                                 href="/chat"
                                 aria-label="Открыть чат"
@@ -156,13 +159,15 @@ export function Header() {
                         >
                             Services
                         </Link>
-                        <Link
-                            href="/auth/register?role=provider"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="block rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            Become a Pro
-                        </Link>
+                        {!isProvider ? (
+                            <Link
+                                href="/auth/register?role=provider"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="block rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                                Стать специалистом
+                            </Link>
+                        ) : null}
                         <Link
                             href="/chat"
                             onClick={() => setMobileMenuOpen(false)}
