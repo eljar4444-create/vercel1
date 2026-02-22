@@ -8,8 +8,7 @@ import {
     Inbox, ArrowLeft, Briefcase, ShieldCheck, AlertCircle, ListChecks, Eye, UserCircle2
 } from 'lucide-react';
 import { BookingRow } from '@/components/dashboard/BookingRow';
-import { ServiceList } from '@/components/dashboard/ServiceList';
-import { AddServiceForm } from '@/components/dashboard/AddServiceForm';
+import { ServicesSection } from '@/components/dashboard/ServicesSection';
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
 import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
@@ -147,11 +146,16 @@ export default async function DashboardPage({
         { key: 'schedule', label: 'Расписание', icon: Clock },
         { key: 'profile', label: 'Профиль', icon: UserCircle2 },
     ] as const;
+    const mobileNavItems = [
+        { key: 'bookings', label: 'Календарь', icon: CalendarDays },
+        { key: 'services', label: 'Услуги', icon: Briefcase },
+        { key: 'profile', label: 'Профиль', icon: UserCircle2 },
+    ] as const;
 
     return (
         <div className="relative min-h-screen overflow-hidden bg-white">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(125,211,252,0.22),transparent_42%),radial-gradient(circle_at_top_left,rgba(244,114,182,0.16),transparent_35%)]" />
-            <div className="relative mx-auto flex w-full max-w-7xl gap-6 px-4 pb-24 pt-6 md:pb-8">
+            <div className="relative mx-auto flex w-full max-w-7xl gap-4 px-3 pb-24 pt-4 sm:px-4 md:pb-8">
                 <aside className="sticky top-6 hidden h-fit w-64 shrink-0 md:block">
                     <div className="rounded-[2rem] border border-white/50 bg-white/75 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5">
                         <div className="mb-3 px-2 pb-3">
@@ -182,7 +186,7 @@ export default async function DashboardPage({
                     </div>
                 </aside>
 
-                <main className="min-w-0 flex-1 space-y-5">
+                <main className="min-w-0 flex-1 space-y-4">
                     <Link
                         href={`/profile/${profileId}`}
                         className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-800"
@@ -191,13 +195,14 @@ export default async function DashboardPage({
                         Мой профиль
                     </Link>
 
-                    <div className="flex flex-col gap-4 rounded-[2rem] border border-white/50 bg-white/80 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5 md:flex-row md:items-start md:justify-between">
+                    <div className="flex flex-col gap-3 rounded-[2rem] border border-white/50 bg-white/80 p-4 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5 md:flex-row md:items-start md:justify-between">
                         <div>
                             <AvatarUpload
                                 profileId={profileId}
                                 profileName={profile.name}
                                 currentImageUrl={profile.image_url}
                             />
+                            <p className="mt-2 text-sm font-medium text-slate-700">Здравствуйте, {profile.name}</p>
                             <div className="mt-3">
                                 {isProfileVerified ? (
                                     <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -224,42 +229,22 @@ export default async function DashboardPage({
                         </Link>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-                        <div className="rounded-[1.5rem] border border-white/50 bg-white/80 p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-md ring-1 ring-slate-900/5">
-                            <div className="mb-2 flex items-center gap-2">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100">
-                                    <CalendarDays className="h-4 w-4 text-blue-600" />
-                                </div>
-                            </div>
-                            <div className="text-2xl font-bold text-slate-900">{totalBookings}</div>
-                            <div className="text-xs text-slate-500">Всего заявок</div>
+                    <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/50 bg-white/75 px-3 py-2 shadow-[0_12px_35px_rgba(15,23,42,0.06)] backdrop-blur-md ring-1 ring-slate-900/5">
+                        <div className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                            <CalendarDays className="h-3.5 w-3.5 text-blue-600" />
+                            Всего {totalBookings}
                         </div>
-                        <div className="rounded-[1.5rem] border border-white/50 bg-white/80 p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-md ring-1 ring-slate-900/5">
-                            <div className="mb-2 flex items-center gap-2">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 to-orange-100">
-                                    <Clock className="h-4 w-4 text-amber-600" />
-                                </div>
-                            </div>
-                            <div className="text-2xl font-bold text-slate-900">{pendingCount}</div>
-                            <div className="text-xs text-slate-500">Ожидают</div>
+                        <div className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                            <Clock className="h-3.5 w-3.5" />
+                            Ожидают {pendingCount}
                         </div>
-                        <div className="rounded-[1.5rem] border border-white/50 bg-white/80 p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-md ring-1 ring-slate-900/5">
-                            <div className="mb-2 flex items-center gap-2">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-100 to-green-100">
-                                    <CheckCircle className="h-4 w-4 text-emerald-600" />
-                                </div>
-                            </div>
-                            <div className="text-2xl font-bold text-slate-900">{confirmedCount}</div>
-                            <div className="text-xs text-slate-500">Подтверждены</div>
+                        <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                            <CheckCircle className="h-3.5 w-3.5" />
+                            Подтверждены {confirmedCount}
                         </div>
-                        <div className="rounded-[1.5rem] border border-white/50 bg-white/80 p-4 shadow-[0_12px_40px_rgba(15,23,42,0.06)] backdrop-blur-md ring-1 ring-slate-900/5">
-                            <div className="mb-2 flex items-center gap-2">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-red-100 to-rose-100">
-                                    <XCircle className="h-4 w-4 text-red-500" />
-                                </div>
-                            </div>
-                            <div className="text-2xl font-bold text-slate-900">{cancelledCount}</div>
-                            <div className="text-xs text-slate-500">Отменены</div>
+                        <div className="inline-flex items-center gap-1.5 rounded-xl bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700">
+                            <XCircle className="h-3.5 w-3.5" />
+                            Отменены {cancelledCount}
                         </div>
                     </div>
 
@@ -347,10 +332,7 @@ export default async function DashboardPage({
                                     <p className="text-xs text-slate-500">{services.length} услуг</p>
                                 </div>
                             </div>
-                            <div className="space-y-6 p-5">
-                                <ServiceList services={serializedServices} />
-                                <AddServiceForm profileId={profileId} />
-                            </div>
+                            <ServicesSection profileId={profileId} services={serializedServices} />
                         </div>
                     )}
 
@@ -362,7 +344,7 @@ export default async function DashboardPage({
                                     Эти настройки используются для автоматического расчета свободных слотов.
                                 </p>
                             </div>
-                            <div className="p-5">
+                            <div className="p-4 sm:p-5">
                                 <WorkingHoursForm
                                     profileId={profileId}
                                     initialSchedule={{
@@ -383,7 +365,7 @@ export default async function DashboardPage({
                                     Обновите описание, контакты и данные витрины для клиентов.
                                 </p>
                             </div>
-                            <div className="p-5">
+                            <div className="p-4 sm:p-5">
                                 <EditProfileForm
                                     profile={{
                                         id: profileId,
@@ -403,8 +385,8 @@ export default async function DashboardPage({
             </div>
 
             <nav className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-2xl border border-white/60 bg-white/85 p-1.5 shadow-[0_20px_50px_rgba(15,23,42,0.2)] backdrop-blur-md ring-1 ring-slate-900/5 md:hidden">
-                <div className="grid grid-cols-4 gap-1">
-                    {navItems.map((item) => {
+                <div className="grid grid-cols-3 gap-1">
+                    {mobileNavItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = currentSection === item.key;
                         return (

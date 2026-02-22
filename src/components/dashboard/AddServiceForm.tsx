@@ -97,7 +97,7 @@ export function AddServiceForm({ profileId }: AddServiceFormProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-3 pt-4 border-t border-gray-100">
+        <form onSubmit={handleSubmit} className="space-y-3">
             {error && (
                 <div className="flex items-center gap-2 bg-red-50 text-red-600 px-3 py-2 rounded-lg text-xs">
                     <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />

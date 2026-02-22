@@ -29,6 +29,8 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [workingDays, setWorkingDays] = useState<number[]>(initialSchedule.workingDays);
+    const [startTime, setStartTime] = useState(initialSchedule.startTime);
+    const [endTime, setEndTime] = useState(initialSchedule.endTime);
 
     const toggleDay = (day: number) => {
         setWorkingDays((prev) => {
@@ -46,6 +48,8 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
 
         const formData = new FormData(e.currentTarget);
         formData.set('profile_id', String(profileId));
+        formData.set('start_time', startTime);
+        formData.set('end_time', endTime);
         formData.delete('working_days');
         workingDays.forEach((day) => formData.append('working_days', String(day)));
 
@@ -89,7 +93,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                                 key={day.id}
                                 type="button"
                                 onClick={() => toggleDay(day.id)}
-                                className={`h-9 rounded-lg border text-xs font-semibold transition ${
+                                className={`h-11 rounded-xl border text-sm font-semibold transition ${
                                     active
                                         ? 'border-gray-900 bg-gray-900 text-white'
                                         : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
@@ -102,6 +106,32 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                 </div>
             </div>
 
+            <div className="rounded-2xl border border-gray-100 bg-slate-50 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Пресеты времени</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setStartTime('09:00');
+                            setEndTime('18:00');
+                        }}
+                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                        Стандарт: 09:00 - 18:00
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setStartTime('10:00');
+                            setEndTime('20:00');
+                        }}
+                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                        Вечерний: 10:00 - 20:00
+                    </button>
+                </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
                 <div>
                     <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
@@ -111,7 +141,8 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                         name="start_time"
                         type="time"
                         required
-                        defaultValue={initialSchedule.startTime}
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
                         className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 outline-none focus:border-transparent focus:ring-2 focus:ring-gray-300"
                     />
                 </div>
@@ -123,7 +154,8 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                         name="end_time"
                         type="time"
                         required
-                        defaultValue={initialSchedule.endTime}
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
                         className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 outline-none focus:border-transparent focus:ring-2 focus:ring-gray-300"
                     />
                 </div>

@@ -6,6 +6,7 @@ import { updateProfile } from '@/app/actions/updateProfile';
 import { uploadServicePhoto } from '@/app/actions/upload';
 import toast from 'react-hot-toast';
 import { CityCombobox } from '@/components/provider/CityCombobox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface EditProfileFormProps {
     profile: {
@@ -84,11 +85,11 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
         }
     };
 
-    const inputClass = "w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all";
-    const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5";
+    const inputClass = 'w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all';
+    const labelClass = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5';
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
             {/* Status messages */}
             {error && (
                 <div className="flex items-center gap-2 bg-red-50 text-red-600 px-3 py-2 rounded-lg text-xs">
@@ -103,127 +104,141 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                 </div>
             )}
 
-            {/* Name */}
-            <div>
-                <label className={labelClass}>Имя / Название</label>
-                <input
-                    name="name"
-                    type="text"
-                    required
-                    defaultValue={profile.name}
-                    className={inputClass}
-                />
-            </div>
+            <Tabs defaultValue="main" className="w-full">
+                <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-slate-100 p-1">
+                    <TabsTrigger value="main" className="rounded-xl text-xs sm:text-sm">
+                        Основное
+                    </TabsTrigger>
+                    <TabsTrigger value="location" className="rounded-xl text-xs sm:text-sm">
+                        Локация
+                    </TabsTrigger>
+                    <TabsTrigger value="photos" className="rounded-xl text-xs sm:text-sm">
+                        Фото студии
+                    </TabsTrigger>
+                </TabsList>
 
-            <div>
-                <label className={labelClass}>Тип исполнителя</label>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                <TabsContent value="main" className="mt-3 space-y-3 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
+                    <div>
+                        <label className={labelClass}>Имя / Название</label>
                         <input
-                            type="radio"
-                            name="provider_type"
-                            value="SALON"
-                            checked={providerType === 'SALON'}
-                            onChange={() => setProviderType('SALON')}
-                            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
+                            name="name"
+                            type="text"
+                            required
+                            defaultValue={profile.name}
+                            className={inputClass}
                         />
-                        Я представляю салон
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
-                        <input
-                            type="radio"
-                            name="provider_type"
-                            value="PRIVATE"
-                            checked={providerType === 'PRIVATE'}
-                            onChange={() => setProviderType('PRIVATE')}
-                            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
-                        />
-                        Я частный мастер
-                    </label>
-                </div>
-            </div>
+                    </div>
 
-            {/* Bio */}
-            <div>
-                <label className={labelClass}>О себе / О салоне</label>
-                <textarea
-                    name="bio"
-                    rows={4}
-                    defaultValue={profile.bio || ''}
-                    placeholder="Расскажите о вашем опыте, подходе к работе и материалах, которые вы используете..."
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all resize-none"
-                />
-            </div>
-
-            <div className="space-y-2">
-                <label className={labelClass}>Фотографии студии / Интерьер</label>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {studioImages.map((url, idx) => (
-                        <div key={`${url}-${idx}`} className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
-                            <img src={url} alt={`studio-${idx + 1}`} className="h-full w-full object-cover" />
-                            <button
-                                type="button"
-                                onClick={() => setStudioImages((prev) => prev.filter((_, i) => i !== idx))}
-                                className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/65 text-white opacity-0 transition group-hover:opacity-100"
-                                aria-label="Удалить фото"
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </button>
+                    <div>
+                        <label className={labelClass}>Тип исполнителя</label>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                                <input
+                                    type="radio"
+                                    name="provider_type"
+                                    value="SALON"
+                                    checked={providerType === 'SALON'}
+                                    onChange={() => setProviderType('SALON')}
+                                    className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
+                                />
+                                Я представляю салон
+                            </label>
+                            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                                <input
+                                    type="radio"
+                                    name="provider_type"
+                                    value="PRIVATE"
+                                    checked={providerType === 'PRIVATE'}
+                                    onChange={() => setProviderType('PRIVATE')}
+                                    className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
+                                />
+                                Я частный мастер
+                            </label>
                         </div>
-                    ))}
-                    <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:border-gray-400">
-                        {isUploadingStudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                        <span className="mt-1 text-[11px]">Добавить</span>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            className="hidden"
-                            onChange={handleUploadStudioImages}
-                            disabled={isUploadingStudio || studioImages.length >= 8}
+                    </div>
+
+                    <div>
+                        <label className={labelClass}>О себе / О салоне</label>
+                        <textarea
+                            name="bio"
+                            rows={4}
+                            defaultValue={profile.bio || ''}
+                            placeholder="Расскажите о вашем опыте, подходе к работе и материалах, которые вы используете..."
+                            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all resize-none"
                         />
-                    </label>
-                </div>
-                <p className="text-xs text-gray-500">До 8 фото ({studioImages.length}/8)</p>
-            </div>
+                    </div>
+                </TabsContent>
 
-            {/* Phone */}
-            <div>
-                <label className={labelClass}>Телефон</label>
-                <input
-                    name="phone"
-                    type="tel"
-                    defaultValue={profile.phone || ''}
-                    placeholder="+49 170 1234567"
-                    className={inputClass}
-                />
-            </div>
+                <TabsContent value="location" className="mt-3 space-y-3 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
+                    <div>
+                        <label className={labelClass}>Телефон</label>
+                        <input
+                            name="phone"
+                            type="tel"
+                            defaultValue={profile.phone || ''}
+                            placeholder="+49 170 1234567"
+                            className={inputClass}
+                        />
+                    </div>
 
-            {/* City */}
-            <div>
-                <label className={labelClass}>Город</label>
-                <CityCombobox name="city" value={city} onValueChange={setCity} />
-            </div>
+                    <div>
+                        <label className={labelClass}>Город</label>
+                        <CityCombobox name="city" value={city} onValueChange={setCity} />
+                    </div>
 
-            {providerType === 'SALON' ? (
-                <div>
-                    <label className={labelClass}>Полный адрес салона</label>
-                    <input
-                        name="address"
-                        type="text"
-                        required
-                        defaultValue={profile.address || ''}
-                        placeholder="Улица, дом"
-                        className={inputClass}
-                    />
-                </div>
-            ) : null}
+                    {providerType === 'SALON' ? (
+                        <div>
+                            <label className={labelClass}>Полный адрес салона</label>
+                            <input
+                                name="address"
+                                type="text"
+                                required
+                                defaultValue={profile.address || ''}
+                                placeholder="Улица, дом"
+                                className={inputClass}
+                            />
+                        </div>
+                    ) : null}
+                </TabsContent>
+
+                <TabsContent value="photos" className="mt-3 space-y-2 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
+                    <label className={labelClass}>Фотографии студии / Интерьер</label>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        {studioImages.map((url, idx) => (
+                            <div key={`${url}-${idx}`} className="group relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                                <img src={url} alt={`studio-${idx + 1}`} className="h-full w-full object-cover" />
+                                <button
+                                    type="button"
+                                    onClick={() => setStudioImages((prev) => prev.filter((_, i) => i !== idx))}
+                                    className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/65 text-white opacity-0 transition group-hover:opacity-100"
+                                    aria-label="Удалить фото"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                </button>
+                            </div>
+                        ))}
+                        <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:border-gray-400">
+                            {isUploadingStudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                            <span className="mt-1 text-[11px]">Добавить</span>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={handleUploadStudioImages}
+                                disabled={isUploadingStudio || studioImages.length >= 8}
+                            />
+                        </label>
+                    </div>
+                    <p className="text-xs text-gray-500">До 8 фото ({studioImages.length}/8)</p>
+                </TabsContent>
+            </Tabs>
 
             {/* Submit */}
             <button
                 type="submit"
                 disabled={isSubmitting || isUploadingStudio}
-                className="w-full h-10 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full h-10 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
                 {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
