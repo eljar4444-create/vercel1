@@ -343,42 +343,7 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* WHY US (Trust signals)                                 */}
-            {/* ═══════════════════════════════════════════════════════ */}
-            <section className="bg-white py-20">
-                <div className="container mx-auto px-4 max-w-6xl">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-                        <div className="flex items-start gap-4 p-6 rounded-2xl bg-gray-50/50">
-                            <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Shield className="w-6 h-6 text-green-600" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-gray-900 mb-1">Проверенные мастера</h4>
-                                <p className="text-sm text-gray-500 leading-relaxed">Каждый специалист проходит верификацию и подтверждает квалификацию.</p>
-                            </div>
-                        </div>
-                        <div className="flex items-start gap-4 p-6 rounded-2xl bg-gray-50/50">
-                            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Clock className="w-6 h-6 text-blue-600" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-gray-900 mb-1">Быстрое бронирование</h4>
-                                <p className="text-sm text-gray-500 leading-relaxed">Запишитесь онлайн за 30 секунд — без звонков и очередей.</p>
-                            </div>
-                        </div>
-                        <div className="flex items-start gap-4 p-6 rounded-2xl bg-gray-50/50">
-                            <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Star className="w-6 h-6 text-amber-500" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-gray-900 mb-1">Реальные отзывы</h4>
-                                <p className="text-sm text-gray-500 leading-relaxed">Честные отзывы от клиентов помогут сделать правильный выбор.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+
 
             {/* ═══════════════════════════════════════════════════════ */}
             {/* CTA FOR SPECIALISTS                                    */}
@@ -418,26 +383,6 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ═══════════════════════════════════════════════════════ */}
-            {/* FOOTER                                                 */}
-            {/* ═══════════════════════════════════════════════════════ */}
-            <footer className="bg-white border-t border-gray-100">
-                <div className="container mx-auto px-4 max-w-6xl py-10">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="text-sm text-gray-400">
-                            © {new Date().getFullYear()} MasterBooking. Все права защищены.
-                        </div>
-                        <div className="flex items-center gap-6">
-                            <Link href="/impressum" className="text-sm text-gray-400 hover:text-gray-700 transition-colors">
-                                Impressum
-                            </Link>
-                            <Link href="/search" className="text-sm text-gray-400 hover:text-gray-700 transition-colors">
-                                Поиск
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </footer>
         </div>
     );
 }

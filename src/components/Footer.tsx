@@ -20,12 +20,8 @@ export function Footer() {
                     AGB
                 </Link>
                 <span className="hidden md:inline text-gray-300">|</span>
-                <Link href="#" className="hover:text-gray-900 transition-colors">
+                <Link href="/datenschutz" className="hover:text-gray-900 transition-colors">
                     Datenschutz
-                </Link>
-                <span className="hidden md:inline text-gray-300">|</span>
-                <Link href="#" className="hover:text-gray-900 transition-colors">
-                    Widerrufsrecht
                 </Link>
             </div>
             <div className="text-center text-xs text-gray-400 mt-4">

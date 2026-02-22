@@ -63,14 +63,14 @@ export function Header() {
             "fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white transition-all duration-200",
             scrolled && "shadow-sm"
         )}>
-            <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl">
+            <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl relative">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 shrink-0">
+                {/* <Link href="/" className="flex items-center gap-2 shrink-0 relative z-10">
                     <img src="/logo.png?v=6" alt="Svoi.de" className="h-11 w-auto object-contain" />
-                </Link>
+                </Link> */}
 
                 {isSearchPage ? (
-                    <div className="hidden lg:block flex-1 min-w-0">
+                    <div className="hidden lg:block flex-1 min-w-0 relative z-10">
                         <SearchFiltersForm
                             categoryFilter={typeof searchParams.get('category') === 'string' ? searchParams.get('category') || undefined : undefined}
                             queryFilter={typeof searchParams.get('q') === 'string' ? searchParams.get('q') || undefined : undefined}
@@ -80,7 +80,7 @@ export function Header() {
                 ) : null}
 
                 {!isSearchPage ? (
-                    <nav className="hidden md:flex flex-1 items-center justify-center gap-6 lg:gap-8">
+                    <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-6 lg:gap-8">
                         {QUICK_BEAUTY_LINKS.map((item) => (
                             <Link
                                 key={item.label}
@@ -94,7 +94,7 @@ export function Header() {
                 ) : null}
 
                 {/* Right Actions */}
-                <div className={cn("ml-auto flex items-center gap-2", isSearchPage && "lg:ml-0")}>
+                <div className={cn("ml-auto flex items-center gap-2 relative z-10", isSearchPage && "lg:ml-0")}>
                     {user ? (
                         <div className="hidden items-center gap-2 xl:flex">
                             {!isProvider ? (
