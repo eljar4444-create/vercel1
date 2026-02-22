@@ -22,6 +22,9 @@ export async function updateProfile(formData: FormData) {
     if (isNaN(profileId) || !name || !city) {
         return { success: false, error: 'Имя и город обязательны.' };
     }
+    if (providerType === 'SALON' && !String(address || '').trim()) {
+        return { success: false, error: 'Для салона укажите полный адрес.' };
+    }
 
     try {
         if (session.user.role !== 'ADMIN') {
@@ -46,7 +49,7 @@ export async function updateProfile(formData: FormData) {
                 bio: bio || null,
                 phone: phone || null,
                 city,
-                address: address || null,
+                address: providerType === 'SALON' ? address || null : null,
             },
         });
 

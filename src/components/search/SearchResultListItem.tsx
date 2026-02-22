@@ -35,6 +35,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
     const slots = mockAvailability(profile.id);
     const previewServices = profile.services.slice(0, 2);
     const isSalon = profile.provider_type === 'SALON';
+    const visibleAddress = isSalon ? [profile.address, profile.city].filter(Boolean).join(', ') : profile.city;
 
     return (
         <article className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -62,7 +63,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                             </Badge>
                             <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-500">
                                 <MapPin className="h-4 w-4" />
-                                {[profile.address, profile.city].filter(Boolean).join(', ')}
+                                {visibleAddress}
                             </p>
                             <p className="mt-1 text-xs text-slate-500">4.8 (5 отзывов) · €€€</p>
                         </Link>

@@ -23,6 +23,7 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
     const name = String(formData.get('name') || '').trim();
     const city = String(formData.get('city') || '').trim();
     const providerTypeRaw = String(formData.get('provider_type') || 'PRIVATE').trim();
+    const address = String(formData.get('address') || '').trim();
     const bio = String(formData.get('bio') || '').trim();
     const submittedCategoryId = Number(formData.get('category_id'));
     const providerType = providerTypeRaw === 'SALON' ? 'SALON' : 'PRIVATE';
@@ -36,6 +37,9 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
 
         if (!name || !city || !Number.isInteger(categoryId)) {
             return { success: false, error: 'Заполните все обязательные поля.' };
+        }
+        if (providerType === 'SALON' && !address) {
+            return { success: false, error: 'Для салона укажите полный адрес.' };
         }
 
         const existingByUserId = await prisma.profile.findFirst({
@@ -69,6 +73,7 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
                 name,
                 provider_type: providerType,
                 city,
+                address: providerType === 'SALON' ? address : null,
                 bio: bio || null,
                 category_id: categoryId,
                 attributes: {},

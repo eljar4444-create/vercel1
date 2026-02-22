@@ -23,6 +23,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [city, setCity] = useState(profile.city);
+    const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE'>(profile.providerType);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -89,7 +90,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                             type="radio"
                             name="provider_type"
                             value="SALON"
-                            defaultChecked={profile.providerType === 'SALON'}
+                            checked={providerType === 'SALON'}
+                            onChange={() => setProviderType('SALON')}
                             className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
                         />
                         Я представляю салон
@@ -99,7 +101,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                             type="radio"
                             name="provider_type"
                             value="PRIVATE"
-                            defaultChecked={profile.providerType === 'PRIVATE'}
+                            checked={providerType === 'PRIVATE'}
+                            onChange={() => setProviderType('PRIVATE')}
                             className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
                         />
                         Я частный мастер
@@ -137,17 +140,19 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                 <CityCombobox name="city" value={city} onValueChange={setCity} />
             </div>
 
-            {/* Address */}
-            <div>
-                <label className={labelClass}>Адрес</label>
-                <input
-                    name="address"
-                    type="text"
-                    defaultValue={profile.address || ''}
-                    placeholder="Улица, дом"
-                    className={inputClass}
-                />
-            </div>
+            {providerType === 'SALON' ? (
+                <div>
+                    <label className={labelClass}>Полный адрес салона</label>
+                    <input
+                        name="address"
+                        type="text"
+                        required
+                        defaultValue={profile.address || ''}
+                        placeholder="Улица, дом"
+                        className={inputClass}
+                    />
+                </div>
+            ) : null}
 
             {/* Submit */}
             <button

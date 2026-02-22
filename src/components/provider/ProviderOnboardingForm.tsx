@@ -20,6 +20,7 @@ export function ProviderOnboardingForm({
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [city, setCity] = useState('');
+    const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE'>('PRIVATE');
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -95,6 +96,8 @@ export function ProviderOnboardingForm({
                             type="radio"
                             name="provider_type"
                             value="SALON"
+                                checked={providerType === 'SALON'}
+                                onChange={() => setProviderType('SALON')}
                             className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
                         />
                         Я представляю салон
@@ -104,13 +107,26 @@ export function ProviderOnboardingForm({
                             type="radio"
                             name="provider_type"
                             value="PRIVATE"
-                            defaultChecked
+                                checked={providerType === 'PRIVATE'}
+                                onChange={() => setProviderType('PRIVATE')}
                             className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
                         />
                         Я частный мастер
                     </label>
                 </div>
             </div>
+
+            {providerType === 'SALON' ? (
+                <div>
+                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">Полный адрес салона</label>
+                    <input
+                        name="address"
+                        required
+                        placeholder="Musterstrasse 12, 95444 Bayreuth"
+                        className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 outline-none focus:border-transparent focus:ring-2 focus:ring-gray-300"
+                    />
+                </div>
+            ) : null}
 
             <div>
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">О себе / О салоне</label>

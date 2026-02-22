@@ -43,7 +43,9 @@ export function SearchResultsMapClient({ markers }: SearchResultsMapClientProps)
                     <div className="space-y-1">
                         <p className="font-semibold text-slate-900">{marker.name}</p>
                         <p className="text-xs text-slate-600">
-                            {[marker.address, marker.city].filter(Boolean).join(', ')}
+                            {marker.providerType === 'SALON'
+                                ? [marker.address, marker.city].filter(Boolean).join(', ')
+                                : marker.city}
                         </p>
                     </div>
                 );

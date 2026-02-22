@@ -39,6 +39,7 @@ export default async function ProfileDetailPage({
         select: {
             id: true,
             name: true,
+            provider_type: true,
             city: true,
             address: true,
             image_url: true,
@@ -77,6 +78,7 @@ export default async function ProfileDetailPage({
     const serialized = {
         id: profile.id,
         name: profile.name,
+        provider_type: profile.provider_type,
         city: profile.city,
         address: profile.address,
         image_url: profile.image_url,

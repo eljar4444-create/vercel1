@@ -23,6 +23,7 @@ import { ProfileLocationMap } from '@/components/ProfileLocationMap';
 interface ProfileData {
     id: number;
     name: string;
+    provider_type: 'SALON' | 'PRIVATE';
     city: string;
     address?: string | null;
     image_url?: string | null;
@@ -81,6 +82,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
             ? services.reduce((min, current) => (Number(current.price) < Number(min.price) ? current : min), services[0])
             : null;
     const fullAddress = [profile.address, profile.city].filter(Boolean).join(', ');
+    const visibleAddress = profile.provider_type === 'SALON' ? fullAddress || profile.city : profile.city;
     const priceLevel = useMemo(() => {
         if (services.length === 0) return '€€€';
         const avg = services.reduce((sum, item) => sum + Number(item.price), 0) / services.length;
@@ -194,7 +196,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                             <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-600">
                                 <span className="inline-flex items-center gap-1.5">
                                     <MapPin className="h-4 w-4 text-slate-500" />
-                                    {fullAddress || profile.city}
+                                    {visibleAddress}
                                 </span>
                                 <span className="inline-flex items-center gap-1.5">
                                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -358,7 +360,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                     <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h2 className="text-2xl font-semibold text-slate-900">Как нас найти</h2>
-                            <p className="mt-1 text-sm text-slate-600">{fullAddress || profile.city}</p>
+                            <p className="mt-1 text-sm text-slate-600">{visibleAddress}</p>
                         </div>
                         <a
                             href={openStreetMapUrl}
@@ -374,7 +376,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         lat={profile.latitude}
                         lng={profile.longitude}
                         title={profile.name}
-                        address={fullAddress || profile.city}
+                        address={visibleAddress}
                     />
                 </section>
             </div>
@@ -383,7 +385,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 masterName={profile.name}
-                masterAddress={fullAddress || profile.city}
+                masterAddress={visibleAddress}
                 rating={5}
                 profileId={profile.id}
                 selectedService={selectedService}
