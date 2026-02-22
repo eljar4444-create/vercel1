@@ -92,6 +92,7 @@ export default async function SearchPage({
         return {
             id: profile.id,
             name: profile.name,
+            providerType: profile.provider_type,
             city: profile.city,
             address: profile.address,
             lat: coords.lat,
@@ -178,6 +179,7 @@ export default async function SearchPage({
                                     profile={{
                                         id: profile.id,
                                         name: profile.name,
+                                        provider_type: profile.provider_type,
                                         city: profile.city,
                                         address: profile.address,
                                         image_url: profile.image_url,

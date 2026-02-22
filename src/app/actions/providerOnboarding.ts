@@ -22,7 +22,10 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
 
     const name = String(formData.get('name') || '').trim();
     const city = String(formData.get('city') || '').trim();
+    const providerTypeRaw = String(formData.get('provider_type') || 'PRIVATE').trim();
+    const bio = String(formData.get('bio') || '').trim();
     const submittedCategoryId = Number(formData.get('category_id'));
+    const providerType = providerTypeRaw === 'SALON' ? 'SALON' : 'PRIVATE';
 
     try {
         const beautyCategory = await prisma.category.findFirst({
@@ -64,7 +67,9 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
                 user_id: session.user.id,
                 user_email: session.user.email,
                 name,
+                provider_type: providerType,
                 city,
+                bio: bio || null,
                 category_id: categoryId,
                 attributes: {},
                 image_url: null,

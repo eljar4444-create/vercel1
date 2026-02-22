@@ -12,10 +12,12 @@ export async function updateProfile(formData: FormData) {
 
     const profileId = parseInt(formData.get('profile_id') as string, 10);
     const name = formData.get('name') as string;
+    const providerTypeRaw = formData.get('provider_type');
     const bio = formData.get('bio') as string;
     const phone = formData.get('phone') as string;
     const city = formData.get('city') as string;
     const address = formData.get('address') as string;
+    const providerType = providerTypeRaw === 'SALON' ? 'SALON' : 'PRIVATE';
 
     if (isNaN(profileId) || !name || !city) {
         return { success: false, error: 'Имя и город обязательны.' };
@@ -40,6 +42,7 @@ export async function updateProfile(formData: FormData) {
             where: { id: profileId },
             data: {
                 name,
+                provider_type: providerType,
                 bio: bio || null,
                 phone: phone || null,
                 city,

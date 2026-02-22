@@ -99,6 +99,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         });
         return Array.from(groups.entries());
     }, [services]);
+    const trimmedBio = (profile.bio || '').trim();
 
     const initialDate = searchParams.get('date') || undefined;
     const initialTime = searchParams.get('time') || undefined;
@@ -235,13 +236,12 @@ export function ProfileClient({ profile }: ProfileClientProps) {
 
                 <section className="grid grid-cols-1 gap-8 mt-12 md:grid-cols-3">
                     <div className="space-y-6 md:col-span-2">
-                        <article className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-                            <h2 className="text-2xl font-semibold text-slate-900">О мастере</h2>
-                            <p className="mt-4 leading-relaxed text-slate-600">
-                                {profile.bio ||
-                                    'Премиальный сервис с акцентом на комфорт, эстетику и персональный подход к каждому клиенту.'}
-                            </p>
-                        </article>
+                        {trimmedBio ? (
+                            <article className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+                                <h2 className="text-2xl font-semibold text-slate-900">О мастере</h2>
+                                <p className="mt-4 whitespace-pre-wrap leading-relaxed text-slate-600">{trimmedBio}</p>
+                            </article>
+                        ) : null}
 
                         <article className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
                             <div className="flex items-center justify-between">

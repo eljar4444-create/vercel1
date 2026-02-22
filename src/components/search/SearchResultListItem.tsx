@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { Clock3, MapPin, Star } from 'lucide-react';
+import { Building2, Clock3, MapPin, Star, UserRound } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface SearchResultService {
     id: number;
@@ -12,6 +13,7 @@ interface SearchResultListItemProps {
     profile: {
         id: number;
         name: string;
+        provider_type: 'SALON' | 'PRIVATE';
         city: string;
         address?: string | null;
         image_url?: string | null;
@@ -32,6 +34,7 @@ function mockAvailability(id: number) {
 export function SearchResultListItem({ profile }: SearchResultListItemProps) {
     const slots = mockAvailability(profile.id);
     const previewServices = profile.services.slice(0, 2);
+    const isSalon = profile.provider_type === 'SALON';
 
     return (
         <article className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -53,6 +56,10 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                             <h3 className="text-[17px] font-semibold leading-tight text-slate-900 transition-colors hover:text-blue-600">
                                 {profile.name}
                             </h3>
+                            <Badge variant="outline" className="mt-1 inline-flex border-slate-200 bg-slate-50 text-[10px] font-medium text-slate-600">
+                                {isSalon ? <Building2 className="mr-1 h-3 w-3" /> : <UserRound className="mr-1 h-3 w-3" />}
+                                {isSalon ? 'Салон' : 'Частный мастер'}
+                            </Badge>
                             <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-500">
                                 <MapPin className="h-4 w-4" />
                                 {[profile.address, profile.city].filter(Boolean).join(', ')}

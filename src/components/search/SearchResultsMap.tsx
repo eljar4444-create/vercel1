@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 interface SearchMapMarker {
     id: number;
     name: string;
+    providerType: 'SALON' | 'PRIVATE';
     city: string;
     address?: string | null;
     lat: number;

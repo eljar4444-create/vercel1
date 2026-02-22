@@ -13,6 +13,11 @@ enum UserRole {
   ADMIN
 }
 
+enum ProviderType {
+  SALON
+  PRIVATE
+}
+
 model Category {
   id          Int       @id @default(autoincrement())
   name        String
@@ -27,6 +32,7 @@ model Profile {
   user_id     String?   @unique
   user_email  String    @unique
   name        String
+  provider_type ProviderType @default(PRIVATE)
   city        String
   address     String?
   category_id Int

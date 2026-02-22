@@ -45,6 +45,7 @@ export default async function DashboardPage({
             user_id: true,
             user_email: true,
             name: true,
+            provider_type: true,
             image_url: true,
             bio: true,
             phone: true,
@@ -386,6 +387,7 @@ export default async function DashboardPage({
                                     profile={{
                                         id: profileId,
                                         name: profile.name,
+                                        providerType: profile.provider_type,
                                         bio: profile.bio,
                                         phone: profile.phone,
                                         city: profile.city,

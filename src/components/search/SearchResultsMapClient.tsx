@@ -1,7 +1,7 @@
 'use client';
 
 import { divIcon } from 'leaflet';
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import { Circle, MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
@@ -9,6 +9,7 @@ import 'leaflet-defaulticon-compatibility';
 interface SearchMapMarker {
     id: number;
     name: string;
+    providerType: 'SALON' | 'PRIVATE';
     city: string;
     address?: string | null;
     lat: number;
@@ -37,18 +38,40 @@ export function SearchResultsMapClient({ markers }: SearchResultsMapClientProps)
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             />
-            {markers.map((marker) => (
-                <Marker key={marker.id} position={[marker.lat, marker.lng]} icon={customPinIcon}>
-                    <Popup>
-                        <div className="space-y-1">
-                            <p className="font-semibold text-slate-900">{marker.name}</p>
-                            <p className="text-xs text-slate-600">
-                                {[marker.address, marker.city].filter(Boolean).join(', ')}
-                            </p>
-                        </div>
-                    </Popup>
-                </Marker>
-            ))}
+            {markers.map((marker) => {
+                const popupContent = (
+                    <div className="space-y-1">
+                        <p className="font-semibold text-slate-900">{marker.name}</p>
+                        <p className="text-xs text-slate-600">
+                            {[marker.address, marker.city].filter(Boolean).join(', ')}
+                        </p>
+                    </div>
+                );
+
+                if (marker.providerType === 'PRIVATE') {
+                    return (
+                        <Circle
+                            key={marker.id}
+                            center={[marker.lat, marker.lng]}
+                            radius={250}
+                            pathOptions={{
+                                color: '#64748b',
+                                weight: 1,
+                                fillColor: '#64748b',
+                                fillOpacity: 0.18,
+                            }}
+                        >
+                            <Popup>{popupContent}</Popup>
+                        </Circle>
+                    );
+                }
+
+                return (
+                    <Marker key={marker.id} position={[marker.lat, marker.lng]} icon={customPinIcon}>
+                        <Popup>{popupContent}</Popup>
+                    </Marker>
+                );
+            })}
         </MapContainer>
     );
 }

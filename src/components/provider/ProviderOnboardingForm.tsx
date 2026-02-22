@@ -87,6 +87,41 @@ export function ProviderOnboardingForm({
                 <CityCombobox name="city" value={city} onValueChange={setCity} />
             </div>
 
+            <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">Тип исполнителя</label>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                        <input
+                            type="radio"
+                            name="provider_type"
+                            value="SALON"
+                            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
+                        />
+                        Я представляю салон
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                        <input
+                            type="radio"
+                            name="provider_type"
+                            value="PRIVATE"
+                            defaultChecked
+                            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
+                        />
+                        Я частный мастер
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">О себе / О салоне</label>
+                <textarea
+                    name="bio"
+                    rows={4}
+                    placeholder="Расскажите о вашем опыте, подходе к работе и материалах, которые вы используете..."
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-transparent focus:ring-2 focus:ring-gray-300"
+                />
+            </div>
+
             <input type="hidden" name="category_id" value={defaultCategoryId ?? ''} />
 
             <button

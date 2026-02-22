@@ -10,6 +10,7 @@ interface EditProfileFormProps {
     profile: {
         id: number;
         name: string;
+        providerType: 'SALON' | 'PRIVATE';
         bio: string | null;
         phone: string | null;
         city: string;
@@ -80,14 +81,40 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                 />
             </div>
 
+            <div>
+                <label className={labelClass}>Тип исполнителя</label>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                        <input
+                            type="radio"
+                            name="provider_type"
+                            value="SALON"
+                            defaultChecked={profile.providerType === 'SALON'}
+                            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
+                        />
+                        Я представляю салон
+                    </label>
+                    <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                        <input
+                            type="radio"
+                            name="provider_type"
+                            value="PRIVATE"
+                            defaultChecked={profile.providerType === 'PRIVATE'}
+                            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
+                        />
+                        Я частный мастер
+                    </label>
+                </div>
+            </div>
+
             {/* Bio */}
             <div>
-                <label className={labelClass}>О себе</label>
+                <label className={labelClass}>О себе / О салоне</label>
                 <textarea
                     name="bio"
                     rows={4}
                     defaultValue={profile.bio || ''}
-                    placeholder="Расскажите о себе, вашем опыте и специализации..."
+                    placeholder="Расскажите о вашем опыте, подходе к работе и материалах, которые вы используете..."
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all resize-none"
                 />
             </div>
