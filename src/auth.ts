@@ -51,15 +51,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }),
     ],
     events: {
+        /**
+         * Срабатывает один раз при создании нового пользователя через OAuth.
+         * Читает технически необходимые куки (DSGVO compliant), чтобы
+         * понять, регистрируется ли пользователь как мастер/салон.
+         */
         async createUser({ user }) {
             try {
                 const cookieStore = await cookies();
-                const preferredRole = cookieStore.get('new-user-role')?.value;
-                if (preferredRole === 'PROVIDER' || preferredRole === 'CLIENT') {
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: { role: preferredRole },
-                    });
+
+                // New cookie names (from /auth/login page)
+                const onboardingRole = cookieStore.get('onboarding_role')?.value;
+                const onboardingType = cookieStore.get('onboarding_type')?.value;
+
+                // Legacy cookie name (backward compat)
+                const legacyRole = cookieStore.get('new-user-role')?.value;
+
+                const role = onboardingRole === 'provider' ? 'PROVIDER'
+                    : (legacyRole === 'PROVIDER' || legacyRole === 'CLIENT') ? legacyRole
+                        : 'CLIENT';
+
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { role },
+                });
+
+                // Log provider type for future profile creation
+                if (role === 'PROVIDER' && onboardingType) {
+                    console.log(`[createUser] New provider: ${user.id}, type: ${onboardingType}`);
                 }
             } catch (error) {
                 console.error('createUser role sync error:', error);
