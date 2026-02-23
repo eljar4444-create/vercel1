@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signOut } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { updateBasicInfo, uploadProfilePhoto } from '@/app/actions/profile';
-import { Camera, User as UserIcon, ArrowLeft, BellRing, ShieldAlert, ChevronDown } from 'lucide-react';
+import { deleteUserAccount } from '@/app/actions/deleteAccount';
+import { Camera, User as UserIcon, ArrowLeft, BellRing, ShieldAlert, ChevronDown, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface User {
@@ -46,6 +48,8 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -125,14 +129,12 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
             type="button"
             onClick={onToggle}
             aria-pressed={value}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full border transition ${
-                value ? 'border-gray-900 bg-gray-900' : 'border-gray-300 bg-gray-200'
-            }`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full border transition ${value ? 'border-gray-900 bg-gray-900' : 'border-gray-300 bg-gray-200'
+                }`}
         >
             <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
-                    value ? 'translate-x-5' : 'translate-x-0.5'
-                }`}
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${value ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
             />
         </button>
     );
@@ -179,11 +181,10 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                     key={section.id}
                                     type="button"
                                     onClick={() => setActiveSection(section.id)}
-                                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                                        isActive
+                                    className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm transition ${isActive
                                             ? 'bg-gray-900 text-white shadow-sm'
                                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                    }`}
+                                        }`}
                                 >
                                     <Icon className="h-4 w-4" />
                                     {section.label}
@@ -355,11 +356,66 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                 <Button
                                     variant="destructive"
                                     className="mt-4"
-                                    onClick={() => toast.error('Функция удаления аккаунта будет подключена в следующем обновлении')}
+                                    onClick={() => setShowDeleteModal(true)}
                                 >
                                     Удалить аккаунт
                                 </Button>
                             </div>
+
+                            {/* Delete confirmation modal */}
+                            {showDeleteModal && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+                                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                                            <AlertTriangle className="h-6 w-6 text-red-600" />
+                                        </div>
+                                        <h3 className="text-center text-lg font-semibold text-gray-900">
+                                            Удалить аккаунт?
+                                        </h3>
+                                        <p className="mt-2 text-center text-sm text-gray-500">
+                                            Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо, и все
+                                            ваши данные будут удалены навсегда.
+                                        </p>
+                                        <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
+                                            <Button
+                                                variant="destructive"
+                                                className="w-full sm:w-auto"
+                                                disabled={isDeleting}
+                                                onClick={async () => {
+                                                    setIsDeleting(true);
+                                                    try {
+                                                        const result = await deleteUserAccount();
+                                                        if (result.success) {
+                                                            toast.success('Аккаунт удалён');
+                                                            signOut({ callbackUrl: '/' });
+                                                        } else {
+                                                            toast.error(result.error || 'Ошибка при удалении');
+                                                            setIsDeleting(false);
+                                                        }
+                                                    } catch {
+                                                        toast.error('Ошибка при удалении аккаунта');
+                                                        setIsDeleting(false);
+                                                    }
+                                                }}
+                                            >
+                                                {isDeleting ? (
+                                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Удаление...</>
+                                                ) : (
+                                                    'Да, удалить аккаунт'
+                                                )}
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full sm:w-auto"
+                                                disabled={isDeleting}
+                                                onClick={() => setShowDeleteModal(false)}
+                                            >
+                                                Отмена
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </section>
