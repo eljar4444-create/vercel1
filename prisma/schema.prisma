@@ -29,6 +29,7 @@ model Category {
 
 model Profile {
   id          Int       @id @default(autoincrement())
+  slug        String    @unique
   user_id     String?   @unique
   user_email  String    @unique
   name        String

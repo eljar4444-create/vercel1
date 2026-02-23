@@ -105,6 +105,7 @@ export default async function CityPage({
                                 key={profile.id}
                                 profile={{
                                     id: profile.id,
+                                    slug: profile.slug,
                                     name: profile.name,
                                     provider_type: profile.provider_type,
                                     city: profile.city,

@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
+import { generateUniqueSlug } from '@/lib/generateUniqueSlug';
 
 interface ProviderOnboardingResult {
     success: boolean;
@@ -66,11 +67,14 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
             return { success: true, profileId: existingByEmail.id };
         }
 
+        const slug = await generateUniqueSlug(name, city);
+
         const created = await prisma.profile.create({
             data: {
                 user_id: session.user.id,
                 user_email: session.user.email,
                 name,
+                slug,
                 provider_type: providerType,
                 city,
                 address: providerType === 'SALON' ? address : null,

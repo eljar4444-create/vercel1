@@ -15,6 +15,7 @@ interface AvatarDropdownProps {
         image?: string | null;
         role?: string | null;
         profileId?: number | null;
+        profileSlug?: string | null;
     } | null;
 }
 
@@ -27,10 +28,11 @@ export function getRoleLabel(role?: string | null) {
 export function getRoleMenuLinks(user: {
     role?: string | null;
     profileId?: number | null;
+    profileSlug?: string | null;
 }) {
     const role = user.role || 'CLIENT';
     const providerDashboardLink = user.profileId ? `/dashboard/${user.profileId}` : '/provider/onboarding';
-    const providerPublicLink = user.profileId ? `/profile/${user.profileId}` : '/provider/onboarding';
+    const providerPublicLink = user.profileSlug ? `/salon/${user.profileSlug}` : (user.profileId ? `/salon/profile-${user.profileId}` : '/provider/onboarding');
 
     return role === 'ADMIN'
         ? [
@@ -73,6 +75,9 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
             .then((data) => {
                 if (!active || !data) return;
                 setResolvedProfileId(data.profileId ?? null);
+                if (propUser && data.profileSlug) {
+                    propUser.profileSlug = data.profileSlug;
+                }
             })
             .catch(() => {
                 if (active) setResolvedProfileId(null);
@@ -88,6 +93,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
     const roleLinks = getRoleMenuLinks({
         role: propUser.role,
         profileId: resolvedProfileId ?? null,
+        profileSlug: propUser.profileSlug ?? null,
     });
 
     return (

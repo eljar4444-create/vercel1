@@ -41,6 +41,7 @@ export default async function DashboardPage({
         where: { id: profileId },
         select: {
             id: true,
+            slug: true,
             user_id: true,
             user_email: true,
             name: true,
@@ -111,8 +112,8 @@ export default async function DashboardPage({
     const setupProgressPercent = Math.round((setupCompletedSteps / 2) * 100);
     const currentSection =
         searchParams?.section === 'services' ||
-        searchParams?.section === 'schedule' ||
-        searchParams?.section === 'profile'
+            searchParams?.section === 'schedule' ||
+            searchParams?.section === 'profile'
             ? searchParams.section
             : 'bookings';
 
@@ -170,11 +171,10 @@ export default async function DashboardPage({
                                     <Link
                                         key={item.key}
                                         href={`/dashboard/${profileId}?section=${item.key}`}
-                                        className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-                                            isActive
-                                                ? 'bg-slate-900/6 text-slate-900'
-                                                : 'text-slate-500 hover:bg-slate-100/70 hover:text-slate-900'
-                                        }`}
+                                        className={`relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${isActive
+                                            ? 'bg-slate-900/6 text-slate-900'
+                                            : 'text-slate-500 hover:bg-slate-100/70 hover:text-slate-900'
+                                            }`}
                                     >
                                         {isActive ? <span className="absolute left-0 top-2 h-7 w-1 rounded-r-full bg-slate-900/70" /> : null}
                                         <Icon className="h-4 w-4" />
@@ -219,7 +219,7 @@ export default async function DashboardPage({
                         </div>
 
                         <Link
-                            href={`/profile/${profileId}`}
+                            href={`/salon/${profile?.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-white hover:text-slate-900"
@@ -268,17 +268,15 @@ export default async function DashboardPage({
                                     <div className="mt-3 space-y-2 text-sm">
                                         <Link
                                             href={`/dashboard/${profileId}?section=services`}
-                                            className={`block rounded-lg px-2 py-1 transition ${
-                                                hasServices ? 'text-emerald-700' : 'text-slate-700 hover:bg-slate-100/60'
-                                            }`}
+                                            className={`block rounded-lg px-2 py-1 transition ${hasServices ? 'text-emerald-700' : 'text-slate-700 hover:bg-slate-100/60'
+                                                }`}
                                         >
                                             {hasServices ? '✅' : '○'} Добавьте услуги
                                         </Link>
                                         <Link
                                             href={`/dashboard/${profileId}?section=schedule`}
-                                            className={`block rounded-lg px-2 py-1 transition ${
-                                                hasScheduleConfigured ? 'text-emerald-700' : 'text-slate-700 hover:bg-slate-100/60'
-                                            }`}
+                                            className={`block rounded-lg px-2 py-1 transition ${hasScheduleConfigured ? 'text-emerald-700' : 'text-slate-700 hover:bg-slate-100/60'
+                                                }`}
                                         >
                                             {hasScheduleConfigured ? '✅' : '○'} Укажите рабочие часы
                                         </Link>
@@ -393,11 +391,10 @@ export default async function DashboardPage({
                             <Link
                                 key={`mobile-${item.key}`}
                                 href={`/dashboard/${profileId}?section=${item.key}`}
-                                className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-medium transition ${
-                                    isActive
-                                        ? 'bg-slate-900 text-white'
-                                        : 'text-slate-500 hover:bg-slate-100/70 hover:text-slate-900'
-                                }`}
+                                className={`flex flex-col items-center justify-center rounded-xl px-2 py-2 text-[11px] font-medium transition ${isActive
+                                    ? 'bg-slate-900 text-white'
+                                    : 'text-slate-500 hover:bg-slate-100/70 hover:text-slate-900'
+                                    }`}
                             >
                                 <Icon className="mb-1 h-4 w-4" />
                                 {item.label}

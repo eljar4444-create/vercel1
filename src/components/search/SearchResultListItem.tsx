@@ -13,6 +13,7 @@ interface SearchResultService {
 interface SearchResultListItemProps {
     profile: {
         id: number;
+        slug: string;
         name: string;
         provider_type: 'SALON' | 'PRIVATE';
         city: string;
@@ -42,7 +43,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
         <article className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div className="flex flex-col md:flex-row">
                 <Link
-                    href={`/profile/${profile.id}`}
+                    href={`/salon/${profile.slug}`}
                     className="block h-52 w-full cursor-pointer overflow-hidden bg-slate-100 md:h-auto md:min-h-[200px] md:w-48 md:flex-shrink-0"
                     aria-label={`Открыть профиль ${profile.name}`}
                 >
@@ -61,7 +62,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
 
                 <div className="min-w-0 flex-1 p-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                        <Link href={`/profile/${profile.id}`} className="block cursor-pointer">
+                        <Link href={`/salon/${profile.slug}`} className="block cursor-pointer">
                             <h2 className="text-[17px] font-semibold leading-tight text-slate-900 transition-colors hover:text-blue-600">
                                 {profile.name}
                             </h2>
@@ -125,7 +126,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                                         </p>
                                         <p className="text-sm font-semibold text-slate-900">€{service.price.toFixed(0)}</p>
                                         <Link
-                                            href={`/profile/${profile.id}?book=1&service=${service.id}`}
+                                            href={`/salon/${profile.slug}?book=1&service=${service.id}`}
                                             className="inline-flex min-h-[44px] items-center rounded-md bg-slate-100 px-3 text-[11px] font-medium text-slate-900 transition hover:bg-slate-200"
                                         >
                                             Выбрать
@@ -140,7 +141,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
 
                     <div className="mt-3 flex justify-end border-t border-slate-100 pt-3">
                         <Link
-                            href={`/profile/${profile.id}?book=1`}
+                            href={`/salon/${profile.slug}?book=1`}
                             className="inline-flex min-h-[44px] items-center rounded-md bg-black px-4 text-xs font-semibold text-white transition hover:bg-slate-800"
                         >
                             Записаться

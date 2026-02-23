@@ -63,8 +63,15 @@ export async function updateSchedule(formData: FormData): Promise<UpdateSchedule
             },
         });
 
+        const updatedProfile = await prisma.profile.findUnique({
+            where: { id: profileId },
+            select: { slug: true },
+        });
+
         revalidatePath(`/dashboard/${profileId}`);
-        revalidatePath(`/profile/${profileId}`);
+        if (updatedProfile?.slug) {
+            revalidatePath(`/salon/${updatedProfile.slug}`);
+        }
         return { success: true };
     } catch (error: any) {
         console.error('updateSchedule error:', error);

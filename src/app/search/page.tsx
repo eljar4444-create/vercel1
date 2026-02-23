@@ -206,6 +206,7 @@ export default async function SearchPage({
                                     key={profile.id}
                                     profile={{
                                         id: profile.id,
+                                        slug: profile.slug,
                                         name: profile.name,
                                         provider_type: profile.provider_type,
                                         city: profile.city,

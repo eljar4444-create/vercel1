@@ -28,13 +28,16 @@ export async function uploadAvatar(formData: FormData) {
             access: 'public',
         });
 
-        await prisma.profile.update({
+        const updatedProfile = await prisma.profile.update({
             where: { id: profileId },
             data: { image_url: blob.url },
+            select: { slug: true },
         });
 
         revalidatePath('/dashboard', 'layout');
-        revalidatePath(`/profile/${profileId}`);
+        if (updatedProfile?.slug) {
+            revalidatePath(`/salon/${updatedProfile.slug}`);
+        }
 
         return { success: true, url: blob.url };
     } catch (error: any) {

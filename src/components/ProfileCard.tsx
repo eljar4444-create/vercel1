@@ -7,6 +7,7 @@ import { MapPin, Sparkles, Globe, UserCircle } from 'lucide-react';
 interface ProfileCardProps {
     profile: {
         id: number;
+        slug: string;
         name: string;
         city: string;
         address?: string | null;
@@ -168,7 +169,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
 
                 {/* CTA */}
                 <Link
-                    href={`/profile/${profile.id}`}
+                    href={`/salon/${profile.slug}`}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-rose-600 hover:shadow-md"
                 >
                     Записаться

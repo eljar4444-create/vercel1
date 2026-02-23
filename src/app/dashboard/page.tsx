@@ -51,6 +51,7 @@ export default async function DashboardPage() {
             profile: {
                 select: {
                     id: true,
+                    slug: true,
                     name: true,
                     city: true,
                     address: true,

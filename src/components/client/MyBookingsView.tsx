@@ -18,6 +18,7 @@ export interface BookingItem {
     isCancellable: boolean;
     profile: {
         id: number;
+        slug: string;
         name: string;
         city: string;
         image_url: string | null;
@@ -101,7 +102,7 @@ function BookingCard({ booking, variant }: { booking: BookingItem; variant: 'upc
                                 {booking.service?.title || 'Услуга уточняется'}
                             </p>
                             <Link
-                                href={`/profile/${booking.profile.id}`}
+                                href={`/salon/${booking.profile.slug}`}
                                 className="text-sm text-slate-500 transition-colors hover:text-slate-900"
                             >
                                 {booking.profile.name}
@@ -123,12 +124,12 @@ function BookingCard({ booking, variant }: { booking: BookingItem; variant: 'upc
                     <div className="mt-4 flex flex-wrap items-center gap-2">
                         {variant === 'history' && booking.status !== 'cancelled' && (
                             <Button asChild size="sm" className="bg-slate-900 text-white hover:bg-slate-800">
-                                <Link href={`/profile/${booking.profile.id}`}>Записаться снова</Link>
+                                <Link href={`/salon/${booking.profile.slug}`}>Записаться снова</Link>
                             </Button>
                         )}
                         {variant === 'history' && booking.status === 'cancelled' && (
                             <Button asChild variant="outline" size="sm">
-                                <Link href={`/profile/${booking.profile.id}`}>Перейти к мастеру</Link>
+                                <Link href={`/salon/${booking.profile.slug}`}>Перейти к мастеру</Link>
                             </Button>
                         )}
                         {variant === 'upcoming' && booking.isCancellable && (

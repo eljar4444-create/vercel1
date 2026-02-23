@@ -20,7 +20,7 @@ export async function GET() {
                 ...(session.user.email ? [{ user_email: session.user.email }] : []),
             ],
         },
-        select: { id: true, user_id: true },
+        select: { id: true, slug: true, user_id: true },
     });
 
     if (!profile) {
@@ -35,5 +35,5 @@ export async function GET() {
         });
     }
 
-    return NextResponse.json({ profileId: profile.id }, { status: 200 });
+    return NextResponse.json({ profileId: profile.id, profileSlug: profile.slug }, { status: 200 });
 }

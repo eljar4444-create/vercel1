@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
+import { generateUniqueSlug } from '@/lib/generateUniqueSlug';
 
 export async function updateProfile(formData: FormData) {
     const session = await auth();
@@ -42,24 +43,32 @@ export async function updateProfile(formData: FormData) {
     }
 
     try {
-        if (session.user.role !== 'ADMIN') {
-            const profile = await prisma.profile.findUnique({
-                where: { id: profileId },
-                select: { user_id: true, user_email: true },
-            });
-            if (!profile) return { success: false, error: 'Профиль не найден.' };
+        const currentProfile = await prisma.profile.findUnique({
+            where: { id: profileId },
+            select: { user_id: true, user_email: true, name: true, city: true, slug: true },
+        });
+        if (!currentProfile) return { success: false, error: 'Профиль не найден.' };
 
-            const ownsByUserId = profile.user_id && profile.user_id === session.user.id;
-            const ownsByEmail = session.user.email && profile.user_email === session.user.email;
+        if (session.user.role !== 'ADMIN') {
+            const ownsByUserId = currentProfile.user_id && currentProfile.user_id === session.user.id;
+            const ownsByEmail = session.user.email && currentProfile.user_email === session.user.email;
             if (!ownsByUserId && !ownsByEmail) {
                 return { success: false, error: 'Недостаточно прав.' };
             }
         }
 
-        await prisma.profile.update({
+        // Re-generate slug if name or city changed
+        const nameChanged = name !== currentProfile.name;
+        const cityChanged = city !== currentProfile.city;
+        const newSlug = (nameChanged || cityChanged)
+            ? await generateUniqueSlug(name, city, profileId)
+            : currentProfile.slug;
+
+        const updated = await prisma.profile.update({
             where: { id: profileId },
             data: {
                 name,
+                slug: newSlug,
                 provider_type: providerType,
                 bio: bio || null,
                 phone: phone || null,
@@ -67,10 +76,11 @@ export async function updateProfile(formData: FormData) {
                 address: providerType === 'SALON' ? address || null : null,
                 studioImages,
             },
+            select: { slug: true },
         });
 
         revalidatePath('/dashboard', 'layout');
-        revalidatePath(`/profile/${profileId}`);
+        revalidatePath(`/salon/${updated.slug}`);
 
         return { success: true };
     } catch (error: any) {

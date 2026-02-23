@@ -64,11 +64,12 @@ async function resolveAddressCoordinates(address: string, city: string) {
     }
 }
 
-async function getProfile(id: number) {
+async function getProfileBySlug(slug: string) {
     return prisma.profile.findUnique({
-        where: { id },
+        where: { slug },
         select: {
             id: true,
+            slug: true,
             name: true,
             provider_type: true,
             city: true,
@@ -106,14 +107,9 @@ async function getProfile(id: number) {
 export async function generateMetadata({
     params,
 }: {
-    params: { id: string };
+    params: { slug: string };
 }): Promise<Metadata> {
-    const profileId = parseInt(params.id, 10);
-    if (isNaN(profileId)) {
-        return { title: 'Профиль не найден | Svoi.de' };
-    }
-
-    const profile = await getProfile(profileId);
+    const profile = await getProfileBySlug(params.slug);
     if (!profile) {
         return { title: 'Профиль не найден | Svoi.de' };
     }
@@ -135,15 +131,12 @@ export async function generateMetadata({
     };
 }
 
-export default async function ProfileDetailPage({
+export default async function SalonProfilePage({
     params,
 }: {
-    params: { id: string };
+    params: { slug: string };
 }) {
-    const profileId = parseInt(params.id, 10);
-    if (isNaN(profileId)) notFound();
-
-    const profile = await getProfile(profileId);
+    const profile = await getProfileBySlug(params.slug);
     if (!profile) notFound();
 
     const cityCoordinates = resolveCityCoordinates(profile.city);
@@ -189,7 +182,7 @@ export default async function ProfileDetailPage({
             latitude: mapCoordinates.lat,
             longitude: mapCoordinates.lng,
         },
-        url: `https://svoi.de/profile/${profile.id}`,
+        url: `https://svoi.de/salon/${profile.slug}`,
     };
 
     // Serialize for client component (Decimal → string, Date → string)

@@ -1,6 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
+import { generateUniqueSlug } from '@/lib/generateUniqueSlug';
 
 interface RegisterProResult {
     success: boolean;
@@ -28,9 +29,13 @@ export async function registerPro(formData: FormData): Promise<RegisterProResult
             return { success: false, error: 'Этот email уже зарегистрирован.' };
         }
 
+        // Generate unique slug
+        const slug = await generateUniqueSlug(name, city);
+
         await prisma.profile.create({
             data: {
                 name,
+                slug,
                 user_email: email,
                 city,
                 category_id: categoryId,

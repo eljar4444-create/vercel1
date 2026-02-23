@@ -16,6 +16,7 @@ export interface BookingItem {
     isCancellable: boolean;
     profile: {
         id: number;
+        slug: string;
         name: string;
         city: string;
         address: string | null;
@@ -141,7 +142,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                             <h3 className="text-lg font-semibold text-slate-900">
                                                 {nextAppointment.service?.title || 'Услуга'}
                                             </h3>
-                                            <Link href={`/profile/${nextAppointment.profile.id}`} className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors">
+                                            <Link href={`/salon/${nextAppointment.profile.slug}`} className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors">
                                                 {nextAppointment.profile.name}
                                             </Link>
                                         </div>
@@ -258,7 +259,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                         <h4 className="font-semibold text-slate-900 truncate">{b.service?.title || 'Услуга'}</h4>
                                                         <StatusBadge status={b.status} />
                                                     </div>
-                                                    <Link href={`/profile/${b.profile.id}`} className="text-sm text-slate-500 hover:text-slate-900">{b.profile.name}</Link>
+                                                    <Link href={`/salon/${b.profile.slug}`} className="text-sm text-slate-500 hover:text-slate-900">{b.profile.name}</Link>
                                                     <div className="mt-2 flex items-center gap-4 text-sm text-slate-600">
                                                         <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" />{formatDate(b.date)}</span>
                                                         {b.service?.price && <span className="font-medium text-slate-900">€{b.service.price}</span>}
@@ -267,11 +268,11 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                 <div className="sm:ml-4 shrink-0 mt-3 sm:mt-0">
                                                     {b.status !== 'cancelled' ? (
                                                         <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                                                            <Link href={`/profile/${b.profile.id}`}>Повторить запись</Link>
+                                                            <Link href={`/salon/${b.profile.slug}`}>Повторить запись</Link>
                                                         </Button>
                                                     ) : (
                                                         <Button asChild variant="ghost" size="sm" className="w-full sm:w-auto text-slate-500 hover:text-slate-900">
-                                                            <Link href={`/profile/${b.profile.id}`}>Профиль</Link>
+                                                            <Link href={`/salon/${b.profile.slug}`}>Профиль</Link>
                                                         </Button>
                                                     )}
                                                 </div>
@@ -287,7 +288,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                 ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {myMasters.map(master => (
-                                            <Link key={master.id} href={`/profile/${master.id}`} className="group flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all bg-slate-50/50">
+                                            <Link key={master.id} href={`/salon/${master.slug}`} className="group flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all bg-slate-50/50">
                                                 <ProfileAvatar src={master.image_url} name={master.name} />
                                                 <div className="min-w-0 flex-1">
                                                     <h4 className="font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{master.name}</h4>
