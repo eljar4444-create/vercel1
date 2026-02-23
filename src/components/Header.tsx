@@ -63,14 +63,16 @@ export function Header() {
             "fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white transition-all duration-200",
             scrolled && "shadow-sm"
         )}>
-            <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl relative">
-                {/* Logo */}
-                {/* <Link href="/" className="flex items-center gap-2 shrink-0 relative z-10">
-                    <img src="/logo.png?v=6" alt="Svoi.de" className="h-11 w-auto object-contain" />
-                </Link> */}
+            <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl">
+                {/* Left Area (Logo) */}
+                <div className="flex flex-1 items-center justify-start">
+                    {/* <Link href="/" className="flex items-center gap-2 shrink-0 relative z-10">
+                        <img src="/logo.png?v=6" alt="Svoi.de" className="h-11 w-auto object-contain" />
+                    </Link> */}
+                </div>
 
                 {isSearchPage ? (
-                    <div className="hidden lg:block flex-1 min-w-0 relative z-10">
+                    <div className="hidden lg:block flex-1 min-w-0">
                         <SearchFiltersForm
                             categoryFilter={typeof searchParams.get('category') === 'string' ? searchParams.get('category') || undefined : undefined}
                             queryFilter={typeof searchParams.get('q') === 'string' ? searchParams.get('q') || undefined : undefined}
@@ -80,12 +82,12 @@ export function Header() {
                 ) : null}
 
                 {!isSearchPage ? (
-                    <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-6 lg:gap-8">
+                    <nav className="hidden lg:flex flex-1 items-center justify-center shrink-0 gap-6 lg:gap-8">
                         {QUICK_BEAUTY_LINKS.map((item) => (
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+                                className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 whitespace-nowrap"
                             >
                                 {item.label}
                             </Link>
@@ -94,17 +96,9 @@ export function Header() {
                 ) : null}
 
                 {/* Right Actions */}
-                <div className={cn("ml-auto flex items-center gap-2 relative z-10", isSearchPage && "lg:ml-0")}>
+                <div className={cn("flex flex-1 items-center justify-end gap-2", isSearchPage && "lg:flex-none")}>
                     {user ? (
-                        <div className="hidden items-center gap-2 xl:flex">
-                            {!isProvider ? (
-                                <Link
-                                    href="/auth/register?role=provider"
-                                    className="mr-1 text-sm font-semibold text-slate-900 transition-opacity hover:opacity-80"
-                                >
-                                    Стать специалистом
-                                </Link>
-                            ) : null}
+                        <div className="hidden items-center gap-2 lg:flex">
                             <Link
                                 href="/chat"
                                 aria-label="Открыть чат"
@@ -115,26 +109,19 @@ export function Header() {
                             <AvatarDropdown user={user} />
                         </div>
                     ) : (
-                        <div className="hidden items-center gap-3 xl:flex">
+                        <div className="hidden items-center gap-3 lg:flex">
                             <Link
-                                href="/auth/register?role=provider"
-                                className="text-sm font-semibold text-slate-900 transition-opacity hover:opacity-80"
+                                href="/become-pro"
+                                className="hidden xl:inline-block text-sm font-semibold text-slate-900 transition-opacity hover:opacity-80 whitespace-nowrap"
                             >
-                                Стать специалистом
+                                Для мастеров
                             </Link>
                             <Link
-                                href="/chat"
-                                aria-label="Открыть чат"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:text-gray-900 hover:shadow-md"
+                                href="/auth/login"
+                                className="inline-flex h-9 items-center rounded-xl bg-slate-900 px-5 text-sm font-medium text-white transition-colors hover:bg-slate-800 whitespace-nowrap"
                             >
-                                <MessageCircle className="h-4 w-4" />
+                                Для клиента
                             </Link>
-                            <Button variant="ghost" asChild className="h-9 rounded-md px-4 text-black hover:bg-gray-100">
-                                <Link href="/auth/login">Войти</Link>
-                            </Button>
-                            <Button asChild className="h-9 rounded-md bg-[#fc0] px-5 text-black shadow-none hover:bg-[#e6b800]">
-                                <Link href="/auth/register">Регистрация</Link>
-                            </Button>
                         </div>
                     )}
 
@@ -142,7 +129,7 @@ export function Header() {
                         type="button"
                         aria-label={mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
                         onClick={() => setMobileMenuOpen((prev) => !prev)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-gray-700 transition-colors hover:bg-gray-50 xl:hidden"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-gray-700 transition-colors hover:bg-gray-50 lg:hidden"
                     >
                         {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </button>
@@ -150,32 +137,34 @@ export function Header() {
             </div>
 
             {mobileMenuOpen && (
-                <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3 shadow-sm xl:hidden">
+                <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3 shadow-sm lg:hidden">
                     <div className="mx-auto max-w-7xl space-y-2">
                         <Link
                             href="/search"
                             onClick={() => setMobileMenuOpen(false)}
                             className="block rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                         >
-                            Services
+                            Поиск
                         </Link>
-                        {!isProvider ? (
+                        {!user && (
                             <Link
-                                href="/auth/register?role=provider"
+                                href="/become-pro"
                                 onClick={() => setMobileMenuOpen(false)}
                                 className="block rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                             >
-                                Стать специалистом
+                                Для мастеров
                             </Link>
-                        ) : null}
-                        <Link
-                            href="/chat"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-                        >
-                            <MessageCircle className="h-4 w-4 text-gray-400" />
-                            Chat
-                        </Link>
+                        )}
+                        {user && (
+                            <Link
+                                href="/chat"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            >
+                                <MessageCircle className="h-4 w-4 text-gray-400" />
+                                Чат
+                            </Link>
+                        )}
 
                         <div className="my-2 h-px bg-gray-100" />
 
@@ -221,17 +210,14 @@ export function Header() {
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button variant="outline" asChild className="h-9">
-                                    <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
-                                        Войти
-                                    </Link>
-                                </Button>
-                                <Button asChild className="h-9 bg-[#fc0] text-black hover:bg-[#e6b800]">
-                                    <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}>
-                                        Регистрация
-                                    </Link>
-                                </Button>
+                            <div className="space-y-2">
+                                <Link
+                                    href="/auth/login"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="flex w-full items-center justify-center h-10 rounded-xl bg-slate-900 text-sm font-medium text-white transition-colors hover:bg-slate-800"
+                                >
+                                    Для клиента
+                                </Link>
                             </div>
                         )}
                     </div>
