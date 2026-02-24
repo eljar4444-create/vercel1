@@ -15,7 +15,7 @@ interface SearchResultListItemProps {
         id: number;
         slug: string;
         name: string;
-        provider_type: 'SALON' | 'PRIVATE';
+        provider_type: 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
         city: string;
         address?: string | null;
         image_url?: string | null;

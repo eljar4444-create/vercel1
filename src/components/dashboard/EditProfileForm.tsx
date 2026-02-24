@@ -12,7 +12,7 @@ interface EditProfileFormProps {
     profile: {
         id: number;
         name: string;
-        providerType: 'SALON' | 'PRIVATE';
+        providerType: 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
         bio: string | null;
         phone: string | null;
         city: string;
@@ -26,7 +26,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [city, setCity] = useState(profile.city);
-    const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE'>(profile.providerType);
+    const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE' | 'INDIVIDUAL'>(profile.providerType);
     const [studioImages, setStudioImages] = useState<string[]>(profile.studioImages || []);
     const [isUploadingStudio, setIsUploadingStudio] = useState(false);
 

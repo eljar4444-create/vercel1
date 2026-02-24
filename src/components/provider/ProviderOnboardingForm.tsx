@@ -20,7 +20,7 @@ export function ProviderOnboardingForm({
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [city, setCity] = useState('');
-    const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE'>('PRIVATE');
+    const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE' | 'INDIVIDUAL'>('PRIVATE');
 
     const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -96,8 +96,8 @@ export function ProviderOnboardingForm({
                             type="radio"
                             name="provider_type"
                             value="SALON"
-                                checked={providerType === 'SALON'}
-                                onChange={() => setProviderType('SALON')}
+                            checked={providerType === 'SALON'}
+                            onChange={() => setProviderType('SALON')}
                             className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
                         />
                         Я представляю салон
@@ -107,8 +107,8 @@ export function ProviderOnboardingForm({
                             type="radio"
                             name="provider_type"
                             value="PRIVATE"
-                                checked={providerType === 'PRIVATE'}
-                                onChange={() => setProviderType('PRIVATE')}
+                            checked={providerType === 'PRIVATE'}
+                            onChange={() => setProviderType('PRIVATE')}
                             className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
                         />
                         Я частный мастер

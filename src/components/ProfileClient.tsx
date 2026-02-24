@@ -23,7 +23,7 @@ import { ProfileLocationMap } from '@/components/ProfileLocationMap';
 interface ProfileData {
     id: number;
     name: string;
-    provider_type: 'SALON' | 'PRIVATE';
+    provider_type: 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
     city: string;
     address?: string | null;
     image_url?: string | null;

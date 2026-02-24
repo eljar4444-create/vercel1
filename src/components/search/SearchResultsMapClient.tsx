@@ -9,7 +9,7 @@ import 'leaflet-defaulticon-compatibility';
 interface SearchMapMarker {
     id: number;
     name: string;
-    providerType: 'SALON' | 'PRIVATE';
+    providerType: 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
     city: string;
     address?: string | null;
     lat: number;
