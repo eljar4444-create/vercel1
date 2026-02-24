@@ -16,6 +16,7 @@ enum UserRole {
 enum ProviderType {
   SALON
   PRIVATE
+  INDIVIDUAL
 }
 
 model Category {
@@ -76,6 +77,7 @@ model Booking {
   profile_id  Int
   service_id  Int?
   user_id     String?
+  staff_id    String?
   date        DateTime
   time        String
   user_name   String
@@ -86,12 +88,13 @@ model Booking {
   user        User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
   profile     Profile  @relation(fields: [profile_id], references: [id])
   service     Service? @relation(fields: [service_id], references: [id])
+  staff       Staff?   @relation(fields: [staff_id], references: [id], onDelete: SetNull)
 
   @@index([profile_id])
   @@index([user_id])
+  @@index([staff_id])
 }
 
-// --- Auth Model (Preserved) ---
 model User {
   id            String    @id @default(uuid())
   name          String?
@@ -104,12 +107,38 @@ model User {
   updatedAt     DateTime  @updatedAt
   bio           String?
 
+  // --- Onboarding fields ---
+  providerType         ProviderType @default(PRIVATE)
+  companyName          String?
+  isKleinunternehmer   Boolean      @default(false)
+  taxId                String?
+  address              String?
+  city                 String?
+  zipCode              String?
+  onboardingCompleted  Boolean      @default(false)
+
   profile       Profile?
   accounts      Account[]
   sessions      Session[]
   bookings      Booking[]
+  staff         Staff[]
   conversationsAsClient Conversation[] @relation("ClientConversations")
   sentMessages  Message[]
+}
+
+model Staff {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  avatarUrl String?
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+
+  @@index([userId])
 }
 
 model Conversation {

@@ -71,15 +71,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     : (legacyRole === 'PROVIDER' || legacyRole === 'CLIENT') ? legacyRole
                         : 'CLIENT';
 
+                const providerTypeMap: Record<string, 'SALON' | 'INDIVIDUAL'> = {
+                    SALON: 'SALON',
+                    INDIVIDUAL: 'INDIVIDUAL',
+                };
+
                 await prisma.user.update({
                     where: { id: user.id },
-                    data: { role },
+                    data: {
+                        role,
+                        ...(role === 'PROVIDER' && onboardingType && providerTypeMap[onboardingType]
+                            ? { providerType: providerTypeMap[onboardingType] }
+                            : {}),
+                    },
                 });
-
-                // Log provider type for future profile creation
-                if (role === 'PROVIDER' && onboardingType) {
-                    console.log(`[createUser] New provider: ${user.id}, type: ${onboardingType}`);
-                }
             } catch (error) {
                 console.error('createUser role sync error:', error);
             }
