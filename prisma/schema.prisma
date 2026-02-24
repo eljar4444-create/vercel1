@@ -44,6 +44,8 @@ model Profile {
   studioImages String[] @default([])
   bio         String?
   phone       String?
+  latitude    Float?
+  longitude   Float?
   schedule    Json?
   is_verified Boolean   @default(false)
   created_at  DateTime  @default(now())

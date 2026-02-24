@@ -8,7 +8,9 @@ import { getCityFilterVariants } from "@/constants/searchSuggestions";
 import { GERMAN_CITIES } from "@/constants/germanCities";
 import { SearchResultListItem } from "@/components/search/SearchResultListItem";
 import { SearchResultsMap } from "@/components/search/SearchResultsMap";
+import { geocodeCity } from "@/lib/geocode";
 import type { Metadata } from "next";
+import { Prisma } from "@prisma/client";
 
 const QUICK_FILTERS = ['Рядом со мной', 'Топ рейтинг', 'Стрижка', 'Маникюр', 'Массаж'];
 
@@ -63,6 +65,8 @@ export default async function SearchPage({
     const categoryFilter = typeof searchParams.category === 'string' ? searchParams.category : undefined;
     const cityFilter = typeof searchParams.city === 'string' ? searchParams.city : undefined;
     const queryFilter = typeof searchParams.q === 'string' ? searchParams.q : undefined;
+    const radiusParam = typeof searchParams.radius === 'string' ? parseInt(searchParams.radius, 10) : 50;
+    const radiusKm = isNaN(radiusParam) || radiusParam <= 0 ? 50 : radiusParam;
 
     const andConditions: any[] = [{ is_verified: true }, { category: { slug: { not: 'health' } } }];
 
@@ -70,13 +74,63 @@ export default async function SearchPage({
         andConditions.push({ category: { slug: categoryFilter } });
     }
 
+    // --- Geo-radius search ---
+    let geoCenter: { lat: number; lng: number } | null = null;
+    let geoProfileIds: number[] | null = null;
+
     if (cityFilter) {
-        const cityVariants = getCityFilterVariants(cityFilter);
-        andConditions.push({
-            OR: cityVariants.map((variant) => ({
-                city: { contains: variant, mode: 'insensitive' },
-            })),
-        });
+        // Try to geocode the search city for radius search
+        const coords = await geocodeCity(cityFilter);
+        if (coords) {
+            geoCenter = coords;
+
+            // Haversine query: find Profile IDs within radiusKm
+            try {
+                const nearbyProfiles = await prisma.$queryRaw<{ id: number; distance: number }[]>`
+                    SELECT id,
+                        (6371 * acos(
+                            LEAST(1.0, GREATEST(-1.0,
+                                cos(radians(${coords.lat})) * cos(radians(latitude))
+                                * cos(radians(longitude) - radians(${coords.lng}))
+                                + sin(radians(${coords.lat})) * sin(radians(latitude))
+                            ))
+                        )) AS distance
+                    FROM "Profile"
+                    WHERE latitude IS NOT NULL
+                      AND longitude IS NOT NULL
+                      AND (6371 * acos(
+                            LEAST(1.0, GREATEST(-1.0,
+                                cos(radians(${coords.lat})) * cos(radians(latitude))
+                                * cos(radians(longitude) - radians(${coords.lng}))
+                                + sin(radians(${coords.lat})) * sin(radians(latitude))
+                            ))
+                          )) <= ${radiusKm}
+                    ORDER BY distance ASC
+                `;
+                geoProfileIds = nearbyProfiles.map((p) => p.id);
+            } catch (e) {
+                console.error('[search] Haversine query failed:', e);
+                // Fall through to string-based city filter below
+            }
+        }
+
+        if (geoProfileIds !== null) {
+            // Use geo IDs filter
+            if (geoProfileIds.length === 0) {
+                // No providers in radius → force empty result
+                andConditions.push({ id: { in: [] } });
+            } else {
+                andConditions.push({ id: { in: geoProfileIds } });
+            }
+        } else {
+            // Fallback: old city string matching
+            const cityVariants = getCityFilterVariants(cityFilter);
+            andConditions.push({
+                OR: cityVariants.map((variant) => ({
+                    city: { contains: variant, mode: 'insensitive' },
+                })),
+            });
+        }
     }
 
     if (queryFilter) {
@@ -113,8 +167,18 @@ export default async function SearchPage({
         console.error("DB Error:", e);
     }
 
+    // If we have geo IDs, sort profiles by their geo-order (distance ASC)
+    if (geoProfileIds && geoProfileIds.length > 0) {
+        const orderMap = new Map(geoProfileIds.map((id, index) => [id, index]));
+        profiles.sort((a: any, b: any) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
+    }
+
     const mapMarkers = profiles.map((profile) => {
-        const coords = resolveCityCoordinates(profile.city || '');
+        // Prefer real lat/lng from Profile, fall back to city lookup
+        const hasCoords = profile.latitude != null && profile.longitude != null;
+        const coords = hasCoords
+            ? { lat: profile.latitude as number, lng: profile.longitude as number }
+            : resolveCityCoordinates(profile.city || '');
         return {
             id: profile.id,
             name: profile.name,
@@ -181,7 +245,7 @@ export default async function SearchPage({
                                     aria-label={`Удалить фильтр: ${cityFilter}`}
                                     className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
                                 >
-                                    {cityFilter}
+                                    {cityFilter}{geoCenter ? ` (${radiusKm} км)` : ''}
                                     <X className="h-3 w-3" />
                                 </Link>
                             )}
@@ -243,3 +307,4 @@ export default async function SearchPage({
         </main>
     );
 }
+

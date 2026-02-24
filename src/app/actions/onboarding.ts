@@ -5,6 +5,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ProviderType } from '@prisma/client';
+import { geocodeAddress } from '@/lib/geocode';
 
 /**
  * Завершает онбординг провайдера: сохраняет бизнес-данные
@@ -51,6 +52,26 @@ export async function completeProviderOnboarding(formData: FormData) {
                 onboardingCompleted: true,
             },
         });
+
+        // Geocode the address and save coordinates to Profile
+        try {
+            const coords = await geocodeAddress(address, city, zipCode);
+            if (coords) {
+                await prisma.profile.updateMany({
+                    where: { user_id: userId },
+                    data: {
+                        latitude: coords.lat,
+                        longitude: coords.lng,
+                    },
+                });
+                console.log(`[onboarding] Geocoded ${city}: ${coords.lat}, ${coords.lng}`);
+            } else {
+                console.warn(`[onboarding] Could not geocode address for user ${userId}`);
+            }
+        } catch (geoError) {
+            // Non-critical: profile still works, just won't appear in geo-search
+            console.error('[onboarding] Geocoding failed:', geoError);
+        }
 
         revalidatePath('/');
     } catch (error) {
