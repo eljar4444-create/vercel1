@@ -13,13 +13,35 @@ export default async function OnboardingPage() {
         redirect('/auth/login');
     }
 
-    // Check if user already completed onboarding
+    // Fetch fresh user from DB
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { onboardingCompleted: true, providerType: true, name: true },
+        select: {
+            role: true,
+            onboardingCompleted: true,
+            providerType: true,
+            name: true,
+        },
     });
 
-    if (user?.onboardingCompleted) {
+    // Guard: clients should never see this page
+    if (!user || user.role === 'CLIENT') {
+        redirect('/');
+    }
+
+    // Guard: already completed onboarding → go to provider dashboard
+    if (user.onboardingCompleted) {
+        // Find their profile to redirect to the correct dashboard
+        const profile = await prisma.profile.findUnique({
+            where: { user_id: session.user.id },
+            select: { id: true },
+        });
+
+        if (profile) {
+            redirect(`/dashboard/${profile.id}`);
+        }
+
+        // If no profile yet, send to provider onboarding (profile creation)
         redirect('/provider/onboarding');
     }
 
@@ -27,14 +49,15 @@ export default async function OnboardingPage() {
     const cookieStore = await cookies();
     const cookieType = cookieStore.get('onboarding_type')?.value;
 
-    // Map cookie value to ProviderType
-    let providerType = 'INDIVIDUAL';
+    // Prefer cookie value, fall back to DB value
+    let providerType = user.providerType || 'INDIVIDUAL';
     if (cookieType === 'SALON') providerType = 'SALON';
+    else if (cookieType === 'INDIVIDUAL') providerType = 'INDIVIDUAL';
 
     return (
         <OnboardingForm
             providerType={providerType}
-            userName={user?.name ?? session.user.name ?? null}
+            userName={user.name ?? session.user.name ?? null}
         />
     );
 }

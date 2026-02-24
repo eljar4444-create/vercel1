@@ -49,7 +49,7 @@ function AuthContent() {
                 document.cookie = `onboarding_type=${type}; path=/; max-age=3600`;
             }
         }
-        signIn(provider, { callbackUrl: '/' });
+        signIn(provider, { callbackUrl: isProvider ? '/onboarding' : '/' });
     };
 
     // Dynamic copy
