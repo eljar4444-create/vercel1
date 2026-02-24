@@ -4,12 +4,16 @@ import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 import { generateUniqueSlug } from '@/lib/generateUniqueSlug';
+import { geocodeAddress } from '@/lib/geocode';
 
 interface ProviderOnboardingResult {
     success: boolean;
     error?: string;
     profileId?: number;
 }
+
+const GEO_ERROR_MESSAGE =
+    'Мы не смогли найти этот адрес на карте. Пожалуйста, проверьте правильность написания города и адреса или укажите ближайший крупный ориентир.';
 
 export async function createProviderProfile(formData: FormData): Promise<ProviderOnboardingResult> {
     const session = await auth();
@@ -67,6 +71,20 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
             return { success: true, profileId: existingByEmail.id };
         }
 
+        // ── Strict geocoding: must succeed BEFORE profile creation ──
+        let coords: { lat: number; lng: number };
+        try {
+            const fullAddress = address || city;
+            const result = await geocodeAddress(fullAddress, city, '');
+            if (!result) {
+                return { success: false, error: GEO_ERROR_MESSAGE };
+            }
+            coords = result;
+        } catch (geoError) {
+            console.error('[providerOnboarding] Geocoding error:', geoError);
+            return { success: false, error: GEO_ERROR_MESSAGE };
+        }
+
         const slug = await generateUniqueSlug(name, city);
 
         const created = await prisma.profile.create({
@@ -83,9 +101,13 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
                 attributes: {},
                 image_url: null,
                 is_verified: true,
+                latitude: coords.lat,
+                longitude: coords.lng,
             },
             select: { id: true },
         });
+
+        console.log(`[providerOnboarding] Created profile #${created.id} with coords ${coords.lat}, ${coords.lng}`);
 
         revalidatePath('/search');
         revalidatePath('/dashboard');

@@ -4,6 +4,10 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { generateUniqueSlug } from '@/lib/generateUniqueSlug';
+import { geocodeAddress } from '@/lib/geocode';
+
+const GEO_ERROR_MESSAGE =
+    'Мы не смогли найти этот адрес на карте. Пожалуйста, проверьте правильность написания города и адреса или укажите ближайший крупный ориентир.';
 
 export async function updateProfile(formData: FormData) {
     const session = await auth();
@@ -45,7 +49,11 @@ export async function updateProfile(formData: FormData) {
     try {
         const currentProfile = await prisma.profile.findUnique({
             where: { id: profileId },
-            select: { user_id: true, user_email: true, name: true, city: true, slug: true },
+            select: {
+                user_id: true, user_email: true, name: true,
+                city: true, slug: true, address: true,
+                latitude: true, longitude: true,
+            },
         });
         if (!currentProfile) return { success: false, error: 'Профиль не найден.' };
 
@@ -60,9 +68,47 @@ export async function updateProfile(formData: FormData) {
         // Re-generate slug if name or city changed
         const nameChanged = name !== currentProfile.name;
         const cityChanged = city !== currentProfile.city;
+        const addressChanged = address !== (currentProfile.address ?? '');
         const newSlug = (nameChanged || cityChanged)
             ? await generateUniqueSlug(name, city, profileId)
             : currentProfile.slug;
+
+        // ── Strict geocoding when location changed ──
+        let latitude = currentProfile.latitude;
+        let longitude = currentProfile.longitude;
+
+        if (cityChanged || addressChanged) {
+            try {
+                const fullAddress = (providerType === 'SALON' && address) ? address : city;
+                const coords = await geocodeAddress(fullAddress, city, '');
+                if (!coords) {
+                    return { success: false, error: GEO_ERROR_MESSAGE };
+                }
+                latitude = coords.lat;
+                longitude = coords.lng;
+                console.log(`[updateProfile] Geocoded ${city}: ${coords.lat}, ${coords.lng}`);
+            } catch (geoError) {
+                console.error('[updateProfile] Geocoding error:', geoError);
+                return { success: false, error: GEO_ERROR_MESSAGE };
+            }
+        }
+
+        // If profile somehow has no coordinates (legacy), force geocoding
+        if (latitude == null || longitude == null) {
+            try {
+                const fullAddress = (providerType === 'SALON' && address) ? address : city;
+                const coords = await geocodeAddress(fullAddress, city, '');
+                if (!coords) {
+                    return { success: false, error: GEO_ERROR_MESSAGE };
+                }
+                latitude = coords.lat;
+                longitude = coords.lng;
+                console.log(`[updateProfile] Backfilled coords for profile #${profileId}: ${coords.lat}, ${coords.lng}`);
+            } catch (geoError) {
+                console.error('[updateProfile] Backfill geocoding error:', geoError);
+                return { success: false, error: GEO_ERROR_MESSAGE };
+            }
+        }
 
         const updated = await prisma.profile.update({
             where: { id: profileId },
@@ -75,6 +121,8 @@ export async function updateProfile(formData: FormData) {
                 city,
                 address: providerType === 'SALON' ? address || null : null,
                 studioImages,
+                latitude,
+                longitude,
             },
             select: { slug: true },
         });

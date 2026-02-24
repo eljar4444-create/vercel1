@@ -39,6 +39,19 @@ export async function completeProviderOnboarding(formData: FormData) {
     else if (providerTypeRaw === 'INDIVIDUAL') providerType = 'INDIVIDUAL';
 
     try {
+        // ── Strict geocoding: must succeed BEFORE saving ──
+        let coords: { lat: number; lng: number };
+        try {
+            const result = await geocodeAddress(address, city, zipCode);
+            if (!result) {
+                return { success: false, error: 'Мы не смогли найти этот адрес на карте. Проверьте правильность написания или укажите ближайший крупный ориентир.' };
+            }
+            coords = result;
+        } catch (geoError) {
+            console.error('[onboarding] Geocoding error:', geoError);
+            return { success: false, error: 'Мы не смогли найти этот адрес на карте. Проверьте правильность написания или укажите ближайший крупный ориентир.' };
+        }
+
         await prisma.user.update({
             where: { id: userId },
             data: {
@@ -53,25 +66,15 @@ export async function completeProviderOnboarding(formData: FormData) {
             },
         });
 
-        // Geocode the address and save coordinates to Profile
-        try {
-            const coords = await geocodeAddress(address, city, zipCode);
-            if (coords) {
-                await prisma.profile.updateMany({
-                    where: { user_id: userId },
-                    data: {
-                        latitude: coords.lat,
-                        longitude: coords.lng,
-                    },
-                });
-                console.log(`[onboarding] Geocoded ${city}: ${coords.lat}, ${coords.lng}`);
-            } else {
-                console.warn(`[onboarding] Could not geocode address for user ${userId}`);
-            }
-        } catch (geoError) {
-            // Non-critical: profile still works, just won't appear in geo-search
-            console.error('[onboarding] Geocoding failed:', geoError);
-        }
+        // Save coordinates to Profile (if it exists already)
+        await prisma.profile.updateMany({
+            where: { user_id: userId },
+            data: {
+                latitude: coords.lat,
+                longitude: coords.lng,
+            },
+        });
+        console.log(`[onboarding] Geocoded ${city}: ${coords.lat}, ${coords.lng}`);
 
         revalidatePath('/');
     } catch (error) {
