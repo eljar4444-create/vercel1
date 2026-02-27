@@ -8,6 +8,7 @@ import {
     Inbox, ArrowLeft, Briefcase, ShieldCheck, AlertCircle, ListChecks, Eye, UserCircle2
 } from 'lucide-react';
 import { BookingRow } from '@/components/dashboard/BookingRow';
+import { ProviderCalendar } from '@/components/dashboard/ProviderCalendar';
 import { ServicesSection } from '@/components/dashboard/ServicesSection';
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
@@ -286,11 +287,21 @@ export default async function DashboardPage({
                     )}
 
                     {currentSection === 'bookings' && (
-                        <div className="rounded-[2rem] border border-white/50 bg-white/80 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5">
-                            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
-                                <h2 className="text-lg font-semibold text-slate-900">Входящие записи</h2>
-                                <span className="text-sm text-slate-500">{totalBookings} записей</span>
+                        <div className="space-y-4">
+                            <div className="rounded-[2rem] border border-white/50 bg-white/80 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5 overflow-hidden">
+                                <div className="border-b border-slate-100 px-6 py-4">
+                                    <h2 className="text-lg font-semibold text-slate-900">Календарь записей</h2>
+                                    <p className="text-sm text-slate-500 mt-0.5">Неделя по умолчанию. Клик по записи — детали и смена статуса.</p>
+                                </div>
+                                <div className="p-4">
+                                    <ProviderCalendar profileId={profileId} />
+                                </div>
                             </div>
+                            <div className="rounded-[2rem] border border-white/50 bg-white/80 shadow-[0_18px_60px_rgba(15,23,42,0.08)] backdrop-blur-md ring-1 ring-slate-900/5">
+                                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+                                    <h2 className="text-lg font-semibold text-slate-900">Входящие записи</h2>
+                                    <span className="text-sm text-slate-500">{totalBookings} записей</span>
+                                </div>
                             <div className="p-5">
                                 {serializedBookings.length > 0 ? (
                                     <div className="space-y-3">
@@ -314,6 +325,7 @@ export default async function DashboardPage({
                                         </Button>
                                     </div>
                                 )}
+                            </div>
                             </div>
                         </div>
                     )}
