@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Building2, Clock3, MapPin, Star, UserRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { LiveQuickSlots } from '@/components/search/LiveQuickSlots';
 
 interface SearchResultService {
     id: number;
@@ -23,18 +24,7 @@ interface SearchResultListItemProps {
     };
 }
 
-function mockAvailability(id: number) {
-    const morning = ['Сб 21', 'Пн 23', 'Вт 24'];
-    const evening = ['Сегодня', 'Вс 22', 'Ср 25'];
-    const shift = id % 3;
-    return {
-        morning: [morning[shift], morning[(shift + 1) % morning.length]],
-        evening: [evening[shift], evening[(shift + 1) % evening.length]],
-    };
-}
-
 export function SearchResultListItem({ profile }: SearchResultListItemProps) {
-    const slots = mockAvailability(profile.id);
     const previewServices = profile.services.slice(0, 2);
     const isSalon = profile.provider_type === 'SALON';
     const visibleAddress = isSalon ? [profile.address, profile.city].filter(Boolean).join(', ') : profile.city;
@@ -82,31 +72,7 @@ export function SearchResultListItem({ profile }: SearchResultListItemProps) {
                         </div>
                     </div>
 
-                    <div className="mt-3">
-                        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Быстрые слоты</p>
-                        <div className="mt-1.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            <div>
-                                <p className="text-[10px] font-semibold uppercase text-slate-500">Утро</p>
-                                <div className="mt-1 flex flex-wrap gap-1.5">
-                                    {slots.morning.map((slot) => (
-                                        <span key={slot} className="min-h-[44px] flex items-center rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600">
-                                            {slot}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-semibold uppercase text-slate-500">Вечер</p>
-                                <div className="mt-1 flex flex-wrap gap-1.5">
-                                    {slots.evening.map((slot) => (
-                                        <span key={slot} className="min-h-[44px] flex items-center rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600">
-                                            {slot}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <LiveQuickSlots profileId={profile.id} slug={profile.slug} />
 
                     <div className="mt-3">
                         {previewServices.length > 0 ? (

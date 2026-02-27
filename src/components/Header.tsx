@@ -66,9 +66,9 @@ export function Header() {
             <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl">
                 {/* Left Area (Logo) */}
                 <div className="flex flex-1 items-center justify-start">
-                    {/* <Link href="/" className="flex items-center gap-2 shrink-0 relative z-10">
-                        <img src="/logo.png?v=6" alt="Svoi.de" className="h-11 w-auto object-contain" />
-                    </Link> */}
+                    <Link href="/" className="flex items-center shrink-0 relative z-10">
+                        <img src="/logo.png?v=6" alt="Svoi.de" className="h-9 w-auto object-contain" />
+                    </Link>
                 </div>
 
                 {isSearchPage ? (

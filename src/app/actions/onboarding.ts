@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ProviderType } from '@prisma/client';
 import { geocodeAddress } from '@/lib/geocode';
+import { generateUniqueProfileSlug } from '@/lib/slugify';
 
 /**
  * Завершает онбординг провайдера: сохраняет бизнес-данные
@@ -40,7 +41,7 @@ export async function completeProviderOnboarding(formData: FormData) {
 
     try {
         // ── Strict geocoding: must succeed BEFORE saving ──
-        let coords: { lat: number; lng: number };
+        let coords: { lat: number; lng: number, city?: string };
         try {
             const result = await geocodeAddress(address, city, zipCode);
             if (!result) {
@@ -52,6 +53,8 @@ export async function completeProviderOnboarding(formData: FormData) {
             return { success: false, error: 'Мы не смогли найти этот адрес на карте. Проверьте правильность написания или укажите ближайший крупный ориентир.' };
         }
 
+        const officialCity = coords.city || city;
+
         await prisma.user.update({
             where: { id: userId },
             data: {
@@ -60,21 +63,27 @@ export async function completeProviderOnboarding(formData: FormData) {
                 isKleinunternehmer: providerType !== 'SALON' ? isKleinunternehmer : false,
                 taxId: providerType === 'SALON' ? taxId : null,
                 address,
-                city,
+                city: officialCity,
                 zipCode,
                 onboardingCompleted: true,
             },
         });
 
+        // ── Genereta slug for the profile (if name exists, else fallback to session name) ──
+        const profileName = providerType === 'SALON' && companyName ? companyName : (session.user.name || 'Master');
+        const slug = await generateUniqueProfileSlug(profileName, officialCity);
+
         // Save coordinates to Profile (if it exists already)
         await prisma.profile.updateMany({
             where: { user_id: userId },
             data: {
+                city: officialCity,
+                slug: slug,
                 latitude: coords.lat,
                 longitude: coords.lng,
             },
         });
-        console.log(`[onboarding] Geocoded ${city}: ${coords.lat}, ${coords.lng}`);
+        console.log(`[onboarding] Geocoded ${officialCity}: ${coords.lat}, ${coords.lng} - slug: ${slug}`);
 
         revalidatePath('/');
     } catch (error) {

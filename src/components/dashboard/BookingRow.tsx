@@ -53,6 +53,18 @@ const STATUS_CONFIG: Record<string, {
         text: 'text-red-600',
         dot: 'bg-red-400',
     },
+    completed: {
+        label: 'Визит завершен',
+        bg: 'bg-gray-100',
+        text: 'text-gray-600',
+        dot: 'bg-gray-400',
+    },
+    no_show: {
+        label: 'Не пришел',
+        bg: 'bg-slate-100',
+        text: 'text-slate-500',
+        dot: 'bg-slate-400',
+    },
 };
 
 const DEFAULT_STATUS = {
@@ -130,32 +142,42 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
                     <div className="flex items-center gap-2 mb-1">
                         <User className="w-3.5 h-3.5 text-gray-400" />
                         <span className="text-sm font-medium text-gray-900">{booking.user_name}</span>
+                        <span className="inline-flex items-center rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">
+                            ✨ Новый клиент
+                        </span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Phone className="w-3.5 h-3.5 text-gray-400" />
                         <a href={`tel:${booking.user_phone}`} className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
                             {booking.user_phone}
                         </a>
-                        <div className="relative group">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={handleOpenChat}
-                                disabled={!booking.user_id || isOpeningChat}
-                                title={!booking.user_id ? 'Клиент не зарегистрирован, свяжитесь по телефону' : 'Открыть чат'}
-                                className="h-8 px-2.5 text-xs"
-                            >
-                                {isOpeningChat ? (
-                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
+                        <div className="relative group ml-1">
+                            {booking.user_phone ? (
+                                <a
+                                    href={`https://wa.me/${booking.user_phone.replace(/\D/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-md border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-colors text-xs font-medium"
+                                    title="Написать в WhatsApp"
+                                >
                                     <MessageCircle className="h-3.5 w-3.5" />
-                                )}
-                                <span className="ml-1">Написать</span>
-                            </Button>
-                            {!booking.user_id && (
+                                    <span>WhatsApp</span>
+                                </a>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    disabled
+                                    className="h-8 px-2.5 text-xs"
+                                >
+                                    <MessageCircle className="h-3.5 w-3.5" />
+                                    <span className="ml-1">Написать</span>
+                                </Button>
+                            )}
+                            {!booking.user_phone && (
                                 <div className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-56 -translate-x-1/2 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-600 shadow-sm group-hover:block">
-                                    Клиент не зарегистрирован, свяжитесь по телефону
+                                    Номер телефона клиента не указан
                                 </div>
                             )}
                         </div>
@@ -177,34 +199,65 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
                 </div>
 
                 {/* ── Action Buttons ── */}
-                {booking.status === 'pending' && (
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                        <button
-                            onClick={() => handleStatusChange('confirmed')}
-                            disabled={isUpdating !== null}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                        >
-                            {isUpdating === 'confirmed' ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                                <Check className="w-3.5 h-3.5" />
-                            )}
-                            Подтвердить
-                        </button>
-                        <button
-                            onClick={() => handleStatusChange('cancelled')}
-                            disabled={isUpdating !== null}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-red-50 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                        >
-                            {isUpdating === 'cancelled' ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                                <X className="w-3.5 h-3.5" />
-                            )}
-                            Отменить
-                        </button>
-                    </div>
-                )}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    {booking.status === 'pending' && (
+                        <>
+                            <button
+                                onClick={() => handleStatusChange('confirmed')}
+                                disabled={isUpdating !== null}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                            >
+                                {isUpdating === 'confirmed' ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <Check className="w-3.5 h-3.5" />
+                                )}
+                                Подтвердить
+                            </button>
+                            <button
+                                onClick={() => handleStatusChange('cancelled')}
+                                disabled={isUpdating !== null}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-red-50 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                            >
+                                {isUpdating === 'cancelled' ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <X className="w-3.5 h-3.5" />
+                                )}
+                                Отменить
+                            </button>
+                        </>
+                    )}
+
+                    {booking.status === 'confirmed' && (
+                        <>
+                            <button
+                                onClick={() => handleStatusChange('completed')}
+                                disabled={isUpdating !== null}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                            >
+                                {isUpdating === 'completed' ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <Check className="w-3.5 h-3.5" />
+                                )}
+                                Завершить визит
+                            </button>
+                            <button
+                                onClick={() => handleStatusChange('no_show')}
+                                disabled={isUpdating !== null}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold rounded-lg border border-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                            >
+                                {isUpdating === 'no_show' ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <X className="w-3.5 h-3.5" />
+                                )}
+                                Не пришел
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

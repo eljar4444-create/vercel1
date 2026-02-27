@@ -3,7 +3,7 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
-import { generateUniqueSlug } from '@/lib/generateUniqueSlug';
+import { generateUniqueProfileSlug } from '@/lib/slugify';
 import { geocodeAddress } from '@/lib/geocode';
 
 const GEO_ERROR_MESSAGE =
@@ -65,19 +65,14 @@ export async function updateProfile(formData: FormData) {
             }
         }
 
-        // Re-generate slug if name or city changed
         const nameChanged = name !== currentProfile.name;
-        const cityChanged = city !== currentProfile.city;
         const addressChanged = address !== (currentProfile.address ?? '');
-        const newSlug = (nameChanged || cityChanged)
-            ? await generateUniqueSlug(name, city, profileId)
-            : currentProfile.slug;
 
-        // ── Strict geocoding when location changed ──
+        let officialCity = city;
         let latitude = currentProfile.latitude;
         let longitude = currentProfile.longitude;
 
-        if (cityChanged || addressChanged) {
+        if (nameChanged || addressChanged || city !== currentProfile.city) {
             try {
                 const fullAddress = (providerType === 'SALON' && address) ? address : city;
                 const coords = await geocodeAddress(fullAddress, city, '');
@@ -86,12 +81,19 @@ export async function updateProfile(formData: FormData) {
                 }
                 latitude = coords.lat;
                 longitude = coords.lng;
-                console.log(`[updateProfile] Geocoded ${city}: ${coords.lat}, ${coords.lng}`);
+                officialCity = coords.city || city;
+                console.log(`[updateProfile] Geocoded ${officialCity}: ${coords.lat}, ${coords.lng}`);
             } catch (geoError) {
                 console.error('[updateProfile] Geocoding error:', geoError);
                 return { success: false, error: GEO_ERROR_MESSAGE };
             }
         }
+
+        // Re-generate slug if name or city changed
+        const cityChanged = officialCity !== currentProfile.city;
+        const newSlug = (nameChanged || cityChanged)
+            ? await generateUniqueProfileSlug(name, officialCity, profileId)
+            : currentProfile.slug;
 
         // If profile somehow has no coordinates (legacy), force geocoding
         if (latitude == null || longitude == null) {
@@ -103,6 +105,7 @@ export async function updateProfile(formData: FormData) {
                 }
                 latitude = coords.lat;
                 longitude = coords.lng;
+                officialCity = coords.city || city;
                 console.log(`[updateProfile] Backfilled coords for profile #${profileId}: ${coords.lat}, ${coords.lng}`);
             } catch (geoError) {
                 console.error('[updateProfile] Backfill geocoding error:', geoError);
@@ -118,7 +121,7 @@ export async function updateProfile(formData: FormData) {
                 provider_type: providerType,
                 bio: bio || null,
                 phone: phone || null,
-                city,
+                city: officialCity,
                 address: providerType === 'SALON' ? address || null : null,
                 studioImages,
                 latitude,

@@ -24,7 +24,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="de">
+        <html lang="ru">
             <body className={`${outfit.className} antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col`}>
                 <Providers>
                     <Suspense fallback={<div className="fixed left-0 right-0 top-0 z-50 h-16 border-b border-slate-200 bg-white" />}>

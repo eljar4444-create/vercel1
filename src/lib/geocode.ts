@@ -2,11 +2,12 @@
  * Low-level Nominatim fetch helper.
  * Returns { lat, lng } or null if no results.
  */
-async function nominatimSearch(query: string): Promise<{ lat: number; lng: number } | null> {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+async function nominatimSearch(query: string): Promise<{ lat: number; lng: number, city?: string } | null> {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&addressdetails=1`;
     const response = await fetch(url, {
         headers: {
             'User-Agent': 'svoi.de/1.0 (contact@svoi.de)',
+            'Accept-Language': 'de-DE,de;q=0.9',
             Accept: 'application/json',
         },
     });
@@ -29,7 +30,10 @@ async function nominatimSearch(query: string): Promise<{ lat: number; lng: numbe
         return null;
     }
 
-    return { lat, lng };
+    const address = data[0].address || {};
+    const officialCity = address.city || address.town || address.village || address.municipality;
+
+    return { lat, lng, city: officialCity };
 }
 
 /**
@@ -45,7 +49,7 @@ export async function geocodeAddress(
     address: string,
     city: string,
     zipCode: string
-): Promise<{ lat: number; lng: number } | null> {
+): Promise<{ lat: number; lng: number, city?: string } | null> {
     // Attempt 1 — full address
     const fullQuery = [address, zipCode, city, 'Germany'].filter(Boolean).join(', ');
     console.log('[geocode] Attempt 1 (full):', fullQuery);
@@ -77,7 +81,7 @@ export async function geocodeAddress(
  */
 export async function geocodeCity(
     city: string
-): Promise<{ lat: number; lng: number } | null> {
+): Promise<{ lat: number; lng: number, city?: string } | null> {
     try {
         return await nominatimSearch(`${city}, Germany`);
     } catch {

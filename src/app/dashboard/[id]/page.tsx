@@ -202,7 +202,6 @@ export default async function DashboardPage({
                                 profileName={profile.name}
                                 currentImageUrl={profile.image_url}
                             />
-                            <p className="mt-2 text-sm font-medium text-slate-700">Здравствуйте, {profile.name}</p>
                             <div className="mt-3">
                                 {isProfileVerified ? (
                                     <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
