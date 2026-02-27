@@ -126,6 +126,29 @@ export default async function DashboardPage() {
         select: { id: true, name: true, slug: true, icon: true }
     }) : [];
 
+    const favoriteProfiles = await prisma.favorite.findMany({
+        where: { clientId: session.user.id },
+        include: {
+            provider: {
+                select: {
+                    id: true,
+                    slug: true,
+                    name: true,
+                    city: true,
+                    image_url: true,
+                },
+            },
+        },
+    }).then((rows) =>
+        rows.map((r) => ({
+            id: r.provider.id,
+            slug: r.provider.slug,
+            name: r.provider.name,
+            city: r.provider.city,
+            image_url: r.provider.image_url,
+        }))
+    );
+
     return (
         <section className="min-h-screen bg-gray-50 pb-12 pt-24">
             <div className="mx-auto w-full max-w-6xl px-4 lg:px-8">
@@ -135,6 +158,7 @@ export default async function DashboardPage() {
                     history={history}
                     stats={{ totalBookings, favoriteCategory }}
                     recommendedCategories={recommendedCategories}
+                    favoriteProfiles={favoriteProfiles}
                 />
             </div>
         </section>

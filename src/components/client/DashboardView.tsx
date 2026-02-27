@@ -6,6 +6,7 @@ import { CalendarDays, MapPin, MessageCircle, Clock, Wallet, UserRound, ArrowRig
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { CancelBookingForm } from '@/components/client/CancelBookingForm';
+import { FavoriteButton } from '@/components/client/FavoriteButton';
 
 export interface BookingItem {
     id: number;
@@ -44,6 +45,8 @@ interface DashboardViewProps {
         favoriteCategory: string | null;
     };
     recommendedCategories: { id: number; name: string; slug: string; icon: string | null }[];
+    /** Providers the client has added to favorites (from Favorite table). */
+    favoriteProfiles: { id: number; slug: string; name: string; city: string; image_url: string | null }[];
 }
 
 function formatDate(iso: string) {
@@ -97,17 +100,9 @@ function ProfileAvatar({ src, name }: { src: string | null; name: string }) {
     );
 }
 
-export function DashboardView({ user, upcoming, history, stats, recommendedCategories }: DashboardViewProps) {
+export function DashboardView({ user, upcoming, history, stats, recommendedCategories, favoriteProfiles }: DashboardViewProps) {
     const firstName = user.name?.split(' ')[0] || '';
 
-    // Unique masters from history
-    const myMastersMap = new Map<number, BookingItem['profile']>();
-    history.forEach(b => {
-        if (!myMastersMap.has(b.profile.id) && b.status === 'confirmed') {
-            myMastersMap.set(b.profile.id, b.profile);
-        }
-    });
-    const myMasters = Array.from(myMastersMap.values());
     const nextAppointment = upcoming.length > 0 ? upcoming[0] : null;
 
     return (
@@ -218,7 +213,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                     </div>
                                 </div>
                             )}
-                            <Button asChild className="mt-6 bg-indigo-600 hover:bg-indigo-700 text-white">
+                            <Button asChild className="mt-6 bg-slate-900 hover:bg-slate-800 text-white">
                                 <Link href="/search">Найти мастера</Link>
                             </Button>
                         </div>
@@ -238,17 +233,44 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                     <TabsTrigger value="masters" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-slate-900 rounded-none px-0 pb-3 text-base font-semibold data-[state=inactive]:text-slate-500">
                                         Мои мастера
                                         <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-slate-100 px-2 text-[11px] font-medium text-slate-600">
-                                            {myMasters.length}
+                                            {favoriteProfiles.length}
                                         </span>
                                     </TabsTrigger>
                                 </TabsList>
                             </div>
 
                             <TabsContent value="history" className="p-0">
-                                {history.length === 0 ? (
+                                {upcoming.length > 0 && (
+                                    <div className="px-6 pt-4 pb-2">
+                                        <h3 className="text-sm font-semibold text-slate-700 mb-3">Предстоящие записи</h3>
+                                        <ul className="space-y-3">
+                                            {upcoming.map(b => (
+                                                <li key={b.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <ProfileAvatar src={b.profile.image_url} name={b.profile.name} />
+                                                        <div className="min-w-0">
+                                                            <h4 className="font-semibold text-slate-900 truncate">{b.service?.title || 'Услуга'}</h4>
+                                                            <Link href={`/salon/${b.profile.slug}`} className="text-sm text-slate-500 hover:text-slate-900">{b.profile.name}</Link>
+                                                            <div className="mt-1 flex items-center gap-4 text-sm text-slate-600">
+                                                                <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" />{formatDate(b.date)} в {b.time}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="sm:ml-auto shrink-0">
+                                                        <CancelBookingForm bookingId={b.id} />
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {upcoming.length > 0 && history.length > 0 && <div className="border-t border-slate-100" />}
+                                {history.length === 0 && upcoming.length === 0 ? (
                                     <div className="p-8 text-center text-slate-500 text-sm">История посещений пуста</div>
                                 ) : (
-                                    <div className="divide-y divide-slate-100">
+                                    <div className="px-6 pb-6">
+                                        {upcoming.length > 0 && <h3 className="text-sm font-semibold text-slate-700 mb-3 pt-4">Прошлые визиты</h3>}
+                                        <div className="divide-y divide-slate-100">
                                         {history.map(b => (
                                             <div key={b.id} className="p-6 flex flex-col sm:flex-row gap-4 items-start hover:bg-slate-50 transition-colors">
                                                 <div className="shrink-0">
@@ -278,24 +300,32 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                 </div>
                                             </div>
                                         ))}
+                                        </div>
                                     </div>
                                 )}
                             </TabsContent>
 
                             <TabsContent value="masters" className="p-6">
-                                {myMasters.length === 0 ? (
-                                    <div className="py-8 text-center text-slate-500 text-sm">У вас пока нет сохраненных мастеров</div>
+                                {favoriteProfiles.length === 0 ? (
+                                    <div className="py-8 text-center text-slate-500 text-sm">У вас пока нет сохраненных мастеров. Добавляйте в избранное на странице поиска.</div>
                                 ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {myMasters.map(master => (
-                                            <Link key={master.id} href={`/salon/${master.slug}`} className="group flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all bg-slate-50/50">
-                                                <ProfileAvatar src={master.image_url} name={master.name} />
-                                                <div className="min-w-0 flex-1">
-                                                    <h4 className="font-semibold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{master.name}</h4>
-                                                    <p className="text-sm text-slate-500 flex items-center gap-1 truncate"><MapPin className="w-3 h-3" />{master.city}</p>
-                                                </div>
-                                                <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 transition-colors" />
-                                            </Link>
+                                        {favoriteProfiles.map(master => (
+                                            <div key={master.id} className="group flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-slate-300 hover:shadow-sm transition-all bg-slate-50/50">
+                                                <Link href={`/salon/${master.slug}`} className="flex min-w-0 flex-1 items-center gap-4">
+                                                    <ProfileAvatar src={master.image_url} name={master.name} />
+                                                    <div className="min-w-0 flex-1">
+                                                        <h4 className="font-semibold text-slate-900 truncate group-hover:text-slate-700">{master.name}</h4>
+                                                        <p className="text-sm text-slate-500 flex items-center gap-1 truncate"><MapPin className="w-3 h-3" />{master.city}</p>
+                                                    </div>
+                                                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0" />
+                                                </Link>
+                                                <FavoriteButton
+                                                    providerProfileId={master.id}
+                                                    initialIsFavorited={true}
+                                                    variant="list"
+                                                />
+                                            </div>
                                         ))}
                                     </div>
                                 )}

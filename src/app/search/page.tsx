@@ -8,6 +8,7 @@ import { getCityFilterVariants } from "@/constants/searchSuggestions";
 import { GERMAN_CITIES } from "@/constants/germanCities";
 import { SearchResultListItem } from "@/components/search/SearchResultListItem";
 import { SearchResultsMap } from "@/components/search/SearchResultsMap";
+import { getFavoriteProfileIds } from "@/app/actions/favorites";
 import { geocodeCity } from "@/lib/geocode";
 import type { Metadata } from "next";
 import { Prisma } from "@prisma/client";
@@ -190,6 +191,9 @@ export default async function SearchPage({
         };
     });
 
+    const favoriteProfileIds = await getFavoriteProfileIds();
+    const favoriteSet = new Set(favoriteProfileIds);
+
     return (
         <main className="h-[calc(100vh-64px)] overflow-hidden bg-white">
             <div className="flex h-full flex-col lg:flex-row">
@@ -283,6 +287,7 @@ export default async function SearchPage({
                                             duration_min: service.duration_min,
                                         })),
                                     }}
+                                    initialIsFavorited={favoriteSet.has(profile.id)}
                                 />
                             ))}
                         </div>

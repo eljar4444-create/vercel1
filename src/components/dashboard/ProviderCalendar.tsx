@@ -23,11 +23,11 @@ const ROW_HEIGHT_PX = 40;
 const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 const STATUS_CARD_STYLES: Record<string, string> = {
-    pending: 'bg-amber-400/90 text-amber-950 border-amber-500/30',
-    confirmed: 'bg-emerald-500/90 text-white border-emerald-600/30',
-    completed: 'bg-slate-300/70 text-slate-700 border-slate-400/30',
-    no_show: 'bg-slate-300/60 text-slate-600 border-slate-400/20',
-    cancelled: 'bg-slate-300/50 text-slate-500 border-slate-400/20',
+    pending: 'bg-amber-400 text-amber-950 border-2 border-amber-600/50 shadow',
+    confirmed: 'bg-emerald-500 text-white border-2 border-emerald-700/60 shadow',
+    completed: 'bg-slate-400 text-white border-2 border-slate-500 shadow-sm',
+    no_show: 'bg-slate-300 text-slate-800 border-2 border-slate-400 shadow-sm',
+    cancelled: 'bg-slate-200 text-slate-700 border-2 border-slate-400 shadow-sm',
 };
 
 function getDefaultWeekStart(): Date {
@@ -239,7 +239,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
                                         ? durationToRowSpan(b.service.duration_min)
                                         : durationToRowSpan(60);
                                     const cardStyle =
-                                        STATUS_CARD_STYLES[b.status] ?? 'bg-slate-300/60 text-slate-600';
+                                        STATUS_CARD_STYLES[b.status] ?? 'bg-slate-200 text-slate-700 border-2 border-slate-400 shadow-sm';
                                     const [h, m] = b.time.split(':').map(Number);
                                     const endMin = (h ?? 0) * 60 + (m ?? 0) + (b.service?.duration_min ?? 60);
                                     const endTime = `${String(Math.floor(endMin / 60)).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`;
@@ -249,20 +249,20 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
                                             key={b.id}
                                             type="button"
                                             onClick={() => openModal(b)}
-                                            className={`absolute left-0.5 right-0.5 text-left rounded-lg border shadow-sm hover:shadow transition overflow-hidden ${cardStyle}`}
+                                            className={`absolute left-1 right-1 text-left rounded-lg shadow hover:shadow-md transition overflow-hidden font-medium ${cardStyle}`}
                                             style={{
                                                 top: 2 + row * (ROW_HEIGHT_PX + 2),
                                                 height: ROW_HEIGHT_PX * span + (span - 1) * 2 - 2,
                                                 zIndex: 1,
                                             }}
                                         >
-                                            <div className="p-1.5 text-[11px] leading-tight truncate h-full flex flex-col justify-center">
-                                                <span className="font-semibold truncate">
+                                            <div className="p-2 text-xs leading-snug truncate h-full flex flex-col justify-center gap-0.5">
+                                                <span className="font-bold truncate block">
                                                     {b.time} – {endTime}
                                                 </span>
-                                                <span className="truncate mt-0.5">{b.user_name}</span>
+                                                <span className="truncate font-medium">{b.user_name}</span>
                                                 {b.service && (
-                                                    <span className="truncate opacity-90">
+                                                    <span className="truncate opacity-95 text-[11px]">
                                                         {b.service.title}
                                                     </span>
                                                 )}

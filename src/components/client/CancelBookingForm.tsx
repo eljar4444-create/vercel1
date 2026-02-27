@@ -15,7 +15,7 @@ function SubmitButton() {
         <button
             type="submit"
             disabled={pending}
-            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:border-slate-400 hover:text-slate-800 disabled:opacity-50"
         >
             {pending ? (
                 <>
@@ -23,7 +23,7 @@ function SubmitButton() {
                     Отмена...
                 </>
             ) : (
-                'Отменить запись'
+                'Отменить визит'
             )}
         </button>
     );

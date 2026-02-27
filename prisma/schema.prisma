@@ -55,6 +55,7 @@ model Profile {
   services    Service[]
   bookings    Booking[]
   conversations Conversation[]
+  favorites   Favorite[] @relation("ProviderFavorited")
 
   @@index([category_id])
 }
@@ -125,6 +126,7 @@ model User {
   bookings      Booking[]
   staff         Staff[]
   conversationsAsClient Conversation[] @relation("ClientConversations")
+  favorites     Favorite[] @relation("UserFavorites")
   sentMessages  Message[]
 }
 
@@ -207,4 +209,18 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+model Favorite {
+  id                 String   @id @default(cuid())
+  clientId           String
+  providerProfileId  Int
+  createdAt          DateTime @default(now())
+
+  client   User    @relation("UserFavorites", fields: [clientId], references: [id], onDelete: Cascade)
+  provider Profile @relation("ProviderFavorited", fields: [providerProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, providerProfileId])
+  @@index([clientId])
+  @@index([providerProfileId])
 }

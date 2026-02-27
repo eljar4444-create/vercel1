@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Building2, Clock3, MapPin, Star, UserRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { LiveQuickSlots } from '@/components/search/LiveQuickSlots';
+import { FavoriteButton } from '@/components/client/FavoriteButton';
 
 interface SearchResultService {
     id: number;
@@ -22,21 +23,28 @@ interface SearchResultListItemProps {
         image_url?: string | null;
         services: SearchResultService[];
     };
+    /** Whether the current user has this provider in favorites (from server). */
+    initialIsFavorited?: boolean;
 }
 
-export function SearchResultListItem({ profile }: SearchResultListItemProps) {
+export function SearchResultListItem({ profile, initialIsFavorited = false }: SearchResultListItemProps) {
     const previewServices = profile.services.slice(0, 2);
     const isSalon = profile.provider_type === 'SALON';
     const visibleAddress = isSalon ? [profile.address, profile.city].filter(Boolean).join(', ') : profile.city;
 
     return (
-        <article className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <article className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm relative">
             <div className="flex flex-col md:flex-row">
                 <Link
                     href={`/salon/${profile.slug}`}
-                    className="block h-52 w-full cursor-pointer overflow-hidden bg-slate-100 md:h-auto md:min-h-[200px] md:w-48 md:flex-shrink-0"
+                    className="block h-52 w-full cursor-pointer overflow-hidden bg-slate-100 md:h-auto md:min-h-[200px] md:w-48 md:flex-shrink-0 relative"
                     aria-label={`Открыть профиль ${profile.name}`}
                 >
+                    <FavoriteButton
+                        providerProfileId={profile.id}
+                        initialIsFavorited={initialIsFavorited}
+                        variant="card"
+                    />
                     {profile.image_url ? (
                         <Image
                             src={profile.image_url}
