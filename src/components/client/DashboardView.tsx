@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { CalendarDays, MapPin, MessageCircle, Clock, Wallet, UserRound, ArrowRight, Settings, Heart, Navigation, Store, Plus, Sparkles } from 'lucide-react';
+import { CalendarDays, MapPin, MessageCircle, Clock, Wallet, UserRound, ArrowRight, Settings, Heart, Navigation, Store, Sparkles } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { CancelBookingForm } from '@/components/client/CancelBookingForm';
@@ -102,16 +102,27 @@ function ProfileAvatar({ src, name }: { src: string | null; name: string }) {
 
 export function DashboardView({ user, upcoming, history, stats, recommendedCategories, favoriteProfiles }: DashboardViewProps) {
     const firstName = user.name?.split(' ')[0] || '';
-
     const nextAppointment = upcoming.length > 0 ? upcoming[0] : null;
+    const lastVisit = history.length > 0 ? history[0] : null;
+
+    const quickCategories = [
+        { name: 'Стрижка', href: '/search?q=Стрижка', icon: '💇' },
+        { name: 'Маникюр', href: '/search?q=Маникюр', icon: '💅' },
+        { name: 'Массаж', href: '/search?q=Массаж', icon: '💆' },
+        { name: 'Косметология', href: '/search?q=Косметология', icon: '✨' },
+    ];
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                    {firstName ? `Привет, ${firstName}! 👋` : 'Добро пожаловать! 👋'}
-                </h1>
-                <p className="mt-1.5 text-sm text-slate-500">{user.email}</p>
+            {/* Greeting — визуально отделённая шапка */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-50 via-white to-slate-50/80 px-6 py-6 ring-1 ring-slate-200/60">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(15,23,42,0.03),transparent)]" />
+                <div className="relative">
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                        {firstName ? `Привет, ${firstName}! 👋` : 'Добро пожаловать! 👋'}
+                    </h1>
+                    <p className="mt-1.5 text-sm text-slate-500">{user.email}</p>
+                </div>
             </div>
 
             <div className="grid grid-cols-12 gap-8">
@@ -193,29 +204,60 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                             </div>
                         </div>
                     ) : (
-                        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50">
-                                <CalendarDays className="h-8 w-8 text-indigo-500" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-900 mb-2">У вас пока нет предстоящих записей</h2>
-                            <p className="mx-auto max-w-sm text-slate-500 mb-6">
-                                Если вы планируете визит, рекомендуем записаться заранее.
-                            </p>
-                            {recommendedCategories.length > 0 && (
-                                <div className="mt-8">
-                                    <h3 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Рекомендуем сегодня</h3>
-                                    <div className="flex flex-wrap justify-center gap-3">
-                                        {recommendedCategories.map(cat => (
-                                            <Link key={cat.id} href={`/search?category=${cat.slug}`} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-colors text-sm font-medium text-slate-700">
-                                                {cat.name}
-                                            </Link>
-                                        ))}
+                        <div className="space-y-6">
+                            <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+                                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+                                    <CalendarDays className="h-8 w-8 text-slate-500" />
+                                </div>
+                                <h2 className="text-xl font-bold text-slate-900 mb-2">У вас пока нет предстоящих записей</h2>
+                                <p className="mx-auto max-w-sm text-slate-500 mb-6">
+                                    Если вы планируете визит, рекомендуем записаться заранее.
+                                </p>
+                                {recommendedCategories.length > 0 && (
+                                    <div className="mt-8">
+                                        <h3 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Рекомендуем сегодня</h3>
+                                        <div className="flex flex-wrap justify-center gap-3">
+                                            {recommendedCategories.map(cat => (
+                                                <Link key={cat.id} href={`/search?category=${cat.slug}`} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-colors text-sm font-medium text-slate-700">
+                                                    {cat.name}
+                                                </Link>
+                                            ))}
+                                        </div>
                                     </div>
+                                )}
+                                <Button asChild className="mt-6 bg-slate-900 hover:bg-slate-800 text-white">
+                                    <Link href="/search">Найти мастера</Link>
+                                </Button>
+                            </div>
+
+                            {/* Повторить визит — смарт-рекомендация по последней записи */}
+                            {lastVisit && (
+                                <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100/80 p-6 shadow-sm ring-1 ring-slate-200/50">
+                                    <p className="text-slate-700 mb-4">
+                                        Вы недавно интересовались услугами у <span className="font-semibold text-slate-900">{lastVisit.profile.name}</span>. Хотите записаться снова?
+                                    </p>
+                                    <Button asChild className="bg-slate-900 text-white hover:bg-slate-800">
+                                        <Link href={`/salon/${lastVisit.profile.slug}`}>Записаться</Link>
+                                    </Button>
                                 </div>
                             )}
-                            <Button asChild className="mt-6 bg-slate-900 hover:bg-slate-800 text-white">
-                                <Link href="/search">Найти мастера</Link>
-                            </Button>
+
+                            {/* Популярные услуги — быстрые категории */}
+                            <div>
+                                <h3 className="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Популярные услуги</h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 overflow-x-auto pb-2 sm:overflow-visible sm:pb-0">
+                                    {quickCategories.map((cat) => (
+                                        <Link
+                                            key={cat.name}
+                                            href={cat.href}
+                                            className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md min-w-[120px] sm:min-w-0"
+                                        >
+                                            <span className="text-2xl" aria-hidden>{cat.icon}</span>
+                                            <span className="text-sm font-medium text-slate-800 text-center">{cat.name}</span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     )}
 
