@@ -42,7 +42,7 @@ model Profile {
   image_url   String?
   gallery     String[]  @default([])
   studioImages String[] @default([])
-  bio         String?
+  bio         String?  @db.Text
   phone       String?
   latitude    Float?
   longitude   Float?
@@ -56,6 +56,7 @@ model Profile {
   bookings    Booking[]
   conversations Conversation[]
   favorites   Favorite[] @relation("ProviderFavorited")
+  reviews     Review[]
 
   @@index([category_id])
 }
@@ -128,6 +129,7 @@ model User {
   conversationsAsClient Conversation[] @relation("ClientConversations")
   favorites     Favorite[] @relation("UserFavorites")
   sentMessages  Message[]
+  reviews       Review[]
 }
 
 model Staff {
@@ -223,4 +225,20 @@ model Favorite {
   @@unique([clientId, providerProfileId])
   @@index([clientId])
   @@index([providerProfileId])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  profileId   Int
+  clientId    String
+  text        String?  @db.Text
+  rating      Int      // 1–5
+  createdAt   DateTime @default(now())
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+  @@index([clientId])
+  @@index([createdAt])
 }

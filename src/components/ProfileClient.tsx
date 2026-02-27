@@ -49,6 +49,13 @@ interface ProfileData {
         price: string;
         duration_min: number;
     }[];
+    reviews: {
+        id: string;
+        text: string | null;
+        rating: number;
+        createdAt: string;
+        clientName: string;
+    }[];
 }
 
 interface ProfileClientProps {
@@ -60,6 +67,12 @@ const RATING_BREAKDOWN = [
     { label: 'Чистота', score: 4.9 },
     { label: 'Сервис', score: 5.0 },
     { label: 'Атмосфера', score: 4.9 },
+];
+
+const MOCK_REVIEWS: { id: string; text: string; rating: number; createdAt: string; clientName: string }[] = [
+    { id: 'mock-1', clientName: 'Анна К.', rating: 5, createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), text: 'Очень довольна результатом! Мастер внимательная, атмосфера приятная. Обязательно вернусь.' },
+    { id: 'mock-2', clientName: 'Мария С.', rating: 5, createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), text: 'Рекомендую. Качество на высоте, цены адекватные. Запись онлайн — супер удобно.' },
+    { id: 'mock-3', clientName: 'Елена В.', rating: 4, createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), text: 'Хороший сервис, чисто и аккуратно. Буду обращаться ещё.' },
 ];
 
 export function ProfileClient({ profile }: ProfileClientProps) {
@@ -103,22 +116,33 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         return Array.from(groups.entries());
     }, [services]);
     const trimmedBio = (profile.bio || '').trim();
+    const galleryImages = [
+        ...(profile.image_url ? [profile.image_url] : []),
+        ...(profile.gallery || []),
+        ...(profile.studioImages || []),
+    ].filter(Boolean);
     const fallbackStudioImage =
         'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=2000&q=80';
     const studioImages =
-        profile.studioImages && profile.studioImages.length > 0
-            ? profile.studioImages
-            : profile.gallery && profile.gallery.length > 0
-                ? profile.gallery
-                : [fallbackStudioImage];
+        galleryImages.length > 0 ? galleryImages : [fallbackStudioImage];
 
     const initialDate = searchParams.get('date') || undefined;
     const initialTime = searchParams.get('time') || undefined;
     const openStreetMapUrl = `https://www.openstreetmap.org/?mlat=${profile.latitude}&mlon=${profile.longitude}#map=15/${profile.latitude}/${profile.longitude}`;
 
     const openBooking = (service?: { id?: number; title: string; price: string; duration_min?: number }) => {
-        setSelectedService(service || null);
-        setIsModalOpen(true);
+        if (service) {
+            setSelectedService(service);
+            setIsModalOpen(true);
+            return;
+        }
+        const el = document.getElementById('services');
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            setSelectedService(null);
+            setIsModalOpen(true);
+        }
     };
 
     const startChat = useCallback(async () => {
@@ -224,10 +248,10 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                     <div className="mt-6 md:hidden">
                         <div className="flex gap-2 overflow-x-auto pb-1">
                             {studioImages.map((image, index) => (
-                                <div key={`${image}-${index}`} className="group relative h-44 w-64 flex-shrink-0 overflow-hidden rounded-2xl">
+                                <div key={`${image}-${index}`} className="group relative h-44 w-64 flex-shrink-0 overflow-hidden rounded-2xl bg-slate-100">
                                     <Image
                                         src={image}
-                                        alt={`${profile.name} — фото студии ${index + 1}`}
+                                        alt={`${profile.name} — фото ${index + 1}`}
                                         width={256}
                                         height={176}
                                         className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
@@ -238,7 +262,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         </div>
                     </div>
 
-                    <div className="mt-6 hidden h-[400px] overflow-hidden rounded-2xl md:block">
+                    <div className="mt-6 hidden min-h-[320px] overflow-hidden rounded-2xl bg-slate-100 md:block md:min-h-[400px] md:h-[400px]">
                         {studioImages.length >= 3 ? (
                             <div className="grid h-full grid-cols-4 gap-2">
                                 <div className="group relative col-span-2 row-span-2 overflow-hidden">
@@ -293,10 +317,10 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                 </div>
                             </div>
                         ) : (
-                            <div className="group relative h-full overflow-hidden">
+                            <div className="group relative flex h-full min-h-[320px] items-center justify-center overflow-hidden md:min-h-[400px]">
                                 <Image
                                     src={studioImages[0]}
-                                    alt={`${profile.name} — фото студии`}
+                                    alt={`${profile.name} — фото`}
                                     width={800}
                                     height={400}
                                     priority
@@ -307,16 +331,21 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                     </div>
                 </section>
 
-                <section className="grid grid-cols-1 gap-8 mt-12 md:grid-cols-3">
-                    <div className="space-y-6 md:col-span-2">
-                        {trimmedBio ? (
-                            <article className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-                                <h2 className="text-2xl font-semibold text-slate-900">О мастере</h2>
-                                <p className="mt-4 whitespace-pre-wrap leading-relaxed text-slate-600">{trimmedBio}</p>
-                            </article>
-                        ) : null}
+                {/* О нас / О мастере — сразу под галереей */}
+                {trimmedBio ? (
+                    <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                        <h2 className="text-xl font-semibold text-slate-900">
+                            {profile.provider_type === 'SALON' ? 'О нас' : 'О мастере'}
+                        </h2>
+                        <div className="mt-4 max-w-3xl">
+                            <p className="whitespace-pre-wrap leading-relaxed text-slate-600">{trimmedBio}</p>
+                        </div>
+                    </section>
+                ) : null}
 
-                        <article className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+                <section className="grid grid-cols-1 gap-8 mt-8 md:mt-12 md:grid-cols-3">
+                    <div className="space-y-6 md:col-span-2">
+                        <article id="services" className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm scroll-mt-6">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-2xl font-semibold text-slate-900">Услуги</h2>
                                 <span className="text-sm text-slate-500">{services.length} услуг</span>
@@ -451,6 +480,37 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         title={profile.name}
                         address={visibleAddress}
                     />
+                </section>
+
+                {/* Отзывы клиентов */}
+                <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+                    <h2 className="text-2xl font-semibold text-slate-900">Отзывы клиентов</h2>
+                    <div className="mt-6 space-y-4">
+                        {(profile.reviews?.length ? profile.reviews : MOCK_REVIEWS).slice(0, 5).map((review) => (
+                            <div
+                                key={review.id}
+                                className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5"
+                            >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="font-medium text-slate-900">{review.clientName}</span>
+                                    <span className="text-sm text-slate-500">
+                                        {new Date(review.createdAt).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+                                    </span>
+                                </div>
+                                <div className="mt-2 flex gap-0.5" aria-label={`Рейтинг: ${review.rating} из 5`}>
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <Star
+                                            key={star}
+                                            className={`h-4 w-4 ${star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
+                                        />
+                                    ))}
+                                </div>
+                                {review.text ? (
+                                    <p className="mt-3 leading-relaxed text-slate-600">{review.text}</p>
+                                ) : null}
+                            </div>
+                        ))}
+                    </div>
                 </section>
             </div>
 

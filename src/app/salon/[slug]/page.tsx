@@ -100,6 +100,19 @@ async function getProfileBySlug(slug: string) {
                     duration_min: true,
                 },
             },
+            reviews: {
+                take: 5,
+                orderBy: { createdAt: 'desc' },
+                select: {
+                    id: true,
+                    text: true,
+                    rating: true,
+                    createdAt: true,
+                    client: {
+                        select: { name: true },
+                    },
+                },
+            },
         },
     });
 }
@@ -213,6 +226,13 @@ export default async function SalonProfilePage({
             price: s.price.toString(),
             duration_min: s.duration_min,
         })),
+        reviews: profile.reviews?.map((r) => ({
+            id: r.id,
+            text: r.text,
+            rating: r.rating,
+            createdAt: r.createdAt.toISOString(),
+            clientName: r.client?.name ?? 'Клиент',
+        })) ?? [],
     };
 
     return (
