@@ -60,7 +60,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!city) {
+        if (!city || !city.trim()) {
             setError('Выберите город из списка');
             return;
         }
@@ -71,6 +71,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
         const formData = new FormData(e.currentTarget);
         formData.set('profile_id', profile.id.toString());
         formData.set('studioImages', JSON.stringify(studioImages));
+        formData.set('city', city.trim());
+        formData.set('provider_type', providerType);
 
         const result = await updateProfile(formData);
         setIsSubmitting(false);

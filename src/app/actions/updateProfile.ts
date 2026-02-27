@@ -16,12 +16,12 @@ export async function updateProfile(formData: FormData) {
     }
 
     const profileId = parseInt(formData.get('profile_id') as string, 10);
-    const name = formData.get('name') as string;
+    let name = (formData.get('name') as string)?.trim() ?? '';
     const providerTypeRaw = formData.get('provider_type');
     const bio = formData.get('bio') as string;
     const phone = formData.get('phone') as string;
-    const city = formData.get('city') as string;
-    const address = formData.get('address') as string;
+    let city = (formData.get('city') as string)?.trim() ?? '';
+    let address = (formData.get('address') as string)?.trim() ?? '';
     const providerType = providerTypeRaw === 'SALON' ? 'SALON' : 'PRIVATE';
     const studioImagesRaw = formData.get('studioImages');
     let studioImages: string[] = [];
@@ -39,24 +39,32 @@ export async function updateProfile(formData: FormData) {
         }
     }
 
-    if (isNaN(profileId) || !name || !city) {
+    if (isNaN(profileId)) {
+        return { success: false, error: 'Профиль не указан.' };
+    }
+
+    const currentProfile = await prisma.profile.findUnique({
+        where: { id: profileId },
+        select: {
+            user_id: true, user_email: true, name: true,
+            city: true, slug: true, address: true,
+            latitude: true, longitude: true,
+        },
+    });
+    if (!currentProfile) return { success: false, error: 'Профиль не найден.' };
+
+    if (!name) name = currentProfile.name ?? '';
+    if (!city) city = (currentProfile.city ?? '').trim();
+    if (providerType === 'SALON' && !address) address = (currentProfile.address ?? '').trim();
+
+    if (!name || !city) {
         return { success: false, error: 'Имя и город обязательны.' };
     }
-    if (providerType === 'SALON' && !String(address || '').trim()) {
+    if (providerType === 'SALON' && !address) {
         return { success: false, error: 'Для салона укажите полный адрес.' };
     }
 
     try {
-        const currentProfile = await prisma.profile.findUnique({
-            where: { id: profileId },
-            select: {
-                user_id: true, user_email: true, name: true,
-                city: true, slug: true, address: true,
-                latitude: true, longitude: true,
-            },
-        });
-        if (!currentProfile) return { success: false, error: 'Профиль не найден.' };
-
         if (session.user.role !== 'ADMIN') {
             const ownsByUserId = currentProfile.user_id && currentProfile.user_id === session.user.id;
             const ownsByEmail = session.user.email && currentProfile.user_email === session.user.email;
