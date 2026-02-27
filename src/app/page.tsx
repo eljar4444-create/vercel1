@@ -11,6 +11,7 @@ import {
 import toast from 'react-hot-toast';
 import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 import { getHomeStats } from '@/app/actions/getHomeStats';
+import { TypewriterText } from '@/components/ui/TypewriterText';
 
 // ─── How It Works ───────────────────────────────────────────────────
 const STEPS = [
@@ -167,7 +168,7 @@ export default function HomePage() {
     };
 
     return (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-transparent">
 
             {/* ══════════════════════════════════════════════════════ */}
             {/* HERO                                                   */}
@@ -194,13 +195,17 @@ export default function HomePage() {
                         </div>
 
                         {/* Headline */}
-                        <h1 className="font-display mb-4 text-5xl font-extrabold leading-tight tracking-tight text-white sm:text-6xl md:text-7xl">
-                            Найди своего{' '}
-                            <br className="hidden sm:block" />
-                            <span className="italic text-yellow-400">бьюти‑мастера</span>
-                        </h1>
+                        <div className="mb-4 min-h-[140px] sm:min-h-[160px] md:min-h-[180px]">
+                            <h1 className="text-5xl font-extrabold leading-tight tracking-tight text-white sm:text-6xl md:text-7xl">
+                                Найди своего{' '}
+                                <br className="hidden sm:block" />
+                                <span className="text-yellow-400">
+                                    <TypewriterText text="бьюти‑мастера" speedDelay={100} startDelay={300} />
+                                </span>
+                            </h1>
+                        </div>
 
-                        <p className="mx-auto mb-8 max-w-lg text-base text-white/65 sm:text-lg">
+                        <p className="mx-auto mb-8 max-w-lg text-base text-white/65 sm:text-lg animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500 fill-mode-both">
                             Маникюр, стрижка, массаж — быстро, просто, 24/7
                         </p>
 
@@ -208,7 +213,7 @@ export default function HomePage() {
                         <form
                             ref={formRef}
                             onSubmit={handleSearch}
-                            className="mx-auto max-w-3xl"
+                            className="mx-auto max-w-3xl animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700 fill-mode-both"
                         >
                             <div className="overflow-hidden rounded-2xl bg-white shadow-2xl shadow-black/30">
                                 <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_auto_auto]">
@@ -233,7 +238,7 @@ export default function HomePage() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => { setQuery(item); setQueryOpen(false); }}
-                                                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-[#F5F2EB]"
                                                             >
                                                                 {item}
                                                             </button>
@@ -276,7 +281,7 @@ export default function HomePage() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => { setCity(item); setCityOpen(false); }}
-                                                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50"
+                                                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-[#F5F2EB]"
                                                             >
                                                                 {item}
                                                             </button>
@@ -317,7 +322,7 @@ export default function HomePage() {
                             </div>
 
                             {/* Quick chips */}
-                            <div className="mt-4 flex flex-wrap justify-center gap-2">
+                            <div className="mt-4 flex flex-wrap justify-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-[900ms] fill-mode-both">
                                 {QUICK_CHIPS.map((chip) => (
                                     <button
                                         key={chip.query}
@@ -334,7 +339,7 @@ export default function HomePage() {
                 </div>
 
                 {/* ── Stats strip (glass, pinned to bottom) ── */}
-                <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-black/40 backdrop-blur-md">
+                <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-black/40 backdrop-blur-md animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-1000 fill-mode-both">
                     <div className="mx-auto flex max-w-3xl items-center justify-around gap-4 px-6 py-4 sm:gap-0">
                         <div className="flex items-center gap-2 text-white">
                             <Star className="h-4 w-4 shrink-0 text-yellow-400" aria-hidden="true" />
@@ -366,7 +371,7 @@ export default function HomePage() {
             {/* ══════════════════════════════════════════════════════ */}
             {/* HOW IT WORKS                                           */}
             {/* ══════════════════════════════════════════════════════ */}
-            <section className="bg-gray-50 py-20">
+            <section className="bg-transparent py-20 animate-in fade-in slide-in-from-bottom-12 duration-1000 fill-mode-both">
                 <div className="container mx-auto max-w-5xl px-4">
                     <div className="mb-14 text-center">
                         <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">

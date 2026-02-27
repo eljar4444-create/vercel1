@@ -7,9 +7,11 @@ import { Footer } from '@/components/Footer';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
-const outfit = localFont({
-    src: '../../public/fonts/Outfit-Latin.woff2',
-    variable: '--font-outfit',
+import { Inter } from 'next/font/google';
+
+const inter = Inter({
+    subsets: ['latin', 'cyrillic'],
+    variable: '--font-inter',
     display: 'swap',
 });
 
@@ -25,9 +27,9 @@ export default function RootLayout({
 }) {
     return (
         <html lang="ru">
-            <body className={`${outfit.className} antialiased bg-gray-50 text-gray-900 min-h-screen flex flex-col`}>
+            <body className={`${inter.variable} font-sans antialiased bg-[#F5F2EB] text-gray-900 min-h-screen flex flex-col`}>
                 <Providers>
-                    <Suspense fallback={<div className="fixed left-0 right-0 top-0 z-50 h-16 border-b border-slate-200 bg-white" />}>
+                    <Suspense fallback={<div className="fixed left-0 right-0 top-0 z-50 h-16 border-b border-slate-200 bg-[#F5F2EB]" />}>
                         <Header />
                     </Suspense>
                     <main className="flex-1 pt-16">

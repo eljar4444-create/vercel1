@@ -60,7 +60,7 @@ export function Header() {
 
     return (
         <header className={cn(
-            "fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white transition-all duration-200",
+            "fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-[#F5F2EB]/95 backdrop-blur-sm transition-all duration-200",
             scrolled && "shadow-sm"
         )}>
             <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl">
@@ -137,7 +137,7 @@ export function Header() {
             </div>
 
             {mobileMenuOpen && (
-                <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3 shadow-sm lg:hidden">
+                <div className="border-t border-gray-100 bg-[#F5F2EB] px-4 pb-4 pt-3 shadow-sm lg:hidden">
                     <div className="mx-auto max-w-7xl space-y-2">
                         <Link
                             href="/search"

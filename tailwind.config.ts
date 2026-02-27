@@ -10,7 +10,8 @@ const config: Config = {
     theme: {
         extend: {
             fontFamily: {
-                display: ['Raleway', 'sans-serif'],
+                sans: ['var(--font-inter)', 'sans-serif'],
+                display: ['var(--font-inter)', 'sans-serif'],
             },
             colors: {
                 border: "hsl(var(--border))",
