@@ -47,7 +47,7 @@ export async function updateProfile(formData: FormData) {
         where: { id: profileId },
         select: {
             user_id: true, user_email: true, name: true,
-            city: true, slug: true, address: true,
+            city: true, slug: true, address: true, bio: true,
             latitude: true, longitude: true,
         },
     });
@@ -56,6 +56,7 @@ export async function updateProfile(formData: FormData) {
     if (!name) name = currentProfile.name ?? '';
     if (!city) city = (currentProfile.city ?? '').trim();
     if (providerType === 'SALON' && !address) address = (currentProfile.address ?? '').trim();
+    const bioToSave = (typeof bio === 'string' && bio.trim()) ? bio.trim() : (currentProfile.bio ?? '');
 
     if (!name || !city) {
         return { success: false, error: 'Имя и город обязательны.' };
@@ -127,7 +128,7 @@ export async function updateProfile(formData: FormData) {
                 name,
                 slug: newSlug,
                 provider_type: providerType,
-                bio: bio || null,
+                bio: bioToSave || null,
                 phone: phone || null,
                 city: officialCity,
                 address: providerType === 'SALON' ? address || null : null,

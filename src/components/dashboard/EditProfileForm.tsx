@@ -25,6 +25,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [name, setName] = useState(profile.name);
+    const [bio, setBio] = useState(profile.bio || '');
     const [city, setCity] = useState(profile.city);
     const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE' | 'INDIVIDUAL'>(profile.providerType);
     const [studioImages, setStudioImages] = useState<string[]>(profile.studioImages || []);
@@ -73,6 +75,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
         formData.set('studioImages', JSON.stringify(studioImages));
         formData.set('city', city.trim());
         formData.set('provider_type', providerType);
+        formData.set('name', name.trim());
+        formData.set('bio', bio);
 
         const result = await updateProfile(formData);
         setIsSubmitting(false);
@@ -126,7 +130,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                             name="name"
                             type="text"
                             required
-                            defaultValue={profile.name}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
                             className={inputClass}
                         />
                     </div>
@@ -164,7 +169,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                         <textarea
                             name="bio"
                             rows={4}
-                            defaultValue={profile.bio || ''}
+                            value={bio}
+                            onChange={(e) => setBio(e.target.value)}
                             placeholder="Расскажите о вашем опыте, подходе к работе и материалах, которые вы используете..."
                             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all resize-none"
                         />
