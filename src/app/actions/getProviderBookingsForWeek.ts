@@ -3,18 +3,6 @@
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 
-/**
- * Returns the Monday of the week containing the given date (local time).
- */
-export function getMondayOfWeek(date: Date): Date {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    const day = d.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    d.setDate(d.getDate() + diff);
-    return d;
-}
-
 function toDateKey(date: Date): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
