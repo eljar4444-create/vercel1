@@ -101,11 +101,11 @@ export default async function DashboardPage() {
     });
 
     const upcoming = bookings
-        .filter((b) => b.isFuture && b.status !== 'cancelled')
+        .filter((b) => b.isFuture && b.status !== 'cancelled' && b.status !== 'completed' && b.status !== 'COMPLETED')
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     const history = bookings
-        .filter((b) => !b.isFuture || b.status === 'cancelled')
+        .filter((b) => !b.isFuture || b.status === 'cancelled' || b.status === 'completed' || b.status === 'COMPLETED')
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const totalBookings = rawBookings.length;

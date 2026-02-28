@@ -44,6 +44,7 @@ export async function updateBookingStatus(bookingId: number, newStatus: string) 
 
         // Revalidate all dashboard pages so the UI refreshes instantly
         revalidatePath('/dashboard', 'layout');
+        revalidatePath('/provider/dashboard', 'layout');
 
         return { success: true };
     } catch (error: any) {

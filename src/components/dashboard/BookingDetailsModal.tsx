@@ -10,6 +10,7 @@ import {
     User,
     Phone,
     MessageCircle,
+    Send,
 } from 'lucide-react';
 import { updateBookingStatus } from '@/app/actions/updateBookingStatus';
 import { getOrCreateConversationForProvider } from '@/app/actions/chat';
@@ -217,15 +218,26 @@ export function BookingDetailsModal({
 
                     <div className="flex flex-wrap gap-2">
                         {booking.user_phone && (
-                            <a
-                                href={`https://wa.me/${booking.user_phone.replace(/\D/g, '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100"
-                            >
-                                <MessageCircle className="h-4 w-4" />
-                                WhatsApp
-                            </a>
+                            <>
+                                <a
+                                    href={`https://wa.me/${booking.user_phone.replace(/\D/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-100"
+                                >
+                                    <MessageCircle className="h-4 w-4" />
+                                    WhatsApp
+                                </a>
+                                <a
+                                    href={`https://t.me/+${booking.user_phone.replace(/\D/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-100"
+                                >
+                                    <Send className="h-4 w-4" />
+                                    Telegram
+                                </a>
+                            </>
                         )}
                         {booking.user_id && (
                             <Button
