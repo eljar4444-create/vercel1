@@ -94,6 +94,7 @@ model Booking {
   profile     Profile  @relation(fields: [profile_id], references: [id])
   service     Service? @relation(fields: [service_id], references: [id])
   staff       Staff?   @relation(fields: [staff_id], references: [id], onDelete: SetNull)
+  review      Review?
 
   @@index([profile_id])
   @@index([user_id])
@@ -232,12 +233,14 @@ model Review {
   id          String   @id @default(cuid())
   profileId   Int
   clientId    String
-  text        String?  @db.Text
+  bookingId   Int      @unique
+  comment     String?  @db.Text
   rating      Int      // 1–5
   createdAt   DateTime @default(now())
 
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([profileId])
   @@index([clientId])

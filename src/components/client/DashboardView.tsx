@@ -7,7 +7,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { CancelBookingForm } from '@/components/client/CancelBookingForm';
 import { FavoriteButton } from '@/components/client/FavoriteButton';
-
+import { ReviewModal } from '@/components/client/ReviewModal';
+import { Star } from 'lucide-react';
+import { useState } from 'react';
 export interface BookingItem {
     id: number;
     date: string;
@@ -15,6 +17,7 @@ export interface BookingItem {
     status: string;
     isFuture: boolean;
     isCancellable: boolean;
+    hasReview: boolean;
     profile: {
         id: number;
         slug: string;
@@ -104,6 +107,9 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
     const firstName = user.name?.split(' ')[0] || '';
     const nextAppointment = upcoming.length > 0 ? upcoming[0] : null;
     const lastVisit = history.length > 0 ? history[0] : null;
+
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
+    const [selectedBookingForReview, setSelectedBookingForReview] = useState<{ id: number, masterName: string } | null>(null);
 
     const quickCategories = [
         { name: 'Стрижка', href: '/search?q=Стрижка', icon: '💇' },
@@ -315,35 +321,49 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                     <div className="px-6 pb-6">
                                         {upcoming.length > 0 && <h3 className="text-sm font-semibold text-slate-700 mb-3 pt-4">Прошлые визиты</h3>}
                                         <div className="divide-y divide-slate-100">
-                                        {history.map(b => (
-                                            <div key={b.id} className="p-6 flex flex-col sm:flex-row gap-4 items-start hover:bg-slate-50 transition-colors">
-                                                <div className="shrink-0">
-                                                    <ProfileAvatar src={b.profile.image_url} name={b.profile.name} />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <h4 className="font-semibold text-slate-900 truncate">{b.service?.title || 'Услуга'}</h4>
-                                                        <StatusBadge status={b.status} />
+                                            {history.map(b => (
+                                                <div key={b.id} className="p-6 flex flex-col sm:flex-row gap-4 items-start hover:bg-slate-50 transition-colors">
+                                                    <div className="shrink-0">
+                                                        <ProfileAvatar src={b.profile.image_url} name={b.profile.name} />
                                                     </div>
-                                                    <Link href={`/salon/${b.profile.slug}`} className="text-sm text-slate-500 hover:text-slate-900">{b.profile.name}</Link>
-                                                    <div className="mt-2 flex items-center gap-4 text-sm text-slate-600">
-                                                        <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" />{formatDate(b.date)}</span>
-                                                        {b.service?.price && <span className="font-medium text-slate-900">€{b.service.price}</span>}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <h4 className="font-semibold text-slate-900 truncate">{b.service?.title || 'Услуга'}</h4>
+                                                            <StatusBadge status={b.status} />
+                                                        </div>
+                                                        <Link href={`/salon/${b.profile.slug}`} className="text-sm text-slate-500 hover:text-slate-900">{b.profile.name}</Link>
+                                                        <div className="mt-2 flex items-center gap-4 text-sm text-slate-600">
+                                                            <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" />{formatDate(b.date)}</span>
+                                                            {b.service?.price && <span className="font-medium text-slate-900">€{b.service.price}</span>}
+                                                        </div>
+                                                    </div>
+                                                    <div className="sm:ml-4 shrink-0 mt-3 sm:mt-0 space-y-2">
+                                                        {b.status === 'completed' && !b.hasReview && (
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="w-full sm:w-auto border-amber-200 text-amber-700 hover:bg-amber-50"
+                                                                onClick={() => {
+                                                                    setSelectedBookingForReview({ id: b.id, masterName: b.profile.name });
+                                                                    setReviewModalOpen(true);
+                                                                }}
+                                                            >
+                                                                <Star className="w-4 h-4 mr-2" />
+                                                                Оценить визит
+                                                            </Button>
+                                                        )}
+                                                        {b.status !== 'cancelled' ? (
+                                                            <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
+                                                                <Link href={`/salon/${b.profile.slug}`}>Повторить запись</Link>
+                                                            </Button>
+                                                        ) : (
+                                                            <Button asChild variant="ghost" size="sm" className="w-full sm:w-auto text-slate-500 hover:text-slate-900">
+                                                                <Link href={`/salon/${b.profile.slug}`}>Профиль</Link>
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <div className="sm:ml-4 shrink-0 mt-3 sm:mt-0">
-                                                    {b.status !== 'cancelled' ? (
-                                                        <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                                                            <Link href={`/salon/${b.profile.slug}`}>Повторить запись</Link>
-                                                        </Button>
-                                                    ) : (
-                                                        <Button asChild variant="ghost" size="sm" className="w-full sm:w-auto text-slate-500 hover:text-slate-900">
-                                                            <Link href={`/salon/${b.profile.slug}`}>Профиль</Link>
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                            ))}
                                         </div>
                                     </div>
                                 )}
@@ -424,6 +444,15 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
 
                 </div>
             </div>
+
+            {selectedBookingForReview && (
+                <ReviewModal
+                    isOpen={reviewModalOpen}
+                    onClose={() => setReviewModalOpen(false)}
+                    bookingId={selectedBookingForReview.id}
+                    masterName={selectedBookingForReview.masterName}
+                />
+            )}
         </div>
     );
 }

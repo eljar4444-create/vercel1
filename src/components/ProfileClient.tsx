@@ -51,11 +51,13 @@ interface ProfileData {
     }[];
     reviews: {
         id: string;
-        text: string | null;
+        comment: string | null;
         rating: number;
         createdAt: string;
         clientName: string;
     }[];
+    averageRating: number;
+    reviewCount: number;
 }
 
 interface ProfileClientProps {
@@ -234,7 +236,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                 </span>
                                 <span className="inline-flex items-center gap-1.5">
                                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                                    5.0
+                                    {profile.averageRating.toFixed(1)}
                                 </span>
                                 <span>{priceLevel}</span>
                             </div>
@@ -418,8 +420,8 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                             <h2 className="text-xl font-semibold text-slate-900">Рейтинг и отзывы</h2>
                             <div className="mt-5 flex items-end gap-2">
-                                <p className="text-5xl font-semibold leading-none text-slate-900">5.0</p>
-                                <p className="pb-1 text-sm text-slate-500">48 отзывов</p>
+                                <p className="text-5xl font-semibold leading-none text-slate-900">{profile.averageRating.toFixed(1)}</p>
+                                <p className="pb-1 text-sm text-slate-500">{profile.reviewCount} {profile.reviewCount === 1 ? 'отзыв' : (profile.reviewCount >= 2 && profile.reviewCount <= 4) ? 'отзыва' : 'отзывов'}</p>
                             </div>
                             <div className="mt-5 space-y-3">
                                 {RATING_BREAKDOWN.map((item) => (
@@ -486,30 +488,37 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                 <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
                     <h2 className="text-2xl font-semibold text-slate-900">Отзывы клиентов</h2>
                     <div className="mt-6 space-y-4">
-                        {(profile.reviews?.length ? profile.reviews : MOCK_REVIEWS).slice(0, 5).map((review) => (
-                            <div
-                                key={review.id}
-                                className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5"
-                            >
-                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <span className="font-medium text-slate-900">{review.clientName}</span>
-                                    <span className="text-sm text-slate-500">
-                                        {new Date(review.createdAt).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
-                                    </span>
+                        {profile.reviews && profile.reviews.length > 0 ? (
+                            profile.reviews.slice(0, 5).map((review) => (
+                                <div
+                                    key={review.id}
+                                    className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5"
+                                >
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        <span className="font-medium text-slate-900">{review.clientName}</span>
+                                        <span className="text-sm text-slate-500">
+                                            {new Date(review.createdAt).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
+                                        </span>
+                                    </div>
+                                    <div className="mt-2 flex gap-0.5" aria-label={`Рейтинг: ${review.rating} из 5`}>
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={`h-4 w-4 ${star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                    {review.comment ? (
+                                        <p className="mt-3 leading-relaxed text-slate-600">{review.comment}</p>
+                                    ) : null}
                                 </div>
-                                <div className="mt-2 flex gap-0.5" aria-label={`Рейтинг: ${review.rating} из 5`}>
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <Star
-                                            key={star}
-                                            className={`h-4 w-4 ${star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
-                                        />
-                                    ))}
-                                </div>
-                                {review.text ? (
-                                    <p className="mt-3 leading-relaxed text-slate-600">{review.text}</p>
-                                ) : null}
+                            ))
+                        ) : (
+                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+                                <Star className="mx-auto h-8 w-8 text-slate-300 mb-3" />
+                                <p className="text-slate-600">Пока нет отзывов. Станьте первым, кто оценит работу мастера!</p>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </section>
             </div>

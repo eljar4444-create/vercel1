@@ -69,6 +69,9 @@ export default async function DashboardPage() {
                     price: true,
                     duration_min: true
                 }
+            },
+            review: {
+                select: { id: true }
             }
         },
         orderBy: [{ date: 'desc' }, { time: 'desc' }],
@@ -88,6 +91,7 @@ export default async function DashboardPage() {
             status: booking.status,
             isFuture,
             isCancellable,
+            hasReview: !!booking.review,
             profile: booking.profile,
             service: booking.service ? {
                 ...booking.service,

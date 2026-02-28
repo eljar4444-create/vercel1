@@ -105,7 +105,7 @@ async function getProfileBySlug(slug: string) {
                 orderBy: { createdAt: 'desc' },
                 select: {
                     id: true,
-                    text: true,
+                    comment: true,
                     rating: true,
                     createdAt: true,
                     client: {
@@ -159,6 +159,14 @@ export default async function SalonProfilePage({
             : null;
     const mapCoordinates = preciseCoordinates || cityCoordinates;
 
+    const reviewStats = await prisma.review.aggregate({
+        where: { profileId: profile.id },
+        _avg: { rating: true },
+        _count: { id: true },
+    });
+    const averageRating = reviewStats._avg.rating ? Number(reviewStats._avg.rating.toFixed(1)) : 5.0;
+    const reviewCount = reviewStats._count.id || 0;
+
     // Compute values for JSON-LD
     const services = profile.services || [];
     const topService = services.length > 0 ? services[0].title : profile.category?.name || 'Мастер красоты';
@@ -185,8 +193,8 @@ export default async function SalonProfilePage({
         priceRange,
         aggregateRating: {
             '@type': 'AggregateRating',
-            ratingValue: '5.0',
-            reviewCount: '48',
+            ratingValue: averageRating.toString(),
+            reviewCount: reviewCount > 0 ? reviewCount.toString() : '1',
             bestRating: '5',
             worstRating: '1',
         },
@@ -226,9 +234,11 @@ export default async function SalonProfilePage({
             price: s.price.toString(),
             duration_min: s.duration_min,
         })),
+        averageRating,
+        reviewCount,
         reviews: profile.reviews?.map((r) => ({
             id: r.id,
-            text: r.text,
+            comment: r.comment,
             rating: r.rating,
             createdAt: r.createdAt.toISOString(),
             clientName: r.client?.name ?? 'Клиент',
