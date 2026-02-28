@@ -22,6 +22,8 @@ export async function updateProfile(formData: FormData) {
     const phone = formData.get('phone') as string;
     let city = (formData.get('city') as string)?.trim() ?? '';
     let address = (formData.get('address') as string)?.trim() ?? '';
+    const telegramChatIdRaw = (formData.get('telegram_chat_id') as string)?.trim() ?? '';
+    const telegramChatId = telegramChatIdRaw || null;
     const providerType = providerTypeRaw === 'SALON' ? 'SALON' : 'PRIVATE';
     const studioImagesRaw = formData.get('studioImages');
     let studioImages: string[] = [];
@@ -48,7 +50,7 @@ export async function updateProfile(formData: FormData) {
         select: {
             user_id: true, user_email: true, name: true,
             city: true, slug: true, address: true, bio: true,
-            latitude: true, longitude: true,
+            latitude: true, longitude: true, telegramChatId: true,
         },
     });
     if (!currentProfile) return { success: false, error: 'Профиль не найден.' };
@@ -130,6 +132,7 @@ export async function updateProfile(formData: FormData) {
                 provider_type: providerType,
                 bio: bioToSave || null,
                 phone: phone || null,
+                telegramChatId,
                 city: officialCity,
                 address: providerType === 'SALON' ? address || null : null,
                 studioImages,

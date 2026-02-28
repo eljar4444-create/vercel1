@@ -44,6 +44,7 @@ model Profile {
   studioImages String[] @default([])
   bio         String?  @db.Text
   phone       String?
+  telegramChatId String?
   latitude    Float?
   longitude   Float?
   schedule    Json?

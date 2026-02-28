@@ -15,6 +15,7 @@ interface EditProfileFormProps {
         providerType: 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
         bio: string | null;
         phone: string | null;
+        telegramChatId: string | null;
         city: string;
         address: string | null;
         studioImages: string[];
@@ -29,6 +30,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     const [bio, setBio] = useState(profile.bio || '');
     const [city, setCity] = useState(profile.city);
     const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE' | 'INDIVIDUAL'>(profile.providerType);
+    const [telegramChatId, setTelegramChatId] = useState(profile.telegramChatId || '');
     const [studioImages, setStudioImages] = useState<string[]>(profile.studioImages || []);
     const [isUploadingStudio, setIsUploadingStudio] = useState(false);
 
@@ -77,6 +79,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
         formData.set('provider_type', providerType);
         formData.set('name', name.trim());
         formData.set('bio', bio);
+        formData.set('telegram_chat_id', telegramChatId.trim());
 
         const result = await updateProfile(formData);
         setIsSubmitting(false);
@@ -207,6 +210,21 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                             />
                         </div>
                     ) : null}
+
+                    <div>
+                        <label className={labelClass}>Ваш Telegram Chat ID</label>
+                        <input
+                            name="telegram_chat_id"
+                            type="text"
+                            value={telegramChatId}
+                            onChange={(e) => setTelegramChatId(e.target.value)}
+                            placeholder="Например: 123456789"
+                            className={inputClass}
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                            Чтобы бот мог присылать вам уведомления, узнайте свой Chat ID у бота @userinfobot в Telegram и вставьте сюда.
+                        </p>
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="photos" className="mt-3 space-y-2 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
