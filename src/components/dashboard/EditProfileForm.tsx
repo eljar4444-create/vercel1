@@ -1,12 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Loader2, CheckCircle, AlertCircle, Save, Upload, X } from 'lucide-react';
 import { updateProfile } from '@/app/actions/updateProfile';
+import { disconnectTelegram } from '@/app/actions/telegram';
 import { uploadServicePhoto } from '@/app/actions/upload';
 import toast from 'react-hot-toast';
 import { CityCombobox } from '@/components/provider/CityCombobox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+function TelegramIcon({ className }: { className?: string }) {
+    return (
+        <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+        </svg>
+    );
+}
 
 interface EditProfileFormProps {
     profile: {
@@ -20,9 +30,11 @@ interface EditProfileFormProps {
         address: string | null;
         studioImages: string[];
     };
+    connectTelegramLink: string | null;
 }
 
-export function EditProfileForm({ profile }: EditProfileFormProps) {
+export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFormProps) {
+    const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -30,9 +42,9 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     const [bio, setBio] = useState(profile.bio || '');
     const [city, setCity] = useState(profile.city);
     const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE' | 'INDIVIDUAL'>(profile.providerType);
-    const [telegramChatId, setTelegramChatId] = useState(profile.telegramChatId || '');
     const [studioImages, setStudioImages] = useState<string[]>(profile.studioImages || []);
     const [isUploadingStudio, setIsUploadingStudio] = useState(false);
+    const [isDisconnecting, setIsDisconnecting] = useState(false);
 
     const handleUploadStudioImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -79,7 +91,6 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
         formData.set('provider_type', providerType);
         formData.set('name', name.trim());
         formData.set('bio', bio);
-        formData.set('telegram_chat_id', telegramChatId.trim());
 
         const result = await updateProfile(formData);
         setIsSubmitting(false);
@@ -114,12 +125,15 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
             )}
 
             <Tabs defaultValue="main" className="w-full">
-                <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-slate-100 p-1">
+                <TabsList className="grid h-auto w-full grid-cols-4 rounded-2xl bg-slate-100 p-1">
                     <TabsTrigger value="main" className="rounded-xl text-xs sm:text-sm">
                         Основное
                     </TabsTrigger>
                     <TabsTrigger value="location" className="rounded-xl text-xs sm:text-sm">
                         Локация
+                    </TabsTrigger>
+                    <TabsTrigger value="notifications" className="rounded-xl text-xs sm:text-sm">
+                        Уведомления
                     </TabsTrigger>
                     <TabsTrigger value="photos" className="rounded-xl text-xs sm:text-sm">
                         Фото студии
@@ -210,20 +224,52 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                             />
                         </div>
                     ) : null}
+                </TabsContent>
 
-                    <div>
-                        <label className={labelClass}>Ваш Telegram Chat ID</label>
-                        <input
-                            name="telegram_chat_id"
-                            type="text"
-                            value={telegramChatId}
-                            onChange={(e) => setTelegramChatId(e.target.value)}
-                            placeholder="Например: 123456789"
-                            className={inputClass}
-                        />
-                        <p className="mt-1 text-xs text-gray-500">
-                            Чтобы бот мог присылать вам уведомления, узнайте свой Chat ID у бота @userinfobot в Telegram и вставьте сюда.
-                        </p>
+                <TabsContent value="notifications" className="mt-3 space-y-3 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
+                    <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-gray-900">Telegram-уведомления</h3>
+                        {profile.telegramChatId ? (
+                            <>
+                                <p className="flex items-center gap-2 text-sm text-green-700">
+                                    <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                                    Telegram успешно подключен
+                                </p>
+                                <button
+                                    type="button"
+                                    disabled={isDisconnecting}
+                                    onClick={async () => {
+                                        setIsDisconnecting(true);
+                                        const result = await disconnectTelegram(profile.id);
+                                        setIsDisconnecting(false);
+                                        if (result.success) {
+                                            toast.success('Telegram отключён');
+                                            router.refresh();
+                                        } else {
+                                            toast.error(result.error || 'Ошибка');
+                                        }
+                                    }}
+                                    className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                                >
+                                    {isDisconnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                                    Отключить
+                                </button>
+                            </>
+                        ) : connectTelegramLink ? (
+                            <a
+                                href={connectTelegramLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 rounded-xl bg-[#0088cc] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#0077b5]"
+                            >
+                                <TelegramIcon className="h-5 w-5" />
+                                Подключить Telegram-бота
+                            </a>
+                        ) : (
+                            <p className="text-sm text-gray-500">
+                                Ссылка для подключения недоступна. Укажите TELEGRAM_BOT_USERNAME в настройках сервера.
+                            </p>
+                        )}
                     </div>
                 </TabsContent>
 

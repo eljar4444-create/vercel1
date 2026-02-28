@@ -388,6 +388,11 @@ export default async function DashboardPage({
                                         address: profile.address,
                                         studioImages: profile.studioImages,
                                     }}
+                                    connectTelegramLink={
+                                        process.env.TELEGRAM_BOT_USERNAME && profile.user_id
+                                            ? `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=${profile.user_id}`
+                                            : null
+                                    }
                                 />
                             </div>
                         </div>
