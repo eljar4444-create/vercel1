@@ -44,17 +44,6 @@ function getDayIndex(d: Date): number {
     return day === 0 ? 6 : day - 1;
 }
 
-function timeToSlotRow(time: string): number {
-    const [h, m] = time.split(':').map(Number);
-    const minutes = (h ?? 0) * 60 + (m ?? 0);
-    const startMinutes = HOUR_START * 60;
-    const slotIndex = Math.floor((minutes - startMinutes) / SLOT_MINUTES);
-    return Math.max(0, slotIndex);
-}
-
-function durationToRowSpan(durationMin: number): number {
-    return Math.max(1, Math.ceil(durationMin / SLOT_MINUTES));
-}
 
 interface ProviderCalendarProps {
     profileId: number;
@@ -162,119 +151,176 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
             )}
 
             {!loading && (
-            <div className="overflow-x-auto relative">
-                <div
-                    className="min-w-[600px] p-4 relative"
-                    style={{
-                        display: 'grid',
-                        gridTemplateColumns: '56px repeat(7, minmax(0, 1fr))',
-                        gridTemplateRows: `32px repeat(${totalSlots}, ${ROW_HEIGHT_PX}px)`,
-                    }}
-                >
-                    {/* Corner */}
-                    <div className="border-b border-r border-slate-200 bg-slate-50/80" style={{ gridColumn: 1, gridRow: 1 }} />
+                <div className="overflow-x-auto relative">
+                    <div
+                        className="min-w-[600px] p-4 relative"
+                        style={{
+                            display: 'grid',
+                            gridTemplateColumns: '56px repeat(7, minmax(0, 1fr))',
+                            gridTemplateRows: `32px repeat(${totalSlots}, ${ROW_HEIGHT_PX}px)`,
+                        }}
+                    >
+                        {/* Corner */}
+                        <div className="border-b border-r border-slate-200 bg-slate-50/80" style={{ gridColumn: 1, gridRow: 1 }} />
 
-                    {/* Day headers */}
-                    {weekDays.map((day, dayIdx) => (
-                        <div
-                            key={day.toISOString()}
-                            className={`flex items-center justify-center border-b border-slate-200 text-xs font-semibold ${
-                                isSameDay(day, new Date())
-                                    ? 'bg-slate-900 text-white'
-                                    : 'bg-slate-50/80 text-slate-600'
-                            }`}
-                            style={{ gridColumn: dayIdx + 2, gridRow: 1 }}
-                        >
-                            <span className="hidden sm:inline">{format(day, 'EEE', { locale: ru })}</span>
-                            <span className="sm:hidden">{DAY_LABELS[getDayIndex(day)]}</span>
-                            <span className="ml-1 text-slate-400">({format(day, 'd')})</span>
-                        </div>
-                    ))}
-
-                    {/* Time column */}
-                    {timeLabels.map((label, rowIdx) => (
-                        <div
-                            key={label}
-                            className="border-r border-slate-100 pr-1 text-right text-xs text-slate-400"
-                            style={{ gridColumn: 1, gridRow: rowIdx + 2 }}
-                        >
-                            {rowIdx % 2 === 0 ? label : ''}
-                        </div>
-                    ))}
-
-                    {/* Day columns: each is a grid containing slot cells and booking blocks */}
-                    {weekDays.map((day, dayIdx) => {
-                        const dayStart = new Date(day);
-                        dayStart.setHours(0, 0, 0, 0);
-                        const dayEnd = new Date(day);
-                        dayEnd.setHours(23, 59, 59, 999);
-                        const dayBookings = bookings.filter((b) => {
-                            const d = parseISO(b.date);
-                            return isWithinInterval(d, { start: dayStart, end: dayEnd });
-                        });
-
-                        return (
+                        {/* Day headers */}
+                        {weekDays.map((day, dayIdx) => (
                             <div
                                 key={day.toISOString()}
-                                className="border-r border-slate-100 last:border-r-0 relative"
-                                style={{
-                                    gridColumn: dayIdx + 2,
-                                    gridRow: `2 / -1`,
-                                    display: 'grid',
-                                    gridTemplateRows: `repeat(${totalSlots}, ${ROW_HEIGHT_PX}px)`,
-                                    gap: 2,
-                                    padding: 2,
-                                }}
+                                className={`flex items-center justify-center border-b border-slate-200 text-xs font-semibold ${isSameDay(day, new Date())
+                                        ? 'bg-slate-900 text-white'
+                                        : 'bg-slate-50/80 text-slate-600'
+                                    }`}
+                                style={{ gridColumn: dayIdx + 2, gridRow: 1 }}
                             >
-                                {timeLabels.map((_, rowIdx) => (
-                                    <div
-                                        key={rowIdx}
-                                        className="border-b border-slate-50"
-                                        style={{ gridRow: rowIdx + 1 }}
-                                    />
-                                ))}
-                                {dayBookings.map((b) => {
-                                    const row = timeToSlotRow(b.time);
-                                    const span = b.service?.duration_min
-                                        ? durationToRowSpan(b.service.duration_min)
-                                        : durationToRowSpan(60);
-                                    const cardStyle =
-                                        STATUS_CARD_STYLES[b.status] ?? 'bg-slate-200 text-slate-700 border-2 border-slate-400 shadow-sm';
-                                    const [h, m] = b.time.split(':').map(Number);
-                                    const endMin = (h ?? 0) * 60 + (m ?? 0) + (b.service?.duration_min ?? 60);
-                                    const endTime = `${String(Math.floor(endMin / 60)).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`;
-
-                                    return (
-                                        <button
-                                            key={b.id}
-                                            type="button"
-                                            onClick={() => openModal(b)}
-                                            className={`absolute left-1 right-1 text-left rounded-lg shadow hover:shadow-md transition overflow-hidden font-medium ${cardStyle}`}
-                                            style={{
-                                                top: 2 + row * (ROW_HEIGHT_PX + 2),
-                                                height: ROW_HEIGHT_PX * span + (span - 1) * 2 - 2,
-                                                zIndex: 1,
-                                            }}
-                                        >
-                                            <div className="p-2 text-xs leading-snug truncate h-full flex flex-col justify-center gap-0.5">
-                                                <span className="font-bold truncate block">
-                                                    {b.time} – {endTime}
-                                                </span>
-                                                <span className="truncate font-medium">{b.user_name}</span>
-                                                {b.service && (
-                                                    <span className="truncate opacity-95 text-[11px]">
-                                                        {b.service.title}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </button>
-                                    );
-                                })}
+                                <span className="hidden sm:inline">{format(day, 'EEE', { locale: ru })}</span>
+                                <span className="sm:hidden">{DAY_LABELS[getDayIndex(day)]}</span>
+                                <span className="ml-1 text-slate-400">({format(day, 'd')})</span>
                             </div>
-                        );
-                    })}
+                        ))}
+
+                        {/* Time column */}
+                        {timeLabels.map((label, rowIdx) => (
+                            <div
+                                key={label}
+                                className="border-r border-slate-100 pr-1 text-right text-xs text-slate-400"
+                                style={{ gridColumn: 1, gridRow: rowIdx + 2 }}
+                            >
+                                {rowIdx % 2 === 0 ? label : ''}
+                            </div>
+                        ))}
+
+                        {/* Day columns: each is a grid containing slot cells and booking blocks */}
+                        {weekDays.map((day, dayIdx) => {
+                            const dayStart = new Date(day);
+                            dayStart.setHours(0, 0, 0, 0);
+                            const dayEnd = new Date(day);
+                            dayEnd.setHours(23, 59, 59, 999);
+                            const dayBookings = bookings.filter((b) => {
+                                const d = parseISO(b.date);
+                                return isWithinInterval(d, { start: dayStart, end: dayEnd });
+                            });
+
+                            // Calculate exact coordinates for overlaps
+                            const processedBookings = dayBookings.map((b) => {
+                                const [h, m] = b.time.split(':').map(Number);
+                                const startMin = (h ?? 0) * 60 + (m ?? 0);
+                                const durationMin = b.service?.duration_min || 60;
+                                const endMin = startMin + durationMin;
+                                return { ...b, startMin, endMin, durationMin };
+                            }).sort((a, b) => a.startMin - b.startMin);
+
+                            const clusters: typeof processedBookings[] = [];
+                            let currentCluster: typeof processedBookings = [];
+                            let currentClusterEnd = 0;
+
+                            processedBookings.forEach((b) => {
+                                if (currentCluster.length === 0) {
+                                    currentCluster.push(b);
+                                    currentClusterEnd = b.endMin;
+                                } else {
+                                    if (b.startMin < currentClusterEnd) {
+                                        currentCluster.push(b);
+                                        currentClusterEnd = Math.max(currentClusterEnd, b.endMin);
+                                    } else {
+                                        clusters.push(currentCluster);
+                                        currentCluster = [b];
+                                        currentClusterEnd = b.endMin;
+                                    }
+                                }
+                            });
+                            if (currentCluster.length > 0) {
+                                clusters.push(currentCluster);
+                            }
+
+                            const finalBookings: (typeof processedBookings[0] & { colIndex: number; totalCols: number })[] = [];
+                            clusters.forEach((cluster) => {
+                                const columns: typeof processedBookings[] = [];
+                                cluster.forEach((b) => {
+                                    let placed = false;
+                                    for (let i = 0; i < columns.length; i++) {
+                                        const lastInCol = columns[i][columns[i].length - 1];
+                                        if (lastInCol.endMin <= b.startMin) {
+                                            columns[i].push(b);
+                                            finalBookings.push({ ...b, colIndex: i, totalCols: 1 });
+                                            placed = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!placed) {
+                                        columns.push([b]);
+                                        finalBookings.push({ ...b, colIndex: columns.length - 1, totalCols: 1 });
+                                    }
+                                });
+                                finalBookings.forEach((b) => {
+                                    if (cluster.some((cb) => cb.id === b.id)) {
+                                        b.totalCols = columns.length;
+                                    }
+                                });
+                            });
+
+                            return (
+                                <div
+                                    key={day.toISOString()}
+                                    className="border-r border-slate-100 last:border-r-0 relative"
+                                    style={{
+                                        gridColumn: dayIdx + 2,
+                                        gridRow: `2 / -1`,
+                                        display: 'grid',
+                                        gridTemplateRows: `repeat(${totalSlots}, ${ROW_HEIGHT_PX}px)`,
+                                        gap: 2,
+                                        padding: 2,
+                                    }}
+                                >
+                                    {timeLabels.map((_, rowIdx) => (
+                                        <div
+                                            key={rowIdx}
+                                            className="border-b border-slate-50"
+                                            style={{ gridRow: rowIdx + 1 }}
+                                        />
+                                    ))}
+                                    {finalBookings.map((b) => {
+                                        const PIXELS_PER_MIN = (ROW_HEIGHT_PX + 2) / SLOT_MINUTES;
+                                        const topPx = 2 + (b.startMin - HOUR_START * 60) * PIXELS_PER_MIN;
+                                        const heightPx = Math.max(15, b.durationMin * PIXELS_PER_MIN - 2);
+
+                                        const cardStyle =
+                                            STATUS_CARD_STYLES[b.status] ?? 'bg-slate-200 text-slate-700 border-2 border-slate-400 shadow-sm';
+                                        const endTime = `${String(Math.floor(b.endMin / 60)).padStart(2, '0')}:${String(b.endMin % 60).padStart(2, '0')}`;
+
+                                        return (
+                                            <button
+                                                key={b.id}
+                                                type="button"
+                                                onClick={() => openModal(b)}
+                                                className={`absolute text-left rounded-lg shadow hover:shadow-md transition overflow-hidden font-medium ${cardStyle}`}
+                                                style={{
+                                                    top: `${topPx}px`,
+                                                    height: `${heightPx}px`,
+                                                    left: `calc(${b.colIndex * (100 / b.totalCols)}% + 3px)`,
+                                                    width: `calc(${100 / b.totalCols}% - 6px)`,
+                                                    zIndex: 1,
+                                                }}
+                                            >
+                                                <div className="p-2 text-xs leading-snug truncate h-full flex flex-col justify-center gap-0.5">
+                                                    <span className="font-bold truncate block">
+                                                        {b.time} – {endTime}
+                                                    </span>
+                                                    <span className="truncate font-medium">{b.user_name}</span>
+                                                    {b.service && (
+                                                        <span className="truncate opacity-95 text-[11px]">
+                                                            {b.service.title}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
             )}
 
             {/* Legend */}
