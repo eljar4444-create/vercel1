@@ -9,6 +9,7 @@ import {
     ListChecks, Eye, UserCircle2, TrendingUp,
 } from 'lucide-react';
 import { BookingRow } from '@/components/dashboard/BookingRow';
+import { BookingListClient } from '@/components/dashboard/BookingListClient';
 import { ProviderCalendar } from '@/components/dashboard/ProviderCalendar';
 import { ServicesSection } from '@/components/dashboard/ServicesSection';
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
@@ -339,11 +340,10 @@ export default async function DashboardPage({
 
                                 <div className="p-4">
                                     {serializedBookings.length > 0 ? (
-                                        <div className="space-y-2.5">
-                                            {serializedBookings.map((booking) => (
-                                                <BookingRow key={booking.id} booking={booking} providerId={profileId} />
-                                            ))}
-                                        </div>
+                                        <BookingListClient
+                                            bookings={serializedBookings}
+                                            providerId={profileId}
+                                        />
                                     ) : (
                                         <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50/70 py-14 text-center">
                                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm">

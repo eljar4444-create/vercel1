@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function AgbPage() {
     return (
@@ -140,7 +141,7 @@ export default function AgbPage() {
             <section className="mb-8">
                 <h2 className="text-2xl font-bold mb-4 border-b pb-2">§ 9 Datenschutz</h2>
                 <p className="text-gray-700 leading-relaxed">
-                    Der Schutz personenbezogener Daten hat höchste Priorität. Die Erhebung und Verarbeitung von Daten erfolgt ausschließlich im Rahmen der gesetzlichen Bestimmungen (DSGVO). Details sind in der Datenschutzerklärung geregelt (<a href="/datenschutz" className="text-blue-600 hover:underline">zur Datenschutzerklärung</a>).
+                    Der Schutz personenbezogener Daten hat höchste Priorität. Die Erhebung und Verarbeitung von Daten erfolgt ausschließlich im Rahmen der gesetzlichen Bestimmungen (DSGVO). Details sind in der Datenschutzerklärung geregelt (<Link href="/datenschutz" className="text-blue-600 hover:underline">zur Datenschutzerklärung</Link>).
                 </p>
             </section>
 

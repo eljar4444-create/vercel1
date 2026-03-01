@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface SearchMapMarker {
     id: number;
@@ -22,9 +22,7 @@ const SearchResultsMapClient = dynamic(
     {
         ssr: false,
         loading: () => (
-            <div className="flex h-full w-full items-center justify-center bg-slate-50">
-                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-            </div>
+            <Skeleton className="h-full min-h-[300px] w-full rounded-md" />
         ),
     }
 );

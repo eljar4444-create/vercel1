@@ -1,14 +1,12 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ProfileLocationMapClient = dynamic(() => import('@/components/ProfileLocationMapClient'), {
     ssr: false,
     loading: () => (
-        <div className="flex h-full min-h-[320px] w-full items-center justify-center bg-slate-50">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
-        </div>
+        <Skeleton className="h-[360px] w-full rounded-2xl" />
     ),
 });
 

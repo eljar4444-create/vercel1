@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2, LocateFixed, MapPin, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface SearchFiltersFormProps {
     categoryFilter?: string;
@@ -25,6 +26,9 @@ export function SearchFiltersForm({
     const [queryOpen, setQueryOpen] = useState(false);
     const [cityOpen, setCityOpen] = useState(false);
     const [isGeoLoading, setIsGeoLoading] = useState(false);
+
+    const debouncedQuery = useDebounce(query.trim(), 300);
+    const debouncedCity = useDebounce(city.trim(), 300);
 
     const filteredServices = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -48,6 +52,17 @@ export function SearchFiltersForm({
         document.addEventListener('mousedown', onClickOutside);
         return () => document.removeEventListener('mousedown', onClickOutside);
     }, []);
+
+    useEffect(() => {
+        const normalizedCity = resolveGermanCity(debouncedCity) || debouncedCity;
+        const currentCity = resolveGermanCity(cityFilter) || cityFilter;
+        if (debouncedQuery === queryFilter && normalizedCity === currentCity) return;
+        const params = new URLSearchParams();
+        if (categoryFilter) params.set('category', categoryFilter);
+        if (debouncedQuery) params.set('q', debouncedQuery);
+        if (normalizedCity) params.set('city', normalizedCity);
+        router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
+    }, [debouncedQuery, debouncedCity, categoryFilter, queryFilter, cityFilter, router]);
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();

@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { unstable_cache } from 'next/cache';
 import { ProfileClient } from '@/components/ProfileClient';
 import { GERMAN_CITIES } from '@/constants/germanCities';
 import type { Metadata } from 'next';
@@ -117,12 +118,21 @@ async function getProfileBySlug(slug: string) {
     });
 }
 
+const CACHE_TTL = 60;
+
+const getCachedProfileBySlug = (slug: string) =>
+    unstable_cache(
+        () => getProfileBySlug(slug),
+        ['salon-profile', slug],
+        { revalidate: CACHE_TTL, tags: [`salon-${slug}`] }
+    )();
+
 export async function generateMetadata({
     params,
 }: {
     params: { slug: string };
 }): Promise<Metadata> {
-    const profile = await getProfileBySlug(params.slug);
+    const profile = await getCachedProfileBySlug(params.slug);
     if (!profile) {
         return { title: 'Профиль не найден | Svoi.de' };
     }
@@ -149,7 +159,7 @@ export default async function SalonProfilePage({
 }: {
     params: { slug: string };
 }) {
-    const profile = await getProfileBySlug(params.slug);
+    const profile = await getCachedProfileBySlug(params.slug);
     if (!profile) notFound();
 
     const cityCoordinates = resolveCityCoordinates(profile.city);

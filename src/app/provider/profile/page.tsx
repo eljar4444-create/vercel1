@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 
 import {
     PassportVerificationCard, ServicePublicationCard, PublicProfileCard,
@@ -83,9 +84,9 @@ export default async function ProviderProfile() {
                     )}
                 </p>
                 <div className="mt-4">
-                    <a href="/provider/profile/edit" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">
+                    <Link href="/provider/profile/edit" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">
                         Редактировать профиль
-                    </a>
+                    </Link>
                 </div>
             </div>
 

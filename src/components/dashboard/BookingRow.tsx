@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, X, Loader2, Clock, User, Phone, MessageCircle } from 'lucide-react';
 import { updateBookingStatus } from '@/app/actions/updateBookingStatus';
@@ -26,6 +26,8 @@ interface BookingData {
 interface BookingRowProps {
     booking: BookingData;
     providerId: number;
+    onStatusChange?: (bookingId: number, newStatus: string) => void;
+    isPending?: boolean;
 }
 
 const STATUS_CONFIG: Record<string, {
@@ -87,28 +89,34 @@ const DEFAULT_STATUS = {
     rowBg: '',
 };
 
-export function BookingRow({ booking, providerId }: BookingRowProps) {
+export function BookingRow({ booking, providerId, onStatusChange, isPending }: BookingRowProps) {
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const [isOpeningChat, setIsOpeningChat] = useState(false);
     const router = useRouter();
+    const [, startNavTransition] = useTransition();
+
+    const useOptimisticUpdate = typeof onStatusChange === 'function';
+    const busy = useOptimisticUpdate ? isPending : isUpdating !== null;
+
+    const handleStatusChange = async (newStatus: string) => {
+        if (onStatusChange) {
+            onStatusChange(booking.id, newStatus);
+            return;
+        }
+        setIsUpdating(newStatus);
+        await updateBookingStatus(booking.id, newStatus);
+        setIsUpdating(null);
+    };
 
     const cfg = STATUS_CONFIG[booking.status] ?? DEFAULT_STATUS;
-
     const dateObj = new Date(booking.date);
     const dayNum = dateObj.getDate();
     const monthShort = dateObj.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', '');
-
     const formattedDate = dateObj.toLocaleDateString('ru-RU', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
     });
-
-    const handleStatusChange = async (newStatus: string) => {
-        setIsUpdating(newStatus);
-        await updateBookingStatus(booking.id, newStatus);
-        setIsUpdating(null);
-    };
 
     const handleOpenChat = async () => {
         if (!booking.user_id || isOpeningChat) return;
@@ -119,7 +127,9 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
                 alert(result?.error || 'Не удалось открыть чат');
                 return;
             }
-            router.push(`/chat/${result.conversationId}`);
+            startNavTransition(() => {
+                router.push(`/chat/${result.conversationId}`);
+            });
         } finally {
             setIsOpeningChat(false);
         }
@@ -213,7 +223,7 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
                         <div className="flex items-center gap-1.5">
                             <button
                                 onClick={() => handleStatusChange('confirmed')}
-                                disabled={isUpdating !== null}
+                                disabled={busy}
                                 className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 hover:shadow-sm disabled:opacity-50"
                             >
                                 {isUpdating === 'confirmed'
@@ -223,7 +233,7 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
                             </button>
                             <button
                                 onClick={() => handleStatusChange('cancelled')}
-                                disabled={isUpdating !== null}
+                                disabled={busy}
                                 className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
                             >
                                 {isUpdating === 'cancelled'
@@ -238,7 +248,7 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
                         <div className="flex items-center gap-1.5">
                             <button
                                 onClick={() => handleStatusChange('completed')}
-                                disabled={isUpdating !== null}
+                                disabled={busy}
                                 className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 hover:shadow-sm disabled:opacity-50"
                             >
                                 {isUpdating === 'completed'
@@ -248,7 +258,7 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
                             </button>
                             <button
                                 onClick={() => handleStatusChange('no_show')}
-                                disabled={isUpdating !== null}
+                                disabled={busy}
                                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 disabled:opacity-50"
                             >
                                 {isUpdating === 'no_show'
