@@ -63,7 +63,7 @@ export function Header() {
             "fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-[#F5F2EB]/95 backdrop-blur-sm transition-all duration-200",
             scrolled && "shadow-sm"
         )}>
-            <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl">
+            <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl lg:grid lg:grid-cols-[1fr_minmax(0,560px)_1fr]">
                 {/* Left Area (Logo) */}
                 <div className="flex flex-1 items-center justify-start">
                     <Link href="/" className="flex items-center shrink-0 relative z-10">
@@ -96,7 +96,7 @@ export function Header() {
                 ) : null}
 
                 {/* Right Actions */}
-                <div className={cn("flex flex-1 items-center justify-end gap-2", isSearchPage && "lg:flex-none")}>
+                <div className="flex flex-1 items-center justify-end gap-2">
                     {user ? (
                         <div className="hidden items-center gap-2 lg:flex">
                             <Link
