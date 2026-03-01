@@ -27,11 +27,12 @@ export function AddServiceForm({ profileId }: AddServiceFormProps) {
         if (!selectedCategory) return [];
         return Object.keys(BEAUTY_SERVICES[selectedCategory as keyof typeof BEAUTY_SERVICES]);
     }, [selectedCategory]);
-    const serviceOptions = useMemo(() => {
+    const serviceOptions = useMemo((): string[] => {
         if (!selectedCategory || !selectedSubcategory) return [];
-        return BEAUTY_SERVICES[selectedCategory as keyof typeof BEAUTY_SERVICES][
+        const list = BEAUTY_SERVICES[selectedCategory as keyof typeof BEAUTY_SERVICES]?.[
             selectedSubcategory as keyof (typeof BEAUTY_SERVICES)[keyof typeof BEAUTY_SERVICES]
-        ] || [];
+        ];
+        return list ? [...list] : [];
     }, [selectedCategory, selectedSubcategory]);
 
     // Если в подкатегории одна услуга (например «Консультация») — подставляем её сразу, без второго выбора
@@ -39,11 +40,10 @@ export function AddServiceForm({ profileId }: AddServiceFormProps) {
         if (serviceOptions.length === 1 && selectedService !== serviceOptions[0]) {
             setSelectedService(serviceOptions[0]);
         }
-        if (serviceOptions.length !== 1 && selectedSubcategory) {
-            const currentInOptions = serviceOptions.includes(selectedService);
-            if (!currentInOptions) setSelectedService('');
+        if (serviceOptions.length !== 1 && selectedSubcategory && !serviceOptions.includes(selectedService)) {
+            setSelectedService('');
         }
-    }, [selectedSubcategory, serviceOptions]);
+    }, [selectedSubcategory, serviceOptions, selectedService]);
 
     const handleUploadImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
