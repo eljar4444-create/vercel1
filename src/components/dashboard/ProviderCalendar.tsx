@@ -11,23 +11,23 @@ import {
     parseISO,
 } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getProviderBookingsForWeek } from '@/app/actions/getProviderBookingsForWeek';
 import { BookingDetailsModal, type BookingForModal } from '@/components/dashboard/BookingDetailsModal';
 
 const HOUR_START = 8;
-const HOUR_END = 22;
+const HOUR_END = 21;
 const SLOT_MINUTES = 30;
-const ROW_HEIGHT_PX = 40;
+const ROW_HEIGHT_PX = 26;
 
-const DAY_LABELS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const DAY_LABELS_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
-const STATUS_CARD_STYLES: Record<string, string> = {
-    pending: 'bg-amber-400 text-amber-950 border-2 border-amber-600/50 shadow',
-    confirmed: 'bg-emerald-500 text-white border-2 border-emerald-700/60 shadow',
-    completed: 'bg-slate-400 text-white border-2 border-slate-500 shadow-sm',
-    no_show: 'bg-slate-300 text-slate-800 border-2 border-slate-400 shadow-sm',
-    cancelled: 'bg-slate-200 text-slate-700 border-2 border-slate-400 shadow-sm',
+const STATUS_CARD_STYLES: Record<string, { bg: string; text: string; border: string }> = {
+    pending:   { bg: 'bg-amber-400',   text: 'text-amber-950', border: 'border-amber-500' },
+    confirmed: { bg: 'bg-emerald-500', text: 'text-white',      border: 'border-emerald-600' },
+    completed: { bg: 'bg-slate-300',   text: 'text-slate-800',  border: 'border-slate-400' },
+    no_show:   { bg: 'bg-slate-200',   text: 'text-slate-700',  border: 'border-slate-300' },
+    cancelled: { bg: 'bg-rose-100',    text: 'text-rose-700',   border: 'border-rose-300' },
 };
 
 function getDefaultWeekStart(): Date {
@@ -38,12 +38,12 @@ function toWeekStartKey(date: Date): string {
     return format(date, 'yyyy-MM-dd');
 }
 
-/** Monday = 0, Sunday = 6 */
 function getDayIndex(d: Date): number {
     const day = d.getDay();
     return day === 0 ? 6 : day - 1;
 }
 
+const COL_TEMPLATE = '44px repeat(7, minmax(0, 1fr))';
 
 interface ProviderCalendarProps {
     profileId: number;
@@ -60,12 +60,13 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
     const weekStartKey = toWeekStartKey(weekStart);
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
     const totalSlots = ((HOUR_END - HOUR_START) * 60) / SLOT_MINUTES;
-    const timeLabels = Array.from({ length: totalSlots }, (_, i) => {
-        const totalMin = HOUR_START * 60 + i * SLOT_MINUTES;
-        const h = Math.floor(totalMin / 60);
-        const m = totalMin % 60;
-        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-    });
+
+    // Only whole-hour labels
+    const hourLabels: { slot: number; label: string }[] = [];
+    for (let h = HOUR_START; h < HOUR_END; h++) {
+        const slotIdx = ((h - HOUR_START) * 60) / SLOT_MINUTES;
+        hourLabels.push({ slot: slotIdx, label: `${String(h).padStart(2, '0')}:00` });
+    }
 
     const loadBookings = useCallback(async () => {
         setLoading(true);
@@ -80,263 +81,234 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
         }
     }, [profileId, weekStartKey]);
 
-    useEffect(() => {
-        loadBookings();
-    }, [loadBookings]);
+    useEffect(() => { loadBookings(); }, [loadBookings]);
 
-    const goPrevWeek = () => setWeekStart((d) => addWeeks(d, -1));
-    const goNextWeek = () => setWeekStart((d) => addWeeks(d, 1));
-    const goToday = () => setWeekStart(getDefaultWeekStart());
+    const goPrevWeek = () => setWeekStart(d => addWeeks(d, -1));
+    const goNextWeek = () => setWeekStart(d => addWeeks(d, 1));
+    const goToday    = () => setWeekStart(getDefaultWeekStart());
 
-    const openModal = (booking: BookingForModal) => {
-        setSelectedBooking(booking);
-        setModalOpen(true);
+    const openModal  = (b: BookingForModal) => { setSelectedBooking(b); setModalOpen(true); };
+    const closeModal = () => { setModalOpen(false); setSelectedBooking(null); };
+
+    const weekRangeLabel = `${format(weekDays[0], 'd MMM', { locale: ru })} — ${format(weekDays[6], 'd MMM yyyy', { locale: ru })}`;
+
+    // Build processed bookings per day
+    const buildDayBookings = (day: Date) => {
+        const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
+        const dayEnd   = new Date(day); dayEnd.setHours(23, 59, 59, 999);
+        const dayBookings = bookings.filter(b => isWithinInterval(parseISO(b.date), { start: dayStart, end: dayEnd }));
+
+        const processed = dayBookings.map(b => {
+            const [h, m] = b.time.split(':').map(Number);
+            const startMin = (h ?? 0) * 60 + (m ?? 0);
+            const durationMin = b.service?.duration_min || 60;
+            return { ...b, startMin, endMin: startMin + durationMin, durationMin };
+        }).sort((a, b) => a.startMin - b.startMin);
+
+        // Cluster + column assignment for overlaps
+        const clusters: typeof processed[] = [];
+        let cur: typeof processed = [], curEnd = 0;
+        processed.forEach(b => {
+            if (cur.length === 0) { cur.push(b); curEnd = b.endMin; }
+            else if (b.startMin < curEnd) { cur.push(b); curEnd = Math.max(curEnd, b.endMin); }
+            else { clusters.push(cur); cur = [b]; curEnd = b.endMin; }
+        });
+        if (cur.length > 0) clusters.push(cur);
+
+        const final: (typeof processed[0] & { colIndex: number; totalCols: number })[] = [];
+        clusters.forEach(cluster => {
+            const cols: typeof processed[] = [];
+            cluster.forEach(b => {
+                let placed = false;
+                for (let i = 0; i < cols.length; i++) {
+                    if (cols[i][cols[i].length - 1].endMin <= b.startMin) {
+                        cols[i].push(b);
+                        final.push({ ...b, colIndex: i, totalCols: 1 });
+                        placed = true; break;
+                    }
+                }
+                if (!placed) { cols.push([b]); final.push({ ...b, colIndex: cols.length - 1, totalCols: 1 }); }
+            });
+            final.forEach(b => { if (cluster.some(cb => cb.id === b.id)) b.totalCols = cols.length; });
+        });
+        return final;
     };
 
-    const closeModal = () => {
-        setModalOpen(false);
-        setSelectedBooking(null);
-    };
-
-    const handleStatusUpdated = () => {
-        loadBookings();
-    };
-
-    const weekRangeLabel = `${format(weekDays[0], 'd MMM', { locale: ru })} – ${format(weekDays[6], 'd MMM yyyy', { locale: ru })}`;
+    const PIXELS_PER_MIN = ROW_HEIGHT_PX / SLOT_MINUTES;
 
     return (
-        <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-5">
+        <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+
+            {/* ── Week navigation ── */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 px-4 py-3">
                 <div className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-slate-500" />
-                    <span className="font-semibold text-slate-900">{weekRangeLabel}</span>
+                    <span className="text-sm font-semibold text-slate-800 capitalize">{weekRangeLabel}</span>
                 </div>
                 <div className="flex items-center gap-1">
                     <button
-                        type="button"
-                        onClick={goPrevWeek}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50"
+                        type="button" onClick={goPrevWeek}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition hover:bg-stone-50"
                         aria-label="Предыдущая неделя"
                     >
-                        <ChevronLeft className="h-5 w-5" />
+                        <ChevronLeft className="h-4 w-4" />
                     </button>
                     <button
-                        type="button"
-                        onClick={goToday}
-                        className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                        type="button" onClick={goToday}
+                        className="rounded-lg border border-stone-200 px-3 py-1 text-xs font-semibold text-stone-600 hover:bg-stone-50 transition"
                     >
                         Сегодня
                     </button>
                     <button
-                        type="button"
-                        onClick={goNextWeek}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50"
+                        type="button" onClick={goNextWeek}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition hover:bg-stone-50"
                         aria-label="Следующая неделя"
                     >
-                        <ChevronRight className="h-5 w-5" />
+                        <ChevronRight className="h-4 w-4" />
                     </button>
                 </div>
             </div>
 
             {error && (
-                <div className="mx-4 mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {error}
-                </div>
+                <div className="mx-4 mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700">{error}</div>
             )}
 
             {loading && (
-                <div className="flex items-center justify-center py-16 text-slate-500 text-sm">
-                    Загрузка записей...
-                </div>
+                <div className="flex items-center justify-center py-10 text-xs text-stone-400">Загрузка...</div>
             )}
 
             {!loading && (
-                <div className="overflow-x-auto relative">
-                    <div
-                        className="min-w-[600px] p-4 relative"
-                        style={{
-                            display: 'grid',
-                            gridTemplateColumns: '56px repeat(7, minmax(0, 1fr))',
-                            gridTemplateRows: `32px repeat(${totalSlots}, ${ROW_HEIGHT_PX}px)`,
-                        }}
-                    >
-                        {/* Corner */}
-                        <div className="border-b border-r border-slate-200 bg-slate-50/80" style={{ gridColumn: 1, gridRow: 1 }} />
+                <div className="overflow-x-auto">
+                    <div className="min-w-[540px]">
 
-                        {/* Day headers */}
-                        {weekDays.map((day, dayIdx) => (
+                        {/* ── Sticky day-header row ── */}
+                        <div
+                            style={{ display: 'grid', gridTemplateColumns: COL_TEMPLATE }}
+                            className="border-b border-stone-100"
+                        >
+                            {/* corner */}
+                            <div className="bg-stone-50/60" />
+                            {weekDays.map((day, di) => {
+                                const isToday = isSameDay(day, new Date());
+                                const dayBookingsCount = bookings.filter(b => isSameDay(parseISO(b.date), day)).length;
+                                return (
+                                    <div
+                                        key={day.toISOString()}
+                                        className={`flex flex-col items-center justify-center py-2 text-xs font-semibold gap-0.5 border-l border-stone-100 ${isToday ? 'bg-slate-900 text-white' : 'bg-stone-50/60 text-stone-500'}`}
+                                    >
+                                        <span>{DAY_LABELS_SHORT[getDayIndex(day)]}</span>
+                                        <span className={`text-[11px] font-bold ${isToday ? 'text-amber-300' : 'text-slate-700'}`}>
+                                            {format(day, 'd')}
+                                        </span>
+                                        {dayBookingsCount > 0 && (
+                                            <span className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${isToday ? 'bg-amber-400 text-slate-900' : 'bg-slate-900 text-white'}`}>
+                                                {dayBookingsCount}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* ── Scrollable time body ── */}
+                        <div className="max-h-[380px] overflow-y-auto">
                             <div
-                                key={day.toISOString()}
-                                className={`flex items-center justify-center border-b border-slate-200 text-xs font-semibold ${isSameDay(day, new Date())
-                                        ? 'bg-slate-900 text-white'
-                                        : 'bg-slate-50/80 text-slate-600'
-                                    }`}
-                                style={{ gridColumn: dayIdx + 2, gridRow: 1 }}
+                                style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: COL_TEMPLATE,
+                                    gridTemplateRows: `repeat(${totalSlots}, ${ROW_HEIGHT_PX}px)`,
+                                    position: 'relative',
+                                }}
                             >
-                                <span className="hidden sm:inline">{format(day, 'EEE', { locale: ru })}</span>
-                                <span className="sm:hidden">{DAY_LABELS[getDayIndex(day)]}</span>
-                                <span className="ml-1 text-slate-400">({format(day, 'd')})</span>
-                            </div>
-                        ))}
-
-                        {/* Time column */}
-                        {timeLabels.map((label, rowIdx) => (
-                            <div
-                                key={label}
-                                className="border-r border-slate-100 pr-1 text-right text-xs text-slate-400"
-                                style={{ gridColumn: 1, gridRow: rowIdx + 2 }}
-                            >
-                                {rowIdx % 2 === 0 ? label : ''}
-                            </div>
-                        ))}
-
-                        {/* Day columns: each is a grid containing slot cells and booking blocks */}
-                        {weekDays.map((day, dayIdx) => {
-                            const dayStart = new Date(day);
-                            dayStart.setHours(0, 0, 0, 0);
-                            const dayEnd = new Date(day);
-                            dayEnd.setHours(23, 59, 59, 999);
-                            const dayBookings = bookings.filter((b) => {
-                                const d = parseISO(b.date);
-                                return isWithinInterval(d, { start: dayStart, end: dayEnd });
-                            });
-
-                            // Calculate exact coordinates for overlaps
-                            const processedBookings = dayBookings.map((b) => {
-                                const [h, m] = b.time.split(':').map(Number);
-                                const startMin = (h ?? 0) * 60 + (m ?? 0);
-                                const durationMin = b.service?.duration_min || 60;
-                                const endMin = startMin + durationMin;
-                                return { ...b, startMin, endMin, durationMin };
-                            }).sort((a, b) => a.startMin - b.startMin);
-
-                            const clusters: typeof processedBookings[] = [];
-                            let currentCluster: typeof processedBookings = [];
-                            let currentClusterEnd = 0;
-
-                            processedBookings.forEach((b) => {
-                                if (currentCluster.length === 0) {
-                                    currentCluster.push(b);
-                                    currentClusterEnd = b.endMin;
-                                } else {
-                                    if (b.startMin < currentClusterEnd) {
-                                        currentCluster.push(b);
-                                        currentClusterEnd = Math.max(currentClusterEnd, b.endMin);
-                                    } else {
-                                        clusters.push(currentCluster);
-                                        currentCluster = [b];
-                                        currentClusterEnd = b.endMin;
-                                    }
-                                }
-                            });
-                            if (currentCluster.length > 0) {
-                                clusters.push(currentCluster);
-                            }
-
-                            const finalBookings: (typeof processedBookings[0] & { colIndex: number; totalCols: number })[] = [];
-                            clusters.forEach((cluster) => {
-                                const columns: typeof processedBookings[] = [];
-                                cluster.forEach((b) => {
-                                    let placed = false;
-                                    for (let i = 0; i < columns.length; i++) {
-                                        const lastInCol = columns[i][columns[i].length - 1];
-                                        if (lastInCol.endMin <= b.startMin) {
-                                            columns[i].push(b);
-                                            finalBookings.push({ ...b, colIndex: i, totalCols: 1 });
-                                            placed = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!placed) {
-                                        columns.push([b]);
-                                        finalBookings.push({ ...b, colIndex: columns.length - 1, totalCols: 1 });
-                                    }
-                                });
-                                finalBookings.forEach((b) => {
-                                    if (cluster.some((cb) => cb.id === b.id)) {
-                                        b.totalCols = columns.length;
-                                    }
-                                });
-                            });
-
-                            return (
-                                <div
-                                    key={day.toISOString()}
-                                    className="border-r border-slate-100 last:border-r-0 relative"
-                                    style={{
-                                        gridColumn: dayIdx + 2,
-                                        gridRow: `2 / -1`,
-                                        display: 'grid',
-                                        gridTemplateRows: `repeat(${totalSlots}, ${ROW_HEIGHT_PX}px)`,
-                                        gap: 2,
-                                        padding: 2,
-                                    }}
-                                >
-                                    {timeLabels.map((_, rowIdx) => (
+                                {/* Time labels — only on hour marks */}
+                                {Array.from({ length: totalSlots }, (_, rowIdx) => {
+                                    const hourEntry = hourLabels.find(h => h.slot === rowIdx);
+                                    return (
                                         <div
                                             key={rowIdx}
-                                            className="border-b border-slate-50"
-                                            style={{ gridRow: rowIdx + 1 }}
-                                        />
-                                    ))}
-                                    {finalBookings.map((b) => {
-                                        const PIXELS_PER_MIN = (ROW_HEIGHT_PX + 2) / SLOT_MINUTES;
-                                        const topPx = 2 + (b.startMin - HOUR_START * 60) * PIXELS_PER_MIN;
-                                        const heightPx = Math.max(15, b.durationMin * PIXELS_PER_MIN - 2);
+                                            className="border-r border-stone-100 flex items-start justify-end pr-1.5 pt-0.5"
+                                            style={{ gridColumn: 1, gridRow: rowIdx + 1 }}
+                                        >
+                                            {hourEntry && (
+                                                <span className="text-[9px] font-medium text-stone-400 leading-none">{hourEntry.label}</span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
 
-                                        const cardStyle =
-                                            STATUS_CARD_STYLES[b.status] ?? 'bg-slate-200 text-slate-700 border-2 border-slate-400 shadow-sm';
-                                        const endTime = `${String(Math.floor(b.endMin / 60)).padStart(2, '0')}:${String(b.endMin % 60).padStart(2, '0')}`;
+                                {/* Day columns */}
+                                {weekDays.map((day, dayIdx) => {
+                                    const isToday = isSameDay(day, new Date());
+                                    const dayFinalBookings = buildDayBookings(day);
 
-                                        return (
-                                            <button
-                                                key={b.id}
-                                                type="button"
-                                                onClick={() => openModal(b)}
-                                                className={`absolute text-left rounded-lg shadow hover:shadow-md transition overflow-hidden font-medium ${cardStyle}`}
-                                                style={{
-                                                    top: `${topPx}px`,
-                                                    height: `${heightPx}px`,
-                                                    left: `calc(${b.colIndex * (100 / b.totalCols)}% + 3px)`,
-                                                    width: `calc(${100 / b.totalCols}% - 6px)`,
-                                                    zIndex: 1,
-                                                }}
-                                            >
-                                                <div className="p-2 text-xs leading-snug truncate h-full flex flex-col justify-center gap-0.5">
-                                                    <span className="font-bold truncate block">
-                                                        {b.time} – {endTime}
-                                                    </span>
-                                                    <span className="truncate font-medium">{b.user_name}</span>
-                                                    {b.service && (
-                                                        <span className="truncate opacity-95 text-[11px]">
-                                                            {b.service.title}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            );
-                        })}
+                                    return (
+                                        <div
+                                            key={day.toISOString()}
+                                            className={`relative border-l border-stone-100 ${isToday ? 'bg-blue-50/20' : ''}`}
+                                            style={{
+                                                gridColumn: dayIdx + 2,
+                                                gridRow: `1 / -1`,
+                                            }}
+                                        >
+                                            {/* Row lines */}
+                                            {Array.from({ length: totalSlots }, (_, rowIdx) => (
+                                                <div
+                                                    key={rowIdx}
+                                                    className={`absolute w-full border-b ${rowIdx % 2 === 0 ? 'border-stone-100' : 'border-dashed border-stone-50'}`}
+                                                    style={{ top: rowIdx * ROW_HEIGHT_PX, height: ROW_HEIGHT_PX }}
+                                                />
+                                            ))}
+
+                                            {/* Booking cards */}
+                                            {dayFinalBookings.map(b => {
+                                                const topPx = (b.startMin - HOUR_START * 60) * PIXELS_PER_MIN;
+                                                const heightPx = Math.max(20, b.durationMin * PIXELS_PER_MIN - 2);
+                                                const isCompact = heightPx < 36;
+                                                const st = STATUS_CARD_STYLES[b.status] ?? STATUS_CARD_STYLES.completed;
+
+                                                return (
+                                                    <button
+                                                        key={b.id}
+                                                        type="button"
+                                                        onClick={() => openModal(b)}
+                                                        className={`absolute rounded-md border text-left overflow-hidden shadow-sm hover:shadow-md transition-shadow z-10 ${st.bg} ${st.text} ${st.border}`}
+                                                        style={{
+                                                            top: topPx,
+                                                            height: heightPx,
+                                                            left: `calc(${b.colIndex * (100 / b.totalCols)}% + 2px)`,
+                                                            width: `calc(${100 / b.totalCols}% - 4px)`,
+                                                        }}
+                                                    >
+                                                        <div className={`w-full h-full ${isCompact ? 'flex items-center gap-1 px-1.5' : 'flex flex-col justify-center px-1.5 py-1 gap-0.5'}`}>
+                                                            <span className="font-bold text-[9px] leading-none truncate shrink-0">{b.time}</span>
+                                                            {!isCompact && (
+                                                                <span className="text-[9px] leading-tight truncate opacity-90">{b.user_name}</span>
+                                                            )}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Legend */}
-            <div className="flex flex-wrap items-center gap-4 border-t border-slate-100 px-4 py-3 text-xs text-slate-500">
-                <span className="flex items-center gap-1.5">
-                    <span className="h-3 w-3 rounded bg-amber-400/90" />
-                    Ожидает
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="h-3 w-3 rounded bg-emerald-500/90" />
-                    Подтверждена
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="h-3 w-3 rounded bg-slate-300/70" />
-                    Завершена / Отмена
-                </span>
+            {/* ── Legend ── */}
+            <div className="flex flex-wrap items-center gap-3 border-t border-stone-100 px-4 py-2.5 text-[11px] text-stone-400">
+                {[
+                    { color: 'bg-amber-400', label: 'Ожидает' },
+                    { color: 'bg-emerald-500', label: 'Подтверждена' },
+                    { color: 'bg-rose-200', label: 'Отменена' },
+                    { color: 'bg-slate-300', label: 'Завершена' },
+                ].map(item => (
+                    <span key={item.label} className="flex items-center gap-1.5">
+                        <span className={`h-2.5 w-2.5 rounded-sm ${item.color}`} />
+                        {item.label}
+                    </span>
+                ))}
             </div>
 
             <BookingDetailsModal
@@ -344,7 +316,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
                 onClose={closeModal}
                 booking={selectedBooking}
                 providerId={profileId}
-                onStatusUpdated={handleStatusUpdated}
+                onStatusUpdated={loadBookings}
             />
         </div>
     );

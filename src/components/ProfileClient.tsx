@@ -180,7 +180,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                 setSelectedService({
                     id: service.id,
                     title: service.title,
-                    price: `€${Number(service.price).toFixed(0)}`,
+                    price: Number(service.price) === 0 ? 'по договорённости' : `€${Number(service.price).toFixed(0)}`,
                     duration_min: service.duration_min,
                 });
             }
@@ -374,7 +374,7 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                                         ) : null}
                                                         <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-500">
                                                             <Clock className="h-4 w-4" />
-                                                            {service.duration_min} мин
+                                                            {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
                                                         </p>
                                                         {service.images && service.images.length > 0 ? (
                                                             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -392,13 +392,15 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                                                         ) : null}
                                                     </div>
                                                     <div className="flex items-center justify-between gap-3 sm:min-w-[190px] sm:justify-end">
-                                                        <p className="text-xl font-semibold text-slate-900">€{Number(service.price).toFixed(0)}</p>
+                                                        <p className="text-xl font-semibold text-slate-900">
+                                                            {Number(service.price) === 0 ? 'по договорённости' : `€${Number(service.price).toFixed(0)}`}
+                                                        </p>
                                                         <Button
                                                             onClick={() =>
                                                                 openBooking({
                                                                     id: service.id,
                                                                     title: service.title,
-                                                                    price: `€${Number(service.price).toFixed(0)}`,
+                                                                    price: Number(service.price) === 0 ? 'по договорённости' : `€${Number(service.price).toFixed(0)}`,
                                                                     duration_min: service.duration_min,
                                                                 })
                                                             }
@@ -443,7 +445,11 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                             <div className="mt-6 rounded-2xl bg-slate-50 p-4">
                                 <p className="text-xs uppercase tracking-wide text-slate-400">Цена от</p>
                                 <p className="mt-1 text-3xl font-semibold text-slate-900">
-                                    {cheapestService ? `€${Number(cheapestService.price).toFixed(0)}` : '—'}
+                                    {cheapestService
+                                        ? Number(cheapestService.price) === 0
+                                            ? 'по договорённости'
+                                            : `€${Number(cheapestService.price).toFixed(0)}`
+                                        : '—'}
                                 </p>
                             </div>
 

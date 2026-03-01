@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Plus, Loader2, AlertCircle, Upload, X } from 'lucide-react';
 import { addService } from '@/app/actions/services';
 import { uploadServicePhoto } from '@/app/actions/upload';
@@ -20,6 +20,7 @@ export function AddServiceForm({ profileId }: AddServiceFormProps) {
     const [selectedService, setSelectedService] = useState('');
     const [description, setDescription] = useState('');
     const [images, setImages] = useState<string[]>([]);
+    const [byAgreement, setByAgreement] = useState(false);
 
     const categoryOptions = useMemo(() => Object.keys(BEAUTY_SERVICES), []);
     const subcategoryOptions = useMemo(() => {
@@ -32,6 +33,17 @@ export function AddServiceForm({ profileId }: AddServiceFormProps) {
             selectedSubcategory as keyof (typeof BEAUTY_SERVICES)[keyof typeof BEAUTY_SERVICES]
         ] || [];
     }, [selectedCategory, selectedSubcategory]);
+
+    // Если в подкатегории одна услуга (например «Консультация») — подставляем её сразу, без второго выбора
+    useEffect(() => {
+        if (serviceOptions.length === 1 && selectedService !== serviceOptions[0]) {
+            setSelectedService(serviceOptions[0]);
+        }
+        if (serviceOptions.length !== 1 && selectedSubcategory) {
+            const currentInOptions = serviceOptions.includes(selectedService);
+            if (!currentInOptions) setSelectedService('');
+        }
+    }, [selectedSubcategory, serviceOptions]);
 
     const handleUploadImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -78,6 +90,11 @@ export function AddServiceForm({ profileId }: AddServiceFormProps) {
         formData.set('description', description.trim());
         formData.set('images', JSON.stringify(images));
 
+        if (byAgreement) {
+            formData.set('price', '0');
+            formData.set('duration', '0');
+        }
+
         const result = await addService(formData);
 
         setIsSubmitting(false);
@@ -89,6 +106,7 @@ export function AddServiceForm({ profileId }: AddServiceFormProps) {
             setSelectedService('');
             setDescription('');
             setImages([]);
+            setByAgreement(false);
             toast.success('Услуга добавлена');
         } else {
             setError(result.error || 'Ошибка');
@@ -143,42 +161,60 @@ export function AddServiceForm({ profileId }: AddServiceFormProps) {
                 ))}
             </select>
 
-            <select
-                name="title"
-                required
-                value={selectedService}
-                onChange={(e) => setSelectedService(e.target.value)}
-                disabled={!selectedSubcategory}
-                className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all disabled:opacity-60"
-            >
-                <option value="" disabled>
-                    {selectedSubcategory ? 'Выберите конкретную услугу' : 'Сначала выберите подкатегорию'}
-                </option>
-                {serviceOptions.map((service) => (
-                    <option key={service} value={service}>
-                        {service}
+            {serviceOptions.length > 1 ? (
+                <select
+                    name="title"
+                    required
+                    value={selectedService}
+                    onChange={(e) => setSelectedService(e.target.value)}
+                    disabled={!selectedSubcategory}
+                    className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all disabled:opacity-60"
+                >
+                    <option value="" disabled>
+                        Выберите конкретную услугу
                     </option>
-                ))}
-            </select>
+                    {serviceOptions.map((service) => (
+                        <option key={service} value={service}>
+                            {service}
+                        </option>
+                    ))}
+                </select>
+            ) : serviceOptions.length === 1 ? (
+                <p className="text-sm text-slate-600 py-1">Услуга: <span className="font-medium">{serviceOptions[0]}</span></p>
+            ) : null}
 
-            <div className="flex gap-2">
-                <input
-                    name="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                    placeholder="Цена, €"
-                    className="flex-1 h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all"
-                />
-                <input
-                    name="duration"
-                    type="number"
-                    min="1"
-                    required
-                    placeholder="Мин"
-                    className="w-24 h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all"
-                />
+            <div className="flex flex-col gap-2">
+                <div className="flex gap-2 items-center flex-wrap">
+                    <input
+                        name="price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="Цена, €"
+                        disabled={byAgreement}
+                        className="flex-1 min-w-0 h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all disabled:opacity-60 disabled:bg-gray-100"
+                    />
+                    <input
+                        name="duration"
+                        type="number"
+                        min="0"
+                        placeholder="Мин"
+                        disabled={byAgreement}
+                        className="w-24 h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all disabled:opacity-60 disabled:bg-gray-100"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => setByAgreement((prev) => !prev)}
+                        className={`h-10 px-4 rounded-lg text-sm font-medium whitespace-nowrap border transition-all ${
+                            byAgreement
+                                ? 'bg-gray-900 text-white border-gray-900'
+                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                        }`}
+                    >
+                        по договорённости
+                    </button>
+                </div>
+                <p className="text-xs text-gray-500">Цена и время необязательны. Нажмите «по договорённости», если не указываете.</p>
             </div>
 
             <textarea

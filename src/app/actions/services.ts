@@ -13,14 +13,19 @@ export async function addService(formData: FormData) {
 
     const profileId = parseInt(formData.get('profile_id') as string, 10);
     const title = formData.get('title') as string;
-    const price = parseFloat(formData.get('price') as string);
-    const duration = parseInt(formData.get('duration') as string, 10);
+    const priceRaw = formData.get('price') as string;
+    const durationRaw = formData.get('duration') as string;
+    const price = priceRaw !== '' && priceRaw != null ? parseFloat(priceRaw) : 0;
+    const duration = durationRaw !== '' && durationRaw != null ? parseInt(durationRaw, 10) : 0;
     const description = (formData.get('description') as string | null)?.trim() || null;
     const rawImages = formData.get('images') as string | null;
     let images: string[] = [];
 
-    if (!title || isNaN(price) || isNaN(duration) || isNaN(profileId)) {
-        return { success: false, error: 'Заполните все поля корректно.' };
+    if (!title || isNaN(profileId)) {
+        return { success: false, error: 'Укажите услугу и профиль.' };
+    }
+    if (price < 0 || duration < 0 || (priceRaw != null && priceRaw !== '' && isNaN(price)) || (durationRaw != null && durationRaw !== '' && isNaN(duration))) {
+        return { success: false, error: 'Цена и длительность должны быть неотрицательными числами.' };
     }
     if (!isBeautyServiceTitle(title)) {
         return { success: false, error: 'Можно выбрать только услугу из справочника.' };

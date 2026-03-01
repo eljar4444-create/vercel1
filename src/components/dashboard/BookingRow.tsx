@@ -9,13 +9,13 @@ import { Button } from '@/components/ui/button';
 
 interface BookingData {
     id: number;
-    date: string;       // ISO string
+    date: string;
     time: string;
     user_id?: string | null;
     user_name: string;
     user_phone: string;
     status: string;
-    created_at: string; // ISO string
+    created_at: string;
     service?: {
         id: number;
         title: string;
@@ -28,50 +28,63 @@ interface BookingRowProps {
     providerId: number;
 }
 
-// ─── Status config ──────────────────────────────────────────────────
 const STATUS_CONFIG: Record<string, {
     label: string;
-    bg: string;
-    text: string;
-    dot: string;
+    labelColor: string;
+    dotColor: string;
+    pillBg: string;
+    borderColor: string;
+    rowBg: string;
 }> = {
     pending: {
         label: 'Ожидает',
-        bg: 'bg-amber-50',
-        text: 'text-amber-700',
-        dot: 'bg-amber-400',
+        labelColor: 'text-amber-700',
+        dotColor: 'bg-amber-400',
+        pillBg: 'bg-amber-50 border border-amber-200',
+        borderColor: 'border-l-amber-400',
+        rowBg: 'hover:bg-amber-50/30',
     },
     confirmed: {
         label: 'Подтверждена',
-        bg: 'bg-green-50',
-        text: 'text-green-700',
-        dot: 'bg-green-400',
+        labelColor: 'text-emerald-700',
+        dotColor: 'bg-emerald-500',
+        pillBg: 'bg-emerald-50 border border-emerald-200',
+        borderColor: 'border-l-emerald-500',
+        rowBg: 'hover:bg-emerald-50/20',
     },
     cancelled: {
         label: 'Отменена',
-        bg: 'bg-red-50',
-        text: 'text-red-600',
-        dot: 'bg-red-400',
+        labelColor: 'text-rose-600',
+        dotColor: 'bg-rose-400',
+        pillBg: 'bg-rose-50 border border-rose-200',
+        borderColor: 'border-l-rose-400',
+        rowBg: 'hover:bg-rose-50/20',
     },
     completed: {
         label: 'Визит завершен',
-        bg: 'bg-gray-100',
-        text: 'text-gray-600',
-        dot: 'bg-gray-400',
+        labelColor: 'text-slate-500',
+        dotColor: 'bg-slate-400',
+        pillBg: 'bg-slate-100 border border-slate-200',
+        borderColor: 'border-l-slate-300',
+        rowBg: 'hover:bg-slate-50/50',
     },
     no_show: {
         label: 'Не пришел',
-        bg: 'bg-slate-100',
-        text: 'text-slate-500',
-        dot: 'bg-slate-400',
+        labelColor: 'text-slate-500',
+        dotColor: 'bg-slate-400',
+        pillBg: 'bg-slate-100 border border-slate-200',
+        borderColor: 'border-l-slate-300',
+        rowBg: 'hover:bg-slate-50/50',
     },
 };
 
 const DEFAULT_STATUS = {
     label: 'Неизвестно',
-    bg: 'bg-gray-50',
-    text: 'text-gray-600',
-    dot: 'bg-gray-400',
+    labelColor: 'text-slate-500',
+    dotColor: 'bg-slate-400',
+    pillBg: 'bg-slate-100 border border-slate-200',
+    borderColor: 'border-l-slate-200',
+    rowBg: '',
 };
 
 export function BookingRow({ booking, providerId }: BookingRowProps) {
@@ -79,18 +92,16 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
     const [isOpeningChat, setIsOpeningChat] = useState(false);
     const router = useRouter();
 
-    const statusConfig = STATUS_CONFIG[booking.status] || DEFAULT_STATUS;
+    const cfg = STATUS_CONFIG[booking.status] ?? DEFAULT_STATUS;
 
     const dateObj = new Date(booking.date);
+    const dayNum = dateObj.getDate();
+    const monthShort = dateObj.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', '');
+
     const formattedDate = dateObj.toLocaleDateString('ru-RU', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
-    });
-
-    const createdDate = new Date(booking.created_at).toLocaleDateString('ru-RU', {
-        day: 'numeric',
-        month: 'short',
     });
 
     const handleStatusChange = async (newStatus: string) => {
@@ -101,7 +112,6 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
 
     const handleOpenChat = async () => {
         if (!booking.user_id || isOpeningChat) return;
-
         setIsOpeningChat(true);
         try {
             const result = await getOrCreateConversationForProvider(providerId, booking.user_id);
@@ -116,146 +126,137 @@ export function BookingRow({ booking, providerId }: BookingRowProps) {
     };
 
     return (
-        <div className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-all duration-200 group">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                {/* ── Date & Time Block ── */}
-                <div className="flex items-center gap-3 sm:w-[180px] flex-shrink-0">
-                    <div className="w-12 h-12 bg-gray-50 rounded-xl flex flex-col items-center justify-center border border-gray-100">
-                        <span className="text-xs font-bold text-gray-900 leading-tight">
-                            {dateObj.getDate()}
-                        </span>
-                        <span className="text-[10px] text-gray-400 uppercase leading-tight">
-                            {dateObj.toLocaleDateString('ru-RU', { month: 'short' })}
-                        </span>
+        <div className={`group relative overflow-hidden rounded-xl border border-slate-100 border-l-4 ${cfg.borderColor} bg-white shadow-sm transition-all duration-150 ${cfg.rowBg} hover:shadow-md`}>
+            <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
+
+                {/* ── Date block ───────────────────────────── */}
+                <div className="flex items-center gap-3 sm:w-[140px] sm:shrink-0">
+                    <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-slate-50 border border-slate-100 shadow-sm">
+                        <span className="text-base font-extrabold leading-none text-slate-900">{dayNum}</span>
+                        <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{monthShort}</span>
                     </div>
-                    <div>
-                        <div className="text-sm font-semibold text-gray-900">{formattedDate}</div>
-                        <div className="flex items-center gap-1 text-xs text-gray-400">
-                            <Clock className="w-3 h-3" />
-                            {booking.time}
+                    <div className="min-w-0">
+                        <p className="truncate text-xs font-medium text-slate-700">{formattedDate}</p>
+                        <div className="mt-0.5 flex items-center gap-1 text-xs text-slate-400">
+                            <Clock className="h-3 w-3 shrink-0" />
+                            <span className="font-semibold text-slate-600">{booking.time}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* ── Client Info ── */}
+                {/* ── Client info ──────────────────────────── */}
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <User className="w-3.5 h-3.5 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-900">{booking.user_name}</span>
-                        <span className="inline-flex items-center rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                        <User className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                        <span className="text-sm font-semibold text-slate-900">{booking.user_name}</span>
+                        <span className="inline-flex items-center rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600 ring-1 ring-inset ring-violet-500/20">
                             ✨ Новый клиент
                         </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Phone className="w-3.5 h-3.5 text-gray-400" />
-                        <a href={`tel:${booking.user_phone}`} className="text-sm text-blue-600 hover:text-blue-800 transition-colors">
-                            {booking.user_phone}
-                        </a>
-                        <div className="relative group ml-1">
-                            {booking.user_phone ? (
-                                <a
-                                    href={`https://wa.me/${booking.user_phone.replace(/\D/g, '')}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-md border border-green-200 bg-green-50 text-green-700 hover:bg-green-100 transition-colors text-xs font-medium"
-                                    title="Написать в WhatsApp"
-                                >
-                                    <MessageCircle className="h-3.5 w-3.5" />
-                                    <span>WhatsApp</span>
-                                </a>
-                            ) : (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    disabled
-                                    className="h-8 px-2.5 text-xs"
-                                >
-                                    <MessageCircle className="h-3.5 w-3.5" />
-                                    <span className="ml-1">Написать</span>
-                                </Button>
-                            )}
-                            {!booking.user_phone && (
-                                <div className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 hidden w-56 -translate-x-1/2 rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] text-gray-600 shadow-sm group-hover:block">
-                                    Номер телефона клиента не указан
-                                </div>
-                            )}
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                            <Phone className="h-3 w-3 shrink-0 text-slate-400" />
+                            <a
+                                href={`tel:${booking.user_phone}`}
+                                className="text-xs font-medium text-blue-600 hover:underline"
+                            >
+                                {booking.user_phone}
+                            </a>
                         </div>
+                        {booking.user_phone && (
+                            <a
+                                href={`https://wa.me/${booking.user_phone.replace(/\D/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700 hover:bg-green-100 transition-colors"
+                            >
+                                <MessageCircle className="h-3 w-3" />
+                                WhatsApp
+                            </a>
+                        )}
+                        {booking.user_id && (
+                            <button
+                                type="button"
+                                onClick={handleOpenChat}
+                                disabled={isOpeningChat}
+                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                            >
+                                {isOpeningChat
+                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                    : <MessageCircle className="h-3 w-3" />}
+                                Написать
+                            </button>
+                        )}
                     </div>
+
                     {booking.service && (
-                        <div className="mt-1.5 text-xs text-gray-500">
-                            Услуга: <span className="font-medium text-gray-700">{booking.service.title}</span>
-                            <span className="ml-1.5 text-gray-400">— {booking.service.price}</span>
+                        <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                            <span className="text-xs text-slate-500">{booking.service.title}</span>
+                            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-700">
+                                {booking.service.price}
+                            </span>
                         </div>
                     )}
                 </div>
 
-                {/* ── Status Badge ── */}
-                <div className="flex items-center gap-3 flex-shrink-0">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${statusConfig.bg} ${statusConfig.text}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`} />
-                        {statusConfig.label}
+                {/* ── Status + Actions ─────────────────────── */}
+                <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:flex-col sm:items-end sm:gap-2">
+                    {/* Status badge */}
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${cfg.pillBg} ${cfg.labelColor}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${cfg.dotColor}`} />
+                        {cfg.label}
                     </span>
-                </div>
 
-                {/* ── Action Buttons ── */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Action buttons */}
                     {booking.status === 'pending' && (
-                        <>
+                        <div className="flex items-center gap-1.5">
                             <button
                                 onClick={() => handleStatusChange('confirmed')}
                                 disabled={isUpdating !== null}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 hover:shadow-sm disabled:opacity-50"
                             >
-                                {isUpdating === 'confirmed' ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                ) : (
-                                    <Check className="w-3.5 h-3.5" />
-                                )}
+                                {isUpdating === 'confirmed'
+                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                    : <Check className="h-3 w-3" />}
                                 Подтвердить
                             </button>
                             <button
                                 onClick={() => handleStatusChange('cancelled')}
                                 disabled={isUpdating !== null}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-red-50 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
                             >
-                                {isUpdating === 'cancelled' ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                ) : (
-                                    <X className="w-3.5 h-3.5" />
-                                )}
+                                {isUpdating === 'cancelled'
+                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                    : <X className="h-3 w-3" />}
                                 Отменить
                             </button>
-                        </>
+                        </div>
                     )}
 
                     {booking.status === 'confirmed' && (
-                        <>
+                        <div className="flex items-center gap-1.5">
                             <button
                                 onClick={() => handleStatusChange('completed')}
                                 disabled={isUpdating !== null}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 hover:shadow-sm disabled:opacity-50"
                             >
-                                {isUpdating === 'completed' ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                ) : (
-                                    <Check className="w-3.5 h-3.5" />
-                                )}
-                                Завершить визит
+                                {isUpdating === 'completed'
+                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                    : <Check className="h-3 w-3" />}
+                                Завершить
                             </button>
                             <button
                                 onClick={() => handleStatusChange('no_show')}
                                 disabled={isUpdating !== null}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 text-xs font-semibold rounded-lg border border-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 disabled:opacity-50"
                             >
-                                {isUpdating === 'no_show' ? (
-                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                ) : (
-                                    <X className="w-3.5 h-3.5" />
-                                )}
+                                {isUpdating === 'no_show'
+                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                    : <X className="h-3 w-3" />}
                                 Не пришел
                             </button>
-                        </>
+                        </div>
                     )}
                 </div>
             </div>

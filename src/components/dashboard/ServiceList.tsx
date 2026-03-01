@@ -64,11 +64,11 @@ export function ServiceList({ services }: ServiceListProps) {
                         <div className="mt-1 flex items-center gap-3">
                             <span className="flex items-center gap-1 text-xs text-gray-400">
                                 <Euro className="w-3 h-3" />
-                                {Number(service.price).toFixed(0)} €
+                                {Number(service.price) === 0 ? 'по договорённости' : `${Number(service.price).toFixed(0)} €`}
                             </span>
                             <span className="flex items-center gap-1 text-xs text-gray-400">
                                 <Clock className="w-3 h-3" />
-                                {service.duration_min} мин
+                                {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
                             </span>
                         </div>
                     </div>
