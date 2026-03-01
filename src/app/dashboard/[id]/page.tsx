@@ -3,14 +3,16 @@ import { notFound } from 'next/navigation';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 import {
     CalendarDays, Clock, CheckCircle, XCircle,
     Inbox, ArrowLeft, Briefcase, ShieldCheck, AlertCircle,
-    ListChecks, Eye, UserCircle2, TrendingUp,
+    ListChecks, Eye, UserCircle2, TrendingUp, BarChart2,
 } from 'lucide-react';
 import { BookingRow } from '@/components/dashboard/BookingRow';
 import { BookingListClient } from '@/components/dashboard/BookingListClient';
 import { ProviderCalendar } from '@/components/dashboard/ProviderCalendar';
+import { AnalyticsView, AnalyticsViewSkeleton } from '@/components/dashboard/AnalyticsView';
 import { ServicesSection } from '@/components/dashboard/ServicesSection';
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
@@ -95,7 +97,8 @@ export default async function DashboardPage({
     const currentSection =
         searchParams?.section === 'services' ||
             searchParams?.section === 'schedule' ||
-            searchParams?.section === 'profile'
+            searchParams?.section === 'profile' ||
+            searchParams?.section === 'analytics'
             ? searchParams.section
             : 'bookings';
 
@@ -126,6 +129,7 @@ export default async function DashboardPage({
 
     const navItems = [
         { key: 'bookings', label: 'Записи', icon: CalendarDays },
+        { key: 'analytics', label: 'Статистика', icon: BarChart2 },
         { key: 'services', label: 'Услуги', icon: Briefcase },
         { key: 'schedule', label: 'Расписание', icon: Clock },
         { key: 'profile', label: 'Профиль', icon: UserCircle2 },
@@ -133,6 +137,7 @@ export default async function DashboardPage({
 
     const mobileNavItems = [
         { key: 'bookings', label: 'Записи', icon: CalendarDays },
+        { key: 'analytics', label: 'Статистика', icon: BarChart2 },
         { key: 'services', label: 'Услуги', icon: Briefcase },
         { key: 'profile', label: 'Профиль', icon: UserCircle2 },
     ] as const;
@@ -192,6 +197,9 @@ export default async function DashboardPage({
                         Мой профиль
                     </Link>
 
+                    {/* ── Hero / Profile Card + KPI + Setup (только не на вкладке Статистика) ─────────────────────────── */}
+                    {currentSection !== 'analytics' && (
+                        <>
                     {/* ── Hero / Profile Card ─────────────────────────── */}
                     <div className="relative overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-[0_4px_24px_rgba(15,23,42,0.07)]">
                         {/* Left accent bar */}
@@ -240,7 +248,8 @@ export default async function DashboardPage({
                         </div>
                     </div>
 
-                    {/* ── KPI Cards ────────────────────────────────────── */}
+                    {/* ── KPI Cards (только на вкладке Записи) ────────────────────────────────────── */}
+                    {currentSection === 'bookings' && (
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                         {kpiCards.map((card) => {
                             const Icon = card.icon;
@@ -260,6 +269,7 @@ export default async function DashboardPage({
                             );
                         })}
                     </div>
+                    )}
 
                     {/* ── Setup Progress ───────────────────────────────── */}
                     {(!hasServices || !hasScheduleConfigured) && (
@@ -308,6 +318,16 @@ export default async function DashboardPage({
                                 </div>
                             </div>
                         </div>
+                    )}
+
+                        </>
+                    )}
+
+                    {/* ── Section: Analytics ───────────────────────────── */}
+                    {currentSection === 'analytics' && (
+                        <Suspense fallback={<AnalyticsViewSkeleton />}>
+                            <AnalyticsView profileId={profileId} />
+                        </Suspense>
                     )}
 
                     {/* ── Section: Bookings ─────────────────────────────── */}
@@ -492,7 +512,7 @@ export default async function DashboardPage({
 
             {/* ── Mobile bottom nav ─────────────────────────────────────── */}
             <nav className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-2xl border border-stone-200/80 bg-white/90 shadow-[0_8px_32px_rgba(15,23,42,0.18)] backdrop-blur-md md:hidden">
-                <div className="grid grid-cols-3">
+                <div className="grid grid-cols-4">
                     {mobileNavItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = currentSection === item.key;

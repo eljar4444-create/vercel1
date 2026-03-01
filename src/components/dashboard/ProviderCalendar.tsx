@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
     startOfWeek,
     addWeeks,
@@ -83,9 +83,32 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
 
     useEffect(() => { loadBookings(); }, [loadBookings]);
 
-    const goPrevWeek = () => setWeekStart(d => addWeeks(d, -1));
-    const goNextWeek = () => setWeekStart(d => addWeeks(d, 1));
-    const goToday    = () => setWeekStart(getDefaultWeekStart());
+    const goPrevWeek = (e?: React.MouseEvent) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+        setWeekStart(d => addWeeks(d, -1));
+    };
+    const goNextWeek = (e?: React.MouseEvent) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+        setWeekStart(d => addWeeks(d, 1));
+    };
+    const goToday = (e?: React.MouseEvent) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+        setWeekStart(getDefaultWeekStart());
+    };
+
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') return;
+            if (e.key === 'ArrowLeft') { e.preventDefault(); setWeekStart(d => addWeeks(d, -1)); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); setWeekStart(d => addWeeks(d, 1)); }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, []);
 
     const openModal  = (b: BookingForModal) => { setSelectedBooking(b); setModalOpen(true); };
     const closeModal = () => { setModalOpen(false); setSelectedBooking(null); };
@@ -137,33 +160,41 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
     const PIXELS_PER_MIN = ROW_HEIGHT_PX / SLOT_MINUTES;
 
     return (
-        <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white">
+        <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden">
 
-            {/* ── Week navigation ── */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 px-4 py-3">
+            {/* ── Week navigation (sticky, always visible) ── */}
+            <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b-2 border-stone-200 bg-stone-50 px-4 py-3">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-slate-800 capitalize">{weekRangeLabel}</span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
                     <button
-                        type="button" onClick={goPrevWeek}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition hover:bg-stone-50"
+                        type="button"
+                        onClick={goPrevWeek}
+                        className="flex h-10 items-center gap-1.5 rounded-xl border-2 border-stone-300 bg-white px-3 text-stone-700 transition hover:bg-stone-100 hover:border-stone-400"
                         aria-label="Предыдущая неделя"
+                        title="Предыдущая неделя"
                     >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-5 w-5 shrink-0" />
+                        <span className="hidden sm:inline text-sm font-medium">Назад</span>
                     </button>
                     <button
-                        type="button" onClick={goToday}
-                        className="rounded-lg border border-stone-200 px-3 py-1 text-xs font-semibold text-stone-600 hover:bg-stone-50 transition"
+                        type="button"
+                        onClick={goToday}
+                        className="rounded-xl border-2 border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:border-stone-400"
+                        title="Текущая неделя"
                     >
                         Сегодня
                     </button>
                     <button
-                        type="button" onClick={goNextWeek}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg border border-stone-200 text-stone-500 transition hover:bg-stone-50"
+                        type="button"
+                        onClick={goNextWeek}
+                        className="flex h-10 items-center gap-1.5 rounded-xl border-2 border-stone-300 bg-white px-3 text-stone-700 transition hover:bg-stone-100 hover:border-stone-400"
                         aria-label="Следующая неделя"
+                        title="Следующая неделя"
                     >
-                        <ChevronRight className="h-4 w-4" />
+                        <span className="hidden sm:inline text-sm font-medium">Вперёд</span>
+                        <ChevronRight className="h-5 w-5 shrink-0" />
                     </button>
                 </div>
             </div>

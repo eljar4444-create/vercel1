@@ -33,8 +33,20 @@ function AuthContent() {
     const searchParams = useSearchParams();
     const role = searchParams.get('role');
     const type = searchParams.get('type');
+    const errorCode = searchParams.get('error');
 
     const isProvider = role === 'provider';
+
+    const errorMessage =
+        errorCode === 'OAuthAccountNotLinked'
+            ? 'Этот email уже используется другим способом входа. Войдите тем же способом, что и при регистрации.'
+            : errorCode === 'OAuthCallback' || errorCode === 'Callback'
+                ? 'Ошибка входа через Google. Проверьте: 1) В Google Cloud Console (API и сервисы → Учётные данные → ваш OAuth 2.0 клиент) в «Authorized redirect URIs» добавлен ровно: http://localhost:3000/api/auth/callback/google  2) В «Authorized JavaScript origins» добавлен: http://localhost:3000  3) В .env заданы AUTH_SECRET (например: openssl rand -base64 33), GOOGLE_CLIENT_ID и GOOGLE_CLIENT_SECRET.'
+                : errorCode === 'Configuration'
+                    ? 'Ошибка настройки авторизации. Добавьте в .env переменную AUTH_SECRET (не менее 32 символов).'
+                    : errorCode
+                        ? `Ошибка входа: ${errorCode}`
+                        : null;
 
     /**
      * Технически необходимые куки для процесса регистрации (DSGVO compliant).
@@ -86,6 +98,13 @@ function AuthContent() {
                     {isProvider && type && (
                         <div className="mt-4 inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
                             {type === 'SALON' ? '🏢 Салон' : '✂️ Частный мастер'}
+                        </div>
+                    )}
+
+                    {/* OAuth error from callback */}
+                    {errorMessage && (
+                        <div className="mt-6 w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                            {errorMessage}
                         </div>
                     )}
 
