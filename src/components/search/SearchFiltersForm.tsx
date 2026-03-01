@@ -6,6 +6,7 @@ import { Loader2, LocateFixed, MapPin, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useLocalStorageSearch } from '@/hooks/useLocalStorageSearch';
 
 interface SearchFiltersFormProps {
     categoryFilter?: string;
@@ -20,6 +21,7 @@ export function SearchFiltersForm({
 }: SearchFiltersFormProps) {
     const router = useRouter();
     const wrapperRef = useRef<HTMLFormElement>(null);
+    const { getStored, setStored } = useLocalStorageSearch();
 
     const [query, setQuery] = useState(queryFilter);
     const [city, setCity] = useState(cityFilter);
@@ -53,6 +55,34 @@ export function SearchFiltersForm({
         return () => document.removeEventListener('mousedown', onClickOutside);
     }, []);
 
+    // Синхрон состояния с URL (при переходе по прямой ссылке или после replace из памяти)
+    useEffect(() => {
+        setQuery(queryFilter);
+        setCity(cityFilter);
+    }, [queryFilter, cityFilter]);
+
+    // Память поиска: при монтировании — приоритет у URL; если URL пустой — подставляем из localStorage
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const hasUrlParams = Boolean(queryFilter.trim() || (cityFilter && resolveGermanCity(cityFilter)));
+
+        if (hasUrlParams) {
+            const normalizedCity = resolveGermanCity(cityFilter) || cityFilter;
+            setStored(normalizedCity, queryFilter.trim());
+            return;
+        }
+
+        const stored = getStored();
+        if (!stored.city && !stored.query.trim()) return;
+
+        const params = new URLSearchParams();
+        if (categoryFilter) params.set('category', categoryFilter);
+        if (stored.query.trim()) params.set('q', stored.query.trim());
+        if (stored.city) params.set('city', stored.city);
+        router.replace(`/search${params.toString() ? `?${params.toString()}` : ''}`);
+    }, [categoryFilter, queryFilter, cityFilter, router, getStored, setStored]);
+
     useEffect(() => {
         const normalizedCity = resolveGermanCity(debouncedCity) || debouncedCity;
         const currentCity = resolveGermanCity(cityFilter) || cityFilter;
@@ -61,6 +91,7 @@ export function SearchFiltersForm({
         if (categoryFilter) params.set('category', categoryFilter);
         if (debouncedQuery) params.set('q', debouncedQuery);
         if (normalizedCity) params.set('city', normalizedCity);
+        setStored(normalizedCity, debouncedQuery);
         router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
     }, [debouncedQuery, debouncedCity, categoryFilter, queryFilter, cityFilter, router]);
 
@@ -71,6 +102,7 @@ export function SearchFiltersForm({
         if (query.trim()) params.set('q', query.trim());
         const normalizedCity = resolveGermanCity(city.trim()) || city.trim();
         if (normalizedCity) params.set('city', normalizedCity);
+        setStored(normalizedCity, query.trim());
         router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
         setQueryOpen(false);
         setCityOpen(false);

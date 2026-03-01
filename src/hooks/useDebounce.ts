@@ -26,7 +26,7 @@ export function useDebouncedCallback<A extends unknown[]>(
     callback: (...args: A) => void,
     delay: number
 ): (...args: A) => void {
-    const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+    const [timer, setTimer] = useState<number | null>(null);
     const callbackRef = useCallback(callback, [callback]);
 
     const debounced = useCallback(

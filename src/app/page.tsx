@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 import { getHomeStats } from '@/app/actions/getHomeStats';
 import { TypewriterText } from '@/components/ui/TypewriterText';
+import { useLocalStorageSearch } from '@/hooks/useLocalStorageSearch';
 
 // ─── How It Works ───────────────────────────────────────────────────
 const STEPS = [
@@ -87,10 +88,19 @@ export default function HomePage() {
     const [isGeoLoading, setIsGeoLoading] = useState(false);
     const [liveStats, setLiveStats] = useState({ masters: 0, services: 0 });
     const router = useRouter();
+    const { getStored, setStored } = useLocalStorageSearch();
 
     useEffect(() => {
         getHomeStats().then(setLiveStats).catch(console.error);
     }, []);
+
+    // Память поиска: подставляем последние город и запрос только на клиенте
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        const stored = getStored();
+        if (stored.city) setCity(stored.city);
+        if (stored.query) setQuery(stored.query);
+    }, [getStored]);
 
     const filteredServices = useMemo(() => {
         const q = query.trim().toLowerCase();
@@ -119,6 +129,7 @@ export default function HomePage() {
         e?.preventDefault();
         const trimmed = query.trim();
         const normalizedCity = resolveGermanCity(city.trim()) || city.trim();
+        setStored(normalizedCity, trimmed);
         const params = new URLSearchParams();
         if (trimmed) params.set('q', trimmed);
         if (normalizedCity) params.set('city', normalizedCity);
