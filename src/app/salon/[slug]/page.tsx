@@ -229,7 +229,9 @@ export default async function SalonProfilePage({
         bio: profile.bio,
         phone: profile.phone,
         is_verified: profile.is_verified,
-        created_at: profile.created_at.toISOString(),
+        created_at: profile.created_at instanceof Date
+            ? profile.created_at.toISOString()
+            : String(profile.created_at),
         latitude: mapCoordinates.lat,
         longitude: mapCoordinates.lng,
         attributes: profile.attributes,
@@ -250,7 +252,9 @@ export default async function SalonProfilePage({
             id: r.id,
             comment: r.comment,
             rating: r.rating,
-            createdAt: r.createdAt.toISOString(),
+            createdAt: r.createdAt instanceof Date
+                ? r.createdAt.toISOString()
+                : String(r.createdAt),
             clientName: r.client?.name ?? 'Клиент',
         })) ?? [],
     };
