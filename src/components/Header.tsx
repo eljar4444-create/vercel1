@@ -60,8 +60,12 @@ export function Header() {
 
     return (
         <header className={cn(
-            "fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-[#F5F2EB]/95 backdrop-blur-sm transition-all duration-200",
-            scrolled && "shadow-sm"
+            "relative z-50 transition-all duration-300",
+            pathname === '/'
+                ? scrolled
+                    ? "bg-slate-950/90 backdrop-blur-md shadow-sm border-b border-white/10"
+                    : "bg-transparent border-b border-transparent"
+                : "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200"
         )}>
             <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl lg:grid lg:grid-cols-[1fr_minmax(0,560px)_1fr]">
                 {/* Left Area (Logo) */}
@@ -87,7 +91,10 @@ export function Header() {
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 whitespace-nowrap"
+                                className={cn(
+                                    "text-sm font-medium transition-colors whitespace-nowrap",
+                                    "text-slate-900 hover:text-slate-600"
+                                )}
                             >
                                 {item.label}
                             </Link>
@@ -102,7 +109,7 @@ export function Header() {
                             <Link
                                 href="/chat"
                                 aria-label="Открыть чат"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:text-gray-900 hover:shadow-md"
+                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-900 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md"
                             >
                                 <MessageCircle className="h-4 w-4" />
                             </Link>
@@ -112,7 +119,7 @@ export function Header() {
                         <div className="hidden items-center gap-3 lg:flex">
                             <Link
                                 href="/become-pro"
-                                className="hidden xl:inline-block text-sm font-semibold text-slate-900 transition-opacity hover:opacity-80 whitespace-nowrap"
+                                className="hidden xl:inline-block text-sm font-semibold transition-opacity hover:opacity-80 whitespace-nowrap text-slate-900"
                             >
                                 Для мастеров
                             </Link>
@@ -129,7 +136,7 @@ export function Header() {
                         type="button"
                         aria-label={mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
                         onClick={() => setMobileMenuOpen((prev) => !prev)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-gray-700 transition-colors hover:bg-gray-50 lg:hidden"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-gray-900 transition-colors hover:bg-gray-50 lg:hidden"
                     >
                         {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </button>

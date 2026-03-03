@@ -7,45 +7,55 @@ import {
     Search, ArrowRight, Sparkles,
     CalendarCheck, UserCheck, Star,
     Shield, Clock, Heart, MapPin, Loader2, LocateFixed,
+    ShieldCheck, Zap, MessageSquare, LayoutDashboard
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 import { getHomeStats } from '@/app/actions/getHomeStats';
-import { TypewriterText } from '@/components/ui/TypewriterText';
 import { useLocalStorageSearch } from '@/hooks/useLocalStorageSearch';
 
 // ─── How It Works ───────────────────────────────────────────────────
 const STEPS = [
     {
         icon: <Search className="w-7 h-7" />,
-        title: 'Выберите специалиста',
-        description: 'Просмотрите профили мастеров, их отзывы, услуги и цены.',
+        title: 'Найдите своего мастера',
+        description: 'Ищите лучших специалистов по маникюру, стрижкам и массажу рядом с вами.',
         color: 'bg-blue-100 text-blue-600',
     },
     {
         icon: <CalendarCheck className="w-7 h-7" />,
-        title: 'Забронируйте онлайн',
-        description: 'Выберите удобную дату и время — без звонков и ожидания.',
+        title: 'Выберите удобное время',
+        description: 'Смотрите актуальное расписание и записывайтесь онлайн 24/7 без лишних звонков.',
         color: 'bg-violet-100 text-violet-600',
     },
     {
-        icon: <UserCheck className="w-7 h-7" />,
-        title: 'Получите услугу',
-        description: 'Приходите к мастеру — он уже знает, когда вас ждать.',
+        icon: <Star className="w-7 h-7" />,
+        title: 'Наслаждайтесь результатом',
+        description: 'Оставляйте честные отзывы после визита и помогайте другим сделать правильный выбор.',
         color: 'bg-emerald-100 text-emerald-600',
     },
 ];
 
-// ─── Stats ──────────────────────────────────────────────────────────
-
-// ─── Quick search chips ──────────────────────────────────────────────
-const QUICK_CHIPS = [
-    { label: '✂️ Стрижка', query: 'Стрижка' },
-    { label: '💅 Маникюр', query: 'Маникюр' },
-    { label: '👁 Брови', query: 'Брови' },
-    { label: '💆 Массаж', query: 'Массаж' },
-    { label: '🌿 Косметология', query: 'Косметология' },
+const BENEFITS = [
+    {
+        icon: <ShieldCheck className="w-6 h-6 text-slate-700" />,
+        title: 'Проверенные мастера и салоны красоты',
+    },
+    {
+        icon: <Zap className="w-6 h-6 text-slate-700" />,
+        title: 'Мгновенная онлайн-запись',
+    },
+    {
+        icon: <MessageSquare className="w-6 h-6 text-slate-700" />,
+        title: 'Реальные отзывы клиентов',
+    },
+    {
+        icon: <LayoutDashboard className="w-6 h-6 text-slate-700" />,
+        title: 'Управление бронированиями в личном кабинете',
+    },
 ];
+
+// ─── Stats ──────────────────────────────────────────────────────────
 
 // ─── Testimonials ────────────────────────────────────────────────────
 const TESTIMONIALS = [
@@ -86,6 +96,13 @@ export default function HomePage() {
     const [queryOpen, setQueryOpen] = useState(false);
     const [cityOpen, setCityOpen] = useState(false);
     const [isGeoLoading, setIsGeoLoading] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
+
+    const SPOTLIGHT_SUGGESTIONS = [
+        'Стрижка', 'Маникюр', 'Окрашивание', 'Массаж спины', 'Лазерная эпиляция',
+        'Педикюр', 'Брови и ресницы', 'Укладка волос', 'Макияж', 'Шугаринг',
+        'Массаж лица', 'Косметология'
+    ];
     const [liveStats, setLiveStats] = useState({ masters: 0, services: 0 });
     const router = useRouter();
     const { getStored, setStored } = useLocalStorageSearch();
@@ -182,200 +199,175 @@ export default function HomePage() {
         <div className="min-h-screen bg-transparent">
 
             {/* ══════════════════════════════════════════════════════ */}
-            {/* HERO                                                   */}
+            {/* HERO — Fresha-style, beige gradient                   */}
             {/* ══════════════════════════════════════════════════════ */}
-            <section className="relative flex min-h-[calc(100vh-64px)] flex-col items-center justify-center overflow-hidden">
-                {/* Background image */}
-                <img
-                    src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=2200&q=80"
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 h-full w-full object-cover"
+            <section className="relative w-full h-screen overflow-hidden flex flex-col justify-center">
+                <video
+                    src="/hero-bg.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover z-0"
                 />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/50 to-black/85" />
+                <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/90 via-black/60 to-black/20" />
 
-                {/* Main content */}
-                <div className="relative z-10 w-full px-4 pb-24 pt-8 text-center">
-                    <div className="mx-auto max-w-4xl">
+                <div className="relative z-20 flex flex-col items-center text-center px-4 w-full max-w-4xl mx-auto -translate-y-8 md:-translate-y-12">
 
-                        {/* Eyebrow tag */}
-                        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm text-white/80 backdrop-blur-sm">
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-yellow-400" />
-                            Маркетплейс бьюти-услуг в Германии
-                        </div>
+                    {/* Headline */}
+                    <h1 className="mb-5 text-5xl font-extrabold leading-tight tracking-tight text-white sm:text-6xl md:text-[72px] animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '0ms' }}>
+                        Забронируй местного
+                        <br />
+                        бьюти‑мастера
+                    </h1>
 
-                        {/* Headline */}
-                        <div className="mb-4 min-h-[140px] sm:min-h-[160px] md:min-h-[180px]">
-                            <h1 className="text-5xl font-extrabold leading-tight tracking-tight text-white sm:text-6xl md:text-7xl">
-                                Найди своего{' '}
-                                <br className="hidden sm:block" />
-                                <span className="text-yellow-400">
-                                    <TypewriterText text="бьюти‑мастера" speedDelay={100} startDelay={300} />
-                                </span>
-                            </h1>
-                        </div>
+                    {/* Subtitle */}
+                    <p className="mx-auto mb-12 max-w-2xl text-base text-white/90 sm:text-lg animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '150ms' }}>
+                        Лучшие парикмахеры, мастера маникюра, массажисты и бьюти-эксперты —
+                        которым доверяют тысячи клиентов по всей Германии
+                    </p>
 
-                        <p className="mx-auto mb-8 max-w-lg text-base text-white/65 sm:text-lg animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500 fill-mode-both">
-                            Маникюр, стрижка, массаж — быстро, просто, 24/7
-                        </p>
+                    {/* ── Search bar ── */}
+                    <div className="relative mx-auto max-w-5xl w-full">
+                        <form ref={formRef} onSubmit={handleSearch} className="animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '300ms' }}>
+                            <div className={`flex flex-col items-stretch rounded-2xl bg-white ring-1 md:flex-row md:items-center md:rounded-full transition-all duration-300 ease-out origin-center ${isFocused
+                                ? 'scale-[1.05] shadow-[0_8px_40px_rgba(0,0,0,0.25)] ring-white/30 ring-4'
+                                : 'scale-100 shadow-[0_2px_24px_rgba(0,0,0,0.10)] ring-[#E8D9C8]'
+                                }`}>
 
-                        {/* ── Search Form ── */}
-                        <form
-                            ref={formRef}
-                            onSubmit={handleSearch}
-                            className="mx-auto max-w-3xl animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700 fill-mode-both"
-                        >
-                            <div className="overflow-hidden rounded-2xl bg-white shadow-2xl shadow-black/30">
-                                <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_auto_auto]">
+                                {/* Service field */}
+                                <div className="relative flex flex-1 items-center gap-4 border-b border-gray-100 px-6 py-5 md:border-b-0 md:border-r">
+                                    <Search className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+                                    <input
+                                        type="text"
+                                        value={query}
+                                        onFocus={() => { setIsFocused(true); setQueryOpen(query.trim().length > 0); setCityOpen(false); }}
+                                        onBlur={() => { setTimeout(() => { setIsFocused(false); setQueryOpen(false); }, 200); }}
+                                        onChange={(e) => { const v = e.target.value; setQuery(v); setQueryOpen(v.trim().length > 0); }}
+                                        placeholder="Все процедуры и специалисты"
+                                        aria-label="Услуга или специалист"
+                                        className="w-full bg-transparent text-base text-gray-900 placeholder:text-gray-400 outline-none"
+                                    />
+                                    {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
+                                        <div className="absolute left-0 top-full z-[60] mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                                            <ul className="max-h-56 overflow-y-auto py-1">
+                                                {filteredServices.map((item) => (
+                                                    <li key={item}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setQuery(item); setQueryOpen(false); setIsFocused(false); }}
+                                                            className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-[#F5F2EB]"
+                                                        >
+                                                            {item}
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
 
-                                    {/* Service input */}
-                                    <div className="relative flex h-15 items-center gap-2 border-b border-gray-100 px-4 py-4 md:border-b-0 md:border-r">
-                                        <Search className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-                                        <input
-                                            type="text"
-                                            value={query}
-                                            onFocus={() => { setQueryOpen(query.trim().length > 0); setCityOpen(false); }}
-                                            onChange={(e) => { const v = e.target.value; setQuery(v); setQueryOpen(v.trim().length > 0); }}
-                                            placeholder="Маникюр, стрижка, массаж..."
-                                            aria-label="Услуга или специалист"
-                                            className="h-full w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
-                                        />
-                                        {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
-                                            <div className="absolute left-0 top-full z-[60] mt-1 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
-                                                <ul className="max-h-56 overflow-y-auto py-1">
-                                                    {filteredServices.map((item) => (
-                                                        <li key={item}>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => { setQuery(item); setQueryOpen(false); }}
-                                                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-[#F5F2EB]"
-                                                            >
-                                                                {item}
-                                                            </button>
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                    {/* ── Spotlight suggestions dropdown ── */}
+                                    {isFocused && query.trim().length === 0 && (
+                                        <div className="absolute left-0 top-full z-[60] mt-4 w-full rounded-2xl bg-white p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300 border border-gray-100 max-h-[300px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-300">
+                                            <div className="flex flex-col gap-1 w-full">
+                                                {SPOTLIGHT_SUGGESTIONS.map((sug) => (
+                                                    <button
+                                                        key={sug}
+                                                        type="button"
+                                                        onMouseDown={(e) => e.preventDefault()}
+                                                        onClick={() => { setQuery(sug); setIsFocused(false); setQueryOpen(false); }}
+                                                        className="w-full text-left pl-[3.25rem] pr-6 py-2.5 hover:bg-slate-50 transition-colors rounded-xl flex items-center text-sm font-medium tracking-wide text-slate-600 hover:text-slate-900 cursor-pointer"
+                                                    >
+                                                        <span className="truncate">{sug}</span>
+                                                    </button>
+                                                ))}
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
+                                </div>
 
-                                    {/* City input */}
-                                    <div className="relative flex h-15 items-center gap-2 border-b border-gray-100 px-4 py-4 md:border-b-0 md:border-r">
-                                        <MapPin className="h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
-                                        <input
-                                            type="text"
-                                            value={city}
-                                            onFocus={() => { setCityOpen(city.trim().length > 0); setQueryOpen(false); }}
-                                            onChange={(e) => { const v = e.target.value; setCity(v); setCityOpen(v.trim().length > 0); }}
-                                            placeholder="Ваш город"
-                                            aria-label="Город"
-                                            className="h-full w-full bg-transparent pr-9 text-sm text-gray-900 placeholder:text-gray-400 outline-none"
-                                        />
-                                        <button
-                                            type="button"
-                                            title="Определить мой город"
-                                            aria-label="Определить мой город"
-                                            onClick={handleGeo}
-                                            className="absolute right-2 inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                                        >
-                                            {isGeoLoading
-                                                ? <Loader2 className="h-4 w-4 animate-spin" />
-                                                : <LocateFixed className="h-4 w-4" />
-                                            }
-                                        </button>
-                                        {cityOpen && city.trim().length > 0 && filteredCities.length > 0 && (
-                                            <div className="absolute left-0 top-full z-[60] mt-1 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
-                                                <ul className="max-h-56 overflow-y-auto py-1">
-                                                    {filteredCities.map((item) => (
-                                                        <li key={item}>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => { setCity(item); setCityOpen(false); }}
-                                                                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-[#F5F2EB]"
-                                                            >
-                                                                {item}
-                                                            </button>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-                                    </div>
+                                {/* City field */}
+                                <div className="relative flex flex-1 items-center gap-4 border-b border-gray-100 px-6 py-5 md:border-b-0 md:border-r">
+                                    <MapPin className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+                                    <input
+                                        type="text"
+                                        value={city}
+                                        onFocus={() => { setCityOpen(city.trim().length > 0); setQueryOpen(false); }}
+                                        onChange={(e) => { const v = e.target.value; setCity(v); setCityOpen(v.trim().length > 0); }}
+                                        placeholder="Текущее местоположение"
+                                        aria-label="Город"
+                                        className="w-full bg-transparent pr-9 text-base text-gray-900 placeholder:text-gray-400 outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        title="Определить мой город"
+                                        aria-label="Определить мой город"
+                                        onClick={handleGeo}
+                                        className="absolute right-4 inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                                    >
+                                        {isGeoLoading
+                                            ? <Loader2 className="h-5 w-5 animate-spin" />
+                                            : <LocateFixed className="h-5 w-5" />
+                                        }
+                                    </button>
+                                    {cityOpen && city.trim().length > 0 && filteredCities.length > 0 && (
+                                        <div className="absolute left-0 top-full z-[60] mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                                            <ul className="max-h-56 overflow-y-auto py-1">
+                                                {filteredCities.map((item) => (
+                                                    <li key={item}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => { setCity(item); setCityOpen(false); }}
+                                                            className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-[#F5F2EB]"
+                                                        >
+                                                            {item}
+                                                        </button>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
 
-                                    {/* Radius */}
-                                    <div className="flex h-15 items-center gap-2 border-b border-gray-100 px-4 py-4 md:border-b-0 md:border-r">
-                                        <label htmlFor="search-radius" className="text-xs font-medium text-gray-400 whitespace-nowrap">
-                                            Радиус
-                                        </label>
-                                        <select
-                                            id="search-radius"
-                                            value={radius}
-                                            onChange={(e) => setRadius(e.target.value)}
-                                            className="cursor-pointer bg-transparent text-sm font-semibold text-gray-800 outline-none"
-                                        >
-                                            <option value="5">5 км</option>
-                                            <option value="10">10 км</option>
-                                            <option value="20">20 км</option>
-                                            <option value="30">30 км</option>
-                                            <option value="50">50 км</option>
-                                        </select>
-                                    </div>
+                                {/* Radius field */}
+                                <div className="flex items-center gap-4 border-b border-gray-100 px-6 py-5 md:border-b-0 md:border-r">
+                                    <Clock className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+                                    <select
+                                        id="search-radius"
+                                        value={radius}
+                                        onChange={(e) => setRadius(e.target.value)}
+                                        className="cursor-pointer bg-transparent text-base text-gray-700 outline-none"
+                                    >
+                                        <option value="5">5 км</option>
+                                        <option value="10">10 км</option>
+                                        <option value="20">20 км</option>
+                                        <option value="30">30 км</option>
+                                        <option value="50">50 км</option>
+                                    </select>
+                                </div>
 
-                                    {/* Submit */}
+                                {/* Submit */}
+                                <div className="p-2.5">
                                     <button
                                         type="submit"
-                                        className="h-15 bg-yellow-400 px-8 text-sm font-bold text-black transition-colors hover:bg-yellow-300"
+                                        className="w-full rounded-full bg-gray-900 px-10 py-4 text-base font-bold text-white transition-colors hover:bg-gray-700 md:w-auto"
                                     >
                                         Найти
                                     </button>
                                 </div>
                             </div>
-
-                            {/* Quick chips */}
-                            <div className="mt-4 flex flex-wrap justify-center gap-2 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-[900ms] fill-mode-both">
-                                {QUICK_CHIPS.map((chip) => (
-                                    <button
-                                        key={chip.query}
-                                        type="button"
-                                        onClick={() => router.push(`/search?q=${encodeURIComponent(chip.query)}`)}
-                                        className="rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-sm text-white backdrop-blur-sm transition-all hover:bg-white/20 hover:border-white/40"
-                                    >
-                                        {chip.label}
-                                    </button>
-                                ))}
-                            </div>
                         </form>
                     </div>
-                </div>
 
-                {/* ── Stats strip (glass, pinned to bottom) ── */}
-                <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-black/40 backdrop-blur-md animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-1000 fill-mode-both">
-                    <div className="mx-auto flex max-w-3xl items-center justify-around gap-4 px-6 py-4 sm:gap-0">
-                        <div className="flex items-center gap-2 text-white">
-                            <Star className="h-4 w-4 shrink-0 text-yellow-400" aria-hidden="true" />
-                            <div>
-                                <div className="text-sm font-bold leading-none sm:text-base">{liveStats.masters || 0}</div>
-                                <div className="mt-0.5 text-[10px] text-white/55 sm:text-xs">Мастеров</div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-white">
-                            <Sparkles className="h-4 w-4 shrink-0 text-yellow-400" aria-hidden="true" />
-                            <div>
-                                <div className="text-sm font-bold leading-none sm:text-base">{liveStats.services || 0}</div>
-                                <div className="mt-0.5 text-[10px] text-white/55 sm:text-xs">Услуг</div>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-white">
-                            <Clock className="h-4 w-4 shrink-0 text-yellow-400" aria-hidden="true" />
-                            <div>
-                                <div className="text-sm font-bold leading-none sm:text-base">24/7</div>
-                                <div className="mt-0.5 text-[10px] text-white/55 sm:text-xs">Онлайн-запись</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                    {/* Stats line */}
+                    <p className="mt-6 text-sm text-white/80 animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both" style={{ animationDelay: '450ms' }}>
+                        <span className="font-bold text-white">
+                            {(liveStats.masters || 0).toLocaleString('de-DE')}
+                        </span>{' '}
+                        мастеров уже с нами сегодня
+                    </p>
+                </div >
+            </section >
 
 
 
@@ -422,29 +414,43 @@ export default function HomePage() {
 
 
             {/* ══════════════════════════════════════════════════════ */}
+            {/* BENEFITS                                               */}
+            {/* ══════════════════════════════════════════════════════ */}
+            <section className="bg-slate-50 py-20">
+                <div className="container mx-auto max-w-5xl px-4">
+                    <div className="mb-14 text-center">
+                        <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+                            Преимущества
+                        </h2>
+                    </div>
+                    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
+                        {BENEFITS.map((benefit, index) => (
+                            <div key={index} className="flex flex-col items-center text-center p-6 rounded-3xl bg-white shadow-sm border border-slate-100 transition-all hover:-translate-y-1 hover:shadow-md">
+                                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-50">
+                                    {benefit.icon}
+                                </div>
+                                <h3 className="text-sm font-semibold text-slate-900">{benefit.title}</h3>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ══════════════════════════════════════════════════════ */}
             {/* CTA FOR SPECIALISTS                                    */}
             {/* ══════════════════════════════════════════════════════ */}
-            <section className="relative overflow-hidden bg-gray-900 py-24">
+            <section className="relative overflow-hidden bg-slate-900 border-t border-slate-800 py-24">
                 {/* Decorative glows */}
                 <div aria-hidden="true" className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl" />
                 <div aria-hidden="true" className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-yellow-400/5 blur-3xl" />
 
                 <div className="relative mx-auto max-w-2xl px-4 text-center">
-                    {/* Eyebrow */}
-                    <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/60">
-                        <Sparkles className="h-4 w-4 text-yellow-400" aria-hidden="true" />
-                        Для специалистов
-                    </div>
-
                     <h2 className="mb-4 text-3xl font-extrabold text-white sm:text-4xl">
-                        Вы мастер?
-                        <span className="mt-1 block text-2xl font-semibold text-white/40 sm:text-3xl">
-                            Присоединяйтесь к нам
-                        </span>
+                        Вы бьюти-мастер или владелец салона?
                     </h2>
 
-                    <p className="mx-auto mb-10 max-w-md text-base leading-relaxed text-white/45 sm:text-lg">
-                        Получайте новых клиентов, управляйте записями онлайн и развивайте свой бизнес вместе с нами.
+                    <p className="mx-auto mb-10 max-w-md text-base leading-relaxed text-slate-300 sm:text-lg">
+                        Присоединяйтесь к Svoi.de. Получите удобную CRM-систему, онлайн-запись, уведомления в Telegram и новых клиентов абсолютно бесплатно.
                     </p>
 
                     <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -452,35 +458,13 @@ export default function HomePage() {
                             href="/auth/register?role=provider"
                             className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-8 py-3.5 text-sm font-bold text-black transition-all hover:-translate-y-0.5 hover:bg-yellow-300 hover:shadow-lg hover:shadow-yellow-400/20"
                         >
-                            Стать партнёром
+                            Подключить профиль
                             <ArrowRight className="h-4 w-4" aria-hidden="true" />
                         </Link>
-                        <Link
-                            href="/search"
-                            className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-8 py-3.5 text-sm font-semibold text-white transition-all hover:bg-white/10"
-                        >
-                            Найти мастера
-                        </Link>
-                    </div>
-
-                    {/* Trust strip */}
-                    <div className="mt-8 flex flex-wrap justify-center gap-6 text-xs text-white/35">
-                        <span className="flex items-center gap-1.5">
-                            <Shield className="h-3.5 w-3.5" aria-hidden="true" />
-                            Бесплатная регистрация
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                            <Star className="h-3.5 w-3.5" aria-hidden="true" />
-                            Без абонентской платы
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                            <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                            Поддержка 24/7
-                        </span>
                     </div>
                 </div>
             </section>
 
-        </div>
+        </div >
     );
 }

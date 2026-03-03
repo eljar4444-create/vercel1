@@ -29,10 +29,10 @@ export default function RootLayout({
         <html lang="ru">
             <body className={`${inter.variable} font-sans antialiased bg-[#F5F2EB] text-gray-900 min-h-screen flex flex-col`}>
                 <Providers>
-                    <Suspense fallback={<div className="fixed left-0 right-0 top-0 z-50 h-16 border-b border-slate-200 bg-[#F5F2EB]" />}>
+                    <Suspense fallback={<div className="relative z-50 h-16 border-b border-slate-200 bg-[#F5F2EB]" />}>
                         <Header />
                     </Suspense>
-                    <main className="flex-1 pt-16">
+                    <main className="flex-1">
                         {children}
                     </main>
                     <Footer />
