@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface SearchMapMarker {
+export interface SearchMapMarker {
     id: number;
     name: string;
     providerType: 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
@@ -11,6 +11,8 @@ interface SearchMapMarker {
     address?: string | null;
     lat: number;
     lng: number;
+    image?: string | null;
+    slug: string;
 }
 
 interface SearchResultsMapProps {

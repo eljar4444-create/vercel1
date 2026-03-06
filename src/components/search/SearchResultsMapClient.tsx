@@ -8,16 +8,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
 
-interface SearchMapMarker {
-    id: number;
-    name: string;
-    city: string;
-    address?: string | null;
-    lat: number;
-    lng: number;
-    image?: string | null;
-    slug: string;
-}
+import { SearchMapMarker } from './SearchResultsMap';
 
 interface SearchResultsMapClientProps {
     markers: SearchMapMarker[];
