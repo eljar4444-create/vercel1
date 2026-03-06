@@ -7,6 +7,7 @@ import { GERMAN_CITIES } from '@/constants/germanCities';
 import { SearchResultListItem } from '@/components/search/SearchResultListItem';
 import { deslugify } from '@/lib/slugify';
 import type { Metadata } from 'next';
+import ScrollReveal from '@/components/ScrollReveal';
 
 /**
  * Resolve slug back to a pretty German city name from GERMAN_CITIES.
@@ -98,7 +99,7 @@ export default async function CityPage({
                         : 'Специалисты пока не найдены'}
                 </p>
 
-                <div className="mt-8">
+                <ScrollReveal className="mt-8">
                     {profiles.length > 0 ? (
                         profiles.map((profile: any) => (
                             <SearchResultListItem
@@ -134,7 +135,7 @@ export default async function CityPage({
                             </Link>
                         </div>
                     )}
-                </div>
+                </ScrollReveal>
             </div>
         </main>
     );

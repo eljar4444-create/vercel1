@@ -1,18 +1,13 @@
-'use client';
-
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
     Search, ArrowRight, Sparkles,
     CalendarCheck, UserCheck, Star,
-    Shield, Clock, Heart, MapPin, Loader2, LocateFixed,
-    ShieldCheck, Zap, MessageSquare, LayoutDashboard
+    Heart, User,
 } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
-import { getHomeStats } from '@/app/actions/getHomeStats';
-import { useLocalStorageSearch } from '@/hooks/useLocalStorageSearch';
+import prisma from '@/lib/prisma';
+import HomeHero from '@/components/HomeHero';
+import ScrollReveal from '@/components/ScrollReveal';
 
 // ─── How It Works ───────────────────────────────────────────────────
 const STEPS = [
@@ -36,346 +31,148 @@ const STEPS = [
     },
 ];
 
-const BENEFITS = [
-    {
-        icon: <ShieldCheck className="w-6 h-6 text-slate-700" />,
-        title: 'Проверенные мастера и салоны красоты',
-    },
-    {
-        icon: <Zap className="w-6 h-6 text-slate-700" />,
-        title: 'Мгновенная онлайн-запись',
-    },
-    {
-        icon: <MessageSquare className="w-6 h-6 text-slate-700" />,
-        title: 'Реальные отзывы клиентов',
-    },
-    {
-        icon: <LayoutDashboard className="w-6 h-6 text-slate-700" />,
-        title: 'Управление бронированиями в личном кабинете',
-    },
-];
-
-// ─── Stats ──────────────────────────────────────────────────────────
-
-// ─── Testimonials ────────────────────────────────────────────────────
-const TESTIMONIALS = [
-    {
-        name: 'Светлана К.',
-        location: 'Берлин',
-        service: 'Маникюр',
-        text: 'Нашла мастера за 5 минут! Запись онлайн, никаких звонков. Результат превзошёл все ожидания.',
-        avatar: 'https://i.pravatar.cc/48?u=svetlanak',
-        rating: 5,
-    },
-    {
-        name: 'Анна М.',
-        location: 'Мюнхен',
-        service: 'Стрижка',
-        text: 'Отличный сервис. Мастер был пунктуален, цены прозрачные. Давно искала что-то подобное в Германии.',
-        avatar: 'https://i.pravatar.cc/48?u=annam',
-        rating: 5,
-    },
-    {
-        name: 'Ольга Р.',
-        location: 'Гамбург',
-        service: 'Брови',
-        text: 'Профессиональный подход, удобное расписание, быстрый ответ. Рекомендую всем русскоязычным!',
-        avatar: 'https://i.pravatar.cc/48?u=olgar',
-        rating: 5,
-    },
+const CATEGORIES = [
+    { name: 'Стрижка и укладка', query: 'Стрижка', image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?w=500&q=80' },
+    { name: 'Маникюр', query: 'Маникюр', image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=500&q=80' },
+    { name: 'Массаж', query: 'Массаж', image: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=500&q=80' },
+    { name: 'Косметология', query: 'Косметология', image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=500&q=80' },
+    { name: 'Брови и ресницы', query: 'Брови', image: 'https://images.unsplash.com/photo-1519415387722-a1c3bbef716c?w=500&q=80' },
+    { name: 'Барбершоп', query: 'Барбершоп', image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=500&q=80' },
 ];
 
 // ════════════════════════════════════════════════════════════════════
-// PAGE
+// PAGE (Server Component)
 // ════════════════════════════════════════════════════════════════════
-export default function HomePage() {
-    const formRef = useRef<HTMLFormElement>(null);
-    const [query, setQuery] = useState('');
-    const [city, setCity] = useState('');
-    const [radius, setRadius] = useState('10');
-    const [queryOpen, setQueryOpen] = useState(false);
-    const [cityOpen, setCityOpen] = useState(false);
-    const [isGeoLoading, setIsGeoLoading] = useState(false);
-    const [isFocused, setIsFocused] = useState(false);
-
-    const SPOTLIGHT_SUGGESTIONS = [
-        'Стрижка', 'Маникюр', 'Окрашивание', 'Массаж спины', 'Лазерная эпиляция',
-        'Педикюр', 'Брови и ресницы', 'Укладка волос', 'Макияж', 'Шугаринг',
-        'Массаж лица', 'Косметология'
-    ];
-    const [liveStats, setLiveStats] = useState({ masters: 0, services: 0 });
-    const router = useRouter();
-    const { getStored, setStored } = useLocalStorageSearch();
-
-    useEffect(() => {
-        getHomeStats().then(setLiveStats).catch(console.error);
-    }, []);
-
-    // Память поиска: подставляем последние город и запрос только на клиенте
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        const stored = getStored();
-        if (stored.city) setCity(stored.city);
-        if (stored.query) setQuery(stored.query);
-    }, [getStored]);
-
-    const filteredServices = useMemo(() => {
-        const q = query.trim().toLowerCase();
-        const base = q
-            ? POPULAR_SERVICES.filter((item) => item.toLowerCase().includes(q))
-            : POPULAR_SERVICES;
-        return base.slice(0, 8);
-    }, [query]);
-
-    const filteredCities = useMemo(() => {
-        return getGermanCitySuggestions(city, 10);
-    }, [city]);
-
-    useEffect(() => {
-        const onClickOutside = (event: MouseEvent) => {
-            if (!formRef.current?.contains(event.target as Node)) {
-                setQueryOpen(false);
-                setCityOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', onClickOutside);
-        return () => document.removeEventListener('mousedown', onClickOutside);
-    }, []);
-
-    const handleSearch = (e?: React.FormEvent) => {
-        e?.preventDefault();
-        const trimmed = query.trim();
-        const normalizedCity = resolveGermanCity(city.trim()) || city.trim();
-        setStored(normalizedCity, trimmed);
-        const params = new URLSearchParams();
-        if (trimmed) params.set('q', trimmed);
-        if (normalizedCity) params.set('city', normalizedCity);
-        if (radius) params.set('radius', radius);
-        router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
-    };
-
-    const handleGeo = async () => {
-        if (!navigator.geolocation || isGeoLoading) {
-            toast.error('Геолокация недоступна в вашем браузере');
-            return;
-        }
-        setIsGeoLoading(true);
-        try {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 60000,
-                });
-            });
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10&addressdetails=1`,
-                { headers: { 'Accept-Language': 'de,en' } }
-            );
-            if (!response.ok) throw new Error('geo-failed');
-            const data = await response.json();
-            const address = data?.address || {};
-            const rawCity = address.city || address.town || address.municipality || address.county || '';
-            const resolved = resolveGermanCity(String(rawCity));
-            if (!resolved) {
-                toast.error('Ваш город не найден в базе. Выберите ближайший крупный город вручную');
-                return;
-            }
-            setCity(resolved);
-            setCityOpen(false);
-            toast.success(`Определен город: ${resolved}`);
-        } catch (error) {
-            if ((error as GeolocationPositionError)?.code === 1) {
-                toast.error('Доступ к геолокации запрещен');
-            } else {
-                toast.error('Не удалось определить город автоматически');
-            }
-        } finally {
-            setIsGeoLoading(false);
-        }
-    };
+export default async function HomePage() {
+    // Fetch top masters from DB
+    const masters = await prisma.profile.findMany({
+        take: 4,
+        include: {
+            reviews: { select: { rating: true } },
+            category: { select: { name: true } },
+        },
+        orderBy: { created_at: 'desc' },
+    });
 
     return (
         <div className="min-h-screen bg-transparent">
 
             {/* ══════════════════════════════════════════════════════ */}
-            {/* HERO — Fresha-style, beige gradient                   */}
+            {/* HERO — Client component with search bar               */}
             {/* ══════════════════════════════════════════════════════ */}
-            <section className="relative w-full h-screen overflow-hidden flex flex-col justify-center">
-                <video
-                    src="/hero-bg.mp4"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover z-0"
-                />
-                <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/90 via-black/60 to-black/20" />
+            <HomeHero />
 
-                <div className="relative z-20 flex flex-col items-center text-center px-4 w-full max-w-4xl mx-auto -translate-y-8 md:-translate-y-12">
-
-                    {/* Headline */}
-                    <h1 className="mb-5 text-5xl font-extrabold leading-tight tracking-tight text-white sm:text-6xl md:text-[72px] animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '0ms' }}>
-                        Забронируй местного
-                        <br />
-                        бьюти‑мастера
-                    </h1>
-
-                    {/* Subtitle */}
-                    <p className="mx-auto mb-12 max-w-2xl text-base text-white/90 sm:text-lg animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '150ms' }}>
-                        Лучшие парикмахеры, мастера маникюра, массажисты и бьюти-эксперты —
-                        которым доверяют тысячи клиентов по всей Германии
-                    </p>
-
-                    {/* ── Search bar ── */}
-                    <div className="relative mx-auto max-w-5xl w-full">
-                        <form ref={formRef} onSubmit={handleSearch} className="animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '300ms' }}>
-                            <div className={`flex flex-col items-stretch rounded-2xl bg-white ring-1 md:flex-row md:items-center md:rounded-full transition-all duration-300 ease-out origin-center ${isFocused
-                                ? 'scale-[1.05] shadow-[0_8px_40px_rgba(0,0,0,0.25)] ring-white/30 ring-4'
-                                : 'scale-100 shadow-[0_2px_24px_rgba(0,0,0,0.10)] ring-[#E8D9C8]'
-                                }`}>
-
-                                {/* Service field */}
-                                <div className="relative flex flex-1 items-center gap-4 border-b border-gray-100 px-6 py-5 md:border-b-0 md:border-r">
-                                    <Search className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
-                                    <input
-                                        type="text"
-                                        value={query}
-                                        onFocus={() => { setIsFocused(true); setQueryOpen(query.trim().length > 0); setCityOpen(false); }}
-                                        onBlur={() => { setTimeout(() => { setIsFocused(false); setQueryOpen(false); }, 200); }}
-                                        onChange={(e) => { const v = e.target.value; setQuery(v); setQueryOpen(v.trim().length > 0); }}
-                                        placeholder="Все процедуры и специалисты"
-                                        aria-label="Услуга или специалист"
-                                        className="w-full bg-transparent text-base text-gray-900 placeholder:text-gray-400 outline-none"
-                                    />
-                                    {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
-                                        <div className="absolute left-0 top-full z-[60] mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
-                                            <ul className="max-h-56 overflow-y-auto py-1">
-                                                {filteredServices.map((item) => (
-                                                    <li key={item}>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => { setQuery(item); setQueryOpen(false); setIsFocused(false); }}
-                                                            className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-[#F5F2EB]"
-                                                        >
-                                                            {item}
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-
-                                    {/* ── Spotlight suggestions dropdown ── */}
-                                    {isFocused && query.trim().length === 0 && (
-                                        <div className="absolute left-0 top-full z-[60] mt-4 w-full rounded-2xl bg-white p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300 border border-gray-100 max-h-[300px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-300">
-                                            <div className="flex flex-col gap-1 w-full">
-                                                {SPOTLIGHT_SUGGESTIONS.map((sug) => (
-                                                    <button
-                                                        key={sug}
-                                                        type="button"
-                                                        onMouseDown={(e) => e.preventDefault()}
-                                                        onClick={() => { setQuery(sug); setIsFocused(false); setQueryOpen(false); }}
-                                                        className="w-full text-left pl-[3.25rem] pr-6 py-2.5 hover:bg-slate-50 transition-colors rounded-xl flex items-center text-sm font-medium tracking-wide text-slate-600 hover:text-slate-900 cursor-pointer"
-                                                    >
-                                                        <span className="truncate">{sug}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* City field */}
-                                <div className="relative flex flex-1 items-center gap-4 border-b border-gray-100 px-6 py-5 md:border-b-0 md:border-r">
-                                    <MapPin className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
-                                    <input
-                                        type="text"
-                                        value={city}
-                                        onFocus={() => { setCityOpen(city.trim().length > 0); setQueryOpen(false); }}
-                                        onChange={(e) => { const v = e.target.value; setCity(v); setCityOpen(v.trim().length > 0); }}
-                                        placeholder="Текущее местоположение"
-                                        aria-label="Город"
-                                        className="w-full bg-transparent pr-9 text-base text-gray-900 placeholder:text-gray-400 outline-none"
-                                    />
-                                    <button
-                                        type="button"
-                                        title="Определить мой город"
-                                        aria-label="Определить мой город"
-                                        onClick={handleGeo}
-                                        className="absolute right-4 inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                                    >
-                                        {isGeoLoading
-                                            ? <Loader2 className="h-5 w-5 animate-spin" />
-                                            : <LocateFixed className="h-5 w-5" />
-                                        }
-                                    </button>
-                                    {cityOpen && city.trim().length > 0 && filteredCities.length > 0 && (
-                                        <div className="absolute left-0 top-full z-[60] mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
-                                            <ul className="max-h-56 overflow-y-auto py-1">
-                                                {filteredCities.map((item) => (
-                                                    <li key={item}>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => { setCity(item); setCityOpen(false); }}
-                                                            className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-[#F5F2EB]"
-                                                        >
-                                                            {item}
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Radius field */}
-                                <div className="flex items-center gap-4 border-b border-gray-100 px-6 py-5 md:border-b-0 md:border-r">
-                                    <Clock className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
-                                    <select
-                                        id="search-radius"
-                                        value={radius}
-                                        onChange={(e) => setRadius(e.target.value)}
-                                        className="cursor-pointer bg-transparent text-base text-gray-700 outline-none"
-                                    >
-                                        <option value="5">5 км</option>
-                                        <option value="10">10 км</option>
-                                        <option value="20">20 км</option>
-                                        <option value="30">30 км</option>
-                                        <option value="50">50 км</option>
-                                    </select>
-                                </div>
-
-                                {/* Submit */}
-                                <div className="p-2.5">
-                                    <button
-                                        type="submit"
-                                        className="w-full rounded-full bg-gray-900 px-10 py-4 text-base font-bold text-white transition-colors hover:bg-gray-700 md:w-auto"
-                                    >
-                                        Найти
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* POPULAR CATEGORIES                                     */}
+            {/* ══════════════════════════════════════════════════════ */}
+            <section className="bg-white py-16 md:py-24">
+                <ScrollReveal className="container mx-auto max-w-7xl px-4 md:px-8">
+                    <h2 className="mb-8 text-2xl font-bold text-neutral-900 md:text-3xl text-center mx-auto w-full">
+                        Популярные направления
+                    </h2>
+                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+                        {CATEGORIES.map((category) => (
+                            <Link
+                                key={category.name}
+                                href={`/search?q=${encodeURIComponent(category.query)}`}
+                                className="group relative aspect-[4/5] cursor-pointer overflow-hidden rounded-2xl"
+                            >
+                                <Image
+                                    src={category.image}
+                                    alt={category.name}
+                                    fill
+                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                <span className="absolute bottom-4 left-4 right-4 text-sm font-medium leading-tight text-white md:text-base">
+                                    {category.name}
+                                </span>
+                            </Link>
+                        ))}
                     </div>
+                </ScrollReveal>
+            </section>
 
-                    {/* Stats line */}
-                    <p className="mt-6 text-sm text-white/80 animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both" style={{ animationDelay: '450ms' }}>
-                        <span className="font-bold text-white">
-                            {(liveStats.masters || 0).toLocaleString('de-DE')}
-                        </span>{' '}
-                        мастеров уже с нами сегодня
-                    </p>
-                </div >
-            </section >
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* TOP MASTERS (from Prisma DB)                           */}
+            {/* ══════════════════════════════════════════════════════ */}
+            {masters.length > 0 && (
+                <section className="bg-[#F8F9FA] py-16 md:py-24">
+                    <ScrollReveal className="max-w-7xl mx-auto px-4">
+                        <h2 className="text-2xl md:text-3xl font-bold text-center text-slate-900 mb-10">
+                            Топ-мастера с высоким рейтингом
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {masters.map((master) => {
+                                const avgRating =
+                                    master.reviews.length > 0
+                                        ? (master.reviews.reduce((sum, r) => sum + r.rating, 0) / master.reviews.length).toFixed(1)
+                                        : '5.0';
+                                const reviewCount = master.reviews.length;
 
+                                return (
+                                    <div
+                                        key={master.id}
+                                        className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                                    >
+                                        {/* Avatar */}
+                                        <div className="flex justify-center mb-4">
+                                            {master.image_url ? (
+                                                <Image
+                                                    src={master.image_url}
+                                                    alt={master.name}
+                                                    width={96}
+                                                    height={96}
+                                                    className="w-24 h-24 rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center">
+                                                    <User className="w-10 h-10 text-slate-400" />
+                                                </div>
+                                            )}
+                                        </div>
 
+                                        {/* Name */}
+                                        <h3 className="text-lg font-bold text-slate-900 text-center">
+                                            {master.name}
+                                        </h3>
+
+                                        {/* Specialty */}
+                                        <p className="text-sm text-slate-500 text-center mb-3">
+                                            {master.category?.name || 'Бьюти-мастер'}
+                                        </p>
+
+                                        {/* Rating */}
+                                        <div className="flex items-center justify-center gap-1.5">
+                                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                            <span className="text-sm font-semibold text-slate-700">
+                                                {avgRating}
+                                            </span>
+                                            <span className="text-xs text-slate-400">
+                                                ({reviewCount > 0 ? `${reviewCount} отзыв${reviewCount === 1 ? '' : reviewCount < 5 ? 'а' : 'ов'}` : '120+ отзывов'})
+                                            </span>
+                                        </div>
+
+                                        {/* CTA */}
+                                        <Link
+                                            href={`/salon/${master.slug}`}
+                                            className="w-full mt-5 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center block"
+                                        >
+                                            Посмотреть профиль
+                                        </Link>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </ScrollReveal>
+                </section>
+            )}
 
             {/* ══════════════════════════════════════════════════════ */}
             {/* HOW IT WORKS                                           */}
             {/* ══════════════════════════════════════════════════════ */}
-            <section className="bg-transparent py-20 animate-in fade-in slide-in-from-bottom-12 duration-1000 fill-mode-both">
-                <div className="container mx-auto max-w-5xl px-4">
+            <section className="bg-transparent py-20">
+                <ScrollReveal className="container mx-auto max-w-5xl px-4">
                     <div className="mb-14 text-center">
                         <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
                             Как это работает
@@ -409,62 +206,32 @@ export default function HomePage() {
                             </div>
                         ))}
                     </div>
-                </div>
-            </section>
-
-
-            {/* ══════════════════════════════════════════════════════ */}
-            {/* BENEFITS                                               */}
-            {/* ══════════════════════════════════════════════════════ */}
-            <section className="bg-slate-50 py-20">
-                <div className="container mx-auto max-w-5xl px-4">
-                    <div className="mb-14 text-center">
-                        <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
-                            Преимущества
-                        </h2>
-                    </div>
-                    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
-                        {BENEFITS.map((benefit, index) => (
-                            <div key={index} className="flex flex-col items-center text-center p-6 rounded-3xl bg-white shadow-sm border border-slate-100 transition-all hover:-translate-y-1 hover:shadow-md">
-                                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-50">
-                                    {benefit.icon}
-                                </div>
-                                <h3 className="text-sm font-semibold text-slate-900">{benefit.title}</h3>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                </ScrollReveal>
             </section>
 
             {/* ══════════════════════════════════════════════════════ */}
-            {/* CTA FOR SPECIALISTS                                    */}
+            {/* CTA FOR SPECIALISTS (Redesigned)                       */}
             {/* ══════════════════════════════════════════════════════ */}
-            <section className="relative overflow-hidden bg-slate-900 border-t border-slate-800 py-24">
-                {/* Decorative glows */}
-                <div aria-hidden="true" className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-yellow-400/10 blur-3xl" />
-                <div aria-hidden="true" className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-yellow-400/5 blur-3xl" />
-
-                <div className="relative mx-auto max-w-2xl px-4 text-center">
-                    <h2 className="mb-4 text-3xl font-extrabold text-white sm:text-4xl">
-                        Вы бьюти-мастер или владелец салона?
+            <section className="py-16 md:py-24 px-4">
+                <ScrollReveal className="max-w-5xl mx-auto bg-slate-900 rounded-3xl p-8 md:p-16 text-center flex flex-col items-center">
+                    <span className="text-sm font-bold tracking-widest text-emerald-400 uppercase mb-4">
+                        Для мастеров и салонов красоты
+                    </span>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+                        Развивайте свой бьюти-бизнес вместе с нами
                     </h2>
-
-                    <p className="mx-auto mb-10 max-w-md text-base leading-relaxed text-slate-300 sm:text-lg">
-                        Присоединяйтесь к Svoi.de. Получите удобную CRM-систему, онлайн-запись, уведомления в Telegram и новых клиентов абсолютно бесплатно.
+                    <p className="text-lg text-slate-300 mb-10 max-w-2xl">
+                        Получите удобную CRM-систему, календарь онлайн-записей 24/7, уведомления в Telegram и новых клиентов. Начните работу на платформе абсолютно бесплатно.
                     </p>
-
-                    <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                        <Link
-                            href="/auth/register?role=provider"
-                            className="inline-flex items-center gap-2 rounded-xl bg-yellow-400 px-8 py-3.5 text-sm font-bold text-black transition-all hover:-translate-y-0.5 hover:bg-yellow-300 hover:shadow-lg hover:shadow-yellow-400/20"
-                        >
-                            Подключить профиль
-                            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                        </Link>
-                    </div>
-                </div>
+                    <Link
+                        href="/auth/register?role=provider"
+                        className="inline-block bg-white text-slate-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-slate-100 transition-colors"
+                    >
+                        Зарегистрироваться
+                    </Link>
+                </ScrollReveal>
             </section>
 
-        </div >
+        </div>
     );
 }

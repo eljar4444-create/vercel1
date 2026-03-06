@@ -15,6 +15,7 @@ interface SearchMapMarker {
 
 interface SearchResultsMapProps {
     markers: SearchMapMarker[];
+    hoveredMarkerId?: number | null;
 }
 
 const SearchResultsMapClient = dynamic(
@@ -27,6 +28,6 @@ const SearchResultsMapClient = dynamic(
     }
 );
 
-export function SearchResultsMap({ markers }: SearchResultsMapProps) {
-    return <SearchResultsMapClient markers={markers} />;
+export function SearchResultsMap({ markers, hoveredMarkerId }: SearchResultsMapProps) {
+    return <SearchResultsMapClient markers={markers} hoveredMarkerId={hoveredMarkerId} />;
 }

@@ -1,10 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // output: 'export', // Optional: for static export
-    // Trigger restart 3
-
     images: {
-        unoptimized: true, // Simplified image handling
+        unoptimized: true,
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+            },
+        ],
     },
 };
 

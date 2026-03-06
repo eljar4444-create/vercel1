@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Metadata } from 'next';
 import { MapPin, Calendar, Clock, Euro } from 'lucide-react';
 import Link from 'next/link';
+import ScrollReveal from '@/components/ScrollReveal';
 
 interface Props {
     params: { id: string };
@@ -48,7 +49,7 @@ export default async function ServicePage({ params }: Props) {
         <div className="container mx-auto px-4 py-8">
             <Link href="/" className="text-blue-600 hover:underline mb-4 inline-block">&larr; Back to Search</Link>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <ScrollReveal className="grid md:grid-cols-3 gap-8">
                 {/* Main Content */}
                 <div className="md:col-span-2 space-y-6">
                     <div>
@@ -110,7 +111,7 @@ export default async function ServicePage({ params }: Props) {
                         </CardContent>
                     </Card>
                 </div>
-            </div>
+            </ScrollReveal>
         </div>
     );
 }

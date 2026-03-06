@@ -43,9 +43,9 @@ export function LiveQuickSlots({ profileId, slug }: LiveQuickSlotsProps) {
     }
 
     const { morning, evening } = slotsData;
-    const hasSlots = morning.length > 0 || evening.length > 0;
+    const allSlots = [...morning, ...evening];
 
-    if (!hasSlots) {
+    if (allSlots.length === 0) {
         return (
             <div className="mt-3">
                 <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Быстрые слоты</p>
@@ -57,44 +57,16 @@ export function LiveQuickSlots({ profileId, slug }: LiveQuickSlotsProps) {
     return (
         <div className="mt-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">Быстрые слоты</p>
-            <div className="mt-1.5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                {/* Morning */}
-                {morning.length > 0 && (
-                    <div>
-                        <p className="text-[10px] font-semibold uppercase text-slate-500">Утро</p>
-                        <div className="mt-1 flex flex-wrap gap-1.5">
-                            {morning.map((slot, idx) => (
-                                <Link
-                                    key={idx}
-                                    href={`/salon/${slug}?book=1&date=${slot.date}&time=${encodeURIComponent(slot.time)}`}
-                                    className="min-h-[44px] flex flex-col justify-center items-center rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600 transition hover:bg-blue-50"
-                                >
-                                    <span className="text-[9px] text-blue-400 font-normal leading-tight">{slot.label}</span>
-                                    <span>{slot.time}</span>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Evening */}
-                {evening.length > 0 && (
-                    <div>
-                        <p className="text-[10px] font-semibold uppercase text-slate-500">Вечер</p>
-                        <div className="mt-1 flex flex-wrap gap-1.5">
-                            {evening.map((slot, idx) => (
-                                <Link
-                                    key={idx}
-                                    href={`/salon/${slug}?book=1&date=${slot.date}&time=${encodeURIComponent(slot.time)}`}
-                                    className="min-h-[44px] flex flex-col justify-center items-center rounded-md border border-blue-600 bg-white px-2 py-0.5 text-[11px] font-medium text-blue-600 transition hover:bg-blue-50"
-                                >
-                                    <span className="text-[9px] text-blue-400 font-normal leading-tight">{slot.label}</span>
-                                    <span>{slot.time}</span>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
+            <div className="mt-1.5 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {allSlots.map((slot, idx) => (
+                    <Link
+                        key={idx}
+                        href={`/salon/${slug}?book=1&date=${slot.date}&time=${encodeURIComponent(slot.time)}`}
+                        className="px-3 py-1.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:border-slate-900 hover:text-slate-900 transition-colors whitespace-nowrap"
+                    >
+                        {slot.time}
+                    </Link>
+                ))}
             </div>
         </div>
     );

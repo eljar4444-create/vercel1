@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Building2, Clock3, MapPin, Star, UserRound } from 'lucide-react';
+import { Building2, Clock3, MapPin, Star, User, UserRound } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { LiveQuickSlots } from '@/components/search/LiveQuickSlots';
 import { FavoriteButton } from '@/components/client/FavoriteButton';
@@ -25,15 +25,28 @@ interface SearchResultListItemProps {
     };
     /** Whether the current user has this provider in favorites (from server). */
     initialIsFavorited?: boolean;
+    /** Whether the card is currently being hovered (from parent layout). */
+    isHovered?: boolean;
 }
 
-export function SearchResultListItem({ profile, initialIsFavorited = false }: SearchResultListItemProps) {
+function getInitials(name: string): string {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return parts[0]?.slice(0, 2).toUpperCase() || '';
+}
+
+export function SearchResultListItem({ profile, initialIsFavorited = false, isHovered = false }: SearchResultListItemProps) {
     const previewServices = profile.services.slice(0, 2);
+    const hasMoreServices = profile.services.length > 2;
     const isSalon = profile.provider_type === 'SALON';
     const visibleAddress = isSalon ? [profile.address, profile.city].filter(Boolean).join(', ') : profile.city;
+    const initials = getInitials(profile.name);
 
     return (
-        <article className="mb-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm relative">
+        <article className={`mb-4 overflow-hidden rounded-xl bg-white shadow-sm relative transition-all duration-300 border-[1.5px] ${isHovered ? 'border-slate-800 shadow-md transform -translate-y-0.5' : 'border-slate-200'
+            }`}>
             <div className="flex flex-col md:flex-row">
                 <Link
                     href={`/salon/${profile.slug}`}
@@ -54,7 +67,13 @@ export function SearchResultListItem({ profile, initialIsFavorited = false }: Se
                             className="h-full w-full object-cover"
                         />
                     ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">No photo</div>
+                        <div className="bg-slate-100 flex items-center justify-center h-full w-full">
+                            {initials ? (
+                                <span className="text-2xl font-bold text-slate-400">{initials}</span>
+                            ) : (
+                                <User size={40} className="text-slate-300" />
+                            )}
+                        </div>
                     )}
                 </Link>
 
@@ -84,42 +103,43 @@ export function SearchResultListItem({ profile, initialIsFavorited = false }: Se
 
                     <div className="mt-3">
                         {previewServices.length > 0 ? (
-                            previewServices.map((service, index) => (
-                                <div
-                                    key={service.id}
-                                    className={`flex flex-col justify-between gap-2 px-0 py-2 sm:flex-row sm:items-center ${index > 0 ? 'border-t border-slate-100' : ''
-                                        }`}
-                                >
-                                    <div>
-                                        <p className="text-sm font-medium text-slate-900">{service.title}</p>
+                            <>
+                                {previewServices.map((service, index) => (
+                                    <div
+                                        key={service.id}
+                                        className={`flex flex-col justify-between gap-2 px-0 py-2 sm:flex-row sm:items-center ${index > 0 ? 'border-t border-slate-100' : ''
+                                            }`}
+                                    >
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900">{service.title}</p>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <p className="inline-flex items-center gap-1 text-xs text-slate-500">
+                                                <Clock3 className="h-3.5 w-3.5" />
+                                                {service.duration_min} мин
+                                            </p>
+                                            <p className="text-sm font-semibold text-slate-900">€{service.price.toFixed(0)}</p>
+                                            <Link
+                                                href={`/salon/${profile.slug}?book=1&service=${service.id}`}
+                                                className="inline-flex min-h-[44px] items-center rounded-md bg-slate-100 px-3 text-[11px] font-medium text-slate-900 transition hover:bg-slate-200"
+                                            >
+                                                Выбрать
+                                            </Link>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-4">
-                                        <p className="inline-flex items-center gap-1 text-xs text-slate-500">
-                                            <Clock3 className="h-3.5 w-3.5" />
-                                            {service.duration_min} мин
-                                        </p>
-                                        <p className="text-sm font-semibold text-slate-900">€{service.price.toFixed(0)}</p>
-                                        <Link
-                                            href={`/salon/${profile.slug}?book=1&service=${service.id}`}
-                                            className="inline-flex min-h-[44px] items-center rounded-md bg-slate-100 px-3 text-[11px] font-medium text-slate-900 transition hover:bg-slate-200"
-                                        >
-                                            Выбрать
-                                        </Link>
-                                    </div>
-                                </div>
-                            ))
+                                ))}
+                                {hasMoreServices && (
+                                    <Link
+                                        href={`/salon/${profile.slug}#services`}
+                                        className="text-sm font-medium text-slate-500 hover:text-slate-900 mt-2 inline-block transition-colors"
+                                    >
+                                        Показать все услуги ({profile.services.length})
+                                    </Link>
+                                )}
+                            </>
                         ) : (
                             <p className="text-sm text-slate-500">Услуги появятся скоро</p>
                         )}
-                    </div>
-
-                    <div className="mt-3 flex justify-end border-t border-slate-100 pt-3">
-                        <Link
-                            href={`/salon/${profile.slug}?book=1`}
-                            className="inline-flex min-h-[44px] items-center rounded-md bg-black px-4 text-xs font-semibold text-white transition hover:bg-slate-800"
-                        >
-                            Записаться
-                        </Link>
                     </div>
                 </div>
             </div>

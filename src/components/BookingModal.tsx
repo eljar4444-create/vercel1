@@ -435,9 +435,8 @@ export function BookingModal({
                                                     return (
                                                         <div
                                                             key={dayKey}
-                                                            className={`rounded-xl border p-3 ${
-                                                                isCurrentDay ? 'border-slate-900 bg-slate-50' : 'border-slate-200'
-                                                            }`}
+                                                            className={`rounded-xl border p-3 ${isCurrentDay ? 'border-slate-900 bg-slate-50' : 'border-slate-200'
+                                                                }`}
                                                         >
                                                             <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                                                 {DAY_LABEL_FORMATTER.format(day)}
@@ -446,7 +445,7 @@ export function BookingModal({
                                                                 {DATE_LABEL_FORMATTER.format(day)}
                                                             </p>
 
-                                                            <div className="mt-3 flex max-h-56 flex-col gap-2 overflow-y-auto">
+                                                            <div className="mt-3 flex max-h-56 flex-col gap-2 overflow-y-auto scrollbar-hide">
                                                                 {isLoadingWeek ? (
                                                                     <>
                                                                         <div className="h-8 rounded-md bg-slate-100" />
@@ -462,18 +461,17 @@ export function BookingModal({
                                                                                 key={slot}
                                                                                 type="button"
                                                                                 onClick={() => selectSlot(dayKey, slot)}
-                                                                                className={`h-9 rounded-md px-2 text-sm font-medium transition ${
-                                                                                    isSelected
+                                                                                className={`h-9 rounded-md px-2 text-sm font-medium transition ${isSelected
                                                                                         ? 'bg-slate-900 text-white'
                                                                                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                                                                                }`}
+                                                                                    }`}
                                                                             >
                                                                                 {slot}
                                                                             </button>
                                                                         );
                                                                     })
                                                                 )}
-                                    </div>
+                                                            </div>
                                                         </div>
                                                     );
                                                 })}

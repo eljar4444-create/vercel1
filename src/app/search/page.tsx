@@ -7,6 +7,7 @@ import { Search, X } from "lucide-react";
 import { getCityFilterVariants } from "@/constants/searchSuggestions";
 import { GERMAN_CITIES } from "@/constants/germanCities";
 import { SearchResultListItem } from "@/components/search/SearchResultListItem";
+import { SearchInteractiveLayout } from "@/components/search/SearchInteractiveLayout";
 import { SearchResultsMap } from "@/components/search/SearchResultsMap";
 import { getFavoriteProfileIds } from "@/app/actions/favorites";
 import { geocodeCity } from "@/lib/geocode";
@@ -183,132 +184,113 @@ export default async function SearchPage({
         return {
             id: profile.id,
             name: profile.name,
-            providerType: profile.provider_type,
             city: profile.city,
             address: profile.address,
             lat: coords.lat,
             lng: coords.lng,
+            image: profile.image_url,
+            slug: profile.slug,
         };
     });
 
     const favoriteProfileIds = await getFavoriteProfileIds();
     const favoriteSet = new Set(favoriteProfileIds);
 
+    const mappedProfiles = profiles.map((profile: any) => ({
+        id: profile.id,
+        slug: profile.slug,
+        name: profile.name,
+        provider_type: profile.provider_type,
+        city: profile.city,
+        address: profile.address,
+        image_url: profile.image_url,
+        services: (profile.services || []).map((service: any) => ({
+            id: service.id,
+            title: service.title,
+            price: Number(service.price),
+            duration_min: service.duration_min,
+        })),
+    }));
+
     return (
         <main className="h-[calc(100vh-64px)] overflow-hidden bg-white">
-            <div className="flex h-full flex-col lg:flex-row">
-                <div className="h-full w-full overflow-y-auto bg-[#fbfbfb] p-4 pb-24 md:p-5 lg:w-[48%] xl:w-[46%]">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                        <h1 className="text-lg font-semibold text-slate-900">
-                            {profiles.length > 0
-                                ? `Найдено ${profiles.length} специалистов`
-                                : 'Специалисты не найдены'}
-                        </h1>
-                        <Link href="/" className="text-sm text-slate-500 transition hover:text-slate-800">
-                            На главную
-                        </Link>
-                    </div>
-
-                    <nav aria-label="Быстрые фильтры" className="sticky top-0 z-10 -mx-4 mb-4 border-b border-slate-200 bg-[#fbfbfb] px-4 py-2 md:-mx-5 md:px-5">
-                        <div className="flex gap-2 overflow-x-auto pb-0.5">
-                            {['Все', ...QUICK_FILTERS].map((filter) => {
-                                const params = new URLSearchParams();
-                                if (filter === 'Все') {
-                                    if (cityFilter) params.set('city', cityFilter);
-                                    if (queryFilter) params.set('q', queryFilter);
-                                } else if (cityFilter) {
-                                    params.set('city', cityFilter);
-                                }
-
-                                if (filter === 'Рядом со мной') {
-                                    if (queryFilter) params.set('q', queryFilter);
-                                } else if (filter === 'Топ рейтинг') {
-                                    params.set('sort', 'rating');
-                                    if (queryFilter) params.set('q', queryFilter);
-                                } else if (filter !== 'Все') {
-                                    params.set('q', filter);
-                                }
-                                return (
-                                    <Link
-                                        key={filter}
-                                        href={`/search?${params.toString()}`}
-                                        className="min-h-[44px] flex items-center whitespace-nowrap rounded-full border border-slate-200 bg-transparent px-3 py-1.5 text-xs text-slate-700 transition hover:border-slate-300 hover:bg-white"
-                                    >
-                                        {filter}
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    </nav>
-
-                    {(cityFilter || queryFilter) && (
-                        <div className="mb-4 flex flex-wrap items-center gap-2">
-                            {cityFilter && (
-                                <Link
-                                    href={`/search${queryFilter ? `?q=${encodeURIComponent(queryFilter)}` : ''}`}
-                                    aria-label={`Удалить фильтр: ${cityFilter}`}
-                                    className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
-                                >
-                                    {cityFilter}{geoCenter ? ` (${radiusKm} км)` : ''}
-                                    <X className="h-3 w-3" />
-                                </Link>
-                            )}
-                            {queryFilter && (
-                                <Link
-                                    href={`/search${cityFilter ? `?city=${encodeURIComponent(cityFilter)}` : ''}`}
-                                    aria-label={`Удалить фильтр: ${queryFilter}`}
-                                    className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100"
-                                >
-                                    <Search className="h-3 w-3" />
-                                    {queryFilter}
-                                    <X className="h-3 w-3" />
-                                </Link>
-                            )}
-                        </div>
-                    )}
-
-                    {profiles.length > 0 ? (
-                        <div>
-                            {profiles.map((profile: any) => (
-                                <SearchResultListItem
-                                    key={profile.id}
-                                    profile={{
-                                        id: profile.id,
-                                        slug: profile.slug,
-                                        name: profile.name,
-                                        provider_type: profile.provider_type,
-                                        city: profile.city,
-                                        address: profile.address,
-                                        image_url: profile.image_url,
-                                        services: (profile.services || []).map((service: any) => ({
-                                            id: service.id,
-                                            title: service.title,
-                                            price: Number(service.price),
-                                            duration_min: service.duration_min,
-                                        })),
-                                    }}
-                                    initialIsFavorited={favoriteSet.has(profile.id)}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center">
-                            <h2 className="text-lg font-semibold text-slate-900">Специалисты не найдены</h2>
-                            <p className="mt-2 text-sm text-slate-500">Попробуйте изменить запрос или город.</p>
-                            <Link
-                                href="/search"
-                                className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                            >
-                                Сбросить фильтры
+            <SearchInteractiveLayout
+                profiles={mappedProfiles}
+                mapMarkers={mapMarkers}
+                favoriteIds={favoriteProfileIds}
+                headerContent={
+                    <>
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                            <h1 className="text-lg font-semibold text-slate-900">
+                                {profiles.length > 0
+                                    ? `Найдено ${profiles.length} специалистов`
+                                    : 'Специалисты не найдены'}
+                            </h1>
+                            <Link href="/" className="text-sm text-slate-500 transition hover:text-slate-800">
+                                На главную
                             </Link>
                         </div>
-                    )}
-                </div>
 
-                <aside className="relative hidden h-full border-l border-slate-200 bg-slate-100 lg:block lg:w-[52%] xl:w-[54%]">
-                    <SearchResultsMap markers={mapMarkers} />
-                </aside>
-            </div>
+                        <nav aria-label="Быстрые фильтры" className="sticky top-0 z-10 -mx-4 mb-4 border-b border-slate-200 bg-[#fbfbfb] px-4 py-2 md:-mx-5 md:px-5">
+                            <div className="flex gap-2 overflow-x-auto pb-0.5">
+                                {['Все', ...QUICK_FILTERS].map((filter) => {
+                                    const params = new URLSearchParams();
+                                    if (filter === 'Все') {
+                                        if (cityFilter) params.set('city', cityFilter);
+                                        if (queryFilter) params.set('q', queryFilter);
+                                    } else if (cityFilter) {
+                                        params.set('city', cityFilter);
+                                    }
+
+                                    if (filter === 'Рядом со мной') {
+                                        if (queryFilter) params.set('q', queryFilter);
+                                    } else if (filter === 'Топ рейтинг') {
+                                        params.set('sort', 'rating');
+                                        if (queryFilter) params.set('q', queryFilter);
+                                    } else if (filter !== 'Все') {
+                                        params.set('q', filter);
+                                    }
+                                    return (
+                                        <Link
+                                            key={filter}
+                                            href={`/search?${params.toString()}`}
+                                            className="min-h-[44px] flex items-center whitespace-nowrap rounded-full border border-slate-200 bg-transparent px-3 py-1.5 text-xs text-slate-700 transition hover:border-slate-300 hover:bg-white"
+                                        >
+                                            {filter}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </nav>
+
+                        {(cityFilter || queryFilter) && (
+                            <div className="mb-4 flex flex-wrap items-center gap-2">
+                                {cityFilter && (
+                                    <Link
+                                        href={`/search${queryFilter ? `?q=${encodeURIComponent(queryFilter)}` : ''}`}
+                                        aria-label={`Удалить фильтр: ${cityFilter}`}
+                                        className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                                    >
+                                        {cityFilter}{geoCenter ? ` (${radiusKm} км)` : ''}
+                                        <X className="h-3 w-3" />
+                                    </Link>
+                                )}
+                                {queryFilter && (
+                                    <Link
+                                        href={`/search${cityFilter ? `?city=${encodeURIComponent(cityFilter)}` : ''}`}
+                                        aria-label={`Удалить фильтр: ${queryFilter}`}
+                                        className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100"
+                                    >
+                                        <Search className="h-3 w-3" />
+                                        {queryFilter}
+                                        <X className="h-3 w-3" />
+                                    </Link>
+                                )}
+                            </div>
+                        )}
+                    </>
+                }
+            />
         </main>
     );
 }

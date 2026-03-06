@@ -9,7 +9,9 @@ import {
     MessageCircle,
     Star,
     MapPin,
-    Sparkles,
+    ExternalLink,
+    ChevronRight,
+    X,
 } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
@@ -19,6 +21,9 @@ import { BookingModal } from '@/components/BookingModal';
 import { startConversationWithProvider } from '@/app/actions/chat';
 import { Button } from '@/components/ui/button';
 import { ProfileLocationMap } from '@/components/ProfileLocationMap';
+import ScrollReveal from '@/components/ScrollReveal';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ProfileData {
     id: number;
@@ -36,11 +41,7 @@ interface ProfileData {
     latitude: number;
     longitude: number;
     attributes: any;
-    category: {
-        id: number;
-        name: string;
-        slug: string;
-    } | null;
+    category: { id: number; name: string; slug: string } | null;
     services: {
         id: number;
         title: string;
@@ -60,9 +61,7 @@ interface ProfileData {
     reviewCount: number;
 }
 
-interface ProfileClientProps {
-    profile: ProfileData;
-}
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const RATING_BREAKDOWN = [
     { label: 'Качество', score: 5.0 },
@@ -71,19 +70,153 @@ const RATING_BREAKDOWN = [
     { label: 'Атмосфера', score: 4.9 },
 ];
 
-const MOCK_REVIEWS: { id: string; text: string; rating: number; createdAt: string; clientName: string }[] = [
-    { id: 'mock-1', clientName: 'Анна К.', rating: 5, createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(), text: 'Очень довольна результатом! Мастер внимательная, атмосфера приятная. Обязательно вернусь.' },
-    { id: 'mock-2', clientName: 'Мария С.', rating: 5, createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(), text: 'Рекомендую. Качество на высоте, цены адекватные. Запись онлайн — супер удобно.' },
-    { id: 'mock-3', clientName: 'Елена В.', rating: 4, createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(), text: 'Хороший сервис, чисто и аккуратно. Буду обращаться ещё.' },
-];
+const FALLBACK_COVER =
+    'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=2000&q=80';
 
-export function ProfileClient({ profile }: ProfileClientProps) {
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function pluralReviews(n: number) {
+    if (n === 1) return 'отзыв';
+    if (n >= 2 && n <= 4) return 'отзыва';
+    return 'отзывов';
+}
+
+function formatPrice(price: string | number) {
+    const n = Number(price);
+    return n === 0 ? 'по договорённости' : `€${n.toFixed(0)}`;
+}
+
+function getInitials(name: string) {
+    return name
+        .split(' ')
+        .map((p) => p[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase();
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function RatingBar({ label, score }: { label: string; score: number }) {
+    return (
+        <div className="flex items-center gap-3 text-sm">
+            <span className="w-24 shrink-0 text-gray-500">{label}</span>
+            <div className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+                <div
+                    className="h-full rounded-full bg-gray-900 transition-all duration-500"
+                    style={{ width: `${(score / 5) * 100}%` }}
+                />
+            </div>
+            <span className="w-6 shrink-0 text-right text-gray-700 font-medium tabular-nums">
+                {score.toFixed(1)}
+            </span>
+        </div>
+    );
+}
+
+function ServiceRow({
+    service,
+    onBook,
+}: {
+    service: ProfileData['services'][number];
+    onBook: () => void;
+}) {
+    const hasThumbnail = service.images && service.images.length > 0;
+    const thumb = hasThumbnail ? service.images![0] : null;
+
+    return (
+        <div className="flex items-center gap-4 py-4">
+            {/* Thumbnail */}
+            {thumb ? (
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-gray-100">
+                    <Image
+                        src={thumb}
+                        alt={service.title}
+                        fill
+                        className="object-cover"
+                    />
+                </div>
+            ) : (
+                <div className="h-12 w-12 shrink-0 rounded-xl bg-gray-50 border border-gray-100" />
+            )}
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{service.title}</p>
+                {service.description ? (
+                    <p className="mt-0.5 text-xs text-gray-400 truncate">{service.description}</p>
+                ) : null}
+                <p className="mt-1 inline-flex items-center gap-1 text-xs text-gray-400">
+                    <Clock className="h-3.5 w-3.5" />
+                    {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
+                </p>
+            </div>
+
+            {/* Price + CTA */}
+            <div className="flex shrink-0 items-center gap-3">
+                <span className="text-base font-semibold text-gray-900 tabular-nums">
+                    {formatPrice(service.price)}
+                </span>
+                <button
+                    onClick={onBook}
+                    className="h-9 rounded-xl bg-gray-900 px-4 text-xs font-semibold text-white transition-colors hover:bg-gray-700 active:scale-95"
+                >
+                    Выбрать
+                </button>
+            </div>
+        </div>
+    );
+}
+
+function ReviewCard({
+    review,
+}: {
+    review: ProfileData['reviews'][number];
+}) {
+    const initials = getInitials(review.clientName);
+    const date = new Date(review.createdAt).toLocaleDateString('ru-RU', {
+        month: 'long',
+        year: 'numeric',
+    });
+
+    return (
+        <div className="py-5 first:pt-0 last:pb-0">
+            <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                    {initials}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-gray-900">{review.clientName}</span>
+                        <span className="text-xs text-gray-400 shrink-0">{date}</span>
+                    </div>
+                    <div className="mt-1 flex gap-0.5" aria-label={`Рейтинг: ${review.rating} из 5`}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                                key={star}
+                                className={`h-3.5 w-3.5 ${star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`}
+                            />
+                        ))}
+                    </div>
+                    {review.comment ? (
+                        <p className="mt-2 text-sm leading-relaxed text-gray-600">{review.comment}</p>
+                    ) : null}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+
+export function ProfileClient({ profile }: { profile: ProfileData }) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const { data: session, status } = useSession();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
     const [isStartingChat, setIsStartingChat] = useState(false);
     const [selectedService, setSelectedService] = useState<{
         id?: number;
@@ -92,46 +225,56 @@ export function ProfileClient({ profile }: ProfileClientProps) {
         duration_min?: number;
     } | null>(null);
 
+    // ── Derived values ──────────────────────────────────────────────────────
     const services = useMemo(() => profile.services || [], [profile.services]);
-    const cheapestService =
-        services.length > 0
-            ? services.reduce((min, current) => (Number(current.price) < Number(min.price) ? current : min), services[0])
-            : null;
+
+    const cheapestService = useMemo(
+        () =>
+            services.length > 0
+                ? services.reduce((min, cur) => (Number(cur.price) < Number(min.price) ? cur : min), services[0])
+                : null,
+        [services]
+    );
+
     const fullAddress = [profile.address, profile.city].filter(Boolean).join(', ');
-    const visibleAddress = profile.provider_type === 'SALON' ? fullAddress || profile.city : profile.city;
+    const visibleAddress =
+        profile.provider_type === 'SALON' ? fullAddress || profile.city : profile.city;
+
     const priceLevel = useMemo(() => {
         if (services.length === 0) return '€€€';
-        const avg = services.reduce((sum, item) => sum + Number(item.price), 0) / services.length;
+        const avg = services.reduce((sum, s) => sum + Number(s.price), 0) / services.length;
         if (avg < 50) return '€';
         if (avg < 90) return '€€';
         return '€€€';
     }, [services]);
+
     const groupedServices = useMemo(() => {
         const groups = new Map<string, ProfileData['services']>();
-        services.forEach((service) => {
-            const parts = service.title.split(' - ');
-            const category = parts.length > 1 ? parts[0] : 'Популярные услуги';
-            const group = groups.get(category) || [];
-            group.push(service);
-            groups.set(category, group);
+        services.forEach((s) => {
+            const parts = s.title.split(' - ');
+            const cat = parts.length > 1 ? parts[0] : 'Популярные услуги';
+            const group = groups.get(cat) || [];
+            group.push(s);
+            groups.set(cat, group);
         });
         return Array.from(groups.entries());
     }, [services]);
+
     const trimmedBio = (profile.bio || '').trim();
-    const galleryImages = [
+
+    const coverImages = [
         ...(profile.image_url ? [profile.image_url] : []),
         ...(profile.gallery || []),
         ...(profile.studioImages || []),
     ].filter(Boolean);
-    const fallbackStudioImage =
-        'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=2000&q=80';
-    const studioImages =
-        galleryImages.length > 0 ? galleryImages : [fallbackStudioImage];
+    const coverSrc = coverImages[0] || FALLBACK_COVER;
+
+    const openStreetMapUrl = `https://www.openstreetmap.org/?mlat=${profile.latitude}&mlon=${profile.longitude}#map=15/${profile.latitude}/${profile.longitude}`;
 
     const initialDate = searchParams.get('date') || undefined;
     const initialTime = searchParams.get('time') || undefined;
-    const openStreetMapUrl = `https://www.openstreetmap.org/?mlat=${profile.latitude}&mlon=${profile.longitude}#map=15/${profile.latitude}/${profile.longitude}`;
 
+    // ── Booking helpers ─────────────────────────────────────────────────────
     const openBooking = (service?: { id?: number; title: string; price: string; duration_min?: number }) => {
         if (service) {
             setSelectedService(service);
@@ -139,17 +282,12 @@ export function ProfileClient({ profile }: ProfileClientProps) {
             return;
         }
         const el = document.getElementById('services');
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            setSelectedService(null);
-            setIsModalOpen(true);
-        }
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else { setSelectedService(null); setIsModalOpen(true); }
     };
 
     const startChat = useCallback(async () => {
         if (isStartingChat) return;
-
         if (status !== 'authenticated' || !session?.user) {
             if (typeof window === 'undefined') return;
             const url = new URL(window.location.href);
@@ -157,378 +295,431 @@ export function ProfileClient({ profile }: ProfileClientProps) {
             await signIn(undefined, { callbackUrl: url.toString() });
             return;
         }
-
         setIsStartingChat(true);
         const result = await startConversationWithProvider(profile.id);
         setIsStartingChat(false);
-
         if (!result.success || !result.conversationId) {
             toast.error(result.error || 'Не удалось открыть чат');
             return;
         }
-
         router.push(`/chat/${result.conversationId}`);
     }, [isStartingChat, status, session?.user, profile.id, router]);
 
+    // ── URL-driven effects ──────────────────────────────────────────────────
     useEffect(() => {
         if (searchParams.get('book') !== '1') return;
-
         const serviceIdParam = Number(searchParams.get('service'));
         if (Number.isInteger(serviceIdParam)) {
-            const service = services.find((item) => item.id === serviceIdParam);
-            if (service) {
-                setSelectedService({
-                    id: service.id,
-                    title: service.title,
-                    price: Number(service.price) === 0 ? 'по договорённости' : `€${Number(service.price).toFixed(0)}`,
-                    duration_min: service.duration_min,
-                });
-            }
+            const svc = services.find((s) => s.id === serviceIdParam);
+            if (svc) setSelectedService({ id: svc.id, title: svc.title, price: formatPrice(svc.price), duration_min: svc.duration_min });
         }
-
         setIsModalOpen(true);
-
         const next = new URLSearchParams(searchParams.toString());
-        next.delete('book');
-        next.delete('service');
-        next.delete('date');
-        next.delete('time');
-        const query = next.toString();
-        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+        next.delete('book'); next.delete('service'); next.delete('date'); next.delete('time');
+        const q = next.toString();
+        router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
     }, [pathname, router, searchParams, services]);
 
     useEffect(() => {
         if (searchParams.get('startChat') !== '1') return;
         if (status !== 'authenticated' || !session?.user) return;
-
         startChat();
-
         const next = new URLSearchParams(searchParams.toString());
         next.delete('startChat');
-        const query = next.toString();
-        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+        const q = next.toString();
+        router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
     }, [status, session?.user, pathname, router, searchParams, startChat]);
 
-    return (
-        <div className="min-h-screen bg-slate-50/60">
-            <nav aria-label="Навигация" className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
-                <div className="container mx-auto flex h-14 max-w-6xl items-center px-4">
-                    <Link
-                        href={`/search${profile.category?.slug ? `?category=${profile.category.slug}` : ''}`}
-                        className="inline-flex min-h-[44px] items-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-slate-900"
-                        aria-label="Назад к поиску"
-                    >
-                        <ChevronLeft className="h-4 w-4" />
-                        Назад к поиску
-                    </Link>
-                </div>
-            </nav>
+    // ─────────────────────────────────────────────────────────────────────────
 
-            <div className="container mx-auto max-w-6xl px-4 py-8 sm:py-10">
-                <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div>
-                            <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">{profile.name}</h1>
-                            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-600">
-                                <span className="inline-flex items-center gap-1.5">
-                                    <MapPin className="h-4 w-4 text-slate-500" />
-                                    {visibleAddress}
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                                    {profile.averageRating.toFixed(1)}
-                                </span>
-                                <span>{priceLevel}</span>
+    return (
+        <div className="min-h-screen bg-[#f7f7f8]">
+
+            {/* ── Back nav ──────────────────────────────────────────────── */}
+            <div className="container mx-auto max-w-5xl px-4 pt-6 pb-0">
+                <Link
+                    href={`/search${profile.category?.slug ? `?category=${profile.category.slug}` : ''}`}
+                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-900"
+                    aria-label="Назад к поиску"
+                >
+                    <ChevronLeft className="h-4 w-4" />
+                    Назад к поиску
+                </Link>
+            </div>
+
+            <div className="container mx-auto max-w-5xl space-y-5 px-4 py-6">
+
+                {/* ── Hero card ─────────────────────────────────────────── */}
+                {profile.provider_type === 'SALON' ? (
+                    <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                        {/* Header row */}
+                        <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                                    {profile.name}
+                                </h1>
+                                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                                        {visibleAddress}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                        <span className="font-medium text-gray-700">
+                                            {profile.averageRating.toFixed(1)}
+                                        </span>
+                                    </span>
+                                    <span className="text-gray-400">{priceLevel}</span>
+                                </div>
                             </div>
+                            <button
+                                onClick={() => openBooking()}
+                                className="h-10 shrink-0 rounded-xl bg-gray-900 px-6 text-sm font-semibold text-white transition-colors hover:bg-gray-700 active:scale-95"
+                            >
+                                Забронировать
+                            </button>
                         </div>
 
-                        <Button onClick={() => openBooking()} className="min-h-[44px] h-11 rounded-xl bg-slate-900 px-6 text-white hover:bg-slate-800">
-                            Забронировать
-                        </Button>
-                    </div>
-
-                    <div className="mt-6 md:hidden">
-                        <div className="flex gap-2 overflow-x-auto pb-1">
-                            {studioImages.map((image, index) => (
-                                <div key={`${image}-${index}`} className="group relative h-44 w-64 flex-shrink-0 overflow-hidden rounded-2xl bg-slate-100">
-                                    <Image
-                                        src={image}
-                                        alt={`${profile.name} — фото ${index + 1}`}
-                                        width={256}
-                                        height={176}
-                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                                        {...(index === 0 ? { priority: true } : {})}
+                        {/* Mobile Swipe Gallery */}
+                        <div className="flex md:hidden gap-2 mb-4 px-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide">
+                            {(coverImages.length > 0 ? coverImages : [FALLBACK_COVER]).map((src, idx) => (
+                                <div
+                                    key={idx}
+                                    onClick={() => setSelectedImageIndex(idx)}
+                                    className={`relative shrink-0 snap-center overflow-hidden rounded-xl bg-gray-100 aspect-[4/3] sm:aspect-[16/7] cursor-pointer ${coverImages.length > 1 ? 'w-[92%] sm:w-[85%]' : 'w-full'}`}
+                                >
+                                    <img
+                                        src={src}
+                                        alt={`${profile.name} — фото ${idx + 1}`}
+                                        fetchPriority={idx === 0 ? 'high' : 'auto'}
+                                        loading={idx === 0 ? 'eager' : 'lazy'}
+                                        className="h-full w-full object-cover object-top"
                                     />
                                 </div>
                             ))}
                         </div>
-                    </div>
 
-                    <div className="mt-6 hidden min-h-[320px] overflow-hidden rounded-2xl bg-slate-100 md:block md:min-h-[400px] md:h-[400px]">
-                        {studioImages.length >= 3 ? (
-                            <div className="grid h-full grid-cols-4 gap-2">
-                                <div className="group relative col-span-2 row-span-2 overflow-hidden">
-                                    <Image
-                                        src={studioImages[0]}
-                                        alt={`${profile.name} — главное фото студии`}
-                                        width={800}
-                                        height={400}
-                                        priority
-                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                                    />
-                                </div>
-                                <div className="group relative col-span-2 overflow-hidden">
-                                    <Image
-                                        src={studioImages[1]}
-                                        alt={`${profile.name} — фото студии 2`}
-                                        width={400}
-                                        height={200}
-                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                                    />
-                                </div>
-                                <div className="group relative col-span-2 overflow-hidden">
-                                    <Image
-                                        src={studioImages[2]}
-                                        alt={`${profile.name} — фото студии 3`}
-                                        width={400}
-                                        height={200}
-                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                                    />
-                                </div>
-                            </div>
-                        ) : studioImages.length === 2 ? (
-                            <div className="grid h-full grid-cols-4 gap-2">
-                                <div className="group relative col-span-3 overflow-hidden">
-                                    <Image
-                                        src={studioImages[0]}
-                                        alt={`${profile.name} — главное фото студии`}
-                                        width={600}
-                                        height={400}
-                                        priority
-                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                                    />
-                                </div>
-                                <div className="group relative col-span-1 overflow-hidden">
-                                    <Image
-                                        src={studioImages[1]}
-                                        alt={`${profile.name} — фото студии 2`}
-                                        width={200}
-                                        height={400}
-                                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                                    />
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="group relative flex h-full min-h-[320px] items-center justify-center overflow-hidden md:min-h-[400px]">
-                                <Image
-                                    src={studioImages[0]}
-                                    alt={`${profile.name} — фото`}
-                                    width={800}
-                                    height={400}
-                                    priority
-                                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-90"
-                                />
-                            </div>
-                        )}
-                    </div>
-                </section>
+                        {/* Desktop Grid Gallery (Planity Style) */}
+                        <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 mb-4 px-4 h-[320px] lg:h-[400px]">
+                            {(() => {
+                                const imgs = coverImages.length > 0 ? coverImages : [FALLBACK_COVER];
 
-                {/* О нас / О мастере — сразу под галереей */}
-                {trimmedBio ? (
-                    <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-                        <h2 className="text-xl font-semibold text-slate-900">
-                            {profile.provider_type === 'SALON' ? 'О нас' : 'О мастере'}
-                        </h2>
-                        <div className="mt-4 max-w-3xl">
-                            <p className="whitespace-pre-wrap leading-relaxed text-slate-600">{trimmedBio}</p>
+                                if (imgs.length >= 5) {
+                                    return (
+                                        <>
+                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[2]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[3]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(4)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[4]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                {imgs.length > 5 && (
+                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-semibold backdrop-blur-[2px] transition group-hover:bg-black/50">
+                                                        Показать все {imgs.length} фото
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    );
+                                }
+
+                                if (imgs.length === 4) {
+                                    return (
+                                        <>
+                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[2]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[3]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                        </>
+                                    );
+                                }
+
+                                if (imgs.length === 3) {
+                                    return (
+                                        <>
+                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(2)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[2]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                        </>
+                                    );
+                                }
+
+                                if (imgs.length === 2) {
+                                    return (
+                                        <>
+                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                                <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                            </div>
+                                        </>
+                                    );
+                                }
+
+                                return (
+                                    <div onClick={() => setSelectedImageIndex(0)} className="col-span-4 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group aspect-[21/9] md:aspect-auto md:h-full">
+                                        <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                    </div>
+                                );
+                            })()}
                         </div>
                     </section>
+                ) : (
+                    <section className="bg-transparent mb-6">
+                        {/* Header */}
+                        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-8">
+                            <img
+                                src={coverSrc}
+                                alt={profile.name}
+                                className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-sm border border-gray-200 shrink-0 object-top"
+                            />
+                            <div className="flex-1 min-w-0">
+                                <h1 className="text-3xl font-bold tracking-tight text-gray-900 truncate">
+                                    {profile.name}
+                                </h1>
+                                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                                        {visibleAddress}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                        <span className="font-medium text-gray-700">
+                                            {profile.averageRating.toFixed(1)}
+                                        </span>
+                                    </span>
+                                    <span className="text-gray-400">{priceLevel}</span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => openBooking()}
+                                className="h-11 md:h-12 shrink-0 rounded-xl bg-gray-900 px-6 sm:px-8 text-sm font-semibold text-white transition-colors hover:bg-gray-700 active:scale-95"
+                            >
+                                Забронировать
+                            </button>
+                        </div>
+
+                        {/* Portfolio Carousel */}
+                        <div>
+                            <h2 className="text-lg font-bold text-gray-900 mb-4">Мои работы</h2>
+                            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+                                {coverImages.length > 0 ? (
+                                    coverImages.map((src, idx) => (
+                                        <div
+                                            key={idx}
+                                            onClick={() => setSelectedImageIndex(idx)}
+                                            className="relative w-40 md:w-56 aspect-[4/5] rounded-2xl overflow-hidden shrink-0 snap-start bg-gray-100 cursor-pointer group"
+                                        >
+                                            <img
+                                                src={src}
+                                                alt={`Работы ${profile.name} — фото ${idx + 1}`}
+                                                className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105"
+                                            />
+                                        </div>
+                                    ))
+                                ) : (
+                                    [1, 2, 3, 4].map((idx) => (
+                                        <div
+                                            key={idx}
+                                            className="relative w-40 md:w-56 aspect-[4/5] rounded-2xl overflow-hidden shrink-0 snap-start bg-gray-100"
+                                        >
+                                            <img
+                                                src={`https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=400&q=80`}
+                                                alt={`Моковое фото`}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {/* ── Bio ───────────────────────────────────────────────── */}
+                {trimmedBio ? (
+                    <ScrollReveal>
+                        <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                            <h2 className="text-base font-semibold text-gray-900">
+                                {profile.provider_type === 'SALON' ? 'О нас' : 'О мастере'}
+                            </h2>
+                            <p className="mt-3 text-sm leading-relaxed text-gray-500 whitespace-pre-wrap">
+                                {trimmedBio}
+                            </p>
+                        </section>
+                    </ScrollReveal>
                 ) : null}
 
-                <section className="grid grid-cols-1 gap-8 mt-8 md:mt-12 md:grid-cols-3">
-                    <div className="space-y-6 md:col-span-2">
-                        <article id="services" className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm scroll-mt-6">
+                {/* ── Services + Sidebar ────────────────────────────────── */}
+                <ScrollReveal>
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+
+                        {/* Services */}
+                        <article
+                            id="services"
+                            className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm scroll-mt-6 md:col-span-2"
+                        >
                             <div className="flex items-center justify-between">
-                                <h2 className="text-2xl font-semibold text-slate-900">Услуги</h2>
-                                <span className="text-sm text-slate-500">{services.length} услуг</span>
+                                <h2 className="text-base font-semibold text-gray-900">Услуги</h2>
+                                <span className="text-xs text-gray-400">
+                                    {services.length} {services.length === 1 ? 'услуга' : 'услуг'}
+                                </span>
                             </div>
 
                             {services.length === 0 ? (
-                                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">
-                                    Список услуг пока пуст.
-                                </div>
+                                <p className="mt-6 text-sm text-gray-400">Список услуг пока пуст.</p>
                             ) : (
-                                <div className="mt-6 space-y-6">
+                                <div className="mt-4 space-y-6">
                                     {groupedServices.map(([groupTitle, groupItems]) => (
-                                        <div key={groupTitle} className="space-y-3">
-                                            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{groupTitle}</h3>
-                                            {groupItems.map((service) => (
-                                                <div
-                                                    key={service.id}
-                                                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
-                                                >
-                                                    <div>
-                                                        <p className="text-base font-semibold text-slate-900">{service.title}</p>
-                                                        {service.description ? (
-                                                            <p className="mt-1 text-sm leading-relaxed text-slate-600">{service.description}</p>
-                                                        ) : null}
-                                                        <p className="mt-1 inline-flex items-center gap-1.5 text-sm text-slate-500">
-                                                            <Clock className="h-4 w-4" />
-                                                            {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
-                                                        </p>
-                                                        {service.images && service.images.length > 0 ? (
-                                                            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-                                                                {service.images.slice(0, 6).map((imageUrl, imageIndex) => (
-                                                                    <Image
-                                                                        key={`${service.id}-work-${imageIndex}`}
-                                                                        src={imageUrl}
-                                                                        alt={`${service.title} — работа ${imageIndex + 1} от ${profile.name}`}
-                                                                        width={56}
-                                                                        height={56}
-                                                                        className="h-14 w-14 flex-shrink-0 rounded-lg border border-slate-200 object-cover"
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        ) : null}
-                                                    </div>
-                                                    <div className="flex items-center justify-between gap-3 sm:min-w-[190px] sm:justify-end">
-                                                        <p className="text-xl font-semibold text-slate-900">
-                                                            {Number(service.price) === 0 ? 'по договорённости' : `€${Number(service.price).toFixed(0)}`}
-                                                        </p>
-                                                        <Button
-                                                            onClick={() =>
-                                                                openBooking({
-                                                                    id: service.id,
-                                                                    title: service.title,
-                                                                    price: Number(service.price) === 0 ? 'по договорённости' : `€${Number(service.price).toFixed(0)}`,
-                                                                    duration_min: service.duration_min,
-                                                                })
-                                                            }
-                                                            className="min-h-[44px] h-11 rounded-xl bg-slate-900 px-4 text-white hover:bg-slate-800"
-                                                        >
-                                                            Выбрать
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                        <div key={groupTitle}>
+                                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+                                                {groupTitle}
+                                            </p>
+                                            <div className="divide-y divide-gray-100">
+                                                {groupItems.map((service) => (
+                                                    <ServiceRow
+                                                        key={service.id}
+                                                        service={service}
+                                                        onBook={() =>
+                                                            openBooking({
+                                                                id: service.id,
+                                                                title: service.title,
+                                                                price: formatPrice(service.price),
+                                                                duration_min: service.duration_min,
+                                                            })
+                                                        }
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
                             )}
                         </article>
-                    </div>
 
-                    <aside className="md:col-span-1 md:sticky md:top-24 md:self-start">
-                        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                            <h2 className="text-xl font-semibold text-slate-900">Рейтинг и отзывы</h2>
-                            <div className="mt-5 flex items-end gap-2">
-                                <p className="text-5xl font-semibold leading-none text-slate-900">{profile.averageRating.toFixed(1)}</p>
-                                <p className="pb-1 text-sm text-slate-500">{profile.reviewCount} {profile.reviewCount === 1 ? 'отзыв' : (profile.reviewCount >= 2 && profile.reviewCount <= 4) ? 'отзыва' : 'отзывов'}</p>
-                            </div>
-                            <div className="mt-5 space-y-3">
-                                {RATING_BREAKDOWN.map((item) => (
-                                    <div key={item.label}>
-                                        <div className="mb-1 flex items-center justify-between text-sm text-slate-600">
-                                            <span>{item.label}</span>
-                                            <span>{item.score.toFixed(1)}</span>
-                                        </div>
-                                        <div className="h-2 rounded-full bg-slate-100">
-                                            <div
-                                                className="h-2 rounded-full bg-slate-900"
-                                                style={{ width: `${(item.score / 5) * 100}%` }}
-                                            />
-                                        </div>
+                        {/* Sidebar */}
+                        <aside className="md:col-span-1 md:sticky md:top-6 md:self-start">
+                            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+
+                                {/* Rating headline */}
+                                <h2 className="text-base font-semibold text-gray-900">Рейтинг и отзывы</h2>
+                                <div className="mt-4 flex items-end gap-2">
+                                    <span className="text-5xl font-bold leading-none tracking-tight text-gray-900">
+                                        {profile.averageRating.toFixed(1)}
+                                    </span>
+                                    <span className="mb-1 text-xs text-gray-400">
+                                        {profile.reviewCount} {pluralReviews(profile.reviewCount)}
+                                    </span>
+                                </div>
+
+                                {/* Breakdown bars */}
+                                <div className="mt-5 space-y-3">
+                                    {RATING_BREAKDOWN.map((item) => (
+                                        <RatingBar key={item.label} label={item.label} score={item.score} />
+                                    ))}
+                                </div>
+
+                                {/* Price from */}
+                                {cheapestService ? (
+                                    <div className="mt-6 border-t border-gray-100 pt-5">
+                                        <p className="text-xs uppercase tracking-widest text-gray-400">Цена от</p>
+                                        <p className="mt-1 text-3xl font-bold text-gray-900 tabular-nums">
+                                            {formatPrice(cheapestService.price)}
+                                        </p>
                                     </div>
+                                ) : null}
+
+                                {/* Chat button */}
+                                <button
+                                    onClick={startChat}
+                                    disabled={isStartingChat}
+                                    className="mt-5 flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
+                                >
+                                    <MessageCircle className="h-4 w-4" />
+                                    {isStartingChat ? 'Открываем…' : 'Написать мастеру'}
+                                </button>
+                            </div>
+                        </aside>
+                    </div>
+                </ScrollReveal>
+
+                {/* ── Map ───────────────────────────────────────────────── */}
+                <ScrollReveal>
+                    <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h2 className="text-base font-semibold text-gray-900">Как нас найти</h2>
+                                <p className="mt-0.5 text-sm text-gray-400">{visibleAddress}</p>
+                            </div>
+                            <a
+                                href={openStreetMapUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+                            >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                Открыть в OpenStreetMap
+                            </a>
+                        </div>
+                        <div className="overflow-hidden rounded-xl">
+                            <ProfileLocationMap
+                                lat={profile.latitude}
+                                lng={profile.longitude}
+                                title={profile.name}
+                                address={visibleAddress}
+                            />
+                        </div>
+                    </section>
+                </ScrollReveal>
+
+                {/* ── Reviews ───────────────────────────────────────────── */}
+                <ScrollReveal>
+                    <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                        <h2 className="text-base font-semibold text-gray-900">Отзывы клиентов</h2>
+
+                        {profile.reviews && profile.reviews.length > 0 ? (
+                            <div className="mt-5 divide-y divide-gray-100">
+                                {profile.reviews.slice(0, 5).map((review) => (
+                                    <ReviewCard key={review.id} review={review} />
                                 ))}
                             </div>
-
-                            <div className="mt-6 rounded-2xl bg-slate-50 p-4">
-                                <p className="text-xs uppercase tracking-wide text-slate-400">Цена от</p>
-                                <p className="mt-1 text-3xl font-semibold text-slate-900">
-                                    {cheapestService
-                                        ? Number(cheapestService.price) === 0
-                                            ? 'по договорённости'
-                                            : `€${Number(cheapestService.price).toFixed(0)}`
-                                        : '—'}
+                        ) : (
+                            <div className="mt-6 flex flex-col items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 py-12 text-center">
+                                <Star className="h-8 w-8 text-gray-200" />
+                                <p className="text-sm text-gray-400">
+                                    Пока нет отзывов. Станьте первым, кто оценит работу мастера!
                                 </p>
                             </div>
-
-                            <Button
-                                onClick={startChat}
-                                disabled={isStartingChat}
-                                variant="outline"
-                                className="mt-4 min-h-[44px] h-11 w-full rounded-xl border-slate-200"
-                            >
-                                <MessageCircle className="mr-2 h-4 w-4" />
-                                {isStartingChat ? 'Открываем...' : 'Написать мастеру'}
-                            </Button>
-                        </div>
-                    </aside>
-                </section>
-
-                <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-                    <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-2xl font-semibold text-slate-900">Как нас найти</h2>
-                            <p className="mt-1 text-sm text-slate-600">{visibleAddress}</p>
-                        </div>
-                        <a
-                            href={openStreetMapUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
-                        >
-                            <Sparkles className="h-4 w-4" />
-                            Открыть в OpenStreetMap
-                        </a>
-                    </div>
-                    <ProfileLocationMap
-                        lat={profile.latitude}
-                        lng={profile.longitude}
-                        title={profile.name}
-                        address={visibleAddress}
-                    />
-                </section>
-
-                {/* Отзывы клиентов */}
-                <section className="mt-12 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-                    <h2 className="text-2xl font-semibold text-slate-900">Отзывы клиентов</h2>
-                    <div className="mt-6 space-y-4">
-                        {profile.reviews && profile.reviews.length > 0 ? (
-                            profile.reviews.slice(0, 5).map((review) => (
-                                <div
-                                    key={review.id}
-                                    className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5"
-                                >
-                                    <div className="flex flex-wrap items-center justify-between gap-2">
-                                        <span className="font-medium text-slate-900">{review.clientName}</span>
-                                        <span className="text-sm text-slate-500">
-                                            {new Date(review.createdAt).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}
-                                        </span>
-                                    </div>
-                                    <div className="mt-2 flex gap-0.5" aria-label={`Рейтинг: ${review.rating} из 5`}>
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                            <Star
-                                                key={star}
-                                                className={`h-4 w-4 ${star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
-                                            />
-                                        ))}
-                                    </div>
-                                    {review.comment ? (
-                                        <p className="mt-3 leading-relaxed text-slate-600">{review.comment}</p>
-                                    ) : null}
-                                </div>
-                            ))
-                        ) : (
-                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
-                                <Star className="mx-auto h-8 w-8 text-slate-300 mb-3" />
-                                <p className="text-slate-600">Пока нет отзывов. Станьте первым, кто оценит работу мастера!</p>
-                            </div>
                         )}
-                    </div>
-                </section>
+                    </section>
+                </ScrollReveal>
+
             </div>
 
+            {/* ── Booking modal ────────────────────────────────────────── */}
             <BookingModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -541,6 +732,65 @@ export function ProfileClient({ profile }: ProfileClientProps) {
                 initialTime={initialTime}
                 accentColor="rose"
             />
+            {/* ── Photo Lightbox Modal ────────────────────────────────────── */}
+            {selectedImageIndex !== null && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm"
+                    onClick={() => setSelectedImageIndex(null)}
+                >
+                    {/* Close Area */}
+                    <div className="absolute right-4 top-4 z-50">
+                        <button
+                            className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedImageIndex(null);
+                            }}
+                            aria-label="Закрыть галерею"
+                        >
+                            <X className="h-6 w-6" />
+                        </button>
+                    </div>
+
+                    {/* Prev / Next controls */}
+                    {coverImages.length > 1 && (
+                        <>
+                            <button
+                                className="absolute left-4 top-1/2 z-50 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-30"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedImageIndex((prev) => (prev! > 0 ? prev! - 1 : coverImages.length - 1));
+                                }}
+                                aria-label="Предыдущее фото"
+                            >
+                                <ChevronLeft className="h-8 w-8" />
+                            </button>
+                            <button
+                                className="absolute right-4 top-1/2 z-50 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-30"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedImageIndex((prev) => (prev! < coverImages.length - 1 ? prev! + 1 : 0));
+                                }}
+                                aria-label="Следующее фото"
+                            >
+                                <ChevronRight className="h-8 w-8" />
+                            </button>
+                        </>
+                    )}
+
+                    {/* Image */}
+                    <div className="relative h-full max-h-[90vh] w-full max-w-[90vw] p-4 text-center select-none" onClick={(e) => e.stopPropagation()}>
+                        <img
+                            src={coverImages.length > 0 ? coverImages[selectedImageIndex] : FALLBACK_COVER}
+                            alt="Full screen photo"
+                            className="h-full w-full object-contain pointer-events-none"
+                        />
+                        <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 text-sm text-gray-400">
+                            {selectedImageIndex + 1} / {Math.max(coverImages.length, 1)}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
