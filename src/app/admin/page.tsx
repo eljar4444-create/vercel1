@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ShieldAlert, Users, Briefcase, Activity } from 'lucide-react';
+import { ShieldAlert, Users, Briefcase, Activity, CalendarCheck, CalendarDays, CalendarX } from 'lucide-react';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getAdminData } from './actions';
@@ -49,7 +49,16 @@ export default async function AdminPage() {
         );
     }
 
-    const { totalUsers, totalServices, activeProviders, users, services } = await getAdminData();
+    const {
+        totalUsers,
+        totalServices,
+        activeProviders,
+        totalBookings,
+        completedBookings,
+        canceledBookings,
+        users,
+        services
+    } = await getAdminData();
 
     return (
         <section className="min-h-screen bg-gray-100 pb-12">
@@ -95,6 +104,43 @@ export default async function AdminPage() {
                             <div>
                                 <p className="text-sm text-gray-500">Active Providers</p>
                                 <p className="text-2xl font-bold text-gray-900">{activeProviders}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Booking Metrics Cards */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-xl bg-orange-50 p-2">
+                                <CalendarDays className="h-5 w-5 text-orange-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Всего записей</p>
+                                <p className="text-2xl font-bold text-gray-900">{totalBookings}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-xl bg-green-50 p-2">
+                                <CalendarCheck className="h-5 w-5 text-green-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Завершено</p>
+                                <p className="text-2xl font-bold text-gray-900">{completedBookings}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="rounded-xl bg-red-50 p-2">
+                                <CalendarX className="h-5 w-5 text-red-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Отменено</p>
+                                <p className="text-2xl font-bold text-gray-900">{canceledBookings}</p>
                             </div>
                         </div>
                     </div>

@@ -8,6 +8,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
 import { Inter } from 'next/font/google';
+import { cn } from "@/lib/utils";
 
 const inter = Inter({
     subsets: ['latin', 'cyrillic'],
@@ -26,7 +27,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="ru">
+        <html lang="ru" className={cn("font-sans")}>
             <body className={`${inter.variable} font-sans antialiased bg-[#F5F2EB] text-gray-900 min-h-screen flex flex-col`}>
                 <Providers>
                     <Suspense fallback={<div className="relative z-50 h-16 border-b border-slate-200 bg-[#F5F2EB]" />}>

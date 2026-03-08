@@ -64,11 +64,41 @@ export async function getAdminData() {
     await checkAdmin();
 
     try {
-        const [totalUsers, totalServices, users, services, activeProviders] = await Promise.all([
+        const [
+            totalUsers,
+            totalServices,
+            activeProviders,
+            totalBookings,
+            completedBookings,
+            canceledBookings,
+            users,
+            services,
+        ] = await Promise.all([
             prisma.user.count(),
             prisma.service.count(),
+            prisma.profile.count(),
+            prisma.booking.count(),
+            prisma.booking.count({ where: { status: "completed" } }),
+            prisma.booking.count({ where: { status: "canceled" } }),
             prisma.user.findMany({
                 orderBy: { createdAt: "desc" },
+                include: {
+                    _count: {
+                        select: {
+                            bookings: true, // Bookings as a client
+                        }
+                    },
+                    profile: {
+                        include: {
+                            _count: {
+                                select: {
+                                    services: true, // Services this master created
+                                    bookings: true, // Bookings they received as a master
+                                }
+                            }
+                        }
+                    }
+                }
             }),
             prisma.service.findMany({
                 include: {
@@ -85,6 +115,9 @@ export async function getAdminData() {
             totalUsers,
             totalServices,
             activeProviders,
+            totalBookings,
+            completedBookings,
+            canceledBookings,
             users,
             services,
         };
