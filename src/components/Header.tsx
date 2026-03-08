@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { signOut } from 'next-auth/react';
-import { AvatarDropdown, getRoleLabel, getRoleMenuLinks } from '@/components/AvatarDropdown';
+import { AvatarDropdown, getRoleLabel } from '@/components/AvatarDropdown';
 import { Menu, X, MessageCircle, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -45,12 +45,7 @@ export function Header() {
             .join('')
             .slice(0, 2)
             .toUpperCase() || 'U';
-    const mobileRoleLinks = user
-        ? getRoleMenuLinks({
-            role: user.role,
-            profileId: user.profileId,
-        })
-        : [];
+
 
     if (isAuthPage) return null;
 
@@ -81,6 +76,7 @@ export function Header() {
                             categoryFilter={typeof searchParams.get('category') === 'string' ? searchParams.get('category') || undefined : undefined}
                             queryFilter={typeof searchParams.get('q') === 'string' ? searchParams.get('q') || undefined : undefined}
                             cityFilter={typeof searchParams.get('city') === 'string' ? searchParams.get('city') || undefined : undefined}
+                            radiusFilter={typeof searchParams.get('radius') === 'string' ? searchParams.get('radius') || undefined : undefined}
                         />
                     </div>
                 ) : null}
@@ -193,16 +189,40 @@ export function Header() {
                                     </Badge>
                                 </div>
 
-                                {mobileRoleLinks.map((link) => (
+                                {user.role === 'ADMIN' && (
                                     <Link
-                                        key={`mobile-${link.href}-${link.label}`}
-                                        href={link.href}
+                                        href="/admin"
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                     >
-                                        {link.label}
+                                        Панель управления
                                     </Link>
-                                ))}
+                                )}
+                                {(user.role === 'PROVIDER' || user.role === 'ADMIN') && user.profileId && (
+                                    <Link
+                                        href={`/dashboard/${user.profileId}`}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Кабинет мастера
+                                    </Link>
+                                )}
+                                {user.role === 'CLIENT' && (
+                                    <Link
+                                        href="/dashboard"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Мой кабинет
+                                    </Link>
+                                )}
+                                <Link
+                                    href="/account/settings"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                >
+                                    Настройки аккаунта
+                                </Link>
 
                                 <button
                                     type="button"

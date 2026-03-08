@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,6 +26,8 @@ interface AccountSettingsViewProps {
 }
 
 export function AccountSettingsView({ user }: AccountSettingsViewProps) {
+    const { update: updateSession } = useSession();
+
     const sections = useMemo(
         () => [
             { id: 'profile', label: 'Мой профиль', icon: UserIcon },
@@ -40,6 +42,7 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
     const [bio, setBio] = useState(user.bio || '');
     const [phone, setPhone] = useState(user.phone || '');
     const [isSaving, setIsSaving] = useState(false);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(user.image);
     const [notifications, setNotifications] = useState({
         reminders: true,
         chat: true,
@@ -51,6 +54,13 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const router = useRouter();
+
+    const initials = user.name
+        ?.split(' ')
+        .map((part) => part[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase() || 'U';
 
     useEffect(() => {
         const storageKey = `client-phone:${user.id}`;
@@ -83,14 +93,28 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
     async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files?.[0]) return;
 
+        const file = e.target.files[0];
+        // Instant preview
+        setAvatarPreview(URL.createObjectURL(file));
+
         const formData = new FormData();
-        formData.append('photo', e.target.files[0]);
+        formData.append('photo', file);
 
         try {
-            await uploadProfilePhoto(formData);
+            const result = await uploadProfilePhoto(formData);
             toast.success('Фото обновлено');
+
+            // Update local preview with permanent URL
+            if (result.imageUrl) {
+                setAvatarPreview(result.imageUrl);
+            }
+
+            // Sync NextAuth session so Header avatar updates immediately
+            await updateSession({ image: result.imageUrl });
             router.refresh();
         } catch {
+            // Revert preview on error
+            setAvatarPreview(user.image);
             toast.error('Ошибка загрузки фото');
         }
     }
@@ -182,8 +206,8 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                     type="button"
                                     onClick={() => setActiveSection(section.id)}
                                     className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm transition ${isActive
-                                            ? 'bg-gray-900 text-white shadow-sm'
-                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                        ? 'bg-gray-900 text-white shadow-sm'
+                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                         }`}
                                 >
                                     <Icon className="h-4 w-4" />
@@ -200,13 +224,15 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                             <div className="rounded-3xl border border-gray-100 bg-white p-6 text-center shadow-sm">
                                 <div className="relative mx-auto mb-4 h-28 w-28">
                                     <div className="h-full w-full overflow-hidden rounded-full border-4 border-orange-50 bg-gray-100">
-                                        {user.image ? (
-                                            <img src={user.image} alt={user.name || 'User'} className="h-full w-full object-cover" />
+                                        {avatarPreview ? (
+                                            <img src={avatarPreview} alt={user.name || 'User'} className="h-full w-full object-cover" />
                                         ) : (
-                                            <div className="flex h-full w-full items-center justify-center text-4xl">👋</div>
+                                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 text-2xl font-bold text-gray-600">
+                                                {initials}
+                                            </div>
                                         )}
                                     </div>
-                                    <label className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-blue-600 p-2 text-white shadow-lg transition hover:bg-blue-700">
+                                    <label className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-gray-900 p-2 text-white shadow-lg transition hover:bg-gray-800">
                                         <Camera className="h-4 w-4" />
                                         <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                                     </label>

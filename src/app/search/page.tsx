@@ -70,6 +70,9 @@ export default async function SearchPage({
     const radiusParam = typeof searchParams.radius === 'string' ? parseInt(searchParams.radius, 10) : 50;
     const radiusKm = isNaN(radiusParam) || radiusParam <= 0 ? 50 : radiusParam;
 
+    const urlLat = typeof searchParams.lat === 'string' ? parseFloat(searchParams.lat) : undefined;
+    const urlLng = typeof searchParams.lng === 'string' ? parseFloat(searchParams.lng) : undefined;
+
     const andConditions: any[] = [{ is_verified: true }, { category: { slug: { not: 'health' } } }];
 
     if (categoryFilter && categoryFilter !== 'health') {
@@ -80,9 +83,18 @@ export default async function SearchPage({
     let geoCenter: { lat: number; lng: number } | null = null;
     let geoProfileIds: number[] | null = null;
 
-    if (cityFilter) {
-        // Try to geocode the search city for radius search
-        const coords = await geocodeCity(cityFilter);
+    if (cityFilter || (urlLat && urlLng)) {
+        let coords: { lat: number; lng: number } | null = null;
+
+        // 1. Prioritize precise lat/lng from URL provided by frontend Nominatim request
+        if (urlLat !== undefined && urlLng !== undefined && !isNaN(urlLat) && !isNaN(urlLng)) {
+            coords = { lat: urlLat, lng: urlLng };
+        }
+        // 2. Fallback to server-side geocode if only city string is provided
+        else if (cityFilter) {
+            coords = await geocodeCity(cityFilter);
+        }
+
         if (coords) {
             geoCenter = coords;
 
@@ -124,7 +136,7 @@ export default async function SearchPage({
             } else {
                 andConditions.push({ id: { in: geoProfileIds } });
             }
-        } else {
+        } else if (cityFilter) {
             // Fallback: old city string matching
             const cityVariants = getCityFilterVariants(cityFilter);
             andConditions.push({
@@ -176,18 +188,14 @@ export default async function SearchPage({
     }
 
     const mapMarkers = profiles.map((profile) => {
-        // Prefer real lat/lng from Profile, fall back to city lookup
-        const hasCoords = profile.latitude != null && profile.longitude != null;
-        const coords = hasCoords
-            ? { lat: profile.latitude as number, lng: profile.longitude as number }
-            : resolveCityCoordinates(profile.city || '');
         return {
             id: profile.id,
             name: profile.name,
+            provider_type: profile.provider_type,
             city: profile.city,
-            address: profile.address,
-            lat: coords.lat,
-            lng: coords.lng,
+            address: profile.provider_type === 'SALON' ? profile.address : null,
+            lat: profile.latitude, // Can be null
+            lng: profile.longitude, // Can be null
             image: profile.image_url,
             slug: profile.slug,
         };
@@ -202,7 +210,7 @@ export default async function SearchPage({
         name: profile.name,
         provider_type: profile.provider_type,
         city: profile.city,
-        address: profile.address,
+        address: profile.provider_type === 'SALON' ? profile.address : null,
         image_url: profile.image_url,
         services: (profile.services || []).map((service: any) => ({
             id: service.id,
@@ -240,6 +248,12 @@ export default async function SearchPage({
                                         if (queryFilter) params.set('q', queryFilter);
                                     } else if (cityFilter) {
                                         params.set('city', cityFilter);
+                                    }
+
+                                    // Preserve explicit coordinates across filter clicks
+                                    if (urlLat && urlLng) {
+                                        params.set('lat', urlLat.toString());
+                                        params.set('lng', urlLng.toString());
                                     }
 
                                     if (filter === 'Рядом со мной') {

@@ -146,43 +146,35 @@ export default async function DashboardPage({
         {
             label: 'Всего записей',
             value: totalBookings,
+            trend: 'За всё время работы',
+            trendType: 'neutral' as const,
             icon: TrendingUp,
-            iconBg: 'bg-blue-50',
-            iconColor: 'text-blue-600',
-            accent: 'border-t-blue-500',
-            valueColor: 'text-blue-700',
         },
         {
-            label: 'Ожидают',
+            label: 'Ожидают подтверждения',
             value: pendingCount,
+            trend: pendingCount > 0 ? 'Требуют вашего ответа' : 'Нет новых запросов',
+            trendType: pendingCount > 0 ? ('warn' as const) : ('neutral' as const),
             icon: Clock,
-            iconBg: 'bg-amber-50',
-            iconColor: 'text-amber-600',
-            accent: 'border-t-amber-400',
-            valueColor: 'text-amber-700',
         },
         {
-            label: 'Подтверждены',
+            label: 'Подтверждено',
             value: confirmedCount,
+            trend: completedCount > 0 ? `${completedCount} завершено` : 'Активных записей',
+            trendType: 'positive' as const,
             icon: CheckCircle,
-            iconBg: 'bg-emerald-50',
-            iconColor: 'text-emerald-600',
-            accent: 'border-t-emerald-500',
-            valueColor: 'text-emerald-700',
         },
         {
-            label: 'Отменены',
+            label: 'Отменено',
             value: cancelledCount,
+            trend: cancelledCount === 0 ? 'Отлично — держите так' : 'Старайтесь снизить',
+            trendType: cancelledCount === 0 ? ('positive' as const) : ('warn' as const),
             icon: XCircle,
-            iconBg: 'bg-rose-50',
-            iconColor: 'text-rose-500',
-            accent: 'border-t-rose-400',
-            valueColor: 'text-rose-600',
         },
     ];
 
     return (
-        <div className="relative min-h-screen bg-[#f5f0e8]">
+        <div className="relative min-h-screen bg-slate-50">
             <div className="relative mx-auto flex w-full max-w-7xl gap-5 px-3 pb-24 pt-5 sm:px-4 md:pb-10">
 
                 {/* ── Main Content ─────────────────────────────────────── */}
@@ -200,125 +192,147 @@ export default async function DashboardPage({
                     {/* ── Hero / Profile Card + KPI + Setup (только не на вкладке Статистика) ─────────────────────────── */}
                     {currentSection !== 'analytics' && (
                         <>
-                    {/* ── Hero / Profile Card ─────────────────────────── */}
-                    <div className="relative overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-[0_4px_24px_rgba(15,23,42,0.07)]">
-                        {/* Left accent bar */}
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-violet-500 via-indigo-500 to-blue-400" />
-
-                        <div className="flex flex-col gap-4 p-5 pl-7 sm:flex-row sm:items-center sm:justify-between sm:p-6 sm:pl-8">
-                            <div className="flex items-center gap-4">
-                                <AvatarUpload
-                                    profileId={profileId}
-                                    profileName={profile.name}
-                                    currentImageUrl={profile.image_url}
-                                />
-                                <div>
-                                    <p className="text-xs font-medium text-stone-400 mb-0.5">Привет, {firstName} 👋</p>
-                                    <h1 className="text-lg font-bold text-slate-900 leading-tight">
-                                        {profile.name}
-                                    </h1>
-                                    {profile.category && (
-                                        <p className="text-sm text-stone-400 mt-0.5">{profile.category.name}</p>
-                                    )}
-                                    <div className="mt-2">
-                                        {isProfileVerified ? (
-                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                                                <ShieldCheck className="h-3 w-3" />
-                                                Профиль активен
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                                                <AlertCircle className="h-3 w-3" />
-                                                Ожидает проверки
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <Link
-                                href={`/salon/${profile?.slug}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 self-start rounded-xl border border-stone-200 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-white hover:border-stone-300 hover:shadow-sm sm:self-auto"
-                            >
-                                <Eye className="h-4 w-4" />
-                                Посмотреть профиль
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* ── KPI Cards (только на вкладке Записи) ────────────────────────────────────── */}
-                    {currentSection === 'bookings' && (
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                        {kpiCards.map((card) => {
-                            const Icon = card.icon;
-                            return (
-                                <div
-                                    key={card.label}
-                                    className={`rounded-2xl border border-stone-200/70 bg-white shadow-sm overflow-hidden border-t-2 ${card.accent}`}
-                                >
-                                    <div className="p-4">
-                                        <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${card.iconBg}`}>
-                                            <Icon className={`h-4.5 w-4.5 ${card.iconColor}`} style={{ width: '18px', height: '18px' }} />
+                            {/* ── Hero / Profile Card ─────────────────────────── */}
+                            <div className="relative overflow-hidden bg-white border border-slate-100 rounded-2xl shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_28px_rgba(15,23,42,0.07)]">
+                                {/* Hairline gradient top border for depth */}
+                                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+                                <div className="p-7">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+                                        {/* Left: Avatar ring + Info */}
+                                        <div className="flex items-center gap-5">
+                                            {/* Outer ring wrapper */}
+                                            <div className="shrink-0 p-[3px] rounded-full border-2 border-slate-200 shadow-sm bg-white">
+                                                <AvatarUpload
+                                                    profileId={profileId}
+                                                    profileName={profile.name}
+                                                    currentImageUrl={profile.image_url}
+                                                />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight tracking-tight">
+                                                    {profile.name}
+                                                </h1>
+                                                {profile.category && (
+                                                    <p className="mt-0.5 text-sm font-medium text-slate-400">{profile.category.name}</p>
+                                                )}
+                                                <div className="mt-2.5">
+                                                    {isProfileVerified ? (
+                                                        <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                                            <ShieldCheck className="h-3 w-3" />
+                                                            Активен
+                                                        </span>
+                                                    ) : (
+                                                        <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                                            <AlertCircle className="h-3 w-3" />
+                                                            На проверке
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <p className={`text-2xl font-bold ${card.valueColor}`}>{card.value}</p>
-                                        <p className="mt-0.5 text-xs font-medium text-stone-400">{card.label}</p>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    )}
 
-                    {/* ── Setup Progress ───────────────────────────────── */}
-                    {(!hasServices || !hasScheduleConfigured) && (
-                        <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-sm">
-                            <div className="flex items-start gap-4">
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-indigo-100">
-                                    <ListChecks className="h-5 w-5 text-violet-600" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between gap-2">
-                                        <h2 className="text-sm font-semibold text-slate-900">Ваш прогресс</h2>
-                                        <span className="text-xs font-semibold text-stone-400">{setupProgressPercent}% готово</span>
-                                    </div>
-                                    <div className="mt-2 h-1.5 w-full rounded-full bg-stone-100">
-                                        <div
-                                            className="h-1.5 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500"
-                                            style={{ width: `${setupProgressPercent}%` }}
-                                        />
-                                    </div>
-                                    <div className="mt-3 space-y-1.5 text-sm">
-                                        <Link
-                                            href={`/dashboard/${profileId}?section=services`}
-                                            className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${hasServices
-                                                ? 'text-emerald-700'
-                                                : 'text-slate-600 hover:bg-stone-50'
-                                                }`}
-                                        >
-                                            <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${hasServices ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
-                                                {hasServices ? '✓' : '1'}
-                                            </span>
-                                            Добавьте услуги
-                                        </Link>
-                                        <Link
-                                            href={`/dashboard/${profileId}?section=schedule`}
-                                            className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${hasScheduleConfigured
-                                                ? 'text-emerald-700'
-                                                : 'text-slate-600 hover:bg-stone-50'
-                                                }`}
-                                        >
-                                            <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${hasScheduleConfigured ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
-                                                {hasScheduleConfigured ? '✓' : '2'}
-                                            </span>
-                                            Укажите рабочие часы
-                                        </Link>
+                                        {/* Right: CTA Button */}
+                                        <div className="shrink-0">
+                                            <Link
+                                                href={`/salon/${profile?.slug}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-2 bg-slate-900 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-slate-800 active:bg-slate-950 transition-colors shadow-sm"
+                                            >
+                                                <Eye className="h-4 w-4" />
+                                                Посмотреть профиль
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+
+                            {/* ── KPI Cards (только на вкладке Записи) ────────────────────────────────────── */}
+                            {currentSection === 'bookings' && (
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                    {kpiCards.map((card) => {
+                                        const Icon = card.icon;
+                                        const trendCls =
+                                            card.trendType === 'positive'
+                                                ? 'text-emerald-600'
+                                                : card.trendType === 'warn'
+                                                    ? 'text-amber-600'
+                                                    : 'text-slate-400';
+                                        return (
+                                            <div
+                                                key={card.label}
+                                                className="bg-white border border-slate-100 rounded-2xl p-5 sm:p-6 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_4px_16px_rgba(15,23,42,0.06)] flex flex-col justify-between gap-4"
+                                            >
+                                                {/* Top row: icon + label */}
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 leading-none">
+                                                        {card.label}
+                                                    </p>
+                                                    <Icon className="h-3.5 w-3.5 text-slate-300 shrink-0" />
+                                                </div>
+                                                {/* Bottom: number + trend */}
+                                                <div>
+                                                    <p className="text-4xl sm:text-5xl font-bold text-slate-900 leading-none tabular-nums">
+                                                        {card.value}
+                                                    </p>
+                                                    <p className={`mt-2 text-[11px] font-medium ${trendCls}`}>
+                                                        {card.trend}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* ── Setup Progress ───────────────────────────────── */}
+                            {(!hasServices || !hasScheduleConfigured) && (
+                                <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-sm">
+                                    <div className="flex items-start gap-4">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-indigo-100">
+                                            <ListChecks className="h-5 w-5 text-violet-600" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <h2 className="text-sm font-semibold text-slate-900">Ваш прогресс</h2>
+                                                <span className="text-xs font-semibold text-stone-400">{setupProgressPercent}% готово</span>
+                                            </div>
+                                            <div className="mt-2 h-1.5 w-full rounded-full bg-stone-100">
+                                                <div
+                                                    className="h-1.5 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500"
+                                                    style={{ width: `${setupProgressPercent}%` }}
+                                                />
+                                            </div>
+                                            <div className="mt-3 space-y-1.5 text-sm">
+                                                <Link
+                                                    href={`/dashboard/${profileId}?section=services`}
+                                                    className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${hasServices
+                                                        ? 'text-emerald-700'
+                                                        : 'text-slate-600 hover:bg-stone-50'
+                                                        }`}
+                                                >
+                                                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${hasServices ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
+                                                        {hasServices ? '✓' : '1'}
+                                                    </span>
+                                                    Добавьте услуги
+                                                </Link>
+                                                <Link
+                                                    href={`/dashboard/${profileId}?section=schedule`}
+                                                    className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${hasScheduleConfigured
+                                                        ? 'text-emerald-700'
+                                                        : 'text-slate-600 hover:bg-stone-50'
+                                                        }`}
+                                                >
+                                                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${hasScheduleConfigured ? 'bg-emerald-100 text-emerald-700' : 'bg-stone-100 text-stone-500'}`}>
+                                                        {hasScheduleConfigured ? '✓' : '2'}
+                                                    </span>
+                                                    Укажите рабочие часы
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                         </>
                     )}

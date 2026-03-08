@@ -110,10 +110,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                             ...(email ? [{ user_email: email }] : []),
                         ],
                     },
-                    select: { id: true },
+                    select: { id: true, image_url: true },
                 });
 
                 token.profileId = profile?.id ?? null;
+
+                // Use profile image as fallback when user has no avatar
+                if (!token.picture && profile?.image_url) {
+                    token.picture = profile.image_url;
+                }
             };
 
             // Initial sign in

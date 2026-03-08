@@ -31,12 +31,28 @@ export default async function AccountSettingsPage() {
         redirect('/auth/login');
     }
 
+    // Use profile image as fallback when user has no avatar
+    let resolvedImage = user.image;
+    if (!resolvedImage) {
+        const profile = await prisma.profile.findFirst({
+            where: {
+                OR: [
+                    { user_id: session.user.id },
+                    ...(session.user.email ? [{ user_email: session.user.email }] : []),
+                ],
+            },
+            select: { image_url: true },
+        });
+        resolvedImage = profile?.image_url ?? null;
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 pb-12 pt-24">
             <div className="container mx-auto max-w-4xl px-4">
                 <AccountSettingsView
                     user={{
                         ...user,
+                        image: resolvedImage,
                         phone: latestPhoneBooking?.user_phone ?? null,
                     }}
                 />

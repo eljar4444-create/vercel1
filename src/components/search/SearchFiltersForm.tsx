@@ -3,31 +3,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, LocateFixed, MapPin, Search } from 'lucide-react';
+import {
+    SelectRoot, SelectTrigger, SelectValue,
+    SelectContent, SelectItem,
+} from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
-import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
+import { POPULAR_SERVICES, TOP_CATEGORIES, resolveGermanCity } from '@/constants/searchSuggestions';
+import { GERMAN_CITIES } from '@/constants/germanCities';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useLocalStorageSearch } from '@/hooks/useLocalStorageSearch';
 
-// ── Top categories ───────────────────────────────────────────────────
-const TOP_CATEGORIES = [
-    { label: 'Стрижка и укладка',  icon: '✂️' },
-    { label: 'Маникюр и педикюр',  icon: '💅' },
-    { label: 'Эпиляция',           icon: '🪒' },
-    { label: 'Брови и ресницы',    icon: '👁️' },
-    { label: 'Косметология',       icon: '🧖' },
-    { label: 'Массаж',             icon: '💆' },
-    { label: 'Макияж',             icon: '💄' },
-    { label: 'Барбершоп',          icon: '💈' },
-    { label: 'Спа и велнес',       icon: '🛁' },
-    { label: 'Здоровье',           icon: '🌿' },
-    { label: 'Тату и пирсинг',     icon: '🎨' },
-];
+export interface NominatimSuggestion {
+    display_name: string;
+    lat: string;
+    lon: string;
+}
 
 interface SearchFiltersFormProps {
     categoryFilter?: string;
     queryFilter?: string;
     cityFilter?: string;
+    radiusFilter?: string;
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -37,22 +34,26 @@ export function SearchFiltersForm({
     categoryFilter,
     queryFilter = '',
     cityFilter = '',
+    radiusFilter = '10',
 }: SearchFiltersFormProps) {
     const router = useRouter();
-    const wrapperRef      = useRef<HTMLDivElement>(null);
+    const wrapperRef = useRef<HTMLDivElement>(null);
     const serviceInputRef = useRef<HTMLInputElement>(null);
-    const cityInputRef    = useRef<HTMLInputElement>(null);
+    const cityInputRef = useRef<HTMLInputElement>(null);
     const { getStored, setStored } = useLocalStorageSearch();
 
-    const [query,        setQuery]        = useState(queryFilter);
-    const [city,         setCity]         = useState(cityFilter);
-    const [isExpanded,   setIsExpanded]   = useState(false);
+    const [query, setQuery] = useState(queryFilter);
+    const [city, setCity] = useState(cityFilter);
+    const [radius, setRadius] = useState(radiusFilter);
+    const [isExpanded, setIsExpanded] = useState(false);
     const [queryFocused, setQueryFocused] = useState(false);
-    const [cityOpen,     setCityOpen]     = useState(false);
+    const [cityOpen, setCityOpen] = useState(false);
     const [isGeoLoading, setIsGeoLoading] = useState(false);
 
     const debouncedQuery = useDebounce(query.trim(), 300);
-    const debouncedCity  = useDebounce(city.trim(),  300);
+    const debouncedCity = useDebounce(city, 500);
+
+    const [citySuggestions, setCitySuggestions] = useState<NominatimSuggestion[]>([]);
 
     // ── Suggestions ──────────────────────────────────────────────────
     const filteredServices = useMemo(() => {
@@ -67,7 +68,34 @@ export function SearchFiltersForm({
         return TOP_CATEGORIES.filter((c) => c.label.toLowerCase().includes(q));
     }, [query]);
 
-    const filteredCities = useMemo(() => getGermanCitySuggestions(city, 10), [city]);
+    // Filter Local City Suggestions
+    useEffect(() => {
+        const query = debouncedCity.trim().toLowerCase();
+        if (query.length < 2) {
+            setCitySuggestions([]);
+            return;
+        }
+
+        type CityData = { importance: number; lat: string; lon: string; display_name: string };
+        type CityObj = { names: string[]; data: CityData };
+
+        const matches = GERMAN_CITIES.filter((cityObj: CityObj) => {
+            return cityObj.names.some((name: string) => name.toLowerCase().includes(query));
+        });
+
+        // Sort by importance (higher is better) and take top 5
+        const topMatches = matches
+            .sort((a: CityObj, b: CityObj) => b.data.importance - a.data.importance)
+            .slice(0, 5);
+
+        const mappedSuggestions = topMatches.map((match: CityObj) => ({
+            display_name: match.data.display_name,
+            lat: match.data.lat,
+            lon: match.data.lon,
+        }));
+
+        setCitySuggestions(mappedSuggestions);
+    }, [debouncedCity]);
 
     // ── Collapse on outside click ────────────────────────────────────
     useEffect(() => {
@@ -86,11 +114,11 @@ export function SearchFiltersForm({
     useEffect(() => {
         setQuery(queryFilter);
         setCity(cityFilter);
-    }, [queryFilter, cityFilter]);
+        setRadius(radiusFilter);
+    }, [queryFilter, cityFilter, radiusFilter]);
 
     // ── Restore from localStorage ─────────────────────────────────────
     useEffect(() => {
-        if (typeof window === 'undefined') return;
         const hasUrlParams = Boolean(queryFilter.trim() || (cityFilter && resolveGermanCity(cityFilter)));
         if (hasUrlParams) {
             setStored(resolveGermanCity(cityFilter) || cityFilter, queryFilter.trim());
@@ -102,29 +130,24 @@ export function SearchFiltersForm({
         if (categoryFilter) params.set('category', categoryFilter);
         if (stored.query.trim()) params.set('q', stored.query.trim());
         if (stored.city) params.set('city', stored.city);
+        if (radiusFilter !== '10' && radiusFilter) params.set('radius', radiusFilter);
         router.replace(`/search${params.toString() ? `?${params.toString()}` : ''}`);
-    }, [categoryFilter, queryFilter, cityFilter, router, getStored, setStored]);
+    }, [categoryFilter, queryFilter, cityFilter, radiusFilter, router, getStored, setStored]);
 
-    // ── Auto-search on debounced change ──────────────────────────────
-    useEffect(() => {
-        const normalizedCity = resolveGermanCity(debouncedCity) || debouncedCity;
-        const currentCity    = resolveGermanCity(cityFilter)     || cityFilter;
-        if (debouncedQuery === queryFilter && normalizedCity === currentCity) return;
-        const params = new URLSearchParams();
-        if (categoryFilter) params.set('category', categoryFilter);
-        if (debouncedQuery) params.set('q', debouncedQuery);
-        if (normalizedCity) params.set('city', normalizedCity);
-        setStored(normalizedCity, debouncedQuery);
-        router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
-    }, [debouncedQuery, debouncedCity, categoryFilter, queryFilter, cityFilter, router]); // eslint-disable-line react-hooks/exhaustive-deps
+    // (Removed aggressive auto-search on debounced change)
 
     // ── Helpers ──────────────────────────────────────────────────────
-    const navigate = (q: string, c: string) => {
+    const navigate = (q: string, c: string, r: string, lat?: string | null, lng?: string | null) => {
         const params = new URLSearchParams();
         if (categoryFilter) params.set('category', categoryFilter);
         if (q.trim()) params.set('q', q.trim());
         const nc = resolveGermanCity(c.trim()) || c.trim();
         if (nc) params.set('city', nc);
+        if (r && r !== '10') params.set('radius', r);
+        if (lat && lng) {
+            params.set('lat', lat);
+            params.set('lng', lng);
+        }
         setStored(nc, q.trim());
         router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
         setIsExpanded(false);
@@ -134,7 +157,7 @@ export function SearchFiltersForm({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        navigate(query, city);
+        navigate(query, city, radius);
     };
 
     const handleExpand = (focusField: 'query' | 'city' = 'query') => {
@@ -154,7 +177,7 @@ export function SearchFiltersForm({
         const next = label === 'Все услуги' ? '' : label;
         setQuery(next);
         setQueryFocused(false);
-        navigate(next, city);
+        navigate(next, city, radius);
     };
 
     const handleGeo = async () => {
@@ -197,7 +220,7 @@ export function SearchFiltersForm({
     };
 
     const showServiceDropdown = isExpanded && queryFocused;
-    const showCityDropdown    = isExpanded && cityOpen && filteredCities.length > 0;
+    const showCityDropdown = isExpanded && cityOpen && citySuggestions.length > 0;
 
     // ─────────────────────────────────────────────────────────────────
     return (
@@ -310,6 +333,28 @@ export function SearchFiltersForm({
                         </button>
                     </div>
 
+                    {/* ── Radius segment ──────────────────────────── */}
+                    <div className="relative flex w-24 shrink-0 items-center justify-center border-r border-gray-200 h-full">
+                        <SelectRoot
+                            value={radius}
+                            onValueChange={(val) => {
+                                setRadius(val);
+                                navigate(query, city, val);
+                            }}
+                        >
+                            <SelectTrigger aria-label="Радиус поиска" className="px-3 text-sm">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="2">+ 2 км</SelectItem>
+                                <SelectItem value="5">+ 5 км</SelectItem>
+                                <SelectItem value="10">+ 10 км</SelectItem>
+                                <SelectItem value="20">+ 20 км</SelectItem>
+                                <SelectItem value="50">+ 50 км</SelectItem>
+                            </SelectContent>
+                        </SelectRoot>
+                    </div>
+
                     {/* ── Search / Submit button ────────────────── */}
                     {/*
                      * Morphs from a 36×36 circle (icon only)
@@ -319,7 +364,7 @@ export function SearchFiltersForm({
                         type={isExpanded ? 'submit' : 'button'}
                         aria-label="Найти"
                         onClick={!isExpanded
-                            ? (e) => { e.stopPropagation(); navigate(query, city); }
+                            ? (e) => { e.stopPropagation(); navigate(query, city, radius); }
                             : undefined
                         }
                         className={cn(
@@ -351,92 +396,148 @@ export function SearchFiltersForm({
 
             {/* ══ SERVICE / CATEGORIES DROPDOWN ═══════════════════════ */}
             {showServiceDropdown && (
-                <div className="absolute left-0 top-full z-50 mt-2 w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl">
-                    {/* "Все услуги" row */}
-                    <button
-                        type="button"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => handleSelectCategory('Все услуги')}
-                        className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-sm font-medium text-gray-800 transition-colors hover:bg-gray-50"
-                    >
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50">
-                            <Search className="h-4 w-4 text-violet-500" />
-                        </span>
-                        Все услуги
-                    </button>
-
-                    {/* When user typed → show matching services */}
-                    {filteredServices.length > 0 && (
-                        <ul className="max-h-56 overflow-y-auto py-1">
-                            {filteredServices.map((item) => (
-                                <li key={item}>
-                                    <button
-                                        type="button"
-                                        onMouseDown={(e) => e.preventDefault()}
-                                        onClick={() => { setQuery(item); setQueryFocused(false); }}
-                                        className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                                    >
-                                        <Search className="h-4 w-4 shrink-0 text-gray-400" />
-                                        {item}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-
-                    {/* When empty → show top categories */}
-                    {filteredServices.length === 0 && (
-                        <>
-                            <div className="px-4 pb-1.5 pt-3">
-                                <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                                    Топ-категории
-                                </p>
-                            </div>
-                            <ul className="max-h-72 overflow-y-auto pb-2">
-                                {filteredCategories.map((cat) => (
-                                    <li key={cat.label}>
-                                        <button
-                                            type="button"
-                                            onMouseDown={(e) => e.preventDefault()}
-                                            onClick={() => handleSelectCategory(cat.label)}
-                                            className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                                        >
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-base leading-none">
-                                                {cat.icon}
-                                            </span>
-                                            {cat.label}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </>
-                    )}
-                </div>
+                <ServiceDropdown
+                    filteredServices={filteredServices}
+                    filteredCategories={filteredCategories}
+                    onSelectCategory={handleSelectCategory}
+                    onSelectService={(item) => {
+                        setQuery(item);
+                        setQueryFocused(false);
+                    }}
+                />
             )}
 
             {/* ══ CITY DROPDOWN ════════════════════════════════════════ */}
             {showCityDropdown && (
-                <div
-                    className="absolute top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl"
-                    style={{ left: 'calc(100% - 256px - 104px)' }} /* align under city field */
-                >
-                    <ul className="max-h-56 overflow-y-auto py-1">
-                        {filteredCities.map((item) => (
-                            <li key={item}>
+                <CityDropdown
+                    citySuggestions={citySuggestions}
+                    onSelectCity={(shortLabel, item) => {
+                        setCity(shortLabel);
+                        setCityOpen(false);
+                        navigate(query, shortLabel, radius, item.lat, item.lon);
+                    }}
+                />
+            )}
+        </div>
+    );
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// Sub-components
+// ═══════════════════════════════════════════════════════════════════════
+
+interface ServiceDropdownProps {
+    filteredServices: string[];
+    filteredCategories: typeof TOP_CATEGORIES;
+    onSelectCategory: (label: string) => void;
+    onSelectService: (item: string) => void;
+}
+
+function ServiceDropdown({
+    filteredServices,
+    filteredCategories,
+    onSelectCategory,
+    onSelectService,
+}: ServiceDropdownProps) {
+    return (
+        <div className="absolute left-0 top-full z-[70] mt-2 w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl antialiased transform-gpu">
+            {/* "Все услуги" row */}
+            <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => onSelectCategory('Все услуги')}
+                className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-sm font-medium text-gray-800 transition-colors hover:bg-gray-50"
+            >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50">
+                    <Search className="h-4 w-4 text-violet-500" />
+                </span>
+                Все услуги
+            </button>
+
+            {/* When user typed → show matching services */}
+            {filteredServices.length > 0 && (
+                <ul className="max-h-56 overflow-y-auto py-1">
+                    {filteredServices.map((item) => (
+                        <li key={item}>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => onSelectService(item)}
+                                className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                            >
+                                <Search className="h-4 w-4 shrink-0 text-gray-400" />
+                                {item}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            {/* When empty → show top categories */}
+            {filteredServices.length === 0 && (
+                <>
+                    <div className="px-4 pb-1.5 pt-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                            Топ-категории
+                        </p>
+                    </div>
+                    <ul className="max-h-72 overflow-y-auto pb-2">
+                        {filteredCategories.map((cat) => (
+                            <li key={cat.label}>
                                 <button
                                     type="button"
                                     onMouseDown={(e) => e.preventDefault()}
-                                    onClick={() => { setCity(item); setCityOpen(false); }}
-                                    className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                                    onClick={() => onSelectCategory(cat.label)}
+                                    className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
                                 >
-                                    <MapPin className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                                    {item}
+                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-base leading-none">
+                                        {cat.icon}
+                                    </span>
+                                    {cat.label}
                                 </button>
                             </li>
                         ))}
                     </ul>
-                </div>
+                </>
             )}
+        </div>
+    );
+}
+
+interface CityDropdownProps {
+    citySuggestions: NominatimSuggestion[];
+    onSelectCity: (shortLabel: string, item: NominatimSuggestion) => void;
+}
+
+function CityDropdown({ citySuggestions, onSelectCity }: CityDropdownProps) {
+    return (
+        <div
+            className="absolute top-full z-[70] mt-2 w-64 md:w-80 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl antialiased transform-gpu"
+            style={{ left: 'calc(100% - 256px - 104px)' }} /* align under city field */
+        >
+            <ul className="max-h-56 overflow-y-auto py-1">
+                {citySuggestions.map((item, idx) => {
+                    const parts = item.display_name.split(', ');
+                    const shortLabel = parts.slice(0, 2).join(', ');
+
+                    return (
+                        <li key={idx}>
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => onSelectCity(shortLabel, item)}
+                                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                            >
+                                <MapPin className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                                <div className="flex flex-col min-w-0">
+                                    <span className="truncate">{shortLabel}</span>
+                                    <span className="text-xs text-slate-400 truncate">{item.display_name}</span>
+                                </div>
+                            </button>
+                        </li>
+                    );
+                })}
+            </ul>
         </div>
     );
 }

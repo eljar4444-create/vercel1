@@ -118,6 +118,11 @@ export function OnboardingForm({ providerType, userName }: OnboardingFormProps) 
                                 placeholder="Musterstraße 12"
                                 className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-900 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                             />
+                            {!isSalon && (
+                                <p className="mt-2 text-xs text-gray-500">
+                                    Ваш точный адрес не будет показан на карте. Клиенты увидят только примерную зону вашей работы.
+                                </p>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

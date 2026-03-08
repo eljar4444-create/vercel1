@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation';
 import {
     Search, MapPin, Loader2, LocateFixed, Clock,
 } from 'lucide-react';
+import {
+    SelectRoot, SelectTrigger, SelectValue,
+    SelectContent, SelectItem,
+} from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 import { getHomeStats } from '@/app/actions/getHomeStats';
@@ -145,7 +149,7 @@ export default function HomeHero() {
                 </p>
 
                 {/* ── Search bar ── */}
-                <div className="relative mx-auto max-w-5xl w-full">
+                <div className="relative mx-auto max-w-5xl w-full z-50">
                     <form ref={formRef} onSubmit={handleSearch} className="animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '300ms' }}>
                         <div className={`flex flex-col items-stretch rounded-2xl bg-white ring-1 md:flex-row md:items-center md:rounded-full transition-all duration-300 ease-out origin-center ${isFocused
                             ? 'scale-[1.05] shadow-[0_8px_40px_rgba(0,0,0,0.25)] ring-white/30 ring-4'
@@ -166,7 +170,7 @@ export default function HomeHero() {
                                     className="w-full bg-transparent text-base text-gray-900 placeholder:text-gray-400 outline-none"
                                 />
                                 {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
-                                    <div className="absolute left-0 top-full z-[60] mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                                    <div className="absolute left-0 top-full z-[100] mt-2 w-full overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl antialiased transform-gpu">
                                         <ul className="max-h-56 overflow-y-auto py-1">
                                             {filteredServices.map((item) => (
                                                 <li key={item}>
@@ -185,7 +189,7 @@ export default function HomeHero() {
 
                                 {/* ── Spotlight suggestions dropdown ── */}
                                 {isFocused && query.trim().length === 0 && (
-                                    <div className="absolute left-0 top-full z-[60] mt-4 w-full rounded-2xl bg-white p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300 border border-gray-100 max-h-[300px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-300">
+                                    <div className="absolute left-0 top-full z-[100] mt-4 w-full rounded-2xl bg-white p-4 shadow-xl border border-slate-100 animate-in fade-in slide-in-from-top-2 duration-300 max-h-[300px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-200 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 antialiased transform-gpu">
                                         <div className="flex flex-col gap-1 w-full">
                                             {SPOTLIGHT_SUGGESTIONS.map((sug) => (
                                                 <button
@@ -228,7 +232,7 @@ export default function HomeHero() {
                                     }
                                 </button>
                                 {cityOpen && city.trim().length > 0 && filteredCities.length > 0 && (
-                                    <div className="absolute left-0 top-full z-[60] mt-2 w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                                    <div className="absolute left-0 top-full z-[100] mt-2 w-full overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl antialiased transform-gpu">
                                         <ul className="max-h-56 overflow-y-auto py-1">
                                             {filteredCities.map((item) => (
                                                 <li key={item}>
@@ -249,18 +253,18 @@ export default function HomeHero() {
                             {/* Radius field */}
                             <div className="flex items-center gap-4 border-b border-gray-100 px-6 py-5 md:border-b-0 md:border-r">
                                 <Clock className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
-                                <select
-                                    id="search-radius"
-                                    value={radius}
-                                    onChange={(e) => setRadius(e.target.value)}
-                                    className="cursor-pointer bg-transparent text-base text-gray-700 outline-none"
-                                >
-                                    <option value="5">5 км</option>
-                                    <option value="10">10 км</option>
-                                    <option value="20">20 км</option>
-                                    <option value="30">30 км</option>
-                                    <option value="50">50 км</option>
-                                </select>
+                                <SelectRoot value={radius} onValueChange={setRadius}>
+                                    <SelectTrigger aria-label="Радиус поиска" className="text-base text-gray-700">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="5">5 км</SelectItem>
+                                        <SelectItem value="10">10 км</SelectItem>
+                                        <SelectItem value="20">20 км</SelectItem>
+                                        <SelectItem value="30">30 км</SelectItem>
+                                        <SelectItem value="50">50 км</SelectItem>
+                                    </SelectContent>
+                                </SelectRoot>
                             </div>
 
                             {/* Submit */}
@@ -275,14 +279,6 @@ export default function HomeHero() {
                         </div>
                     </form>
                 </div>
-
-                {/* Stats line */}
-                <p className="mt-6 text-sm text-white/80 animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both" style={{ animationDelay: '450ms' }}>
-                    <span className="font-bold text-white">
-                        {(liveStats.masters || 0).toLocaleString('de-DE')}
-                    </span>{' '}
-                    мастеров уже с нами сегодня
-                </p>
             </div>
         </section>
     );

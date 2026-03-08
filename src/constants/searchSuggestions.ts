@@ -11,6 +11,20 @@ export const POPULAR_SERVICES = [
     'Косметолог',
 ];
 
+export const TOP_CATEGORIES = [
+    { label: 'Стрижка и укладка', icon: '✂️' },
+    { label: 'Маникюр и педикюр', icon: '💅' },
+    { label: 'Эпиляция', icon: '🪒' },
+    { label: 'Брови и ресницы', icon: '👁️' },
+    { label: 'Косметология', icon: '🧖' },
+    { label: 'Массаж', icon: '💆' },
+    { label: 'Макияж', icon: '💄' },
+    { label: 'Барбершоп', icon: '💈' },
+    { label: 'Спа и велнес', icon: '🛁' },
+    { label: 'Здоровье', icon: '🌿' },
+    { label: 'Тату и пирсинг', icon: '🎨' },
+];
+
 function prettifyCity(raw: string) {
     return raw
         .split(/[\s-]+/)
@@ -212,8 +226,8 @@ export function getGermanCitySuggestions(rawInput: string, limit = 10): string[]
             scriptScore: hasLatin
                 ? (/^[a-z\s-]+$/i.test(candidate.label) ? 1 : 0)
                 : hasCyrillic
-                  ? (/^[а-яё\s-]+$/i.test(candidate.label) ? 1 : 0)
-                  : 0,
+                    ? (/^[а-яё\s-]+$/i.test(candidate.label) ? 1 : 0)
+                    : 0,
             length: candidate.label.length,
         }))
         .sort((a, b) => {

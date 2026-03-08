@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 const LoginSchema = z.object({
     email: z.string().email(),
@@ -31,10 +30,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
         }
 
-        // Return user info for client-side session handling (localStorage for simplicity as per prototype)
+        const token = jwt.sign(
+            { userId: user.id, email: user.email, role: user.role },
+            process.env.JWT_SECRET!,
+            { expiresIn: '7d' }
+        );
+
         return NextResponse.json({
             success: true,
-            user: { id: user.id, email: user.email, role: user.role, name: user.name }
+            token,
+            user: { id: user.id, email: user.email, role: user.role, name: user.name },
         });
 
     } catch (error) {

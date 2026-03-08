@@ -5,13 +5,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export interface SearchMapMarker {
     id: number;
-    name: string;
-    providerType: 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
-    city: string;
-    address?: string | null;
+    name: string | null;
+    provider_type: string;
+    city: string | null;
+    address: string | null;
     lat: number;
     lng: number;
-    image?: string | null;
+    image: string | null;
     slug: string;
 }
 

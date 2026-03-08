@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 
@@ -37,9 +38,16 @@ export async function POST(req: NextRequest) {
             },
         });
 
+        const token = jwt.sign(
+            { userId: user.id, email: user.email, role: user.role },
+            process.env.JWT_SECRET!,
+            { expiresIn: '7d' }
+        );
+
         return NextResponse.json({
             success: true,
-            user: { id: user.id, email: user.email, role: user.role, name: user.name }
+            token,
+            user: { id: user.id, email: user.email, role: user.role, name: user.name },
         });
 
     } catch (error) {

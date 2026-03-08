@@ -490,7 +490,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                 ) : (
                     <section className="bg-transparent mb-6">
                         {/* Header */}
-                        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-8">
+                        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-10">
                             <img
                                 src={coverSrc}
                                 alt={profile.name}
@@ -521,41 +521,6 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 Забронировать
                             </button>
                         </div>
-
-                        {/* Portfolio Carousel */}
-                        <div>
-                            <h2 className="text-lg font-bold text-gray-900 mb-4">Мои работы</h2>
-                            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
-                                {coverImages.length > 0 ? (
-                                    coverImages.map((src, idx) => (
-                                        <div
-                                            key={idx}
-                                            onClick={() => setSelectedImageIndex(idx)}
-                                            className="relative w-40 md:w-56 aspect-[4/5] rounded-2xl overflow-hidden shrink-0 snap-start bg-gray-100 cursor-pointer group"
-                                        >
-                                            <img
-                                                src={src}
-                                                alt={`Работы ${profile.name} — фото ${idx + 1}`}
-                                                className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105"
-                                            />
-                                        </div>
-                                    ))
-                                ) : (
-                                    [1, 2, 3, 4].map((idx) => (
-                                        <div
-                                            key={idx}
-                                            className="relative w-40 md:w-56 aspect-[4/5] rounded-2xl overflow-hidden shrink-0 snap-start bg-gray-100"
-                                        >
-                                            <img
-                                                src={`https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=400&q=80`}
-                                                alt={`Моковое фото`}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
                     </section>
                 )}
 
@@ -580,7 +545,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                         {/* Services */}
                         <article
                             id="services"
-                            className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm scroll-mt-6 md:col-span-2"
+                            className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm scroll-mt-6 md:col-span-2 h-fit self-start"
                         >
                             <div className="flex items-center justify-between">
                                 <h2 className="text-base font-semibold text-gray-900">Услуги</h2>
