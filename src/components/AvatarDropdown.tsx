@@ -22,9 +22,9 @@ interface AvatarDropdownProps {
     } | null;
 }
 
-export function getRoleLabel(role?: string | null) {
+export function getRoleLabel(role?: string | null, profileId?: number | null) {
     if (role === 'ADMIN') return 'Администратор';
-    if (role === 'PROVIDER') return 'Мастер';
+    if (profileId) return 'Мастер';
     return 'Клиент';
 }
 
@@ -46,7 +46,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
     }, [propUser?.profileId]);
 
     useEffect(() => {
-        if (!propUser || propUser.role !== 'PROVIDER' || resolvedProfileId) return;
+        if (!propUser || !resolvedProfileId) return;
 
         let active = true;
         fetch('/api/me/provider-profile', { cache: 'no-store' })
@@ -69,7 +69,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
 
     if (!propUser) return null;
 
-    const isProvider = propUser.role === 'PROVIDER';
+    const isProvider = !!resolvedProfileId;
     const isAdmin = propUser.role === 'ADMIN';
     const dashboardBase = resolvedProfileId ? `/dashboard/${resolvedProfileId}` : '/provider/onboarding';
 
@@ -110,7 +110,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                     <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-semibold text-gray-900">{propUser.name || 'Пользователь'}</p>
                         <Badge variant="outline" className="border-gray-200 bg-white text-[10px] font-medium text-gray-600">
-                            {getRoleLabel(propUser.role)}
+                            {getRoleLabel(propUser.role, resolvedProfileId)}
                         </Badge>
                     </div>
                     <p className="truncate text-xs text-gray-500">{propUser.email || 'Без email'}</p>

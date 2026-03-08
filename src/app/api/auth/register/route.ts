@@ -8,12 +8,18 @@ const RegisterSchema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
     name: z.string().min(2),
-    role: z.enum(['CLIENT', 'PROVIDER']),
+    role: z.enum(['USER', 'ADMIN']).default('USER'),
 });
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
+
+        // Temporarily map legacy roles from frontend
+        if (body.role === 'CLIENT' || body.role === 'PROVIDER') {
+            body.role = 'USER';
+        }
+
         const result = RegisterSchema.safeParse(body);
 
         if (!result.success) {

@@ -18,23 +18,19 @@ export default async function DashboardPage() {
         redirect('/auth/login');
     }
 
-    const isClient = session.user.role === 'CLIENT' || session.user.role === 'ADMIN';
+    const isAdmin = session.user.role === 'ADMIN';
+    const providerProfile = await prisma.profile.findFirst({
+        where: {
+            OR: [
+                { user_id: session.user.id },
+                ...(session.user.email ? [{ user_email: session.user.email }] : []),
+            ],
+        },
+        select: { id: true },
+    });
 
-    if (!isClient) {
-        const providerProfile = await prisma.profile.findFirst({
-            where: {
-                OR: [
-                    { user_id: session.user.id },
-                    ...(session.user.email ? [{ user_email: session.user.email }] : []),
-                ],
-            },
-            select: { id: true },
-        });
-
-        if (providerProfile) {
-            redirect(`/dashboard/${providerProfile.id}`);
-        }
-        redirect('/provider/onboarding');
+    if (providerProfile && !isAdmin) {
+        redirect(`/dashboard/${providerProfile.id}`);
     }
 
     const user = await prisma.user.findUnique({

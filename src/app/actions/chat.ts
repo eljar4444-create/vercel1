@@ -4,10 +4,10 @@ import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 
-type ChatRole = 'CLIENT' | 'PROVIDER' | 'ADMIN';
+type ChatRole = 'USER' | 'ADMIN';
 
 function roleOrNull(role?: string): ChatRole | null {
-    if (role === 'CLIENT' || role === 'PROVIDER' || role === 'ADMIN') return role;
+    if (role === 'USER' || role === 'ADMIN') return role as ChatRole;
     return null;
 }
 
@@ -50,18 +50,21 @@ async function hasConversationAccess(conversationId: string, userId: string, rol
     });
 
     if (!conversation) return false;
-    if (role === 'CLIENT') return conversation.clientUserId === userId;
-
     const ownsById = conversation.providerProfile.user_id === userId;
     const ownsByEmail = Boolean(email) && conversation.providerProfile.user_email === email;
-    return ownsById || ownsByEmail;
+
+    // In old roles, we branched based on Client/Provider. 
+    // Now role is USER, we check both conditions.
+    const isClient = conversation.clientUserId === userId;
+
+    return isClient || ownsById || ownsByEmail;
 }
 
 export async function startConversationWithProvider(providerProfileId: number) {
     const user = await getAuthorizedUser();
     if (!user) return { success: false, error: 'Требуется вход в аккаунт' };
 
-    if (user.role !== 'CLIENT' && user.role !== 'ADMIN') {
+    if (user.role !== 'USER' && user.role !== 'ADMIN') {
         return { success: false, error: 'Чат с мастером доступен клиентам' };
     }
 
@@ -94,7 +97,7 @@ export async function getOrCreateConversationForProvider(providerProfileId: numb
     const user = await getAuthorizedUser();
     if (!user) return { success: false, error: 'Требуется вход в аккаунт' };
 
-    if (user.role !== 'PROVIDER' && user.role !== 'ADMIN') {
+    if (user.role !== 'USER' && user.role !== 'ADMIN') {
         return { success: false, error: 'Доступно только мастерам' };
     }
 
@@ -143,12 +146,12 @@ export async function getMyConversations() {
     const user = await getAuthorizedUser();
     if (!user) return { success: false, conversations: [] as any[] };
 
-    const where =
-        user.role === 'CLIENT'
-            ? { clientUserId: user.userId }
-            : user.role === 'PROVIDER'
-                ? { providerProfile: providerOwnershipFilter(user.userId, user.email) }
-                : {};
+    const where = user.role === 'ADMIN' ? {} : {
+        OR: [
+            { clientUserId: user.userId },
+            { providerProfile: providerOwnershipFilter(user.userId, user.email) }
+        ]
+    };
 
     const conversations = await prisma.conversation.findMany({
         where,
@@ -187,16 +190,16 @@ export async function getMyConversations() {
             lastMessageAt: conversation.messages[0]?.createdAt?.toISOString() || conversation.updatedAt.toISOString(),
             unreadCount: conversation._count.messages,
             interlocutor:
-                user.role === 'CLIENT'
+                conversation.clientUserId === user.userId
                     ? {
                         name: conversation.providerProfile.name,
                         image: conversation.providerProfile.image_url,
                         subtitle: conversation.providerProfile.city,
                     }
                     : {
-                        name: conversation.clientUser.name || conversation.clientUser.email || 'Клиент',
-                        image: conversation.clientUser.image,
-                        subtitle: conversation.clientUser.email,
+                        name: conversation.clientUser?.name || conversation.clientUser?.email || 'Клиент',
+                        image: conversation.clientUser?.image,
+                        subtitle: conversation.clientUser?.email,
                     },
         })),
     };

@@ -68,9 +68,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 // Legacy cookie name (backward compat)
                 const legacyRole = cookieStore.get('new-user-role')?.value;
 
-                const role = onboardingRole === 'provider' ? 'PROVIDER'
-                    : (legacyRole === 'PROVIDER' || legacyRole === 'CLIENT') ? legacyRole
-                        : 'CLIENT';
+                const role = legacyRole === 'ADMIN' ? 'ADMIN' : 'USER';
 
                 const providerTypeMap: Record<string, 'SALON' | 'INDIVIDUAL'> = {
                     SALON: 'SALON',
@@ -81,7 +79,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     where: { id: user.id },
                     data: {
                         role,
-                        ...(role === 'PROVIDER' && onboardingType && providerTypeMap[onboardingType]
+                        ...(onboardingRole === 'provider' && onboardingType && providerTypeMap[onboardingType]
                             ? { providerType: providerTypeMap[onboardingType] }
                             : {}),
                     },

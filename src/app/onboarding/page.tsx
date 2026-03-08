@@ -24,8 +24,8 @@ export default async function OnboardingPage() {
         },
     });
 
-    // Guard: clients should never see this page
-    if (!user || user.role === 'CLIENT') {
+    // Guard: admins should never see this page
+    if (!user || user.role === 'ADMIN') {
         redirect('/');
     }
 

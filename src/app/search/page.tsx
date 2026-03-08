@@ -73,7 +73,7 @@ export default async function SearchPage({
     const urlLat = typeof searchParams.lat === 'string' ? parseFloat(searchParams.lat) : undefined;
     const urlLng = typeof searchParams.lng === 'string' ? parseFloat(searchParams.lng) : undefined;
 
-    const andConditions: any[] = [{ is_verified: true }, { category: { slug: { not: 'health' } } }];
+    const andConditions: any[] = [{ is_verified: true }, { category: { slug: { not: 'health' } } }, { user: { isBanned: false } }];
 
     if (categoryFilter && categoryFilter !== 'health') {
         andConditions.push({ category: { slug: categoryFilter } });

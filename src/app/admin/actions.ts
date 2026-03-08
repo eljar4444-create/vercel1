@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 
@@ -45,4 +46,87 @@ export async function rejectMaster(formData: FormData) {
 
     revalidatePath('/admin');
     revalidatePath('/search');
+}
+
+export async function checkAdmin() {
+    const session = await auth();
+    if (!session?.user || session.user.role !== 'ADMIN') {
+        redirect('/');
+    }
+    return session.user;
+}
+
+export async function getAdminData() {
+    console.log("--- ADMIN ACTION TRIGGERED ---");
+    const session = await auth();
+    console.log("SESSION IN ACTION:", session?.user);
+
+    await checkAdmin();
+
+    try {
+        const [totalUsers, totalServices, users, services, activeProviders] = await Promise.all([
+            prisma.user.count(),
+            prisma.service.count(),
+            prisma.user.findMany({
+                orderBy: { createdAt: "desc" },
+            }),
+            prisma.service.findMany({
+                include: {
+                    profile: {
+                        include: { user: true }
+                    },
+                },
+                orderBy: { id: "desc" },
+            }),
+            prisma.profile.count(),
+        ]);
+
+        return {
+            totalUsers,
+            totalServices,
+            activeProviders,
+            users,
+            services,
+        };
+    } catch (error) {
+        console.error("PRISMA FETCH ERROR:", error);
+        throw new Error(error instanceof Error ? error.message : "Ошибка базы данных");
+    }
+}
+
+export async function toggleUserBan(userId: string, currentStatus: boolean) {
+    await checkAdmin();
+
+    try {
+        await prisma.user.update({
+            where: { id: userId },
+            data: { isBanned: !currentStatus },
+        });
+
+        revalidatePath("/admin");
+        revalidatePath("/search");
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error toggling user ban:", error);
+        return { success: false, error: "Failed to toggle user ban status" };
+    }
+}
+
+export async function deleteService(serviceId: number) {
+    await checkAdmin();
+
+    try {
+        await prisma.service.delete({
+            where: { id: serviceId },
+        });
+
+        revalidatePath("/admin");
+        revalidatePath("/search");
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting service:", error);
+        return { success: false, error: "Failed to delete service" };
+    }
 }

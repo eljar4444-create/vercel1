@@ -1,30 +1,19 @@
 import Link from 'next/link';
-import { ShieldAlert, ShieldCheck, Users, Clock3, CheckCircle2, XCircle } from 'lucide-react';
-import prisma from '@/lib/prisma';
-import { approveMaster, rejectMaster } from './actions';
-import { Button } from '@/components/ui/button';
+import { ShieldAlert, Users, Briefcase, Activity } from 'lucide-react';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { getAdminData } from './actions';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import AdminUsersTable from './components/AdminUsersTable';
+import AdminServicesTable from './components/AdminServicesTable';
 
 export const dynamic = 'force-dynamic';
-
-function formatDateTime(date: Date) {
-    return new Intl.DateTimeFormat('ru-RU', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(date);
-}
 
 export default async function AdminPage() {
     const session = await auth();
@@ -60,24 +49,7 @@ export default async function AdminPage() {
         );
     }
 
-    const pendingProfiles = await prisma.profile.findMany({
-        where: { is_verified: false },
-        select: {
-            id: true,
-            name: true,
-            user_email: true,
-            city: true,
-            created_at: true,
-            category: {
-                select: {
-                    name: true,
-                },
-            },
-        },
-        orderBy: { created_at: 'desc' },
-    });
-
-    const pendingCount = pendingProfiles.length;
+    const { totalUsers, totalServices, activeProviders, users, services } = await getAdminData();
 
     return (
         <section className="min-h-screen bg-gray-100 pb-12">
@@ -85,139 +57,69 @@ export default async function AdminPage() {
                 <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-6">
                     <div>
                         <p className="text-xs uppercase tracking-[0.2em] text-gray-400">Control Center</p>
-                        <h1 className="mt-1 text-2xl font-extrabold text-white">Заявки мастеров на модерации</h1>
-                    </div>
-                    <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-right">
-                        <p className="text-xs text-gray-300">Новых заявок</p>
-                        <p className="text-3xl font-black text-[#fc0]">{pendingCount}</p>
+                        <h1 className="mt-1 text-2xl font-extrabold text-white">Панель администратора</h1>
                     </div>
                 </div>
             </div>
 
             <div className="mx-auto mt-8 w-full max-w-7xl space-y-6 px-4">
+                {/* Metrics Cards */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-xl bg-amber-50 p-2">
-                                <Clock3 className="h-5 w-5 text-amber-600" />
+                            <div className="rounded-xl bg-blue-50 p-2">
+                                <Users className="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Ожидают модерации</p>
-                                <p className="text-2xl font-bold text-gray-900">{pendingCount}</p>
+                                <p className="text-sm text-gray-500">Total Users</p>
+                                <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
                             </div>
                         </div>
                     </div>
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-xl bg-green-50 p-2">
-                                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            <div className="rounded-xl bg-emerald-50 p-2">
+                                <Briefcase className="h-5 w-5 text-emerald-600" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Одобрено</p>
-                                <p className="text-lg font-semibold text-gray-700">Через кнопку «Одобрить»</p>
+                                <p className="text-sm text-gray-500">Total Services</p>
+                                <p className="text-2xl font-bold text-gray-900">{totalServices}</p>
                             </div>
                         </div>
                     </div>
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                         <div className="flex items-center gap-3">
-                            <div className="rounded-xl bg-red-50 p-2">
-                                <XCircle className="h-5 w-5 text-red-600" />
+                            <div className="rounded-xl bg-purple-50 p-2">
+                                <Activity className="h-5 w-5 text-purple-600" />
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Отклонено</p>
-                                <p className="text-lg font-semibold text-gray-700">Удаляется навсегда</p>
+                                <p className="text-sm text-gray-500">Active Providers</p>
+                                <p className="text-2xl font-bold text-gray-900">{activeProviders}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-                    <div className="flex flex-col gap-3 border-b border-gray-100 p-5 md:flex-row md:items-center md:justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="rounded-xl bg-gray-100 p-2">
-                                <Users className="h-5 w-5 text-gray-700" />
-                            </div>
-                            <div>
-                                <h2 className="font-bold text-gray-900">Новые анкеты специалистов</h2>
-                                <p className="text-sm text-gray-500">
-                                    Проверьте данные и примите решение по каждой заявке.
-                                </p>
-                            </div>
+                {/* Main Content Tabs */}
+                <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden text-black z-0 relative">
+                    <Tabs defaultValue="users" className="w-full">
+                        <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+                            <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+                                <TabsTrigger value="users">Пользователи</TabsTrigger>
+                                <TabsTrigger value="services">Услуги</TabsTrigger>
+                            </TabsList>
                         </div>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
-                            <ShieldCheck className="h-4 w-4" />
-                            Отклонение удаляет профиль и связанные данные без возможности восстановления
-                        </div>
-                    </div>
 
-                    {pendingCount === 0 ? (
-                        <div className="px-6 py-16 text-center">
-                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-50">
-                                <CheckCircle2 className="h-7 w-7 text-green-600" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900">Новых заявок нет</h3>
-                            <p className="mt-2 text-sm text-gray-500">
-                                Очередь чистая. Можно выпить кофе и вернуться позже.
-                            </p>
+                        <div className="p-0 sm:p-6">
+                            <TabsContent value="users" className="mt-0 outline-none">
+                                <AdminUsersTable users={users} />
+                            </TabsContent>
+
+                            <TabsContent value="services" className="mt-0 outline-none">
+                                <AdminServicesTable services={services} />
+                            </TabsContent>
                         </div>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="hover:bg-transparent">
-                                    <TableHead>Имя / салон</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Город</TableHead>
-                                    <TableHead>Категория</TableHead>
-                                    <TableHead>Дата заявки</TableHead>
-                                    <TableHead className="text-right">Действия</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {pendingProfiles.map((profile) => (
-                                    <TableRow key={profile.id} className="hover:bg-gray-50/80">
-                                        <TableCell className="font-semibold text-gray-900">{profile.name}</TableCell>
-                                        <TableCell>
-                                            <span className="rounded-md bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
-                                                {profile.user_email}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-                                                {profile.city}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700">
-                                                {profile.category?.name ?? 'Без категории'}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-sm text-gray-600">
-                                            {formatDateTime(profile.created_at)}
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex justify-end gap-2">
-                                                <form action={approveMaster}>
-                                                    <input type="hidden" name="profile_id" value={profile.id} />
-                                                    <Button
-                                                        type="submit"
-                                                        className="h-9 bg-green-600 text-white hover:bg-green-700"
-                                                    >
-                                                        ✅ Одобрить
-                                                    </Button>
-                                                </form>
-                                                <form action={rejectMaster}>
-                                                    <input type="hidden" name="profile_id" value={profile.id} />
-                                                    <Button type="submit" variant="destructive" className="h-9">
-                                                        ❌ Отклонить
-                                                    </Button>
-                                                </form>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    )}
+                    </Tabs>
                 </div>
             </div>
         </section>

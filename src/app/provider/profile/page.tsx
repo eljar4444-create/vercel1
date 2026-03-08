@@ -40,10 +40,6 @@ export default async function ProviderProfile() {
     });
 
     if (!profile) {
-        // If they have PROVIDER role but no profile, maybe they need onboarding
-        if (user.role === 'PROVIDER') {
-            return redirect('/become-provider');
-        }
         return redirect('/become-provider');
     }
 

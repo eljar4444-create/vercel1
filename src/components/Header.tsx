@@ -37,7 +37,7 @@ export function Header() {
     }, []);
 
     const user = session?.user;
-    const isProvider = user?.role === 'PROVIDER' || user?.role === 'ADMIN';
+    const isProvider = !!user?.profileId || user?.role === 'ADMIN';
     const initials =
         user?.name
             ?.split(' ')
@@ -198,7 +198,7 @@ export function Header() {
                                         Панель управления
                                     </Link>
                                 )}
-                                {(user.role === 'PROVIDER' || user.role === 'ADMIN') && user.profileId && (
+                                {(!!user.profileId || user.role === 'ADMIN') && user.profileId && (
                                     <Link
                                         href={`/dashboard/${user.profileId}`}
                                         onClick={() => setMobileMenuOpen(false)}
@@ -207,7 +207,7 @@ export function Header() {
                                         Кабинет мастера
                                     </Link>
                                 )}
-                                {user.role === 'CLIENT' && (
+                                {!user.profileId && user.role !== 'ADMIN' && (
                                     <Link
                                         href="/dashboard"
                                         onClick={() => setMobileMenuOpen(false)}

@@ -7,9 +7,8 @@ datasource db {
   url       = env("DATABASE_URL")
 }
 
-enum UserRole {
-  CLIENT
-  PROVIDER
+enum Role {
+  USER
   ADMIN
 }
 
@@ -108,7 +107,8 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          UserRole  @default(CLIENT)
+  role          Role      @default(USER)
+  isBanned      Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   bio           String?
