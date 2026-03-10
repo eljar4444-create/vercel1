@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, MapPin, LocateFixed, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
@@ -17,10 +17,19 @@ interface SearchBarProps {
 
 export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' }: SearchBarProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [query, setQuery] = useState(defaultQuery);
     const [city, setCity] = useState(defaultCity);
     const [isLocating, setIsLocating] = useState(false);
     const suggestions = getGermanCitySuggestions(city, 8);
+
+    useEffect(() => {
+        if (searchParams) {
+            setQuery(searchParams.get('q') || '');
+            // Optionally sync city too if needed, but requirements only mentioned `q`
+            // If the map changes the city, sync it as well? Let's just sync `q` for now.
+        }
+    }, [searchParams]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

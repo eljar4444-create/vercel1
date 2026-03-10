@@ -59,6 +59,7 @@ export default async function CityPage({
     const andConditions: any[] = [
         { is_verified: true },
         { category: { slug: { not: 'health' } } },
+        { user: { isBanned: false } }
     ];
 
     if (cityVariants.length > 0) {

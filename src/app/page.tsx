@@ -46,6 +46,10 @@ const CATEGORIES = [
 export default async function HomePage() {
     // Fetch top masters from DB
     const masters = await prisma.profile.findMany({
+        where: {
+            user: { isBanned: false },
+            is_verified: true,
+        },
         take: 4,
         include: {
             reviews: { select: { rating: true } },

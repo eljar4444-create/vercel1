@@ -83,6 +83,7 @@ export default async function CityCategoryPage({
     const andConditions: any[] = [
         { is_verified: true },
         { category: { slug: { not: 'health' } } },
+        { user: { isBanned: false } }
     ];
 
     // City filter

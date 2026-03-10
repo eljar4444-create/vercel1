@@ -9,6 +9,7 @@ import { GERMAN_CITIES } from "@/constants/germanCities";
 import { SearchResultListItem } from "@/components/search/SearchResultListItem";
 import { SearchInteractiveLayout } from "@/components/search/SearchInteractiveLayout";
 import { SearchResultsMap } from "@/components/search/SearchResultsMap";
+import { ActiveFilters } from "@/components/search/ActiveFilters";
 import { getFavoriteProfileIds } from "@/app/actions/favorites";
 import { geocodeCity } from "@/lib/geocode";
 import type { Metadata } from "next";
@@ -277,31 +278,12 @@ export default async function SearchPage({
                             </div>
                         </nav>
 
-                        {(cityFilter || queryFilter) && (
-                            <div className="mb-4 flex flex-wrap items-center gap-2">
-                                {cityFilter && (
-                                    <Link
-                                        href={`/search${queryFilter ? `?q=${encodeURIComponent(queryFilter)}` : ''}`}
-                                        aria-label={`Удалить фильтр: ${cityFilter}`}
-                                        className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
-                                    >
-                                        {cityFilter}{geoCenter ? ` (${radiusKm} км)` : ''}
-                                        <X className="h-3 w-3" />
-                                    </Link>
-                                )}
-                                {queryFilter && (
-                                    <Link
-                                        href={`/search${cityFilter ? `?city=${encodeURIComponent(cityFilter)}` : ''}`}
-                                        aria-label={`Удалить фильтр: ${queryFilter}`}
-                                        className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100"
-                                    >
-                                        <Search className="h-3 w-3" />
-                                        {queryFilter}
-                                        <X className="h-3 w-3" />
-                                    </Link>
-                                )}
-                            </div>
-                        )}
+                        <ActiveFilters
+                            cityFilter={cityFilter}
+                            queryFilter={queryFilter}
+                            radiusKm={radiusKm}
+                            hasGeoCenter={!!geoCenter}
+                        />
                     </>
                 }
             />
