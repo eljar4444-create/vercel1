@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useTransition, useState, useEffect } from "react";
 import { toggleUserBan, getUserBookings } from "../actions";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -364,26 +364,24 @@ function UserBookingsList({ userId, userName }: { userId: string, userName: stri
     const [bookings, setBookings] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    import("react").then((React) => {
-        React.useEffect(() => {
-            let isMounted = true;
-            setIsLoading(true);
-            getUserBookings(userId)
-                .then((data) => {
-                    if (isMounted) {
-                        setBookings(data || []);
-                        setIsLoading(false);
-                    }
-                })
-                .catch((err) => {
-                    console.error("Failed to load user bookings:", err);
-                    if (isMounted) setIsLoading(false);
-                });
-            return () => {
-                isMounted = false;
-            };
-        }, [userId]);
-    });
+    useEffect(() => {
+        let isMounted = true;
+        setIsLoading(true);
+        getUserBookings(userId)
+            .then((data) => {
+                if (isMounted) {
+                    setBookings(data || []);
+                    setIsLoading(false);
+                }
+            })
+            .catch((err) => {
+                console.error("Failed to load user bookings:", err);
+                if (isMounted) setIsLoading(false);
+            });
+        return () => {
+            isMounted = false;
+        };
+    }, [userId]);
 
     if (isLoading) {
         return (

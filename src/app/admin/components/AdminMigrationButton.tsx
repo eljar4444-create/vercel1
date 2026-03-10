@@ -33,7 +33,7 @@ export function AdminMigrationButton() {
         <div className="mb-8 flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 p-4">
             <div>
                 <h3 className="font-semibold text-blue-900">Инструменты разработчика</h3>
-                <p className="text-sm text-blue-700">Оживить профили "призраков" без аккаунта. (Временная кнопка)</p>
+                <p className="text-sm text-blue-700">Оживить профили &quot;призраков&quot; без аккаунта. (Временная кнопка)</p>
             </div>
             <Button
                 onClick={handleMigrate}
