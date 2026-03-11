@@ -98,6 +98,7 @@ model Booking {
   @@index([profile_id])
   @@index([user_id])
   @@index([staff_id])
+  @@index([profile_id, date, status])
 }
 
 model User {

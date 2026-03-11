@@ -2,8 +2,9 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { X, Clock, User, Phone, CheckCircle, Loader2, MapPin, Star, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
-import { createBooking, getAvailableSlots } from '@/app/actions/booking';
+import { createBooking, getWeekAvailableSlots } from '@/app/actions/booking';
 import { useEffect } from 'react';
+import useSWR from 'swr';
 import { useSession, signIn } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
@@ -105,8 +106,6 @@ export function BookingModal({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [weekSlots, setWeekSlots] = useState<Record<string, string[]>>({});
-    const [isLoadingWeek, setIsLoadingWeek] = useState(false);
     const [isFindingNearest, setIsFindingNearest] = useState(false);
     const [slotsError, setSlotsError] = useState<string | null>(null);
 
@@ -115,6 +114,57 @@ export function BookingModal({
         () => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)),
         [weekStart]
     );
+
+    // Fetcher for SWR
+    const fetchWeekSlots = useCallback(async ([, pId, sDate, dur]: [string, number, string, number]) => {
+        const result = await getWeekAvailableSlots({
+            profileId: pId,
+            startDate: sDate,
+            serviceDuration: dur
+        });
+        if (!result.success) throw new Error(result.error);
+
+        // Filter past slots for the current day
+        const filtered: Record<string, string[]> = {};
+        for (const [dayKey, slots] of Object.entries(result.weekSlots || {})) {
+            filtered[dayKey] = filterPastSlots(dayKey, slots);
+        }
+        return filtered;
+    }, []);
+
+    // Fetch schedule for the current week via SWR
+    const { data: fetchedWeekSlots, error: swrError, isValidating: isLoadingWeek } = useSWR(
+        isOpen ? ['weekSlots', profileId, toDateKey(weekStart), selectedDuration] : null,
+        fetchWeekSlots,
+        {
+            revalidateOnFocus: false, // Don't over-fetch if they switch tabs
+            keepPreviousData: true,   // Keep showing previous week while loading next week
+        }
+    );
+
+    // Optimistic UI: Immediately inject the pre-selected initialDate/initialTime into the view
+    // so it renders instantly (0ms delay) while SWR is fetching the rest of the schedule in the background.
+    const weekSlots = useMemo(() => {
+        const baseSlots = fetchedWeekSlots || {};
+
+        if (initialDate && initialTime && toDateKey(weekStart) === initialDate) {
+            // Check if initialDate is within the currently viewed week
+            const startKey = toDateKey(weekStart);
+            const isInitialWeek = initialDate >= startKey && initialDate < toDateKey(addDays(weekStart, 7));
+
+            if (isInitialWeek) {
+                const optimisticSlots = { ...baseSlots };
+                if (!optimisticSlots[initialDate]) {
+                    optimisticSlots[initialDate] = [initialTime];
+                } else if (!optimisticSlots[initialDate].includes(initialTime)) {
+                    optimisticSlots[initialDate] = [...optimisticSlots[initialDate], initialTime].sort();
+                }
+                return optimisticSlots;
+            }
+        }
+        return baseSlots;
+    }, [fetchedWeekSlots, initialDate, initialTime, weekStart]);
+
     const selectedDateLabel = date ? NEAREST_LABEL_FORMATTER.format(parseDateKey(date)) : '';
     const nearestInCurrentWeek = useMemo(() => {
         for (const day of weekDates) {
@@ -142,7 +192,6 @@ export function BookingModal({
         } else {
             setTime('');
         }
-        setWeekSlots({});
         setSlotsError(null);
 
         if (session?.user?.name && !name) {
@@ -150,58 +199,25 @@ export function BookingModal({
         }
     }, [isOpen, initialDate, initialTime, session?.user?.name, name, today]);
 
-    const loadWeekSlots = useCallback(async (startDate: Date) => {
-        const days = Array.from({ length: 7 }, (_, index) => addDays(startDate, index));
-        const entries = await Promise.all(
-            days.map(async (day) => {
-                const dayKey = toDateKey(day);
-                const result = await getAvailableSlots({
-                    profileId,
-                    date: dayKey,
-                    serviceDuration: selectedDuration,
-                });
-
-                if (!result.success) {
-                    throw new Error(result.error || 'Не удалось загрузить слоты');
-                }
-
-                return [dayKey, filterPastSlots(dayKey, result.slots)] as const;
-            })
-        );
-
-        return Object.fromEntries(entries) as Record<string, string[]>;
-    }, [profileId, selectedDuration]);
+    useEffect(() => {
+        if (swrError) {
+            setSlotsError(swrError.message || 'Ошибка загрузки свободного времени');
+        } else {
+            setSlotsError(null);
+        }
+    }, [swrError]);
 
     useEffect(() => {
-        if (!isOpen) return;
-        let isActive = true;
-        setIsLoadingWeek(true);
-        setSlotsError(null);
-
-        loadWeekSlots(weekStart)
-            .then((nextWeekSlots) => {
-                if (!isActive) return;
-                setWeekSlots(nextWeekSlots);
-
-                if (date) {
-                    const daySlots = nextWeekSlots[date] || [];
-                    setTime((prev) => (prev && daySlots.includes(prev) ? prev : ''));
-                }
-            })
-            .catch((loadError: any) => {
-                if (!isActive) return;
-                setWeekSlots({});
-                setSlotsError(loadError?.message || 'Ошибка загрузки свободного времени');
-            })
-            .finally(() => {
-                if (!isActive) return;
-                setIsLoadingWeek(false);
-            });
-
-        return () => {
-            isActive = false;
-        };
-    }, [isOpen, weekStart, date, loadWeekSlots]);
+        if (date && fetchedWeekSlots) {
+            const daySlots = fetchedWeekSlots[date] || [];
+            if (initialDate === date && initialTime === time) {
+                // Do nothing, let optimistic UI handle it
+            } else if (time && !daySlots.includes(time)) {
+                // Auto-clear time if the selected slot is suddenly gone from a background refresh
+                setTime('');
+            }
+        }
+    }, [date, fetchedWeekSlots, initialDate, initialTime, time]);
 
     if (!isOpen) return null;
 
@@ -227,17 +243,31 @@ export function BookingModal({
         try {
             for (let weekOffset = 0; weekOffset < 12; weekOffset++) {
                 const start = addDays(today, weekOffset * 7);
-                const slotsMap = await loadWeekSlots(start);
+                const startKey = toDateKey(start);
+
+                const result = await getWeekAvailableSlots({
+                    profileId,
+                    startDate: startKey,
+                    serviceDuration: selectedDuration
+                });
+
+                if (!result.success) throw new Error(result.error);
+
+                const slotsMap = result.weekSlots || {};
                 const days = Array.from({ length: 7 }, (_, index) => addDays(start, index));
 
                 for (const day of days) {
                     const dayKey = toDateKey(day);
-                    const slots = slotsMap[dayKey] || [];
+                    let slots = slotsMap[dayKey] || [];
+                    slots = filterPastSlots(dayKey, slots);
+
                     if (slots.length > 0) {
                         setWeekStart(start);
-                        setWeekSlots(slotsMap);
+                        // We strictly only set local state, SWR will handle fetching automatically 
+                        // once weekStart updates.
                         setDate(dayKey);
                         setTime(slots[0]);
+                        setIsFindingNearest(false);
                         return;
                     }
                 }
@@ -324,7 +354,6 @@ export function BookingModal({
                                     setIsSubmitted(false);
                                     setDate('');
                                     setTime('');
-                                    setWeekSlots({});
                                     setName('');
                                     setPhone('');
                                     onClose();
@@ -462,8 +491,8 @@ export function BookingModal({
                                                                                 type="button"
                                                                                 onClick={() => selectSlot(dayKey, slot)}
                                                                                 className={`h-9 rounded-md px-2 text-sm font-medium transition ${isSelected
-                                                                                        ? 'bg-slate-900 text-white'
-                                                                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                                                                    ? 'bg-slate-900 text-white'
+                                                                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                                                                                     }`}
                                                                             >
                                                                                 {slot}

@@ -119,6 +119,86 @@ export async function getAvailableSlots(input: {
     }
 }
 
+export async function getWeekAvailableSlots(input: {
+    profileId: number;
+    startDate: string;
+    serviceDuration: number;
+}) {
+    const profileId = Number(input.profileId);
+    const duration = normalizeDuration(Number(input.serviceDuration));
+
+    if (!Number.isInteger(profileId) || !input.startDate) {
+        return { success: false, weekSlots: {} as Record<string, string[]>, error: 'Некорректные параметры' };
+    }
+
+    try {
+        const profile = await prisma.profile.findUnique({
+            where: { id: profileId },
+            select: { schedule: true },
+        });
+
+        if (!profile) {
+            return { success: true, weekSlots: {} };
+        }
+
+        const schedule = parseSchedule(profile.schedule);
+        const start = new Date(input.startDate);
+        const end = new Date(start);
+        end.setDate(end.getDate() + 7);
+
+        // Fetch ALL busy bookings for the next 7 days in a SINGLE query
+        const busyBookings = await prisma.booking.findMany({
+            where: {
+                profile_id: profileId,
+                date: {
+                    gte: start,
+                    lt: end,
+                },
+                status: { in: ['pending', 'confirmed'] },
+            },
+            select: {
+                date: true,
+                time: true,
+                service: {
+                    select: { duration_min: true },
+                },
+            },
+        });
+
+        const weekSlots: Record<string, string[]> = {};
+
+        // Calculate slots for each of the 7 days
+        for (let i = 0; i < 7; i++) {
+            const currentDay = new Date(start);
+            currentDay.setDate(currentDay.getDate() + i);
+            const dateStr = currentDay.toISOString().split('T')[0];
+            const weekday = weekdayFromDateString(dateStr);
+
+            if (!schedule.workingDays.includes(weekday)) {
+                weekSlots[dateStr] = [];
+                continue;
+            }
+
+            const workStartMin = timeToMinutes(schedule.startTime);
+            const workEndMin = timeToMinutes(schedule.endTime);
+            if (workEndMin <= workStartMin) {
+                weekSlots[dateStr] = [];
+                continue;
+            }
+
+            // Filter the bulk bookings down to just this specific day
+            const daysBookings = busyBookings.filter((b) => b.date.toISOString().split('T')[0] === dateStr);
+
+            weekSlots[dateStr] = calculateSlots(workStartMin, workEndMin, duration, daysBookings);
+        }
+
+        return { success: true, weekSlots };
+    } catch (error: any) {
+        console.error('getWeekAvailableSlots error:', error);
+        return { success: false, weekSlots: {} as Record<string, string[]>, error: 'Ошибка загрузки расписания на неделю' };
+    }
+}
+
 export async function createBooking(input: BookingInput) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -200,7 +280,7 @@ export async function createBooking(input: BookingInput) {
                 `👤 Клиент: ${escapeHtml(input.userName)}\n` +
                 `✂️ Услуга: ${escapeHtml(serviceTitle)}\n` +
                 `🗓 Время: ${dateStr}, ${escapeHtml(input.time)}`;
-            sendTelegramMessage(masterProfile.telegramChatId, message).catch(() => {});
+            sendTelegramMessage(masterProfile.telegramChatId, message).catch(() => { });
         }
 
         return { success: true, bookingId: booking.id };
