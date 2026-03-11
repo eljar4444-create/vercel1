@@ -75,29 +75,17 @@ function MapUpdater({ initialCenter, initialZoom, radiusKm }: { initialCenter?: 
 /** Emits bounding box on every map move/zoom via onBoundsChange callback. */
 function MapBoundsEmitter({ onBoundsChange }: { onBoundsChange?: (bounds: MapBounds) => void }) {
     const map = useMap();
-    const firstLoad = useRef(true);
-
-    // Emit initial bounds once the map is ready
-    useEffect(() => {
-        if (!onBoundsChange) return;
-
-        // Small delay to let the map settle its initial view
-        const timer = setTimeout(() => {
-            const b = map.getBounds();
-            onBoundsChange({
-                minLat: b.getSouthWest().lat,
-                maxLat: b.getNorthEast().lat,
-                minLng: b.getSouthWest().lng,
-                maxLng: b.getNorthEast().lng,
-                source: 'programmatic', // initial load is programmatic
-            });
-        }, 100);
-        return () => clearTimeout(timer);
-    }, [map, onBoundsChange]);
+    const isMapMounted = useRef(false);
 
     useMapEvents({
         moveend: () => {
             if (!onBoundsChange) return;
+            
+            if (!isMapMounted.current) {
+                isMapMounted.current = true;
+                return; // Ignore the very first spurious event triggered by map initialization
+            }
+
             const b = map.getBounds();
             onBoundsChange({
                 minLat: b.getSouthWest().lat,

@@ -57,24 +57,14 @@ export function SearchInteractiveLayout({
     const [isPending, startTransition] = useTransition();
     const [bounds, setBounds] = useState<MapBounds | null>(null);
     const [resultCount, setResultCount] = useState<number>(initialProfiles.length);
-    const [hasSearchedBefore, setHasSearchedBefore] = useState(false);
 
     const favoriteSet = new Set(favoriteIds);
-
-    // Track whether the initial bounds emission has been skipped
-    const isFirstBounds = useRef(true);
 
     const debouncedBounds = useDebounce(bounds, 400);
 
     // Fetch providers when debounced bounds change
     useEffect(() => {
         if (!debouncedBounds) return;
-
-        // Skip the very first bounds emission if we already have server-provided data
-        if (isFirstBounds.current) {
-            isFirstBounds.current = false;
-            return;
-        }
 
         const controller = new AbortController();
 
@@ -152,7 +142,6 @@ export function SearchInteractiveLayout({
                 }
             } finally {
                 setIsLoading(false);
-                setHasSearchedBefore(true);
             }
         };
 
@@ -183,7 +172,7 @@ export function SearchInteractiveLayout({
 
                 {headerContent}
 
-                {isLoading && !hasSearchedBefore ? (
+                {isLoading && profiles.length === 0 ? (
                     <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 items-start">
                         {[1, 2, 3, 4].map((i) => (
                             <ProfileCardSkeleton key={i} />
