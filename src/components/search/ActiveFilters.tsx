@@ -6,11 +6,9 @@ import { Search, X } from 'lucide-react';
 interface ActiveFiltersProps {
     cityFilter?: string;
     queryFilter?: string;
-    radiusKm?: number;
-    hasGeoCenter?: boolean;
 }
 
-export function ActiveFilters({ cityFilter, queryFilter, radiusKm, hasGeoCenter }: ActiveFiltersProps) {
+export function ActiveFilters({ cityFilter, queryFilter }: ActiveFiltersProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -24,6 +22,10 @@ export function ActiveFilters({ cityFilter, queryFilter, radiusKm, hasGeoCenter 
         if (key === 'city') {
             params.delete('lat');
             params.delete('lng');
+            params.delete('minLat');
+            params.delete('maxLat');
+            params.delete('minLng');
+            params.delete('maxLng');
         }
 
         router.push(`/search?${params.toString()}`, { scroll: false });
@@ -32,12 +34,12 @@ export function ActiveFilters({ cityFilter, queryFilter, radiusKm, hasGeoCenter 
     return (
         <div className="mb-4 flex flex-wrap items-center gap-2">
             {cityFilter && (
-                <button
+            <button
                     onClick={() => removeFilter('city')}
                     aria-label={`Удалить фильтр: ${cityFilter}`}
-                    className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 transition hover:bg-blue-100"
+                    className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[#E5D5C5] px-3 py-1.5 text-xs font-medium text-[#4A3B32] transition hover:bg-[#d9c8b5]"
                 >
-                    {cityFilter}{hasGeoCenter && radiusKm ? ` (${radiusKm} км)` : ''}
+                    {cityFilter}
                     <X className="h-3 w-3" />
                 </button>
             )}
@@ -45,7 +47,7 @@ export function ActiveFilters({ cityFilter, queryFilter, radiusKm, hasGeoCenter 
                 <button
                     onClick={() => removeFilter('q')}
                     aria-label={`Удалить фильтр: ${queryFilter}`}
-                    className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-medium text-purple-700 transition hover:bg-purple-100"
+                    className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[#E5D5C5] px-3 py-1.5 text-xs font-medium text-[#4A3B32] transition hover:bg-[#d9c8b5]"
                 >
                     <Search className="h-3 w-3" />
                     {queryFilter}

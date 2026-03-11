@@ -1,19 +1,17 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+import { Suspense } from "react";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { Search, X } from "lucide-react";
 import { getCityFilterVariants } from "@/constants/searchSuggestions";
 import { GERMAN_CITIES } from "@/constants/germanCities";
-import { SearchResultListItem } from "@/components/search/SearchResultListItem";
 import { SearchInteractiveLayout } from "@/components/search/SearchInteractiveLayout";
-import { SearchResultsMap } from "@/components/search/SearchResultsMap";
 import { ActiveFilters } from "@/components/search/ActiveFilters";
 import { getFavoriteProfileIds } from "@/app/actions/favorites";
 import { geocodeCity } from "@/lib/geocode";
+import { calculateMapZoom } from "@/components/search/types";
 import type { Metadata } from "next";
-import { Prisma } from "@prisma/client";
 
 const QUICK_FILTERS = ['Рядом со мной', 'Топ рейтинг', 'Стрижка', 'Маникюр', 'Массаж'];
 
@@ -21,6 +19,10 @@ const DEFAULT_CITY_COORDS = {
     lat: 52.52,
     lng: 13.405,
 };
+
+// ~50km bounding box offset in degrees (rough approximation)
+const DEFAULT_BBOX_OFFSET_LAT = 0.45;
+const DEFAULT_BBOX_OFFSET_LNG = 0.7;
 
 function resolveCityCoordinates(city: string) {
     const normalized = city.trim().toLowerCase();
@@ -68,84 +70,87 @@ export default async function SearchPage({
     const categoryFilter = typeof searchParams.category === 'string' ? searchParams.category : undefined;
     const cityFilter = typeof searchParams.city === 'string' ? searchParams.city : undefined;
     const queryFilter = typeof searchParams.q === 'string' ? searchParams.q : undefined;
-    const radiusParam = typeof searchParams.radius === 'string' ? parseInt(searchParams.radius, 10) : 50;
-    const radiusKm = isNaN(radiusParam) || radiusParam <= 0 ? 50 : radiusParam;
 
+    // Bounding box from URL (set by client-side map interactions)
+    const urlMinLat = typeof searchParams.minLat === 'string' ? parseFloat(searchParams.minLat) : undefined;
+    const urlMaxLat = typeof searchParams.maxLat === 'string' ? parseFloat(searchParams.maxLat) : undefined;
+    const urlMinLng = typeof searchParams.minLng === 'string' ? parseFloat(searchParams.minLng) : undefined;
+    const urlMaxLng = typeof searchParams.maxLng === 'string' ? parseFloat(searchParams.maxLng) : undefined;
+
+    // Legacy lat/lng support (e.g. from search bar)
     const urlLat = typeof searchParams.lat === 'string' ? parseFloat(searchParams.lat) : undefined;
     const urlLng = typeof searchParams.lng === 'string' ? parseFloat(searchParams.lng) : undefined;
+    const urlRadius = typeof searchParams.radius === 'string' ? parseFloat(searchParams.radius) : undefined;
 
-    const andConditions: any[] = [{ is_verified: true }, { category: { slug: { not: 'health' } } }, { user: { isBanned: false } }];
+    const andConditions: any[] = [
+        { is_verified: true },
+        { category: { slug: { not: 'health' } } },
+        { user: { isBanned: false } },
+    ];
 
     if (categoryFilter && categoryFilter !== 'health') {
         andConditions.push({ category: { slug: categoryFilter } });
     }
 
-    // --- Geo-radius search ---
-    let geoCenter: { lat: number; lng: number } | null = null;
-    let geoProfileIds: number[] | null = null;
+    // --- Bounding Box geo filter ---
+    let initialCenter: [number, number] | undefined = undefined;
+    let hasBboxFilter = false;
 
-    if (cityFilter || (urlLat && urlLng)) {
-        let coords: { lat: number; lng: number } | null = null;
-
-        // 1. Prioritize precise lat/lng from URL provided by frontend Nominatim request
-        if (urlLat !== undefined && urlLng !== undefined && !isNaN(urlLat) && !isNaN(urlLng)) {
-            coords = { lat: urlLat, lng: urlLng };
+    // 1. Explicit bounding box from URL (from map user drag)
+    if (
+        urlMinLat !== undefined && urlMaxLat !== undefined &&
+        urlMinLng !== undefined && urlMaxLng !== undefined &&
+        !isNaN(urlMinLat) && !isNaN(urlMaxLat) && !isNaN(urlMinLng) && !isNaN(urlMaxLng)
+    ) {
+        andConditions.push({
+            latitude: { not: null, gte: urlMinLat, lte: urlMaxLat },
+        });
+        andConditions.push({
+            longitude: { not: null, gte: urlMinLng, lte: urlMaxLng },
+        });
+        // CRITICAL: Do NOT set initialCenter here! 
+        // This coordinates block comes from the user panning the map. 
+        // If we compute the center of the viewport and pass it down as initialCenter, 
+        // the MapUpdater will see a "new" initialCenter and fly to it, causing jumps.
+        hasBboxFilter = true;
+    }
+    // 2. Legacy lat/lng → computed bounding box and explicit center
+    else if (urlLat !== undefined && urlLng !== undefined && !isNaN(urlLat) && !isNaN(urlLng)) {
+        andConditions.push({
+            latitude: { not: null, gte: urlLat - DEFAULT_BBOX_OFFSET_LAT, lte: urlLat + DEFAULT_BBOX_OFFSET_LAT },
+        });
+        andConditions.push({
+            longitude: { not: null, gte: urlLng - DEFAULT_BBOX_OFFSET_LNG, lte: urlLng + DEFAULT_BBOX_OFFSET_LNG },
+        });
+        initialCenter = [urlLat, urlLng];
+        hasBboxFilter = true;
+    }
+    // 3. City string → geocode and compute bounding box
+    else if (cityFilter) {
+        let coords = await geocodeCity(cityFilter);
+        if (!coords) {
+            coords = resolveCityCoordinates(cityFilter);
         }
-        // 2. Fallback to server-side geocode if only city string is provided
-        else if (cityFilter) {
-            coords = await geocodeCity(cityFilter);
-        }
-
         if (coords) {
-            geoCenter = coords;
-
-            // Haversine query: find Profile IDs within radiusKm
-            try {
-                const nearbyProfiles = await prisma.$queryRaw<{ id: number; distance: number }[]>`
-                    SELECT id,
-                        (6371 * acos(
-                            LEAST(1.0, GREATEST(-1.0,
-                                cos(radians(${coords.lat})) * cos(radians(latitude))
-                                * cos(radians(longitude) - radians(${coords.lng}))
-                                + sin(radians(${coords.lat})) * sin(radians(latitude))
-                            ))
-                        )) AS distance
-                    FROM "Profile"
-                    WHERE latitude IS NOT NULL
-                      AND longitude IS NOT NULL
-                      AND (6371 * acos(
-                            LEAST(1.0, GREATEST(-1.0,
-                                cos(radians(${coords.lat})) * cos(radians(latitude))
-                                * cos(radians(longitude) - radians(${coords.lng}))
-                                + sin(radians(${coords.lat})) * sin(radians(latitude))
-                            ))
-                          )) <= ${radiusKm}
-                    ORDER BY distance ASC
-                `;
-                geoProfileIds = nearbyProfiles.map((p) => p.id);
-            } catch (e) {
-                console.error('[search] Haversine query failed:', e);
-                // Fall through to string-based city filter below
-            }
-        }
-
-        if (geoProfileIds !== null) {
-            // Use geo IDs filter
-            if (geoProfileIds.length === 0) {
-                // No providers in radius → force empty result
-                andConditions.push({ id: { in: [] } });
-            } else {
-                andConditions.push({ id: { in: geoProfileIds } });
-            }
-        } else if (cityFilter) {
-            // Fallback: old city string matching
-            const cityVariants = getCityFilterVariants(cityFilter);
             andConditions.push({
-                OR: cityVariants.map((variant) => ({
-                    city: { contains: variant, mode: 'insensitive' },
-                })),
+                latitude: { not: null, gte: coords.lat - DEFAULT_BBOX_OFFSET_LAT, lte: coords.lat + DEFAULT_BBOX_OFFSET_LAT },
             });
+            andConditions.push({
+                longitude: { not: null, gte: coords.lng - DEFAULT_BBOX_OFFSET_LNG, lte: coords.lng + DEFAULT_BBOX_OFFSET_LNG },
+            });
+            initialCenter = [coords.lat, coords.lng];
+            hasBboxFilter = true;
         }
+    }
+
+    // Fallback: no geo filter → string-based city matching
+    if (!hasBboxFilter && cityFilter) {
+        const cityVariants = getCityFilterVariants(cityFilter);
+        andConditions.push({
+            OR: cityVariants.map((variant) => ({
+                city: { contains: variant, mode: 'insensitive' },
+            })),
+        });
     }
 
     if (queryFilter) {
@@ -182,28 +187,19 @@ export default async function SearchPage({
         console.error("DB Error:", e);
     }
 
-    // If we have geo IDs, sort profiles by their geo-order (distance ASC)
-    if (geoProfileIds && geoProfileIds.length > 0) {
-        const orderMap = new Map(geoProfileIds.map((id, index) => [id, index]));
-        profiles.sort((a: any, b: any) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
-    }
-
-    const mapMarkers = profiles.map((profile) => {
-        return {
-            id: profile.id,
-            name: profile.name,
-            provider_type: profile.provider_type,
-            city: profile.city,
-            address: profile.provider_type === 'SALON' ? profile.address : null,
-            lat: profile.latitude, // Can be null
-            lng: profile.longitude, // Can be null
-            image: profile.image_url,
-            slug: profile.slug,
-        };
-    });
+    const mapMarkers = profiles.map((profile) => ({
+        id: profile.id,
+        name: profile.name,
+        provider_type: profile.provider_type,
+        city: profile.city,
+        address: profile.provider_type === 'SALON' ? profile.address : null,
+        lat: profile.latitude,
+        lng: profile.longitude,
+        image: profile.image_url,
+        slug: profile.slug,
+    }));
 
     const favoriteProfileIds = await getFavoriteProfileIds();
-    const favoriteSet = new Set(favoriteProfileIds);
 
     const mappedProfiles = profiles.map((profile: any) => ({
         id: profile.id,
@@ -222,26 +218,18 @@ export default async function SearchPage({
     }));
 
     return (
-        <main className="h-[calc(100vh-64px)] overflow-hidden bg-white">
-            <SearchInteractiveLayout
-                profiles={mappedProfiles}
-                mapMarkers={mapMarkers}
-                favoriteIds={favoriteProfileIds}
-                headerContent={
-                    <>
-                        <div className="mb-3 flex items-center justify-between gap-3">
-                            <h1 className="text-lg font-semibold text-slate-900">
-                                {profiles.length > 0
-                                    ? `Найдено ${profiles.length} специалистов`
-                                    : 'Специалисты не найдены'}
-                            </h1>
-                            <Link href="/" className="text-sm text-slate-500 transition hover:text-slate-800">
-                                На главную
-                            </Link>
-                        </div>
-
-                        <nav aria-label="Быстрые фильтры" className="sticky top-0 z-10 -mx-4 mb-4 border-b border-slate-200 bg-[#fbfbfb] px-4 py-2 md:-mx-5 md:px-5">
-                            <div className="flex gap-2 overflow-x-auto pb-0.5">
+        <main className="h-[calc(100vh-64px)] overflow-hidden bg-[#FCFAF8]">
+            <Suspense fallback={<div className="flex h-full items-center justify-center"><p className="text-slate-500">Загрузка...</p></div>}>
+                <SearchInteractiveLayout
+                    initialProfiles={mappedProfiles}
+                    initialMapMarkers={mapMarkers}
+                    favoriteIds={favoriteProfileIds}
+                    initialCenter={initialCenter}
+                    initialZoom={urlRadius ? calculateMapZoom(urlRadius) : undefined}
+                    radiusKm={urlRadius}
+                    headerContent={
+                        <nav aria-label="Быстрые фильтры" className="sticky top-0 z-10 -mx-4 mb-4 border-b border-[#E5E0D8]/50 bg-[#FCFAF8] px-4 py-2 md:-mx-6 md:px-6">
+                            <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
                                 {['Все', ...QUICK_FILTERS].map((filter) => {
                                     const params = new URLSearchParams();
                                     if (filter === 'Все') {
@@ -249,12 +237,6 @@ export default async function SearchPage({
                                         if (queryFilter) params.set('q', queryFilter);
                                     } else if (cityFilter) {
                                         params.set('city', cityFilter);
-                                    }
-
-                                    // Preserve explicit coordinates across filter clicks
-                                    if (urlLat && urlLng) {
-                                        params.set('lat', urlLat.toString());
-                                        params.set('lng', urlLng.toString());
                                     }
 
                                     if (filter === 'Рядом со мной') {
@@ -269,7 +251,7 @@ export default async function SearchPage({
                                         <Link
                                             key={filter}
                                             href={`/search?${params.toString()}`}
-                                            className="min-h-[44px] flex items-center whitespace-nowrap rounded-full border border-slate-200 bg-transparent px-3 py-1.5 text-xs text-slate-700 transition hover:border-slate-300 hover:bg-white"
+                                            className="min-h-[36px] flex items-center whitespace-nowrap rounded-full border border-[#E5E0D8] bg-transparent px-3 py-1.5 text-xs text-stone-600 transition hover:border-[#C8B9AC] hover:bg-white"
                                         >
                                             {filter}
                                         </Link>
@@ -277,17 +259,9 @@ export default async function SearchPage({
                                 })}
                             </div>
                         </nav>
-
-                        <ActiveFilters
-                            cityFilter={cityFilter}
-                            queryFilter={queryFilter}
-                            radiusKm={radiusKm}
-                            hasGeoCenter={!!geoCenter}
-                        />
-                    </>
-                }
-            />
+                    }
+                />
+            </Suspense>
         </main>
     );
 }
-

@@ -2,6 +2,9 @@
 
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { MapBounds } from './types';
+
+export type { MapBounds };
 
 export interface SearchMapMarker {
     id: number;
@@ -18,6 +21,10 @@ export interface SearchMapMarker {
 interface SearchResultsMapProps {
     markers: SearchMapMarker[];
     hoveredMarkerId?: number | null;
+    onBoundsChange?: (bounds: MapBounds) => void;
+    initialCenter?: [number, number];
+    initialZoom?: number;
+    radiusKm?: number;
 }
 
 const SearchResultsMapClient = dynamic(
@@ -30,6 +37,15 @@ const SearchResultsMapClient = dynamic(
     }
 );
 
-export function SearchResultsMap({ markers, hoveredMarkerId }: SearchResultsMapProps) {
-    return <SearchResultsMapClient markers={markers} hoveredMarkerId={hoveredMarkerId} />;
+export function SearchResultsMap({ markers, hoveredMarkerId, onBoundsChange, initialCenter, initialZoom, radiusKm }: SearchResultsMapProps) {
+    return (
+        <SearchResultsMapClient
+            markers={markers}
+            hoveredMarkerId={hoveredMarkerId}
+            onBoundsChange={onBoundsChange}
+            initialCenter={initialCenter}
+            initialZoom={initialZoom}
+            radiusKm={radiusKm}
+        />
+    );
 }

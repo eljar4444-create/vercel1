@@ -60,7 +60,7 @@ export function Header() {
                 ? scrolled
                     ? "bg-slate-950/90 backdrop-blur-md shadow-sm border-b border-white/10"
                     : "bg-transparent border-b border-transparent"
-                : "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200"
+                : "bg-white/80 backdrop-blur-md border-b border-stone-100"
         )}>
             <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl lg:grid lg:grid-cols-[1fr_minmax(0,560px)_1fr]">
                 {/* Left Area (Logo) */}

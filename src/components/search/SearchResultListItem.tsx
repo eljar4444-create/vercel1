@@ -1,7 +1,9 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Building2, Clock3, MapPin, Star, User, UserRound } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { MapPin, Star, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { LiveQuickSlots } from '@/components/search/LiveQuickSlots';
 import { FavoriteButton } from '@/components/client/FavoriteButton';
 
@@ -23,9 +25,7 @@ interface SearchResultListItemProps {
         image_url?: string | null;
         services: SearchResultService[];
     };
-    /** Whether the current user has this provider in favorites (from server). */
     initialIsFavorited?: boolean;
-    /** Whether the card is currently being hovered (from parent layout). */
     isHovered?: boolean;
 }
 
@@ -38,110 +38,101 @@ function getInitials(name: string): string {
 }
 
 export function SearchResultListItem({ profile, initialIsFavorited = false, isHovered = false }: SearchResultListItemProps) {
-    const previewServices = profile.services.slice(0, 2);
-    const hasMoreServices = profile.services.length > 2;
+    const [isExpanded, setIsExpanded] = useState(false);
+
     const isSalon = profile.provider_type === 'SALON';
-    const visibleAddress = isSalon ? [profile.address, profile.city].filter(Boolean).join(', ') : profile.city;
+    const visibleAddress = isSalon
+        ? [profile.address, profile.city].filter(Boolean).join(', ')
+        : profile.city;
     const initials = getInitials(profile.name);
 
     return (
-        <article className={`mb-4 overflow-hidden rounded-xl bg-white shadow-sm relative transition-all duration-300 border-[1.5px] ${isHovered ? 'border-slate-800 shadow-md transform -translate-y-0.5' : 'border-slate-200'
-            }`}>
-            <div className="flex flex-col md:flex-row">
-                <Link
-                    href={`/salon/${profile.slug}`}
-                    className="block h-52 w-full cursor-pointer overflow-hidden bg-slate-100 md:h-auto md:min-h-[200px] md:w-48 md:flex-shrink-0 relative"
-                    aria-label={`Открыть профиль ${profile.name}`}
-                >
-                    <FavoriteButton
-                        providerProfileId={profile.id}
-                        initialIsFavorited={initialIsFavorited}
-                        variant="card"
+        <article
+            className={`overflow-hidden rounded-2xl bg-white relative transition-all duration-300 ${isHovered
+                    ? 'shadow-[0_12px_40px_rgb(0,0,0,0.10)] -translate-y-1'
+                    : 'shadow-[0_4px_20px_rgb(0,0,0,0.06)]'
+                }`}
+        >
+            {/* ── Photo – top, full width ──────────────────────── */}
+            <Link
+                href={`/salon/${profile.slug}`}
+                className="relative block w-full aspect-[4/3] overflow-hidden bg-stone-100 rounded-t-2xl"
+                aria-label={`Открыть профиль ${profile.name}`}
+            >
+                <FavoriteButton
+                    providerProfileId={profile.id}
+                    initialIsFavorited={initialIsFavorited}
+                    variant="card"
+                />
+                {profile.image_url ? (
+                    <Image
+                        src={profile.image_url}
+                        alt={`${profile.name} — мастер в ${profile.city}`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    {profile.image_url ? (
-                        <Image
-                            src={profile.image_url}
-                            alt={`${profile.name} — мастер в ${profile.city}`}
-                            width={400}
-                            height={400}
-                            className="h-full w-full object-cover"
-                        />
-                    ) : (
-                        <div className="bg-slate-100 flex items-center justify-center h-full w-full">
-                            {initials ? (
-                                <span className="text-2xl font-bold text-slate-400">{initials}</span>
-                            ) : (
-                                <User size={40} className="text-slate-300" />
-                            )}
-                        </div>
-                    )}
-                </Link>
-
-                <div className="min-w-0 flex-1 p-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                        <Link href={`/salon/${profile.slug}`} className="block cursor-pointer">
-                            <h2 className="text-[17px] font-semibold leading-tight text-slate-900 transition-colors hover:text-blue-600">
-                                {profile.name}
-                            </h2>
-                            <Badge variant="outline" className="mt-1 inline-flex border-slate-200 bg-slate-50 text-[10px] font-medium text-slate-600">
-                                {isSalon ? <Building2 className="mr-1 h-3 w-3" /> : <UserRound className="mr-1 h-3 w-3" />}
-                                {isSalon ? 'Салон' : 'Частный мастер'}
-                            </Badge>
-                            <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-500">
-                                <MapPin className="h-4 w-4" />
-                                {visibleAddress}
-                            </p>
-                            <p className="mt-1 text-xs text-slate-500">4.8 (5 отзывов) · €€€</p>
-                        </Link>
-                        <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700" aria-label="Рейтинг 5.0">
-                            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                            5.0
-                        </div>
-                    </div>
-
-                    <LiveQuickSlots profileId={profile.id} slug={profile.slug} />
-
-                    <div className="mt-3">
-                        {previewServices.length > 0 ? (
-                            <>
-                                {previewServices.map((service, index) => (
-                                    <div
-                                        key={service.id}
-                                        className={`flex flex-col justify-between gap-2 px-0 py-2 sm:flex-row sm:items-center ${index > 0 ? 'border-t border-slate-100' : ''
-                                            }`}
-                                    >
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900">{service.title}</p>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <p className="inline-flex items-center gap-1 text-xs text-slate-500">
-                                                <Clock3 className="h-3.5 w-3.5" />
-                                                {service.duration_min} мин
-                                            </p>
-                                            <p className="text-sm font-semibold text-slate-900">€{service.price.toFixed(0)}</p>
-                                            <Link
-                                                href={`/salon/${profile.slug}?book=1&service=${service.id}`}
-                                                className="inline-flex min-h-[44px] items-center rounded-md bg-slate-100 px-3 text-[11px] font-medium text-slate-900 transition hover:bg-slate-200"
-                                            >
-                                                Выбрать
-                                            </Link>
-                                        </div>
-                                    </div>
-                                ))}
-                                {hasMoreServices && (
-                                    <Link
-                                        href={`/salon/${profile.slug}#services`}
-                                        className="text-sm font-medium text-slate-500 hover:text-slate-900 mt-2 inline-block transition-colors"
-                                    >
-                                        Показать все услуги ({profile.services.length})
-                                    </Link>
-                                )}
-                            </>
+                ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-stone-100">
+                        {initials ? (
+                            <span className="text-3xl font-bold text-stone-300">{initials}</span>
                         ) : (
-                            <p className="text-sm text-slate-500">Услуги появятся скоро</p>
+                            <User size={48} className="text-stone-300" />
                         )}
                     </div>
+                )}
+            </Link>
+
+            {/* ── Content ──────────────────────────────────────── */}
+            <div className="p-5">
+                {/* Name + rating */}
+                <div className="flex items-start justify-between gap-2">
+                    <Link href={`/salon/${profile.slug}`} className="block min-w-0">
+                        <h2 className="font-serif-display truncate text-[15px] font-semibold leading-snug text-stone-800 transition-colors hover:text-stone-600">
+                            {profile.name}
+                        </h2>
+                        <p className="mt-0.5 flex items-center gap-1 text-xs text-stone-500">
+                            <MapPin className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{visibleAddress}</span>
+                        </p>
+                    </Link>
+                    <div
+                        className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
+                        aria-label="Рейтинг 5.0"
+                    >
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        5.0
+                    </div>
                 </div>
+
+                {/* Services & Slots */}
+                {profile.services.length > 0 && (
+                    <div className="mt-4">
+                        {(isExpanded ? profile.services : profile.services.slice(0, 3)).map((service) => (
+                            <div key={service.id} className="border-b border-stone-100 last:border-0 pb-3 mb-3">
+                                <div className="flex justify-between items-center text-sm font-medium text-stone-800 mb-1.5">
+                                    <span className="truncate pr-2">{service.title}</span>
+                                    <span className="shrink-0 text-stone-600">€{service.price}</span>
+                                </div>
+                                <LiveQuickSlots profileId={profile.id} slug={profile.slug} service={service} />
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Show More Button */}
+                {profile.services.length > 3 && (
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setIsExpanded(!isExpanded);
+                        }}
+                        className="mt-1 w-full flex items-center justify-center gap-1.5 text-sm text-stone-500 hover:text-stone-800 transition-colors py-2"
+                    >
+                        {isExpanded ? 'Скрыть' : `Показать все услуги (еще ${profile.services.length - 3})`}
+                        {isExpanded ? <ChevronUp className="h-4 w-4 text-stone-400" /> : <ChevronDown className="h-4 w-4 text-stone-400" />}
+                    </button>
+                )}
             </div>
         </article>
     );

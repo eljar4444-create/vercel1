@@ -1,120 +1,126 @@
 'use client';
 
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 
 import { divIcon } from 'leaflet';
-import { Circle, MapContainer, Marker, Popup, TileLayer, useMap, FeatureGroup, useMapEvents } from 'react-leaflet';
+import { Circle, MapContainer, Marker, TileLayer, useMap, FeatureGroup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 import 'leaflet-defaulticon-compatibility';
 
-import { SearchMapMarker } from './SearchResultsMap';
+import type { SearchMapMarker } from './SearchResultsMap';
+import type { MapBounds } from './types';
+import { radiusToBounds } from './types';
 
 interface SearchResultsMapClientProps {
     markers: SearchMapMarker[];
     hoveredMarkerId?: number | null;
+    onBoundsChange?: (bounds: MapBounds) => void;
+    initialCenter?: [number, number];
+    initialZoom?: number;
+    radiusKm?: number;
 }
 
 const DEFAULT_CENTER: [number, number] = [52.52, 13.405];
 
-function MapUpdater() {
+/** Syncs the map view when explicit coordinates are provided (e.g. city search). */
+function MapUpdater({ initialCenter, initialZoom, radiusKm }: { initialCenter?: [number, number]; initialZoom: number; radiusKm?: number }) {
     const map = useMap();
     const searchParams = useSearchParams();
+    const urlRadiusStr = searchParams.get('radius');
+    const urlRadius = urlRadiusStr ? parseFloat(urlRadiusStr) : radiusKm;
 
-    const latStr = searchParams.get('lat');
-    const lngStr = searchParams.get('lng');
-    const cityStr = searchParams.get('city');
+    const didFly = useRef(false);
+    const prevRadius = useRef<number | undefined>(urlRadius);
+    const prevCenter = useRef<string | undefined>(initialCenter?.join(','));
 
+    // We only ever fly if the city (initialCenter) or the radius explicitly changed in the URL params.
+    // We NEVER fly just because the map moved, or because markers changed. The map is "dumb" and listens only to explicit filter changes.
     useEffect(() => {
-        // Only fly to coordinates if there is an explicit city in the URL.
-        // If 'city' is null, it means the user manually dragged the map,
-        // or we are in a coordinate-only mode, so we shouldn't force map centering.
-        if (cityStr && latStr && lngStr) {
-            const lat = parseFloat(latStr);
-            const lng = parseFloat(lngStr);
-            if (!isNaN(lat) && !isNaN(lng)) {
-                map.flyTo([lat, lng], 13, { duration: 1.5 });
+        if (!initialCenter) return;
+
+        const currentCenterStr = initialCenter.join(',');
+        const radiusChanged = prevRadius.current !== urlRadius;
+        const centerChanged = prevCenter.current !== currentCenterStr;
+
+        if (radiusChanged || centerChanged || !didFly.current) {
+            didFly.current = true;
+            prevRadius.current = urlRadius;
+            prevCenter.current = currentCenterStr;
+
+            (map as any)._isProgrammaticMove = true;
+
+            if (urlRadius) {
+                // Best practice: use fitBounds for pixel-perfect fit
+                const { southWest, northEast } = radiusToBounds(initialCenter, urlRadius);
+                map.flyToBounds([southWest, northEast], {
+                    padding: [20, 20],
+                    duration: 1.5,
+                    maxZoom: 16,
+                });
+            } else {
+                map.flyTo(initialCenter, initialZoom, { duration: 1.5 });
             }
+
+            map.once('moveend', () => {
+                setTimeout(() => { (map as any)._isProgrammaticMove = false; }, 100);
+            });
         }
-    }, [map, latStr, lngStr, cityStr]);
+    }, [map, initialCenter, initialZoom, urlRadiusStr]);
 
     return null;
 }
 
-function MapEventListener() {
-    const router = useRouter();
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
+/** Emits bounding box on every map move/zoom via onBoundsChange callback. */
+function MapBoundsEmitter({ onBoundsChange }: { onBoundsChange?: (bounds: MapBounds) => void }) {
+    const map = useMap();
+    const firstLoad = useRef(true);
+
+    // Emit initial bounds once the map is ready
+    useEffect(() => {
+        if (!onBoundsChange) return;
+
+        // Small delay to let the map settle its initial view
+        const timer = setTimeout(() => {
+            const b = map.getBounds();
+            onBoundsChange({
+                minLat: b.getSouthWest().lat,
+                maxLat: b.getNorthEast().lat,
+                minLng: b.getSouthWest().lng,
+                maxLng: b.getNorthEast().lng,
+                source: 'programmatic', // initial load is programmatic
+            });
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [map, onBoundsChange]);
 
     useMapEvents({
-        dragend: (e) => {
-            const map = e.target;
-            const center = map.getCenter();
-            const params = new URLSearchParams(searchParams.toString());
-
-            const oldLat = params.get('lat');
-            const oldLng = params.get('lng');
-
-            const newLat = center.lat.toFixed(6);
-            const newLng = center.lng.toFixed(6);
-
-            // only update if coordinates actually changed
-            if (oldLat !== newLat || oldLng !== newLng) {
-                params.set('lat', newLat);
-                params.set('lng', newLng);
-                params.delete('city'); // Unbind city since user dragged manually
-                router.push(`${pathname}?${params.toString()}`, { scroll: false });
-            }
+        moveend: () => {
+            if (!onBoundsChange) return;
+            const b = map.getBounds();
+            onBoundsChange({
+                minLat: b.getSouthWest().lat,
+                maxLat: b.getNorthEast().lat,
+                minLng: b.getSouthWest().lng,
+                maxLng: b.getNorthEast().lng,
+                source: (map as any)._isProgrammaticMove ? 'programmatic' : 'user',
+            });
         },
-        // Optionally listen to zoomend if we want zoom to also trigger a re-fetch
-        zoomend: (e) => {
-            const map = e.target;
-            const center = map.getCenter();
-            const params = new URLSearchParams(searchParams.toString());
-
-            params.set('lat', center.lat.toFixed(6));
-            params.set('lng', center.lng.toFixed(6));
-            params.delete('city');
-            router.push(`${pathname}?${params.toString()}`, { scroll: false });
-        }
     });
 
     return null;
 }
 
-function SearchRadiusCircle() {
-    const searchParams = useSearchParams();
-    const latStr = searchParams.get('lat');
-    const lngStr = searchParams.get('lng');
-    const radiusStr = searchParams.get('radius');
-
-    if (!latStr || !lngStr) return null;
-
-    const lat = parseFloat(latStr);
-    const lng = parseFloat(lngStr);
-    const radiusKm = radiusStr ? parseInt(radiusStr, 10) : 10; // Default to 10km if missing
-
-    if (isNaN(lat) || isNaN(lng) || isNaN(radiusKm) || radiusKm <= 0) return null;
-
-    return (
-        <Circle
-            center={[lat, lng]}
-            radius={radiusKm * 1000} // Leaflet uses meters
-            pathOptions={{
-                color: '#3b82f6',
-                fillColor: '#3b82f6',
-                fillOpacity: 0.05,
-                weight: 2,
-                dashArray: '8, 8'
-            }}
-        />
-    );
-}
-
-export function SearchResultsMapClient({ markers, hoveredMarkerId }: SearchResultsMapClientProps) {
+export function SearchResultsMapClient({
+    markers,
+    hoveredMarkerId,
+    onBoundsChange,
+    initialCenter,
+    initialZoom,
+}: SearchResultsMapClientProps) {
     const router = useRouter();
-    console.log('[SearchResultsMapClient] Incoming Markers:', markers);
+    const zoom = initialZoom ?? 11;
 
     // Filter out markers with invalid coordinates and add jitter to exact duplicates
     const seenCoords = new Set<string>();
@@ -125,7 +131,6 @@ export function SearchResultsMapClient({ markers, hoveredMarkerId }: SearchResul
             let lng = m.lng;
             let key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
             while (seenCoords.has(key)) {
-                // Add a small ~20-50m random offset to prevent exact marker stacking
                 lat += (Math.random() - 0.5) * 0.0005;
                 lng += (Math.random() - 0.5) * 0.0005;
                 key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
@@ -139,14 +144,16 @@ export function SearchResultsMapClient({ markers, hoveredMarkerId }: SearchResul
             };
         });
 
-    const center: [number, number] =
-        validMarkers.length > 0 ? [validMarkers[0].lat, validMarkers[0].lng] : DEFAULT_CENTER;
+    const center: [number, number] = initialCenter
+        ? initialCenter
+        : validMarkers.length > 0
+            ? [validMarkers[0].lat, validMarkers[0].lng]
+            : DEFAULT_CENTER;
 
     return (
-        <MapContainer center={center} zoom={11} className="h-full w-full z-0">
-            <MapUpdater />
-            <MapEventListener />
-            <SearchRadiusCircle />
+        <MapContainer center={center} zoom={zoom} className="h-full w-full z-0">
+            <MapUpdater initialCenter={initialCenter} initialZoom={zoom} />
+            <MapBoundsEmitter onBoundsChange={onBoundsChange} />
             <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -155,25 +162,21 @@ export function SearchResultsMapClient({ markers, hoveredMarkerId }: SearchResul
                 const isHovered = marker.id === hoveredMarkerId;
                 const firstLetter = marker.name ? marker.name.charAt(0).toUpperCase() : 'M';
 
-                // Programmatic hover states triggered from list sidebar
                 const activeDotScale = isHovered ? 'scale-110' : '';
                 const activeTooltipClass = isHovered ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none';
 
-                // Avatar image or fallback letter
                 const avatarHtml = marker.image
                     ? `<img src="${marker.image}" class="w-full h-full object-cover" alt="avatar" />`
                     : marker.name ? marker.name.charAt(0).toUpperCase() : 'M';
 
-                // If exact, show the black dot. Else, show an invisible anchor (w-12 h-12 to make hovering the circle center easy).
                 const dotHtml = marker.isExactLocation
                     ? `<div class="w-4 h-4 bg-slate-900 rounded-full shadow-md border-2 border-white transition-transform duration-200 group-hover:scale-110 relative z-10 ${activeDotScale}"></div>`
-                    : `<div class="w-12 h-12 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10"></div>`; // invisible target
+                    : `<div class="w-12 h-12 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10"></div>`;
 
                 const iconHtml = `
                     <div class="group relative cursor-pointer flex items-center justify-center">
                         ${dotHtml}
                         
-                        <!-- Invisible bridge (pb-3) to prevent hover dropout -->
                         <div class="absolute bottom-full left-1/2 -translate-x-1/2 pb-3 transition-opacity duration-200 z-50 group-hover:opacity-100 group-hover:pointer-events-auto ${activeTooltipClass}">
                             
                             <div class="w-52 bg-white rounded-2xl shadow-xl p-4 flex flex-col items-center text-center border border-slate-100 antialiased transform-gpu">
@@ -196,12 +199,11 @@ export function SearchResultsMapClient({ markers, hoveredMarkerId }: SearchResul
                     </div>
                 `;
 
-                // Empty className removes Leaflet's default white square
                 const dynamicIcon = divIcon({
                     className: 'bg-transparent border-none',
                     html: iconHtml,
                     iconSize: [20, 20],
-                    iconAnchor: [10, 10], // Center of the 20x20 (w-5 h-5) pin
+                    iconAnchor: [10, 10],
                 });
 
                 return (

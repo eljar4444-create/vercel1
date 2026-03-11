@@ -8,6 +8,7 @@ import { Search, MapPin, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { LocationAutocomplete } from './LocationAutocomplete';
 import { SUB_CATEGORIES } from '@/constants/categories';
+import toast from 'react-hot-toast';
 
 interface Category {
     id: string;
@@ -40,6 +41,7 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
     const [locationQuery, setLocationQuery] = useState('');
     const [radius, setRadius] = useState(10);
     const [coordinates, setCoordinates] = useState<{ lat: number | null; lng: number | null }>({ lat: null, lng: null });
+    const [validationError, setValidationError] = useState<{ service: boolean; location: boolean }>({ service: false, location: false });
 
     // Dropdown state
     const [isServiceFocused, setIsServiceFocused] = useState(false);
@@ -118,6 +120,19 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
+
+        const hasService = serviceQuery.trim().length > 0;
+        const hasLocation = locationQuery.trim().length > 0;
+
+        if (!hasService || !hasLocation) {
+            setValidationError({ service: !hasService, location: !hasLocation });
+            toast.error('Пожалуйста, укажите город и желаемую услугу для точного поиска');
+            // Auto-clear error highlight after 3 seconds
+            setTimeout(() => setValidationError({ service: false, location: false }), 3000);
+            return;
+        }
+
+        setValidationError({ service: false, location: false });
         const params = new URLSearchParams();
 
         // Use explicitly selected params if the query matches the selected item name
@@ -125,9 +140,6 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
             if (selectedParams.category) params.set('category', selectedParams.category);
             if (selectedParams.subcategory) params.set('subcategory', selectedParams.subcategory);
         } else if (selectedParams) {
-            // Fallback: If user selected something but then edited the text slightly?
-            // Or if serviceQuery matches the name we set.
-            // Let's trust selectedParams heavily if serviceQuery contains it
             if (selectedParams.category) params.set('category', selectedParams.category);
             if (selectedParams.subcategory) params.set('subcategory', selectedParams.subcategory);
         }
@@ -197,9 +209,12 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
                         </div>
                         <Input
                             value={serviceQuery}
-                            onChange={(e) => setServiceQuery(e.target.value)}
+                            onChange={(e) => { setServiceQuery(e.target.value); if (validationError.service) setValidationError(prev => ({ ...prev, service: false })); }}
                             onFocus={() => setIsServiceFocused(true)}
-                            className="w-full h-14 pl-16 pt-1 pb-1 border-none bg-transparent shadow-none focus-visible:ring-0 text-base font-semibold placeholder:font-normal placeholder:text-gray-300 rounded-lg md:rounded-r-none"
+                            className={cn(
+                                "w-full h-14 pl-16 pt-1 pb-1 border-none bg-transparent shadow-none focus-visible:ring-0 text-base font-semibold placeholder:font-normal placeholder:text-gray-300 rounded-lg md:rounded-r-none transition-all duration-300",
+                                validationError.service && "ring-2 ring-red-400 bg-red-50/50"
+                            )}
                             placeholder="Название услуги, салона..."
                         />
 
@@ -319,8 +334,12 @@ export function SearchHero({ categories = [], user }: SearchHeroProps) {
                             onSelect={(addr, lat, lng) => {
                                 setLocationQuery(addr);
                                 setCoordinates({ lat, lng });
+                                if (validationError.location) setValidationError(prev => ({ ...prev, location: false }));
                             }}
-                            className="w-full h-14 pl-16 pt-1 pb-1 border-none bg-transparent shadow-none focus-visible:ring-0 text-base font-semibold placeholder:font-normal placeholder:text-gray-300 rounded-lg md:rounded-l-none"
+                            className={cn(
+                                "w-full h-14 pl-16 pt-1 pb-1 border-none bg-transparent shadow-none focus-visible:ring-0 text-base font-semibold placeholder:font-normal placeholder:text-gray-300 rounded-lg md:rounded-l-none transition-all duration-300",
+                                validationError.location && "ring-2 ring-red-400 bg-red-50/50"
+                            )}
                         />
                     </div>
 

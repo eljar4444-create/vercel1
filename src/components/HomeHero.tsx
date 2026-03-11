@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
     Search, MapPin, Loader2, LocateFixed, Clock,
 } from 'lucide-react';
@@ -23,6 +24,8 @@ export default function HomeHero() {
     const [cityOpen, setCityOpen] = useState(false);
     const [isGeoLoading, setIsGeoLoading] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const [validationError, setValidationError] = useState<{ query: boolean; city: boolean }>({ query: false, city: false });
 
     const SPOTLIGHT_SUGGESTIONS = [
         'Стрижка', 'Маникюр', 'Окрашивание', 'Массаж спины', 'Лазерная эпиляция',
@@ -34,6 +37,7 @@ export default function HomeHero() {
     const { getStored, setStored } = useLocalStorageSearch();
 
     useEffect(() => {
+        setMounted(true);
         getHomeStats().then(setLiveStats).catch(console.error);
     }, []);
 
@@ -72,6 +76,18 @@ export default function HomeHero() {
         e?.preventDefault();
         const trimmed = query.trim();
         const normalizedCity = resolveGermanCity(city.trim()) || city.trim();
+
+        const hasQuery = trimmed.length > 0;
+        const hasCity = normalizedCity.length > 0;
+
+        if (!hasQuery || !hasCity) {
+            setValidationError({ query: !hasQuery, city: !hasCity });
+            toast.error('Пожалуйста, укажите город и желаемую услугу для точного поиска');
+            setTimeout(() => setValidationError({ query: false, city: false }), 3000);
+            return;
+        }
+
+        setValidationError({ query: false, city: false });
         setStored(normalizedCity, trimmed);
         const params = new URLSearchParams();
         if (trimmed) params.set('q', trimmed);
@@ -123,14 +139,28 @@ export default function HomeHero() {
 
     return (
         <section className="relative w-full h-screen overflow-hidden flex flex-col justify-center">
-            <video
-                src="/hero-bg.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                className="absolute inset-0 w-full h-full object-cover z-0"
+            {/* LCP Optimized Poster Image */}
+            <Image
+                src="/hero-bg-poster.webp"
+                alt="Фоновое изображение"
+                fill
+                priority
+                className="object-cover z-0"
             />
+
+            {/* Lazy-loaded video for desktop only */}
+            {mounted && window.innerWidth >= 768 && (
+                <video
+                    src="/hero-bg.mp4"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="none"
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                />
+            )}
+
             <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/90 via-black/60 to-black/20" />
 
             <div className="relative z-20 flex flex-col items-center text-center px-4 w-full max-w-4xl mx-auto -translate-y-8 md:-translate-y-12">
@@ -164,10 +194,10 @@ export default function HomeHero() {
                                     value={query}
                                     onFocus={() => { setIsFocused(true); setQueryOpen(query.trim().length > 0); setCityOpen(false); }}
                                     onBlur={() => { setTimeout(() => { setIsFocused(false); setQueryOpen(false); }, 200); }}
-                                    onChange={(e) => { const v = e.target.value; setQuery(v); setQueryOpen(v.trim().length > 0); }}
+                                    onChange={(e) => { const v = e.target.value; setQuery(v); setQueryOpen(v.trim().length > 0); if (validationError.query) setValidationError(prev => ({ ...prev, query: false })); }}
                                     placeholder="Все процедуры и специалисты"
                                     aria-label="Услуга или специалист"
-                                    className="w-full bg-transparent text-base text-gray-900 placeholder:text-gray-400 outline-none"
+                                    className={`w-full bg-transparent text-base text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 ${validationError.query ? 'ring-2 ring-red-400 rounded-lg bg-red-50/60 px-2' : ''}`}
                                 />
                                 {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
                                     <div className="absolute left-0 top-full z-[100] mt-2 w-full overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl antialiased transform-gpu">
@@ -214,10 +244,10 @@ export default function HomeHero() {
                                     type="text"
                                     value={city}
                                     onFocus={() => { setCityOpen(city.trim().length > 0); setQueryOpen(false); }}
-                                    onChange={(e) => { const v = e.target.value; setCity(v); setCityOpen(v.trim().length > 0); }}
+                                    onChange={(e) => { const v = e.target.value; setCity(v); setCityOpen(v.trim().length > 0); if (validationError.city) setValidationError(prev => ({ ...prev, city: false })); }}
                                     placeholder="Текущее местоположение"
                                     aria-label="Город"
-                                    className="w-full bg-transparent pr-9 text-base text-gray-900 placeholder:text-gray-400 outline-none"
+                                    className={`w-full bg-transparent pr-9 text-base text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 ${validationError.city ? 'ring-2 ring-red-400 rounded-lg bg-red-50/60 px-2' : ''}`}
                                 />
                                 <button
                                     type="button"

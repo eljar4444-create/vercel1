@@ -158,6 +158,10 @@
 }
 
 @layer utilities {
+  .font-serif-display {
+    font-family: var(--font-playfair), Georgia, 'Times New Roman', serif;
+  }
+
   .glass {
     @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
   }

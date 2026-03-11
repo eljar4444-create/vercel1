@@ -21,6 +21,7 @@ export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' 
     const [query, setQuery] = useState(defaultQuery);
     const [city, setCity] = useState(defaultCity);
     const [isLocating, setIsLocating] = useState(false);
+    const [validationError, setValidationError] = useState<{ query: boolean; city: boolean }>({ query: false, city: false });
     const suggestions = getGermanCitySuggestions(city, 8);
 
     useEffect(() => {
@@ -35,6 +36,18 @@ export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' 
         e.preventDefault();
         const trimmed = query.trim();
         const normalizedCity = resolveGermanCity(city.trim()) || city.trim();
+
+        const hasQuery = trimmed.length > 0;
+        const hasCity = normalizedCity.length > 0;
+
+        if (!hasQuery || !hasCity) {
+            setValidationError({ query: !hasQuery, city: !hasCity });
+            toast.error('Пожалуйста, укажите город и желаемую услугу для точного поиска');
+            setTimeout(() => setValidationError({ query: false, city: false }), 3000);
+            return;
+        }
+
+        setValidationError({ query: false, city: false });
         const params = new URLSearchParams();
         if (trimmed) params.set('q', trimmed);
         if (normalizedCity) params.set('city', normalizedCity);
@@ -104,9 +117,9 @@ export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' 
                     <input
                         type="text"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={(e) => { setQuery(e.target.value); if (validationError.query) setValidationError(prev => ({ ...prev, query: false })); }}
                         placeholder="Маникюр, стрижка, массаж, салон..."
-                        className="w-full py-3 text-base text-gray-800 placeholder-gray-400 bg-transparent outline-none"
+                        className={`w-full py-3 text-base text-gray-800 placeholder-gray-400 bg-transparent outline-none transition-all duration-300 ${validationError.query ? 'ring-2 ring-red-400 rounded-lg bg-red-50/50' : ''}`}
                     />
                 </div>
                 <div className="relative md:w-72 flex items-center gap-3 pl-4 pr-2 border-t md:border-t-0 md:border-l border-gray-100 min-w-0">
@@ -114,9 +127,9 @@ export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' 
                     <input
                         type="text"
                         value={city}
-                        onChange={(e) => setCity(e.target.value)}
+                        onChange={(e) => { setCity(e.target.value); if (validationError.city) setValidationError(prev => ({ ...prev, city: false })); }}
                         placeholder="Где? / Город"
-                        className="w-full py-3 pr-9 text-base text-gray-800 placeholder-gray-400 bg-transparent outline-none"
+                        className={`w-full py-3 pr-9 text-base text-gray-800 placeholder-gray-400 bg-transparent outline-none transition-all duration-300 ${validationError.city ? 'ring-2 ring-red-400 rounded-lg bg-red-50/50' : ''}`}
                     />
                     <button
                         type="button"

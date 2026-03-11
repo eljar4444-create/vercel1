@@ -149,7 +149,7 @@ export function SearchFiltersForm({
         if (categoryFilter) params.set('category', categoryFilter);
         if (stored.query.trim()) params.set('q', stored.query.trim());
         if (stored.city) params.set('city', stored.city);
-        if (radiusFilter !== '10' && radiusFilter) params.set('radius', radiusFilter);
+        if (radiusFilter) params.set('radius', radiusFilter);
 
         // Use router.replace to avoid clogging the history stack on first load
         router.replace(`/search${params.toString() ? `?${params.toString()}` : ''}`);
@@ -164,13 +164,13 @@ export function SearchFiltersForm({
         if (q.trim()) params.set('q', q.trim());
         const nc = resolveGermanCity(c.trim()) || c.trim();
         if (nc) params.set('city', nc);
-        if (r && r !== '10') params.set('radius', r);
+        if (r) params.set('radius', r);
         if (lat && lng) {
             params.set('lat', lat);
             params.set('lng', lng);
         }
         setStored(nc, q.trim());
-        router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
+        router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`, { scroll: false });
         setIsExpanded(false);
         setQueryFocused(false);
         setCityOpen(false);
@@ -256,12 +256,12 @@ export function SearchFiltersForm({
                     className={cn(
                         'flex h-12 items-center rounded-full border bg-white transition-all duration-300 ease-out',
                         isExpanded
-                            ? 'border-gray-300 shadow-xl'
-                            : 'cursor-pointer border-gray-200 shadow-sm hover:shadow-md'
+                            ? 'border-[#E5E0D8] shadow-xl'
+                            : 'cursor-pointer border-[#E5E0D8] shadow-sm hover:shadow-md'
                     )}
                 >
                     {/* ── Service segment ───────────────────────── */}
-                    <div className="relative flex min-w-0 flex-1 items-center border-r border-gray-200 h-full">
+                    <div className="relative flex min-w-0 flex-1 items-center border-r border-[#E5E0D8] h-full">
                         {/* Collapsed label — fades out */}
                         <span
                             className={cn(
@@ -300,7 +300,7 @@ export function SearchFiltersForm({
                     {/* ── City segment ──────────────────────────── */}
                     <div
                         onClick={!isExpanded ? (e) => { e.stopPropagation(); handleExpand('city'); } : undefined}
-                        className="relative flex w-52 shrink-0 items-center border-r border-gray-200 h-full"
+                        className="relative flex w-52 shrink-0 items-center border-r border-[#E5E0D8] h-full"
                     >
                         {/* Collapsed label — fades out */}
                         <span
@@ -355,7 +355,7 @@ export function SearchFiltersForm({
                     </div>
 
                     {/* ── Radius segment ──────────────────────────── */}
-                    <div className="relative flex w-24 shrink-0 items-center justify-center border-r border-gray-200 h-full">
+                    <div className="relative flex w-24 shrink-0 items-center justify-center border-r border-[#E5E0D8] h-full">
                         <SelectRoot
                             value={radius}
                             onValueChange={(val) => {
@@ -389,7 +389,7 @@ export function SearchFiltersForm({
                             : undefined
                         }
                         className={cn(
-                            'relative shrink-0 flex items-center justify-center overflow-hidden rounded-full bg-black text-white transition-all duration-300 ease-out hover:bg-gray-800',
+                            'relative shrink-0 flex items-center justify-center overflow-hidden rounded-full bg-stone-800 text-white transition-all duration-300 ease-out hover:bg-stone-700',
                             isExpanded
                                 ? 'mx-2 my-1.5 h-9 w-[92px]'
                                 : 'mx-1.5 my-1.5 h-9 w-9'

@@ -25,7 +25,7 @@ const MAX_SLOTS_PER_PERIOD = 3;
 /**
  * Returns up to 3 morning and 3 evening available slots for a given provider within the next 7 days.
  */
-export async function getQuickSlots(profileId: number): Promise<QuickSlotsResponse> {
+export async function getQuickSlots(profileId: number, durationMin: number = 30): Promise<QuickSlotsResponse> {
     try {
         const profile = await prisma.profile.findUnique({
             where: { id: profileId },
@@ -91,7 +91,7 @@ export async function getQuickSlots(profileId: number): Promise<QuickSlotsRespon
             const dayBookings = bookingsByDate[checkDateStr] || [];
 
             // Generate slots in 30min increments
-            for (let min = workStartMin; min <= workEndMin - SLOT_DURATION_MIN; min += SLOT_DURATION_MIN) {
+            for (let min = workStartMin; min <= workEndMin - Math.max(30, durationMin); min += 30) {
                 // If checking today, skip past times
                 if (i === 0) {
                     const currentHour = nowZoned.getHours();
@@ -104,7 +104,7 @@ export async function getQuickSlots(profileId: number): Promise<QuickSlotsRespon
 
                 // Check overlap with bookings
                 const isOverlapping = dayBookings.some(b => {
-                    const slotEnd = min + SLOT_DURATION_MIN;
+                    const slotEnd = min + durationMin;
                     // Strict overlap checking:
                     // slot starts during booking OR slot ends during booking OR slot encompasses booking
                     return (min >= b.startMin && min < b.endMin) ||
