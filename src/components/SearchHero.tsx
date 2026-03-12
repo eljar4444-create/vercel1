@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, MapPin, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { LocationAutocomplete } from './LocationAutocomplete';
+import dynamic from 'next/dynamic';
 import { SUB_CATEGORIES } from '@/constants/categories';
 import toast from 'react-hot-toast';
+
+const LocationAutocomplete = dynamic(() => import('./LocationAutocomplete').then(mod => mod.LocationAutocomplete), { ssr: false, loading: () => <div className="h-14 w-full bg-slate-50 animate-pulse rounded-lg md:rounded-l-none" /> });
 
 interface Category {
     id: string;

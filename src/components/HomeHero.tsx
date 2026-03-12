@@ -25,6 +25,7 @@ export default function HomeHero() {
     const [isGeoLoading, setIsGeoLoading] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [videoReady, setVideoReady] = useState(false);
     const [validationError, setValidationError] = useState<{ query: boolean; city: boolean }>({ query: false, city: false });
 
     const SPOTLIGHT_SUGGESTIONS = [
@@ -39,6 +40,10 @@ export default function HomeHero() {
     useEffect(() => {
         setMounted(true);
         getHomeStats().then(setLiveStats).catch(console.error);
+        
+        // Delay heavy video element rendering to prioritize LCP image and text
+        const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1000));
+        idleCallback(() => setVideoReady(true));
     }, []);
 
     // Память поиска: подставляем последние город и запрос только на клиенте
@@ -149,7 +154,7 @@ export default function HomeHero() {
             />
 
             {/* Lazy-loaded video for desktop only */}
-            {mounted && window.innerWidth >= 768 && (
+            {mounted && videoReady && window.innerWidth >= 768 && (
                 <video
                     src="/hero-bg.mp4"
                     autoPlay

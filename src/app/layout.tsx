@@ -35,6 +35,10 @@ export default function RootLayout({
 }) {
     return (
         <html lang="ru" className={cn("font-sans")}>
+            <head>
+                <link rel="preconnect" href="https://images.unsplash.com" />
+                <link rel="preconnect" href="https://maps.googleapis.com" />
+            </head>
             <body className={`${inter.variable} ${playfair.variable} font-sans antialiased bg-[#F5F2EB] text-gray-900 min-h-screen flex flex-col`}>
                 <Providers>
                     <Suspense fallback={<div className="relative z-50 h-16 border-b border-slate-200 bg-[#F5F2EB]" />}>

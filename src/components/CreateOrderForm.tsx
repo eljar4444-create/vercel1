@@ -8,7 +8,9 @@ import { createOrder } from '@/app/actions/createOrder';
 import { useState } from 'react';
 import { SUB_CATEGORIES } from '@/constants/categories';
 
-import { LocationAutocomplete } from '@/components/LocationAutocomplete';
+import dynamic from 'next/dynamic';
+
+const LocationAutocomplete = dynamic(() => import('@/components/LocationAutocomplete').then(mod => mod.LocationAutocomplete), { ssr: false, loading: () => <div className="h-12 w-full bg-slate-50 animate-pulse rounded-xl" /> });
 
 interface Category {
     id: string;
