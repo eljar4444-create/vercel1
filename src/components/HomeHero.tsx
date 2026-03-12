@@ -26,7 +26,7 @@ export default function HomeHero() {
     const [isFocused, setIsFocused] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [videoReady, setVideoReady] = useState(false);
-    const [videoLoaded, setVideoLoaded] = useState(false);
+    const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const [validationError, setValidationError] = useState<{ query: boolean; city: boolean }>({ query: false, city: false });
 
     const SPOTLIGHT_SUGGESTIONS = [
@@ -151,33 +151,34 @@ export default function HomeHero() {
 
     return (
         <section className="relative w-full h-screen overflow-hidden flex flex-col justify-center">
-            {/* LCP Optimized Poster Image */}
-            <Image
-                src="/hero-bg-poster.webp"
-                alt="Фоновое изображение"
-                fill
-                priority={true}
-                fetchPriority="high"
-                unoptimized={true}
-                className="absolute inset-0 w-full h-full object-cover z-0"
-            />
-
-            {/* Lazy-loaded video for desktop only */}
+            {/* Lazy-loaded video for desktop only - positioned behind the image */}
             {mounted && videoReady && window.innerWidth >= 768 && (
                 <video
                     src="/hero-bg.mp4"
-                    loop
+                    autoPlay
                     muted
+                    loop
                     playsInline
-                    preload="none"
-                    onCanPlay={(e) => {
-                        setVideoLoaded(true);
-                        const video = e.target as HTMLVideoElement;
-                        video.play().catch(() => {});
-                    }}
-                    className={`absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    preload="metadata"
+                    onPlaying={() => setIsVideoPlaying(true)}
+                    className="absolute inset-0 w-full h-full object-cover z-0"
                 />
             )}
+
+            {/* LCP Optimized Poster Image - fades out when video starts playing */}
+            <div
+                className={`absolute inset-0 z-[5] transition-opacity duration-1000 ${isVideoPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+            >
+                <Image
+                    src="/hero-bg-poster.webp"
+                    alt="Фоновое изображение"
+                    fill
+                    priority={true}
+                    fetchPriority="high"
+                    unoptimized={true}
+                    className="object-cover w-full h-full"
+                />
+            </div>
 
             <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/90 via-black/60 to-black/20" />
 

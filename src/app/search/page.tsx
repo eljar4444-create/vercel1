@@ -3,7 +3,6 @@ export const revalidate = 0;
 
 import { Suspense } from "react";
 import prisma from "@/lib/prisma";
-import Link from "next/link";
 import { getCityFilterVariants } from "@/constants/searchSuggestions";
 import { GERMAN_CITIES } from "@/constants/germanCities";
 import { SearchInteractiveLayout } from "@/components/search/SearchInteractiveLayout";
@@ -12,8 +11,7 @@ import { getFavoriteProfileIds } from "@/app/actions/favorites";
 import { geocodeCity } from "@/lib/geocode";
 import { calculateMapZoom } from "@/components/search/types";
 import type { Metadata } from "next";
-
-const QUICK_FILTERS = ['Рядом со мной', 'Топ рейтинг', 'Стрижка', 'Маникюр', 'Массаж'];
+import { SearchQuickFilters } from "@/components/search/SearchQuickFilters";
 
 const DEFAULT_CITY_COORDS = {
     lat: 52.52,
@@ -81,6 +79,14 @@ export default async function SearchPage({
     const urlLat = typeof searchParams.lat === 'string' ? parseFloat(searchParams.lat) : undefined;
     const urlLng = typeof searchParams.lng === 'string' ? parseFloat(searchParams.lng) : undefined;
     const urlRadius = typeof searchParams.radius === 'string' ? parseFloat(searchParams.radius) : undefined;
+
+    const sortParam = typeof searchParams.sort === 'string' ? searchParams.sort : undefined;
+    const todayFilter = searchParams.today === 'true';
+    const homeVisitFilter = searchParams.homeVisit === 'true';
+    const promoFilter = searchParams.promo === 'true';
+    const inSalonFilter = searchParams.inSalon === 'true';
+    const cardPaymentFilter = searchParams.cardPayment === 'true';
+    const instantBookingFilter = searchParams.instantBooking === 'true';
 
     const andConditions: any[] = [
         { is_verified: true },
@@ -170,7 +176,66 @@ export default async function SearchPage({
         });
     }
 
+    if (homeVisitFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['homeVisit'],
+                equals: true,
+            },
+        });
+    }
+
+    if (promoFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['hasPromo'],
+                equals: true,
+            },
+        });
+    }
+
+    if (todayFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['availableToday'],
+                equals: true,
+            },
+        });
+    }
+
+    if (inSalonFilter) {
+        andConditions.push({
+            OR: [
+                { provider_type: 'SALON' },
+                { attributes: { path: ['inSalon'], equals: true } },
+            ],
+        });
+    }
+
+    if (cardPaymentFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['cardPayment'],
+                equals: true,
+            },
+        });
+    }
+
+    if (instantBookingFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['instantBooking'],
+                equals: true,
+            },
+        });
+    }
+
     const where: any = { AND: andConditions };
+
+    let orderBy: any = { created_at: 'desc' };
+    if (sortParam === 'rating') {
+        orderBy = { reviews: { _avg: { rating: 'desc' } } };
+    }
 
     let profiles: any[] = [];
     try {
@@ -179,8 +244,9 @@ export default async function SearchPage({
             include: {
                 category: true,
                 services: true,
+                reviews: true,
             },
-            orderBy: { created_at: 'desc' },
+            orderBy,
             take: 50,
         });
     } catch (e: any) {
@@ -228,37 +294,7 @@ export default async function SearchPage({
                     initialZoom={urlRadius ? calculateMapZoom(urlRadius) : undefined}
                     radiusKm={urlRadius}
                     headerContent={
-                        <nav aria-label="Быстрые фильтры" className="sticky top-0 z-10 -mx-4 mb-4 border-b border-[#E5E0D8]/50 bg-[#FCFAF8] px-4 py-2 md:-mx-6 md:px-6">
-                            <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
-                                {['Все', ...QUICK_FILTERS].map((filter) => {
-                                    const params = new URLSearchParams();
-                                    if (filter === 'Все') {
-                                        if (cityFilter) params.set('city', cityFilter);
-                                        if (queryFilter) params.set('q', queryFilter);
-                                    } else if (cityFilter) {
-                                        params.set('city', cityFilter);
-                                    }
-
-                                    if (filter === 'Рядом со мной') {
-                                        if (queryFilter) params.set('q', queryFilter);
-                                    } else if (filter === 'Топ рейтинг') {
-                                        params.set('sort', 'rating');
-                                        if (queryFilter) params.set('q', queryFilter);
-                                    } else if (filter !== 'Все') {
-                                        params.set('q', filter);
-                                    }
-                                    return (
-                                        <Link
-                                            key={filter}
-                                            href={`/search?${params.toString()}`}
-                                            className="min-h-[36px] flex items-center whitespace-nowrap rounded-full border border-[#E5E0D8] bg-transparent px-3 py-1.5 text-xs text-stone-600 transition hover:border-[#C8B9AC] hover:bg-white"
-                                        >
-                                            {filter}
-                                        </Link>
-                                    );
-                                })}
-                            </div>
-                        </nav>
+                        <SearchQuickFilters />
                     }
                 />
             </Suspense>

@@ -7,33 +7,28 @@ import toast from 'react-hot-toast';
 import { getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 
 interface SearchBarProps {
-    /** Additional classes for the outer wrapper */
     className?: string;
-    /** Initial query value (e.g. from URL) */
     defaultQuery?: string;
-    /** Initial city value (e.g. from URL) */
     defaultCity?: string;
 }
 
 export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' }: SearchBarProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [query, setQuery] = useState(defaultQuery);
-    const [city, setCity] = useState(defaultCity);
+    const [query, setQuery] = useState(() => searchParams.get('q') || defaultQuery || '');
+    const [city, setCity] = useState(() => searchParams.get('city') || defaultCity || '');
     const [isLocating, setIsLocating] = useState(false);
     const [validationError, setValidationError] = useState<{ query: boolean; city: boolean }>({ query: false, city: false });
     const suggestions = getGermanCitySuggestions(city, 8);
 
     useEffect(() => {
-        if (searchParams) {
-            setQuery(searchParams.get('q') || '');
-            // Optionally sync city too if needed, but requirements only mentioned `q`
-            // If the map changes the city, sync it as well? Let's just sync `q` for now.
-        }
+        if (!searchParams) return;
+        setQuery(searchParams.get('q') || '');
+        setCity(searchParams.get('city') || '');
     }, [searchParams]);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         const trimmed = query.trim();
         const normalizedCity = resolveGermanCity(city.trim()) || city.trim();
 
@@ -48,10 +43,22 @@ export function SearchBar({ className = '', defaultQuery = '', defaultCity = '' 
         }
 
         setValidationError({ query: false, city: false });
-        const params = new URLSearchParams();
-        if (trimmed) params.set('q', trimmed);
-        if (normalizedCity) params.set('city', normalizedCity);
-        router.push(`/search${params.toString() ? `?${params.toString()}` : ''}`);
+
+        const params = new URLSearchParams(searchParams?.toString() || '');
+        if (trimmed) {
+            params.set('q', trimmed);
+        } else {
+            params.delete('q');
+        }
+        if (normalizedCity) {
+            params.set('city', normalizedCity);
+        } else {
+            params.delete('city');
+        }
+
+        const target = `/search${params.toString() ? `?${params.toString()}` : ''}`;
+        router.push(target);
+        router.refresh();
     };
 
     const handleLocateMe = async () => {

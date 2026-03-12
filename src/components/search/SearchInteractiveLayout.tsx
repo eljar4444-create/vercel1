@@ -62,7 +62,16 @@ export function SearchInteractiveLayout({
 
     const debouncedBounds = useDebounce(bounds, 400);
 
-    // Fetch providers when debounced bounds change
+    // Keep local state in sync with server-provided initial data
+    useEffect(() => {
+        if (!debouncedBounds) {
+            setProfiles(initialProfiles);
+            setMapMarkers(initialMapMarkers);
+            setResultCount(initialProfiles.length);
+        }
+    }, [initialProfiles, initialMapMarkers, debouncedBounds]);
+
+    // Fetch providers when debounced bounds or search params change
     useEffect(() => {
         if (!debouncedBounds) return;
 
@@ -79,7 +88,7 @@ export function SearchInteractiveLayout({
                     maxLng: debouncedBounds.maxLng.toString(),
                 });
 
-                // Preserve query and category filters
+                // Preserve query and category filters from URL
                 const q = searchParams.get('q');
                 const category = searchParams.get('category');
                 if (q) params.set('q', q);
@@ -147,7 +156,7 @@ export function SearchInteractiveLayout({
 
         fetchProviders();
         return () => controller.abort();
-    }, [debouncedBounds]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [debouncedBounds, searchParams]); // Re-run when filters in URL change
 
     const handleBoundsChange = useCallback((newBounds: MapBounds) => {
         setBounds(newBounds);
@@ -158,7 +167,7 @@ export function SearchInteractiveLayout({
             <div className="h-full w-full overflow-y-auto bg-[#FCFAF8] p-4 pb-24 md:p-6 lg:w-[48%] xl:w-[46%] shadow-[20px_0_30px_-15px_rgba(0,0,0,0.05)] relative z-10">
                 {/* Header with dynamic result count */}
                 <div className="mb-3 flex items-center justify-between gap-3">
-                    <h1 className="font-serif-display text-lg font-semibold text-stone-800">
+                    <h1 className="text-2xl font-bold text-stone-800 font-sans">
                         {isLoading
                             ? 'Поиск специалистов…'
                             : resultCount > 0
@@ -203,7 +212,7 @@ export function SearchInteractiveLayout({
                             </div>
                         ) : (
                             <div className="rounded-2xl bg-white p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-                                <h2 className="font-serif-display text-lg font-semibold text-stone-800">Специалисты не найдены</h2>
+                                <h2 className="text-xl font-semibold text-stone-800 font-sans">Специалисты не найдены</h2>
                                 <p className="mt-2 text-sm text-stone-500">Попробуйте сдвинуть карту или изменить запрос.</p>
                                 <Link
                                     href="/search"

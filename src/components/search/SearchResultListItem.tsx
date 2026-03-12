@@ -88,7 +88,7 @@ export function SearchResultListItem({ profile, initialIsFavorited = false, isHo
                 {/* Name + rating */}
                 <div className="flex items-start justify-between gap-2">
                     <Link href={`/salon/${profile.slug}`} className="block min-w-0">
-                        <h2 className="font-serif-display truncate text-[15px] font-semibold leading-snug text-stone-800 transition-colors hover:text-stone-600">
+                        <h2 className="truncate text-lg font-bold leading-snug text-stone-900 font-sans transition-colors hover:text-stone-600">
                             {profile.name}
                         </h2>
                         <p className="mt-0.5 flex items-center gap-1 text-xs text-stone-500">

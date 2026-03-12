@@ -100,14 +100,14 @@ function getInitials(name: string) {
 function RatingBar({ label, score }: { label: string; score: number }) {
     return (
         <div className="flex items-center gap-3 text-sm">
-            <span className="w-24 shrink-0 text-gray-500">{label}</span>
-            <div className="flex-1 h-1 rounded-full bg-gray-100 overflow-hidden">
+            <span className="w-24 shrink-0 text-stone-500">{label}</span>
+            <div className="flex-1 h-1 rounded-full bg-stone-100 overflow-hidden">
                 <div
-                    className="h-full rounded-full bg-gray-900 transition-all duration-500"
+                    className="h-full rounded-full bg-stone-700 transition-all duration-500"
                     style={{ width: `${(score / 5) * 100}%` }}
                 />
             </div>
-            <span className="w-6 shrink-0 text-right text-gray-700 font-medium tabular-nums">
+            <span className="w-6 shrink-0 text-right text-stone-700 font-medium tabular-nums">
                 {score.toFixed(1)}
             </span>
         </div>
@@ -128,7 +128,7 @@ function ServiceRow({
         <div className="flex items-center gap-4 py-4">
             {/* Thumbnail */}
             {thumb ? (
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-gray-100">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[#F0EBE3]">
                     <Image
                         src={thumb}
                         alt={service.title}
@@ -137,16 +137,16 @@ function ServiceRow({
                     />
                 </div>
             ) : (
-                <div className="h-12 w-12 shrink-0 rounded-xl bg-gray-50 border border-gray-100" />
+                <div className="h-12 w-12 shrink-0 rounded-xl bg-[#F5F2ED]" />
             )}
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{service.title}</p>
+                <p className="text-sm font-semibold text-stone-800 truncate">{service.title}</p>
                 {service.description ? (
-                    <p className="mt-0.5 text-xs text-gray-400 truncate">{service.description}</p>
+                    <p className="mt-0.5 text-xs text-stone-400 truncate">{service.description}</p>
                 ) : null}
-                <p className="mt-1 inline-flex items-center gap-1 text-xs text-gray-400">
+                <p className="mt-1 inline-flex items-center gap-1 text-xs text-stone-400">
                     <Clock className="h-3.5 w-3.5" />
                     {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
                 </p>
@@ -154,12 +154,12 @@ function ServiceRow({
 
             {/* Price + CTA */}
             <div className="flex shrink-0 items-center gap-3">
-                <span className="text-base font-semibold text-gray-900 tabular-nums">
+                <span className="text-base font-semibold text-stone-800 tabular-nums">
                     {formatPrice(service.price)}
                 </span>
                 <button
                     onClick={onBook}
-                    className="h-9 rounded-xl bg-gray-900 px-4 text-xs font-semibold text-white transition-colors hover:bg-gray-700 active:scale-95"
+                    className="h-9 rounded-full bg-[#F5F2ED] px-4 text-xs font-medium text-stone-600 transition-all hover:bg-[#E5D5C5] active:scale-95"
                 >
                     Выбрать
                 </button>
@@ -182,24 +182,24 @@ function ReviewCard({
     return (
         <div className="py-5 first:pt-0 last:pb-0">
             <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5F2ED] text-xs font-semibold text-stone-600">
                     {initials}
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-semibold text-gray-900">{review.clientName}</span>
-                        <span className="text-xs text-gray-400 shrink-0">{date}</span>
+                        <span className="text-sm font-semibold text-stone-800">{review.clientName}</span>
+                        <span className="text-xs text-stone-400 shrink-0">{date}</span>
                     </div>
                     <div className="mt-1 flex gap-0.5" aria-label={`Рейтинг: ${review.rating} из 5`}>
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                                 key={star}
-                                className={`h-3.5 w-3.5 ${star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'}`}
+                                className={`h-3.5 w-3.5 ${star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-stone-200'}`}
                             />
                         ))}
                     </div>
                     {review.comment ? (
-                        <p className="mt-2 text-sm leading-relaxed text-gray-600">{review.comment}</p>
+                        <p className="mt-2 text-sm leading-relaxed text-stone-500">{review.comment}</p>
                     ) : null}
                 </div>
             </div>
@@ -333,13 +333,13 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
     // ─────────────────────────────────────────────────────────────────────────
 
     return (
-        <div className="min-h-screen bg-[#f7f7f8]">
+        <div className="min-h-screen bg-stone-50">
 
             {/* ── Back nav ──────────────────────────────────────────────── */}
             <div className="container mx-auto max-w-5xl px-4 pt-6 pb-0">
                 <Link
                     href={`/search${profile.category?.slug ? `?category=${profile.category.slug}` : ''}`}
-                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 transition-colors hover:text-gray-900"
+                    className="inline-flex items-center gap-1.5 text-sm text-stone-500 transition-colors hover:text-stone-800"
                     aria-label="Назад к поиску"
                 >
                     <ChevronLeft className="h-4 w-4" />
@@ -351,30 +351,30 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
                 {/* ── Hero card ─────────────────────────────────────────── */}
                 {profile.provider_type === 'SALON' ? (
-                    <section className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                    <section className="overflow-hidden rounded-3xl bg-white shadow-lg">
                         {/* Header row */}
                         <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                                <h1 className="text-3xl font-bold tracking-tight text-stone-900">
                                     {profile.name}
                                 </h1>
-                                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-stone-500">
                                     <span className="inline-flex items-center gap-1.5">
-                                        <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                                        <MapPin className="h-3.5 w-3.5 text-stone-400" />
                                         {visibleAddress}
                                     </span>
                                     <span className="inline-flex items-center gap-1.5">
                                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                        <span className="font-medium text-gray-700">
+                                        <span className="font-medium text-stone-700">
                                             {profile.averageRating.toFixed(1)}
                                         </span>
                                     </span>
-                                    <span className="text-gray-400">{priceLevel}</span>
+                                    <span className="text-stone-400">{priceLevel}</span>
                                 </div>
                             </div>
                             <button
                                 onClick={() => openBooking()}
-                                className="h-10 shrink-0 rounded-xl bg-gray-900 px-6 text-sm font-semibold text-white transition-colors hover:bg-gray-700 active:scale-95"
+                                className="h-10 shrink-0 rounded-full border border-stone-600 bg-transparent px-6 text-sm font-medium tracking-wide text-stone-700 transition-all hover:bg-[#F5F2ED] active:scale-95"
                             >
                                 Забронировать
                             </button>
@@ -386,7 +386,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 <div
                                     key={idx}
                                     onClick={() => setSelectedImageIndex(idx)}
-                                    className={`relative shrink-0 snap-center overflow-hidden rounded-xl bg-gray-100 aspect-[4/3] sm:aspect-[16/7] cursor-pointer ${coverImages.length > 1 ? 'w-[92%] sm:w-[85%]' : 'w-full'}`}
+                                    className={`relative shrink-0 snap-center overflow-hidden rounded-xl bg-stone-100 aspect-[4/3] sm:aspect-[16/7] cursor-pointer ${coverImages.length > 1 ? 'w-[92%] sm:w-[85%]' : 'w-full'}`}
                                 >
                                     <img
                                         src={src}
@@ -407,19 +407,19 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 if (imgs.length >= 5) {
                                     return (
                                         <>
-                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[2]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[3]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(4)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(4)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[4]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                                 {imgs.length > 5 && (
                                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-semibold backdrop-blur-[2px] transition group-hover:bg-black/50">
@@ -434,16 +434,16 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 if (imgs.length === 4) {
                                     return (
                                         <>
-                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[2]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[3]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                         </>
@@ -453,13 +453,13 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 if (imgs.length === 3) {
                                     return (
                                         <>
-                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(2)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(2)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[2]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                         </>
@@ -469,10 +469,10 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 if (imgs.length === 2) {
                                     return (
                                         <>
-                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
-                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group">
+                                            <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
                                                 <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                         </>
@@ -480,7 +480,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 }
 
                                 return (
-                                    <div onClick={() => setSelectedImageIndex(0)} className="col-span-4 row-span-2 relative overflow-hidden rounded-xl bg-gray-100 cursor-pointer group aspect-[21/9] md:aspect-auto md:h-full">
+                                    <div onClick={() => setSelectedImageIndex(0)} className="col-span-4 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group aspect-[21/9] md:aspect-auto md:h-full">
                                         <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                     </div>
                                 );
@@ -494,29 +494,29 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                             <img
                                 src={coverSrc}
                                 alt={profile.name}
-                                className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-sm border border-gray-200 shrink-0 object-top"
+                                className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-sm shrink-0 object-top"
                             />
                             <div className="flex-1 min-w-0">
-                                <h1 className="text-3xl font-bold tracking-tight text-gray-900 truncate">
+                                <h1 className="text-3xl font-bold tracking-tight text-stone-900 truncate">
                                     {profile.name}
                                 </h1>
-                                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-stone-500">
                                     <span className="inline-flex items-center gap-1.5">
-                                        <MapPin className="h-3.5 w-3.5 text-gray-400" />
+                                        <MapPin className="h-3.5 w-3.5 text-stone-400" />
                                         {visibleAddress}
                                     </span>
                                     <span className="inline-flex items-center gap-1.5">
                                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                        <span className="font-medium text-gray-700">
+                                        <span className="font-medium text-stone-700">
                                             {profile.averageRating.toFixed(1)}
                                         </span>
                                     </span>
-                                    <span className="text-gray-400">{priceLevel}</span>
+                                    <span className="text-stone-400">{priceLevel}</span>
                                 </div>
                             </div>
                             <button
                                 onClick={() => openBooking()}
-                                className="h-11 md:h-12 shrink-0 rounded-xl bg-gray-900 px-6 sm:px-8 text-sm font-semibold text-white transition-colors hover:bg-gray-700 active:scale-95"
+                                className="h-11 md:h-12 shrink-0 rounded-full border border-stone-600 bg-transparent px-6 sm:px-8 text-sm font-medium tracking-wide text-stone-700 transition-all hover:bg-[#F5F2ED] active:scale-95"
                             >
                                 Забронировать
                             </button>
@@ -527,11 +527,11 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                 {/* ── Bio ───────────────────────────────────────────────── */}
                 {trimmedBio ? (
                     <ScrollReveal>
-                        <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                            <h2 className="text-base font-semibold text-gray-900">
+                        <section className="rounded-3xl bg-white p-6 shadow-lg">
+                            <h2 className="text-xl font-semibold text-stone-800">
                                 {profile.provider_type === 'SALON' ? 'О нас' : 'О мастере'}
                             </h2>
-                            <p className="mt-3 text-sm leading-relaxed text-gray-500 whitespace-pre-wrap">
+                            <p className="mt-3 text-sm leading-relaxed text-stone-500 whitespace-pre-wrap">
                                 {trimmedBio}
                             </p>
                         </section>
@@ -545,25 +545,25 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                         {/* Services */}
                         <article
                             id="services"
-                            className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm scroll-mt-6 md:col-span-2 h-fit self-start"
+                            className="rounded-3xl bg-white p-6 shadow-lg scroll-mt-6 md:col-span-2 h-fit self-start"
                         >
                             <div className="flex items-center justify-between">
-                                <h2 className="text-base font-semibold text-gray-900">Услуги</h2>
-                                <span className="text-xs text-gray-400">
+                                <h2 className="text-xl font-semibold text-stone-800">Услуги</h2>
+                                <span className="text-xs text-stone-400">
                                     {services.length} {services.length === 1 ? 'услуга' : 'услуг'}
                                 </span>
                             </div>
 
                             {services.length === 0 ? (
-                                <p className="mt-6 text-sm text-gray-400">Список услуг пока пуст.</p>
+                                <p className="mt-6 text-sm text-stone-400">Список услуг пока пуст.</p>
                             ) : (
                                 <div className="mt-4 space-y-6">
                                     {groupedServices.map(([groupTitle, groupItems]) => (
                                         <div key={groupTitle}>
-                                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+                                            <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-stone-400">
                                                 {groupTitle}
                                             </p>
-                                            <div className="divide-y divide-gray-100">
+                                            <div className="divide-y divide-[#E5E0D8]/50">
                                                 {groupItems.map((service) => (
                                                     <ServiceRow
                                                         key={service.id}
@@ -587,15 +587,15 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
                         {/* Sidebar */}
                         <aside className="md:col-span-1 md:sticky md:top-6 md:self-start">
-                            <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                            <div className="rounded-3xl bg-white p-6 shadow-lg">
 
                                 {/* Rating headline */}
-                                <h2 className="text-base font-semibold text-gray-900">Рейтинг и отзывы</h2>
+                                <h2 className="text-xl font-semibold text-stone-800">Рейтинг и отзывы</h2>
                                 <div className="mt-4 flex items-end gap-2">
-                                    <span className="text-5xl font-bold leading-none tracking-tight text-gray-900">
+                                    <span className="text-5xl font-bold leading-none tracking-tight text-stone-800">
                                         {profile.averageRating.toFixed(1)}
                                     </span>
-                                    <span className="mb-1 text-xs text-gray-400">
+                                    <span className="mb-1 text-xs text-stone-400">
                                         {profile.reviewCount} {pluralReviews(profile.reviewCount)}
                                     </span>
                                 </div>
@@ -609,9 +609,9 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
                                 {/* Price from */}
                                 {cheapestService ? (
-                                    <div className="mt-6 border-t border-gray-100 pt-5">
-                                        <p className="text-xs uppercase tracking-widest text-gray-400">Цена от</p>
-                                        <p className="mt-1 text-3xl font-bold text-gray-900 tabular-nums">
+                                    <div className="mt-6 border-t border-[#E5E0D8]/50 pt-5">
+                                        <p className="text-xs uppercase tracking-widest text-stone-400">Цена от</p>
+                                        <p className="mt-1 text-3xl font-bold text-stone-800 tabular-nums">
                                             {formatPrice(cheapestService.price)}
                                         </p>
                                     </div>
@@ -621,7 +621,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 <button
                                     onClick={startChat}
                                     disabled={isStartingChat}
-                                    className="mt-5 flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
+                                    className="mt-5 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#E5D5C5] text-sm font-medium text-stone-600 transition-all hover:bg-[#F5F2ED] disabled:opacity-60"
                                 >
                                     <MessageCircle className="h-4 w-4" />
                                     {isStartingChat ? 'Открываем…' : 'Написать мастеру'}
@@ -633,23 +633,23 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
                 {/* ── Map ───────────────────────────────────────────────── */}
                 <ScrollReveal>
-                    <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <section className="rounded-3xl bg-white p-6 shadow-lg">
                         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h2 className="text-base font-semibold text-gray-900">Как нас найти</h2>
-                                <p className="mt-0.5 text-sm text-gray-400">{visibleAddress}</p>
+                                <h2 className="text-xl font-semibold text-stone-800">Как нас найти</h2>
+                                <p className="mt-0.5 text-sm text-stone-400">{visibleAddress}</p>
                             </div>
                             <a
                                 href={openStreetMapUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex w-fit items-center gap-1.5 rounded-xl border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+                                className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#E5D5C5] px-3 py-2 text-xs font-medium text-stone-600 transition-all hover:bg-[#F5F2ED]"
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />
                                 Открыть в OpenStreetMap
                             </a>
                         </div>
-                        <div className="overflow-hidden rounded-xl">
+                        <div className="overflow-hidden rounded-2xl">
                             <ProfileLocationMap
                                 lat={profile.latitude}
                                 lng={profile.longitude}
@@ -662,19 +662,19 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
                 {/* ── Reviews ───────────────────────────────────────────── */}
                 <ScrollReveal>
-                    <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                        <h2 className="text-base font-semibold text-gray-900">Отзывы клиентов</h2>
+                    <section className="rounded-3xl bg-white p-6 shadow-lg">
+                        <h2 className="text-xl font-semibold text-stone-800">Отзывы клиентов</h2>
 
                         {profile.reviews && profile.reviews.length > 0 ? (
-                            <div className="mt-5 divide-y divide-gray-100">
+                            <div className="mt-5 divide-y divide-[#E5E0D8]/50">
                                 {profile.reviews.slice(0, 5).map((review) => (
                                     <ReviewCard key={review.id} review={review} />
                                 ))}
                             </div>
                         ) : (
-                            <div className="mt-6 flex flex-col items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 py-12 text-center">
-                                <Star className="h-8 w-8 text-gray-200" />
-                                <p className="text-sm text-gray-400">
+                            <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl bg-stone-50 py-12 text-center">
+                                <Star className="h-8 w-8 text-stone-200" />
+                                <p className="text-sm text-stone-400">
                                     Пока нет отзывов. Станьте первым, кто оценит работу мастера!
                                 </p>
                             </div>
@@ -750,7 +750,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                             alt="Full screen photo"
                             className="h-full w-full object-contain pointer-events-none"
                         />
-                        <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 text-sm text-gray-400">
+                        <div className="absolute bottom-[-30px] left-1/2 -translate-x-1/2 text-sm text-stone-400">
                             {selectedImageIndex + 1} / {Math.max(coverImages.length, 1)}
                         </div>
                     </div>

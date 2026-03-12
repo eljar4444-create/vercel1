@@ -137,18 +137,16 @@ export function BookingModal({
         isOpen ? ['weekSlots', profileId, toDateKey(weekStart), selectedDuration] : null,
         fetchWeekSlots,
         {
-            revalidateOnFocus: false, // Don't over-fetch if they switch tabs
-            keepPreviousData: true,   // Keep showing previous week while loading next week
+            revalidateOnFocus: false,
+            keepPreviousData: true,
         }
     );
 
-    // Optimistic UI: Immediately inject the pre-selected initialDate/initialTime into the view
-    // so it renders instantly (0ms delay) while SWR is fetching the rest of the schedule in the background.
+    // Optimistic UI
     const weekSlots = useMemo(() => {
         const baseSlots = fetchedWeekSlots || {};
 
         if (initialDate && initialTime && toDateKey(weekStart) === initialDate) {
-            // Check if initialDate is within the currently viewed week
             const startKey = toDateKey(weekStart);
             const isInitialWeek = initialDate >= startKey && initialDate < toDateKey(addDays(weekStart, 7));
 
@@ -213,7 +211,6 @@ export function BookingModal({
             if (initialDate === date && initialTime === time) {
                 // Do nothing, let optimistic UI handle it
             } else if (time && !daySlots.includes(time)) {
-                // Auto-clear time if the selected slot is suddenly gone from a background refresh
                 setTime('');
             }
         }
@@ -263,8 +260,6 @@ export function BookingModal({
 
                     if (slots.length > 0) {
                         setWeekStart(start);
-                        // We strictly only set local state, SWR will handle fetching automatically 
-                        // once weekStart updates.
                         setDate(dayKey);
                         setTime(slots[0]);
                         setIsFindingNearest(false);
@@ -281,9 +276,6 @@ export function BookingModal({
         }
     };
 
-    const isRose = accentColor === 'rose';
-    const accentText = isRose ? 'text-blue-600' : 'text-teal-600';
-    const accentBg = isRose ? 'bg-blue-50' : 'bg-teal-50';
     const canSubmit = Boolean(time);
     const authButtonText = canSubmit ? 'Войти и подтвердить запись' : 'Сначала выберите время';
 
@@ -331,20 +323,20 @@ export function BookingModal({
                 onClick={onClose}
             />
 
-            <div className="relative w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl animate-slideUp">
+            <div className="relative w-full max-w-5xl overflow-hidden rounded-3xl border border-[#E5E0D8] bg-white shadow-2xl animate-slideUp">
                 {isSubmitted ? (
                     <div className="p-10 text-center">
-                        <div className={`w-20 h-20 ${accentBg} rounded-full flex items-center justify-center mx-auto mb-6`}>
-                            <CheckCircle className={`w-10 h-10 ${accentText}`} />
+                        <div className="w-20 h-20 bg-[#F5F2ED] rounded-full flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle className="w-10 h-10 text-stone-600" />
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Заявка отправлена!</h3>
-                        <p className="text-gray-500">
+                        <h3 className="text-2xl font-bold text-stone-800 mb-2">Заявка отправлена!</h3>
+                        <p className="text-stone-500">
                             Мастер свяжется с вами для подтверждения записи.
                         </p>
                         <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
                             <Link
                                 href="/my-bookings"
-                                className="inline-flex h-11 items-center justify-center rounded-xl bg-gray-900 px-4 text-sm font-semibold text-white hover:bg-gray-800"
+                                className="inline-flex h-11 items-center justify-center rounded-full bg-stone-800 px-4 text-sm font-medium text-white hover:bg-stone-700 transition-all"
                             >
                                 Перейти в мои записи
                             </Link>
@@ -358,7 +350,7 @@ export function BookingModal({
                                     setPhone('');
                                     onClose();
                                 }}
-                                className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 px-4 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                className="inline-flex h-11 items-center justify-center rounded-full border border-[#E5D5C5] px-4 text-sm font-medium text-stone-700 hover:bg-[#F5F2ED] transition-all"
                             >
                                 Закрыть
                             </button>
@@ -366,19 +358,19 @@ export function BookingModal({
                     </div>
                 ) : (
                     <>
-                        <div className="relative border-b border-slate-100 px-6 py-5 md:px-8">
+                        <div className="relative border-b border-[#E5E0D8]/50 px-6 py-5 md:px-8">
                             <button
                                 onClick={onClose}
-                                className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200"
+                                className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-colors hover:bg-stone-200"
                             >
                                 <X className="w-5 h-5" />
                             </button>
 
-                            <h2 className="pr-12 text-xl font-semibold text-slate-900">Бронирование</h2>
-                            <p className="mt-1 text-2xl font-semibold text-slate-900">{masterName}</p>
-                            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-600">
+                            <h2 className="pr-12 text-xl font-semibold text-stone-500">Бронирование</h2>
+                            <p className="mt-1 text-2xl font-semibold text-stone-800">{masterName}</p>
+                            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-stone-500">
                                 <span className="inline-flex items-center gap-1.5">
-                                    <MapPin className="h-4 w-4 text-slate-500" />
+                                    <MapPin className="h-4 w-4 text-stone-400" />
                                     {masterAddress || 'Адрес уточняется'}
                                 </span>
                                 <span className="inline-flex items-center gap-1.5">
@@ -390,29 +382,29 @@ export function BookingModal({
 
                         <form onSubmit={handleSubmit} className="max-h-[75vh] overflow-y-auto px-6 py-6 md:px-8">
                             {error && (
-                                <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                                     {error}
                                 </div>
                             )}
 
                             <section>
-                                <h3 className={`text-2xl font-semibold ${accentText}`}>1. Выбранная услуга</h3>
-                                <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                                <h3 className="text-xl font-semibold text-stone-800">1. Выбранная услуга</h3>
+                                <div className="mt-4 rounded-2xl border border-[#E5E0D8]/60 bg-stone-50 p-4">
                                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
-                                            <p className="text-base font-semibold text-slate-900">
+                                            <p className="text-base font-semibold text-stone-800">
                                                 {selectedService?.title || 'Услуга будет уточнена у мастера'}
                                             </p>
-                                            <p className="mt-1 text-sm text-slate-500">
+                                            <p className="mt-1 text-sm text-stone-500">
                                                 {formatDuration(selectedDuration)} · {masterName}
                                             </p>
                                         </div>
                                         <div className="text-left sm:text-right">
-                                            <p className="text-lg font-semibold text-slate-900">{selectedService?.price || '—'}</p>
+                                            <p className="text-lg font-semibold text-stone-800">{selectedService?.price || '—'}</p>
                                             <button
                                                 type="button"
                                                 onClick={onClose}
-                                                className="mt-1 text-sm text-blue-600 transition hover:underline"
+                                                className="mt-1 text-sm text-stone-500 transition hover:text-stone-700 hover:underline"
                                             >
                                                 Изменить
                                             </button>
@@ -422,7 +414,7 @@ export function BookingModal({
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="mt-3 inline-flex h-10 items-center rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                    className="mt-3 inline-flex h-10 items-center rounded-full border border-[#E5D5C5] px-4 text-sm font-medium text-stone-600 transition-all hover:bg-[#F5F2ED]"
                                 >
                                     + Добавить еще одну услугу
                                 </button>
@@ -430,12 +422,12 @@ export function BookingModal({
 
                             <section className="mt-8">
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <h3 className="text-2xl font-semibold text-slate-900">2. Выберите дату и время</h3>
+                                    <h3 className="text-xl font-semibold text-stone-800">2. Выберите дату и время</h3>
                                     <button
                                         type="button"
                                         onClick={findNearestSlot}
                                         disabled={isFindingNearest}
-                                        className="inline-flex h-10 items-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 text-sm font-medium text-blue-700 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-70"
+                                        className="inline-flex h-10 items-center gap-2 rounded-full border border-[#E5D5C5] bg-[#F5F2ED] px-4 text-sm font-medium text-stone-700 transition-all hover:bg-[#E5D5C5] disabled:cursor-not-allowed disabled:opacity-70"
                                     >
                                         {isFindingNearest ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
                                         {nearestInCurrentWeek
@@ -444,13 +436,13 @@ export function BookingModal({
                                     </button>
                                 </div>
 
-                                <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-3 md:p-4">
+                                <div className="mt-4 rounded-3xl border border-[#E5E0D8] bg-white p-3 md:p-4">
                                     <div className="flex items-start gap-2">
                                         <button
                                             type="button"
                                             onClick={goPrevWeek}
                                             disabled={weekStart <= today}
-                                            className="mt-1 hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
+                                            className="mt-1 hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#E5D5C5] text-stone-600 transition-all hover:bg-[#F5F2ED] disabled:cursor-not-allowed disabled:opacity-40 md:inline-flex"
                                         >
                                             <ChevronLeft className="h-4 w-4" />
                                         </button>
@@ -464,24 +456,26 @@ export function BookingModal({
                                                     return (
                                                         <div
                                                             key={dayKey}
-                                                            className={`rounded-xl border p-3 ${isCurrentDay ? 'border-slate-900 bg-slate-50' : 'border-slate-200'
+                                                            className={`rounded-2xl border p-3 ${isCurrentDay
+                                                                ? 'border-stone-600 bg-stone-50'
+                                                                : 'border-[#E5D5C5]'
                                                                 }`}
                                                         >
-                                                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-stone-400">
                                                                 {DAY_LABEL_FORMATTER.format(day)}
                                                             </p>
-                                                            <p className="mt-1 text-sm font-semibold text-slate-900">
+                                                            <p className="mt-1 text-sm font-semibold text-stone-800">
                                                                 {DATE_LABEL_FORMATTER.format(day)}
                                                             </p>
 
                                                             <div className="mt-3 flex max-h-56 flex-col gap-2 overflow-y-auto scrollbar-hide">
                                                                 {isLoadingWeek ? (
                                                                     <>
-                                                                        <div className="h-8 rounded-md bg-slate-100" />
-                                                                        <div className="h-8 rounded-md bg-slate-100" />
+                                                                        <div className="h-8 rounded-full bg-stone-100" />
+                                                                        <div className="h-8 rounded-full bg-stone-100" />
                                                                     </>
                                                                 ) : slots.length === 0 ? (
-                                                                    <p className="text-xs text-slate-400">Нет слотов</p>
+                                                                    <p className="text-xs text-stone-400">Нет слотов</p>
                                                                 ) : (
                                                                     slots.map((slot) => {
                                                                         const isSelected = date === dayKey && time === slot;
@@ -490,9 +484,9 @@ export function BookingModal({
                                                                                 key={slot}
                                                                                 type="button"
                                                                                 onClick={() => selectSlot(dayKey, slot)}
-                                                                                className={`h-9 rounded-md px-2 text-sm font-medium transition ${isSelected
-                                                                                    ? 'bg-slate-900 text-white'
-                                                                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                                                                className={`h-9 rounded-full px-2 text-sm font-medium transition-all ${isSelected
+                                                                                    ? 'bg-[#E5D5C5] text-[#4A3B32]'
+                                                                                    : 'bg-[#F5F2ED] text-stone-600 hover:bg-[#E5D5C5]'
                                                                                     }`}
                                                                             >
                                                                                 {slot}
@@ -510,7 +504,7 @@ export function BookingModal({
                                         <button
                                             type="button"
                                             onClick={goNextWeek}
-                                            className="mt-1 hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-600 transition hover:bg-slate-50 md:inline-flex"
+                                            className="mt-1 hidden h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#E5D5C5] text-stone-600 transition-all hover:bg-[#F5F2ED] md:inline-flex"
                                         >
                                             <ChevronRight className="h-4 w-4" />
                                         </button>
@@ -518,25 +512,25 @@ export function BookingModal({
                                 </div>
 
                                 {slotsError ? (
-                                    <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                    <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                                         {slotsError}
                                     </div>
                                 ) : null}
 
                                 {canSubmit ? (
-                                    <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                                    <p className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#F5F2ED] px-3 py-1 text-xs font-medium text-stone-600">
                                         <Clock className="h-3.5 w-3.5" />
                                         Выбрано: {selectedDateLabel} · {time}
                                     </p>
                                 ) : (
-                                    <p className="mt-3 text-sm text-slate-500">Выберите любой свободный слот для продолжения.</p>
+                                    <p className="mt-3 text-sm text-stone-400">Выберите любой свободный слот для продолжения.</p>
                                 )}
                             </section>
 
                             <section className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                                        <User className="h-4 w-4 text-slate-400" />
+                                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-stone-700">
+                                        <User className="h-4 w-4 text-stone-400" />
                                         Ваше имя
                                     </label>
                                     <input
@@ -545,12 +539,12 @@ export function BookingModal({
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="Ваше имя"
-                                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                                        className="h-12 w-full rounded-2xl border border-[#E5E0D8] bg-stone-50 px-4 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#E5D5C5]"
                                     />
                                 </div>
                                 <div>
-                                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                                        <Phone className="h-4 w-4 text-slate-400" />
+                                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-stone-700">
+                                        <Phone className="h-4 w-4 text-stone-400" />
                                         Телефон
                                     </label>
                                     <input
@@ -559,7 +553,7 @@ export function BookingModal({
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         placeholder="+49 ..."
-                                        className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                                        className="h-12 w-full rounded-2xl border border-[#E5E0D8] bg-stone-50 px-4 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#E5D5C5]"
                                     />
                                 </div>
                             </section>
@@ -570,7 +564,7 @@ export function BookingModal({
                                         type="button"
                                         disabled={!canSubmit}
                                         onClick={() => signIn(undefined, { callbackUrl: getSignInCallbackUrl() })}
-                                        className="flex h-14 w-full items-center justify-center rounded-xl bg-slate-900 text-base font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="flex h-14 w-full items-center justify-center rounded-full bg-stone-800 text-base font-medium tracking-wide text-white transition-all hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         {authButtonText}
                                     </button>
@@ -578,7 +572,7 @@ export function BookingModal({
                                     <button
                                         type="submit"
                                         disabled={isSubmitting || !canSubmit || !session?.user}
-                                        className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 text-base font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                        className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-stone-800 text-base font-medium tracking-wide text-white transition-all hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
                                     >
                                         {isSubmitting ? (
                                             <>

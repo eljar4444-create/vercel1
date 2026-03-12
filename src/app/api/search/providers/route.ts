@@ -12,6 +12,13 @@ export async function GET(request: NextRequest) {
     const maxLng = parseFloat(searchParams.get('maxLng') || '');
     const q = searchParams.get('q') || undefined;
     const category = searchParams.get('category') || undefined;
+    const sortParam = searchParams.get('sort') || undefined;
+    const todayFilter = searchParams.get('today') === 'true';
+    const homeVisitFilter = searchParams.get('homeVisit') === 'true';
+    const promoFilter = searchParams.get('promo') === 'true';
+    const inSalonFilter = searchParams.get('inSalon') === 'true';
+    const cardPaymentFilter = searchParams.get('cardPayment') === 'true';
+    const instantBookingFilter = searchParams.get('instantBooking') === 'true';
 
     if ([minLat, maxLat, minLng, maxLng].some(isNaN)) {
         return NextResponse.json(
@@ -53,14 +60,74 @@ export async function GET(request: NextRequest) {
         });
     }
 
+    if (homeVisitFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['homeVisit'],
+                equals: true,
+            },
+        });
+    }
+
+    if (promoFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['hasPromo'],
+                equals: true,
+            },
+        });
+    }
+
+    if (todayFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['availableToday'],
+                equals: true,
+            },
+        });
+    }
+
+    if (inSalonFilter) {
+        andConditions.push({
+            OR: [
+                { provider_type: 'SALON' },
+                { attributes: { path: ['inSalon'], equals: true } },
+            ],
+        });
+    }
+
+    if (cardPaymentFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['cardPayment'],
+                equals: true,
+            },
+        });
+    }
+
+    if (instantBookingFilter) {
+        andConditions.push({
+            attributes: {
+                path: ['instantBooking'],
+                equals: true,
+            },
+        });
+    }
+
+    let orderBy: any = { created_at: 'desc' };
+    if (sortParam === 'rating') {
+        orderBy = { reviews: { _avg: { rating: 'desc' } } };
+    }
+
     try {
         const profiles = await prisma.profile.findMany({
             where: { AND: andConditions },
             include: {
                 category: true,
                 services: true,
+                reviews: true,
             },
-            orderBy: { created_at: 'desc' },
+            orderBy,
             take: 50,
         });
 
