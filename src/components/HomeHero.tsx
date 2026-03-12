@@ -151,6 +151,7 @@ export default function HomeHero() {
                 alt="Фоновое изображение"
                 fill
                 priority={true}
+                fetchPriority="high"
                 sizes="(max-width: 768px) 100vw, 100vw"
                 className="absolute inset-0 w-full h-full object-cover z-0"
             />
@@ -174,21 +175,21 @@ export default function HomeHero() {
             <div className="relative z-20 flex flex-col items-center text-center px-4 w-full max-w-4xl mx-auto -translate-y-8 md:-translate-y-12">
 
                 {/* Headline */}
-                <h1 className="mb-5 text-5xl font-extrabold leading-tight tracking-tight text-white sm:text-6xl md:text-[72px] animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '0ms' }}>
+                <h1 className="mb-5 text-5xl font-extrabold leading-tight tracking-tight text-white sm:text-6xl md:text-[72px]">
                     Забронируй местного
                     <br />
                     бьюти‑мастера
                 </h1>
 
                 {/* Subtitle */}
-                <p className="mx-auto mb-12 max-w-2xl text-base text-white/90 sm:text-lg animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '150ms' }}>
+                <p className="mx-auto mb-12 max-w-2xl text-base text-white/90 sm:text-lg">
                     Лучшие парикмахеры, мастера маникюра, массажисты и бьюти-эксперты —
                     которым доверяют тысячи клиентов по всей Германии
                 </p>
 
                 {/* ── Search bar ── */}
                 <div className="relative mx-auto max-w-5xl w-full z-50">
-                    <form ref={formRef} onSubmit={handleSearch} className="animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both" style={{ animationDelay: '300ms' }}>
+                    <form ref={formRef} onSubmit={handleSearch}>
                         <div className={`flex flex-col items-stretch rounded-2xl bg-white ring-1 md:flex-row md:items-center md:rounded-full transition-all duration-300 ease-out origin-center ${isFocused
                             ? 'scale-[1.05] shadow-[0_8px_40px_rgba(0,0,0,0.25)] ring-white/30 ring-4'
                             : 'scale-100 shadow-[0_2px_24px_rgba(0,0,0,0.10)] ring-[#E8D9C8]'
