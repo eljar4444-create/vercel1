@@ -12,6 +12,15 @@ const RegisterSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret || jwtSecret.length < 16) {
+        console.error('Registration: JWT_SECRET is missing or too short (min 16 chars)');
+        return NextResponse.json(
+            { error: 'Сервер не настроен для регистрации. Обратитесь к администратору.' },
+            { status: 500 }
+        );
+    }
+
     try {
         const body = await req.json();
 
@@ -23,14 +32,19 @@ export async function POST(req: NextRequest) {
         const result = RegisterSchema.safeParse(body);
 
         if (!result.success) {
-            return NextResponse.json({ error: result.error.flatten() }, { status: 400 });
+            const firstIssue = result.error.flatten().fieldErrors;
+            const message = firstIssue.email?.[0] ?? firstIssue.password?.[0] ?? firstIssue.name?.[0] ?? 'Проверьте введённые данные.';
+            return NextResponse.json({ error: message }, { status: 400 });
         }
 
         const { email, password, name, role } = result.data;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
-            return NextResponse.json({ error: 'User already exists' }, { status: 409 });
+            return NextResponse.json(
+                { error: 'Пользователь с таким email уже зарегистрирован.' },
+                { status: 409 }
+            );
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -46,7 +60,7 @@ export async function POST(req: NextRequest) {
 
         const token = jwt.sign(
             { userId: user.id, email: user.email, role: user.role },
-            process.env.JWT_SECRET!,
+            jwtSecret,
             { expiresIn: '7d' }
         );
 
@@ -56,8 +70,21 @@ export async function POST(req: NextRequest) {
             user: { id: user.id, email: user.email, role: user.role, name: user.name },
         });
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Registration error:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+
+        // Prisma unique constraint (e.g. race: email taken between findUnique and create)
+        const prismaError = error as { code?: string };
+        if (prismaError.code === 'P2002') {
+            return NextResponse.json(
+                { error: 'Пользователь с таким email уже зарегистрирован.' },
+                { status: 409 }
+            );
+        }
+
+        return NextResponse.json(
+            { error: 'Ошибка при создании аккаунта. Попробуйте позже.' },
+            { status: 500 }
+        );
     }
 }

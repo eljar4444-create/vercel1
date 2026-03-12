@@ -7,6 +7,7 @@
         "build": "npx prisma generate && next build",
         "start": "next start",
         "lint": "next lint",
+        "studio": "prisma generate && prisma studio",
         "sync:categories": "ts-node scripts/sync-categories.ts"
     },
     "dependencies": {
