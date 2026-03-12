@@ -26,6 +26,7 @@ export default function HomeHero() {
     const [isFocused, setIsFocused] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [videoReady, setVideoReady] = useState(false);
+    const [videoLoaded, setVideoLoaded] = useState(false);
     const [validationError, setValidationError] = useState<{ query: boolean; city: boolean }>({ query: false, city: false });
 
     const SPOTLIGHT_SUGGESTIONS = [
@@ -149,8 +150,9 @@ export default function HomeHero() {
                 src="/hero-bg-poster.webp"
                 alt="Фоновое изображение"
                 fill
-                priority
-                className="object-cover z-0"
+                priority={true}
+                sizes="(max-width: 768px) 100vw, 100vw"
+                className="absolute inset-0 w-full h-full object-cover z-0"
             />
 
             {/* Lazy-loaded video for desktop only */}
@@ -162,7 +164,8 @@ export default function HomeHero() {
                     muted
                     playsInline
                     preload="none"
-                    className="absolute inset-0 w-full h-full object-cover z-0"
+                    onCanPlay={() => setVideoLoaded(true)}
+                    className={`absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
                 />
             )}
 
