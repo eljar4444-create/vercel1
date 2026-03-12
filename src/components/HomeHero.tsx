@@ -43,8 +43,14 @@ export default function HomeHero() {
         getHomeStats().then(setLiveStats).catch(console.error);
         
         // Delay heavy video element rendering to prioritize LCP image and text
-        const idleCallback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1000));
-        idleCallback(() => setVideoReady(true));
+        // Use a longer timeout or wait for load event to ensure LCP finishes first
+        const delayVideo = () => setVideoReady(true);
+        if (document.readyState === 'complete') {
+            setTimeout(delayVideo, 1000);
+        } else {
+            window.addEventListener('load', () => setTimeout(delayVideo, 500));
+        }
+        return () => window.removeEventListener('load', () => setTimeout(delayVideo, 500));
     }, []);
 
     // Память поиска: подставляем последние город и запрос только на клиенте
@@ -152,7 +158,7 @@ export default function HomeHero() {
                 fill
                 priority={true}
                 fetchPriority="high"
-                sizes="(max-width: 768px) 100vw, 100vw"
+                unoptimized={true}
                 className="absolute inset-0 w-full h-full object-cover z-0"
             />
 
@@ -160,12 +166,15 @@ export default function HomeHero() {
             {mounted && videoReady && window.innerWidth >= 768 && (
                 <video
                     src="/hero-bg.mp4"
-                    autoPlay
                     loop
                     muted
                     playsInline
                     preload="none"
-                    onCanPlay={() => setVideoLoaded(true)}
+                    onCanPlay={(e) => {
+                        setVideoLoaded(true);
+                        const video = e.target as HTMLVideoElement;
+                        video.play().catch(() => {});
+                    }}
                     className={`absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-1000 ${videoLoaded ? 'opacity-100' : 'opacity-0'}`}
                 />
             )}
