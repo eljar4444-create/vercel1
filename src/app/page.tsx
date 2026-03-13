@@ -12,6 +12,9 @@ import TopMastersSection from '@/components/TopMastersSection';
 
 const ScrollReveal = dynamic(() => import('@/components/ScrollReveal'), { ssr: true });
 
+// Avoid prerendering at build time so Prisma is only called at request time (DB may be unreachable during Vercel build)
+export const dynamic = 'force-dynamic';
+
 // ─── How It Works ───────────────────────────────────────────────────
 const STEPS = [
     {

@@ -7,18 +7,23 @@ import dynamic from 'next/dynamic';
 const ScrollReveal = dynamic(() => import('@/components/ScrollReveal'), { ssr: true });
 
 export default async function TopMastersSection() {
-    const masters = await prisma.profile.findMany({
-        where: {
-            user: { isBanned: false },
-            is_verified: true,
-        },
-        take: 4,
-        include: {
-            reviews: { select: { rating: true } },
-            category: { select: { name: true } },
-        },
-        orderBy: { created_at: 'desc' },
-    });
+    let masters: Awaited<ReturnType<typeof prisma.profile.findMany>> = [];
+    try {
+        masters = await prisma.profile.findMany({
+            where: {
+                user: { isBanned: false },
+                is_verified: true,
+            },
+            take: 4,
+            include: {
+                reviews: { select: { rating: true } },
+                category: { select: { name: true } },
+            },
+            orderBy: { created_at: 'desc' },
+        });
+    } catch (e) {
+        console.error('[TopMastersSection] DB error:', e);
+    }
 
     if (masters.length === 0) return null;
 
