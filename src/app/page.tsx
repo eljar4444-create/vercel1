@@ -6,11 +6,11 @@ import {
     Heart, User,
 } from 'lucide-react';
 import HomeHero from '@/components/HomeHero';
-import dynamic from 'next/dynamic';
+import nextDynamic from 'next/dynamic';
 import { Suspense } from 'react';
 import TopMastersSection from '@/components/TopMastersSection';
 
-const ScrollReveal = dynamic(() => import('@/components/ScrollReveal'), { ssr: true });
+const ScrollReveal = nextDynamic(() => import('@/components/ScrollReveal'), { ssr: true });
 
 // Avoid prerendering at build time so Prisma is only called at request time (DB may be unreachable during Vercel build)
 export const dynamic = 'force-dynamic';
