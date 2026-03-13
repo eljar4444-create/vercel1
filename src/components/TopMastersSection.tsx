@@ -1,13 +1,18 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Star, User } from 'lucide-react';
+import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import dynamic from 'next/dynamic';
 
 const ScrollReveal = dynamic(() => import('@/components/ScrollReveal'), { ssr: true });
 
+type MasterWithReviews = Prisma.ProfileGetPayload<{
+    include: { reviews: { select: { rating: true } }; category: { select: { name: true } } };
+}>;
+
 export default async function TopMastersSection() {
-    let masters: Awaited<ReturnType<typeof prisma.profile.findMany>> = [];
+    let masters: MasterWithReviews[] = [];
     try {
         masters = await prisma.profile.findMany({
             where: {
