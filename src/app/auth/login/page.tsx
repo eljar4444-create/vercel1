@@ -76,6 +76,9 @@ function AuthContent() {
     const errorCode = searchParams.get('error');
 
     const isProvider = role === 'provider';
+    const providerType = type === 'SALON' ? 'SALON' : 'INDIVIDUAL';
+    const providerOnboardingUrl = `/onboarding?type=${providerType}`;
+    const postAuthRedirect = isProvider ? providerOnboardingUrl : '/dashboard';
 
     // State
     const [showEmailForm, setShowEmailForm] = useState(false);
@@ -102,11 +105,9 @@ function AuthContent() {
     const handleAuth = (provider: 'google' | 'apple') => {
         if (isProvider) {
             document.cookie = `onboarding_role=${role}; path=/; max-age=3600`;
-            if (type) {
-                document.cookie = `onboarding_type=${type}; path=/; max-age=3600`;
-            }
+            document.cookie = `onboarding_type=${providerType}; path=/; max-age=3600`;
         }
-        signIn(provider, { callbackUrl: isProvider ? '/onboarding' : '/' });
+        signIn(provider, { callbackUrl: postAuthRedirect });
     };
 
     const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -117,8 +118,12 @@ function AuthContent() {
 
         try {
             if (isRegisterMode) {
+                const registerUrl = isProvider
+                    ? `/api/auth/register?role=provider&type=${providerType}`
+                    : '/api/auth/register';
+
                 // Registration via our API
-                const res = await fetch('/api/auth/register', {
+                const res = await fetch(registerUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -153,7 +158,7 @@ function AuthContent() {
 
                 setSuccessMessage('Аккаунт создан! Перенаправление...');
                 setTimeout(() => {
-                    router.push(isProvider ? '/onboarding' : '/');
+                    router.push(postAuthRedirect);
                 }, 1000);
             } else {
                 // Login via our API
@@ -184,7 +189,7 @@ function AuthContent() {
 
                 setSuccessMessage('Вход выполнен! Перенаправление...');
                 setTimeout(() => {
-                    router.push(isProvider ? '/dashboard' : '/');
+                    router.push(postAuthRedirect);
                 }, 1000);
             }
         } catch {
@@ -236,9 +241,9 @@ function AuthContent() {
                     </p>
 
                     {/* Provider type badge */}
-                    {isProvider && type && (
+                    {isProvider && (
                         <div className="mt-4 inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-                            {type === 'SALON' ? '🏢 Салон' : '✂️ Частный мастер'}
+                            {providerType === 'SALON' ? '🏢 Салон' : '✂️ Частный мастер'}
                         </div>
                     )}
 

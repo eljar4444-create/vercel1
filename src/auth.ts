@@ -47,6 +47,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     email: user.email,
                     role: user.role,
                     image: user.image,
+                    onboardingCompleted: user.onboardingCompleted,
+                    onboardingType: user.onboardingType,
                 }
             },
         }),
@@ -80,7 +82,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     data: {
                         role,
                         ...(onboardingRole === 'provider' && onboardingType && providerTypeMap[onboardingType]
-                            ? { providerType: providerTypeMap[onboardingType] }
+                            ? {
+                                providerType: providerTypeMap[onboardingType],
+                                onboardingCompleted: false,
+                                onboardingType,
+                            }
                             : {}),
                     },
                 });
@@ -124,6 +130,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 token.id = user.id
                 token.picture = user.image
                 token.email = user.email
+                token.onboardingCompleted = user.onboardingCompleted ?? false
+                token.onboardingType = user.onboardingType ?? null
             }
 
             // Ensure token has user id for every request
@@ -136,7 +144,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 try {
                     const freshUser = await prisma.user.findUnique({
                         where: { id: token.id as string },
-                        select: { image: true, role: true, id: true, email: true },
+                        select: {
+                            image: true,
+                            role: true,
+                            id: true,
+                            email: true,
+                            onboardingCompleted: true,
+                            onboardingType: true,
+                        },
                     });
 
                     if (freshUser) {
@@ -144,6 +159,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         token.role = freshUser.role;
                         token.id = freshUser.id;
                         token.email = freshUser.email;
+                        token.onboardingCompleted = freshUser.onboardingCompleted;
+                        token.onboardingType = freshUser.onboardingType;
                     }
                 } catch (error) {
                     console.error("Error fetching fresh user data in JWT callback:", error);
@@ -152,9 +169,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
             await syncProviderProfileId();
 
-            // Handle client-side update trigger (backup)
-            if (trigger === "update" && session?.image) {
-                token.picture = session.image;
+            if ((trigger === 'update' || !token.onboardingCompleted) && token.id) {
+                try {
+                    const onboardingState = await prisma.user.findUnique({
+                        where: { id: token.id as string },
+                        select: { onboardingCompleted: true, onboardingType: true },
+                    });
+
+                    if (onboardingState) {
+                        token.onboardingCompleted = onboardingState.onboardingCompleted;
+                        token.onboardingType = onboardingState.onboardingType;
+                    }
+                } catch (error) {
+                    console.error('Error refreshing onboarding state in JWT callback:', error);
+                }
+            }
+
+            // Handle client-side update trigger
+            if (trigger === "update") {
+                if (session?.image) {
+                    token.picture = session.image;
+                }
+                if (typeof session?.onboardingCompleted === 'boolean') {
+                    token.onboardingCompleted = session.onboardingCompleted;
+                }
+                if (
+                    typeof session?.onboardingType === 'string' ||
+                    session?.onboardingType === null
+                ) {
+                    token.onboardingType = session.onboardingType;
+                }
             }
             return token
         },
@@ -164,6 +208,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 session.user.id = token.id
                 session.user.image = token.picture
                 session.user.profileId = token.profileId
+                session.user.onboardingCompleted = token.onboardingCompleted ?? false
+                session.user.onboardingType = token.onboardingType ?? null
             }
             return session
         }

@@ -10,11 +10,15 @@ declare module "next-auth" {
             id: string
             role: string
             profileId?: number | null
+            onboardingCompleted?: boolean
+            onboardingType?: string | null
         } & DefaultSession["user"]
     }
 
     interface User {
         role: string
+        onboardingCompleted?: boolean
+        onboardingType?: string | null
     }
 }
 
@@ -25,6 +29,8 @@ declare module "next-auth/jwt" {
         id: string
         picture?: string | null
         profileId?: number | null
+        onboardingCompleted?: boolean
+        onboardingType?: string | null
     }
 }
 

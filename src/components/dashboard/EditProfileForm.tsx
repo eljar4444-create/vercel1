@@ -9,7 +9,7 @@ import { uploadServicePhoto } from '@/app/actions/upload';
 import toast from 'react-hot-toast';
 import { CityCombobox } from '@/components/provider/CityCombobox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PROVIDER_LANGUAGE_OPTIONS, type ProviderLanguage } from '@/lib/provider-languages';
+import { LANGUAGES, PROVIDER_LANGUAGE_OPTIONS, normalizeProviderLanguage, type ProviderLanguage } from '@/lib/provider-languages';
 
 function TelegramIcon({ className }: { className?: string }) {
     return (
@@ -46,9 +46,9 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
     const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE' | 'INDIVIDUAL'>(profile.providerType);
     const [studioImages, setStudioImages] = useState<string[]>(profile.studioImages || []);
     const [languages, setLanguages] = useState<ProviderLanguage[]>(
-        profile.languages.filter((value): value is ProviderLanguage =>
-            PROVIDER_LANGUAGE_OPTIONS.some((option) => option.value === value)
-        )
+        profile.languages
+            .map((value) => normalizeProviderLanguage(value))
+            .filter((value): value is ProviderLanguage => Boolean(value))
     );
     const [isUploadingStudio, setIsUploadingStudio] = useState(false);
     const [isDisconnecting, setIsDisconnecting] = useState(false);
@@ -231,7 +231,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                                             className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
                                         />
                                         <span>
-                                            {option.flag} {option.label}
+                                            {LANGUAGES[option.value].flag} {LANGUAGES[option.value].label}
                                         </span>
                                     </label>
                                 );

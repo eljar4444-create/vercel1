@@ -22,7 +22,7 @@ import { startConversationWithProvider } from '@/app/actions/chat';
 import { Button } from '@/components/ui/button';
 import { ProfileLocationMap } from '@/components/ProfileLocationMap';
 import ScrollReveal from '@/components/ScrollReveal';
-import { PROVIDER_LANGUAGE_OPTIONS } from '@/lib/provider-languages';
+import { LANGUAGES, normalizeProviderLanguage } from '@/lib/provider-languages';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -98,9 +98,13 @@ function getInitials(name: string) {
 }
 
 function formatProviderLanguages(languages: string[]) {
-    return languages
-        .map((language) => PROVIDER_LANGUAGE_OPTIONS.find((option) => option.value === language))
-        .filter((language): language is (typeof PROVIDER_LANGUAGE_OPTIONS)[number] => Boolean(language));
+  return languages
+        .map((language) => normalizeProviderLanguage(language))
+        .filter((language): language is keyof typeof LANGUAGES => Boolean(language))
+        .map((language) => ({
+            value: language,
+            ...LANGUAGES[language],
+        }));
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -372,16 +376,6 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         <MapPin className="h-3.5 w-3.5 text-stone-400" />
                                         {visibleAddress}
                                     </span>
-                                    {visibleLanguages.length > 0 ? (
-                                        <span className="inline-flex flex-wrap items-center gap-2">
-                                            {visibleLanguages.map((language) => (
-                                                <span key={language.value} className="inline-flex items-center gap-1.5">
-                                                    <span>{language.flag}</span>
-                                                    <span>{language.label}</span>
-                                                </span>
-                                            ))}
-                                        </span>
-                                    ) : null}
                                     <span className="inline-flex items-center gap-1.5">
                                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                                         <span className="font-medium text-stone-700">
@@ -390,6 +384,19 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     </span>
                                     <span className="text-stone-400">{priceLevel}</span>
                                 </div>
+                                {visibleLanguages.length > 0 ? (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {visibleLanguages.map((language) => (
+                                            <span
+                                                key={language.value}
+                                                className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-sm text-gray-700"
+                                            >
+                                                <span>{language.flag}</span>
+                                                <span>{language.label}</span>
+                                            </span>
+                                        ))}
+                                    </div>
+                                ) : null}
                             </div>
                             <button
                                 onClick={() => openBooking()}

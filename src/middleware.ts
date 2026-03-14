@@ -4,25 +4,34 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
+    const token = await getToken({
+        req,
+        secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+    });
+    const isAuthenticated = Boolean(token);
+    const onboardingCompleted = token?.onboardingCompleted;
+    const rawOnboardingType = typeof token?.onboardingType === 'string' ? token.onboardingType : null;
+    const onboardingType = rawOnboardingType === 'SALON' ? 'SALON' : rawOnboardingType === 'INDIVIDUAL' ? 'INDIVIDUAL' : null;
+    const isOnboardingRoute = pathname.startsWith('/onboarding');
+    const isAuthRoute = pathname.startsWith('/auth');
+    const isApiRoute = pathname.startsWith('/api');
+    const isPublicRoute =
+        pathname === '/' ||
+        pathname.startsWith('/salon') ||
+        pathname.startsWith('/search') ||
+        pathname.startsWith('/_next') ||
+        pathname.startsWith('/become-pro');
 
-    const sessionToken =
-        req.cookies.get('authjs.session-token')?.value ||
-        req.cookies.get('__Secure-authjs.session-token')?.value;
-
-    const isAuthenticated = Boolean(sessionToken);
+    if (!onboardingCompleted && onboardingType) {
+        if (!isOnboardingRoute && !isAuthRoute && !isApiRoute && !isPublicRoute) {
+            return NextResponse.redirect(new URL(`/onboarding?type=${onboardingType}`, req.url));
+        }
+    }
 
     if (pathname.startsWith('/admin')) {
         if (!isAuthenticated) {
             return NextResponse.redirect(new URL('/auth/login', req.url));
         }
-
-        const token = await getToken({
-            req,
-            secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
-            cookieName: req.cookies.get('__Secure-authjs.session-token')
-                ? '__Secure-authjs.session-token'
-                : 'authjs.session-token',
-        });
 
         if (token?.role !== 'ADMIN') {
             return NextResponse.redirect(new URL('/', req.url));
@@ -40,5 +49,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/provider/:path*', '/admin/:path*', '/chat/:path*', '/account/:path*'],
+    matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.png|.*\\.jpg|.*\\.svg).*)'],
 };

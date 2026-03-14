@@ -1,13 +1,30 @@
-export const PROVIDER_LANGUAGE_OPTIONS = [
-  { value: 'ru', label: 'Русский', flag: '🇷🇺' },
-  { value: 'uk', label: 'Украинский', flag: '🇺🇦' },
-  { value: 'de', label: 'Немецкий', flag: '🇩🇪' },
-] as const;
+export const LANGUAGES = {
+  'Русский': { flag: '🇷🇺', label: 'Русский' },
+  'Украинский': { flag: '🇺🇦', label: 'Украинский' },
+  'Немецкий': { flag: '🇩🇪', label: 'Немецкий' },
+} as const;
 
-export type ProviderLanguage = (typeof PROVIDER_LANGUAGE_OPTIONS)[number]['value'];
+export type ProviderLanguage = keyof typeof LANGUAGES;
 
-export const PROVIDER_LANGUAGE_VALUES = PROVIDER_LANGUAGE_OPTIONS.map((option) => option.value);
+const LANGUAGE_ALIASES: Record<string, ProviderLanguage> = {
+  ru: 'Русский',
+  ua: 'Украинский',
+  uk: 'Украинский',
+  de: 'Немецкий',
+  'Русский': 'Русский',
+  'Украинский': 'Украинский',
+  'Немецкий': 'Немецкий',
+};
+
+export const PROVIDER_LANGUAGE_OPTIONS = Object.entries(LANGUAGES).map(([value, meta]) => ({
+  value: value as ProviderLanguage,
+  ...meta,
+}));
+
+export function normalizeProviderLanguage(value: string): ProviderLanguage | null {
+  return LANGUAGE_ALIASES[value] ?? null;
+}
 
 export function isProviderLanguage(value: string): value is ProviderLanguage {
-  return PROVIDER_LANGUAGE_VALUES.includes(value as ProviderLanguage);
+  return normalizeProviderLanguage(value) !== null;
 }

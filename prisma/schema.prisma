@@ -125,6 +125,7 @@ model User {
   city                 String?
   zipCode              String?
   onboardingCompleted  Boolean      @default(false)
+  onboardingType       String?
 
   profile       Profile?
   accounts      Account[]

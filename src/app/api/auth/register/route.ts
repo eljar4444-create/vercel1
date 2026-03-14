@@ -21,6 +21,11 @@ export async function POST(req: NextRequest) {
     }
 
     try {
+        const roleParam = req.nextUrl.searchParams.get('role');
+        const typeParam = req.nextUrl.searchParams.get('type');
+        const isProviderRegistration = roleParam === 'provider';
+        const onboardingType = typeParam === 'SALON' ? 'SALON' : 'INDIVIDUAL';
+
         const body = await req.json();
 
         const result = RegisterSchema.safeParse(body);
@@ -49,6 +54,13 @@ export async function POST(req: NextRequest) {
                 password: hashedPassword,
                 name,
                 role: 'USER',
+                ...(isProviderRegistration
+                    ? {
+                        onboardingCompleted: false,
+                        onboardingType,
+                        providerType: onboardingType,
+                    }
+                    : {}),
             },
         });
 
