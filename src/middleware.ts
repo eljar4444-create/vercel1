@@ -1,31 +1,35 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
+    const token = await getToken({
+        req,
+        secret: process.env.NEXTAUTH_SECRET,
+    });
+
     const { pathname } = req.nextUrl;
-    const isAuthenticated = Boolean(req.auth?.user?.id);
-    const isAdmin = req.auth?.user?.role === 'ADMIN';
+    const isAuthenticated = Boolean(token);
+    const isAdmin = token?.role === 'ADMIN';
 
-    const protectedPrefixes = ['/dashboard', '/provider', '/chat', '/account'];
-    const isProtectedRoute = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
-    const isAdminRoute = pathname.startsWith('/admin');
-
-    if (isAdminRoute) {
+    if (pathname.startsWith('/admin')) {
         if (!isAuthenticated) {
             return NextResponse.redirect(new URL('/auth/login', req.url));
         }
-
         if (!isAdmin) {
             return NextResponse.redirect(new URL('/', req.url));
         }
     }
 
-    if (isProtectedRoute && !isAuthenticated) {
+    const protectedPrefixes = ['/dashboard', '/provider', '/chat', '/account'];
+    const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
+
+    if (isProtected && !isAuthenticated) {
         return NextResponse.redirect(new URL('/auth/login', req.url));
     }
 
     return NextResponse.next();
-});
+}
 
 export const config = {
     matcher: ['/dashboard/:path*', '/provider/:path*', '/admin/:path*', '/chat/:path*', '/account/:path*'],
