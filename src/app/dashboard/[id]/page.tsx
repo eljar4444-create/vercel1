@@ -78,6 +78,14 @@ export default async function DashboardPage({
         }
     }
 
+    const languageRows = await prisma.$queryRaw<Array<{ languages: string[] | null }>>`
+        SELECT "languages"
+        FROM "Profile"
+        WHERE "id" = ${profile.id}
+        LIMIT 1
+    `;
+    const profileLanguages = languageRows[0]?.languages ?? [];
+
     const connectTelegramLink =
         process.env.TELEGRAM_BOT_USERNAME && !profile.telegramChatId
             ? await createTelegramConnectLink(profile.id, process.env.TELEGRAM_BOT_USERNAME)
@@ -468,6 +476,7 @@ export default async function DashboardPage({
                                         providerType: profile.provider_type,
                                         bio: profile.bio,
                                         phone: profile.phone,
+                                        languages: profileLanguages,
                                         telegramChatId: profile.telegramChatId ?? null,
                                         city: profile.city,
                                         address: profile.address,

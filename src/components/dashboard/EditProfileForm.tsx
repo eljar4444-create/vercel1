@@ -9,6 +9,7 @@ import { uploadServicePhoto } from '@/app/actions/upload';
 import toast from 'react-hot-toast';
 import { CityCombobox } from '@/components/provider/CityCombobox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PROVIDER_LANGUAGE_OPTIONS, type ProviderLanguage } from '@/lib/provider-languages';
 
 function TelegramIcon({ className }: { className?: string }) {
     return (
@@ -29,6 +30,7 @@ interface EditProfileFormProps {
         city: string;
         address: string | null;
         studioImages: string[];
+        languages: string[];
     };
     connectTelegramLink: string | null;
 }
@@ -43,8 +45,19 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
     const [city, setCity] = useState(profile.city);
     const [providerType, setProviderType] = useState<'SALON' | 'PRIVATE' | 'INDIVIDUAL'>(profile.providerType);
     const [studioImages, setStudioImages] = useState<string[]>(profile.studioImages || []);
+    const [languages, setLanguages] = useState<ProviderLanguage[]>(
+        profile.languages.filter((value): value is ProviderLanguage =>
+            PROVIDER_LANGUAGE_OPTIONS.some((option) => option.value === value)
+        )
+    );
     const [isUploadingStudio, setIsUploadingStudio] = useState(false);
     const [isDisconnecting, setIsDisconnecting] = useState(false);
+
+    const toggleLanguage = (value: ProviderLanguage) => {
+        setLanguages((prev) =>
+            prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]
+        );
+    };
 
     const handleUploadStudioImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = event.target.files;
@@ -91,6 +104,8 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
         formData.set('provider_type', providerType);
         formData.set('name', name.trim());
         formData.set('bio', bio);
+        formData.delete('languages');
+        languages.forEach((language) => formData.append('languages', language));
 
         const result = await updateProfile(formData);
         setIsSubmitting(false);
@@ -191,6 +206,37 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                             placeholder="Расскажите о вашем опыте, подходе к работе и материалах, которые вы используете..."
                             className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all resize-none"
                         />
+                    </div>
+
+                    <div>
+                        <label className={labelClass}>Языки</label>
+                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                            {PROVIDER_LANGUAGE_OPTIONS.map((option) => {
+                                const active = languages.includes(option.value);
+                                return (
+                                    <label
+                                        key={option.value}
+                                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors ${
+                                            active
+                                                ? 'border-gray-900 bg-gray-100 text-gray-900'
+                                                : 'border-gray-200 bg-gray-50 text-gray-700'
+                                        }`}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            name="languages"
+                                            value={option.value}
+                                            checked={active}
+                                            onChange={() => toggleLanguage(option.value)}
+                                            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
+                                        />
+                                        <span>
+                                            {option.flag} {option.label}
+                                        </span>
+                                    </label>
+                                );
+                            })}
+                        </div>
                     </div>
                 </TabsContent>
 

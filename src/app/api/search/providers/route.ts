@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
     const q = searchParams.get('q') || undefined;
     const category = searchParams.get('category') || undefined;
     const sortParam = searchParams.get('sort') || undefined;
+    const language = searchParams.get('language') || undefined;
     const todayFilter = searchParams.get('today') === 'true';
     const homeVisitFilter = searchParams.get('homeVisit') === 'true';
     const promoFilter = searchParams.get('promo') === 'true';
@@ -58,6 +59,10 @@ export async function GET(request: NextRequest) {
                 },
             ],
         });
+    }
+
+    if (language) {
+        andConditions.push({ languages: { has: language } });
     }
 
     if (homeVisitFilter) {

@@ -88,11 +88,26 @@ export function SearchInteractiveLayout({
                     maxLng: debouncedBounds.maxLng.toString(),
                 });
 
-                // Preserve query and category filters from URL
-                const q = searchParams.get('q');
-                const category = searchParams.get('category');
-                if (q) params.set('q', q);
-                if (category) params.set('category', category);
+                // Preserve active URL filters when re-fetching providers for current map bounds
+                const passthroughKeys = [
+                    'q',
+                    'category',
+                    'sort',
+                    'today',
+                    'homeVisit',
+                    'promo',
+                    'inSalon',
+                    'cardPayment',
+                    'instantBooking',
+                    'language',
+                ];
+
+                passthroughKeys.forEach((key) => {
+                    const value = searchParams.get(key);
+                    if (value) {
+                        params.set(key, value);
+                    }
+                });
 
                 const res = await fetch(`/api/search/providers?${params.toString()}`, {
                     signal: controller.signal,

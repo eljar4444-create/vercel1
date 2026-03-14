@@ -6,6 +6,7 @@ import { auth } from '@/auth';
 import { generateUniqueProfileSlug } from '@/lib/slugify';
 import { geocodeAddress } from '@/lib/geocode';
 import { requireProviderProfile } from '@/lib/auth-helpers';
+import { isProviderLanguage } from '@/lib/provider-languages';
 
 const GEO_ERROR_MESSAGE =
     'Мы не смогли найти этот адрес на карте. Пожалуйста, проверьте правильность написания города и адреса или укажите ближайший крупный ориентир.';
@@ -36,6 +37,10 @@ export async function updateProfile(formData: FormData) {
     const telegramChatId = hasTelegramField ? (telegramChatIdRaw || null) : undefined;
     const providerType = providerTypeRaw === 'SALON' ? 'SALON' : 'PRIVATE';
     const studioImagesRaw = formData.get('studioImages');
+    const languages = formData
+        .getAll('languages')
+        .map((value) => String(value).trim())
+        .filter(isProviderLanguage);
     let studioImages: string[] = [];
 
     if (typeof studioImagesRaw === 'string' && studioImagesRaw.trim()) {
@@ -134,22 +139,32 @@ export async function updateProfile(formData: FormData) {
             }
         }
 
-        const updated = await prisma.profile.update({
-            where: { id: profileId },
-            data: {
-                name,
-                slug: newSlug,
-                provider_type: providerType,
-                bio: bioToSave || null,
-                phone: phone || null,
-                ...(telegramChatId !== undefined && { telegramChatId }),
-                city: officialCity,
-                address: providerType === 'SALON' ? address || null : null,
-                studioImages,
-                latitude,
-                longitude,
-            },
-            select: { slug: true },
+        const updated = await prisma.$transaction(async (tx) => {
+            const profile = await tx.profile.update({
+                where: { id: profileId },
+                data: {
+                    name,
+                    slug: newSlug,
+                    provider_type: providerType,
+                    bio: bioToSave || null,
+                    phone: phone || null,
+                    ...(telegramChatId !== undefined && { telegramChatId }),
+                    city: officialCity,
+                    address: providerType === 'SALON' ? address || null : null,
+                    studioImages,
+                    latitude,
+                    longitude,
+                },
+                select: { slug: true },
+            });
+
+            await tx.$executeRaw`
+                UPDATE "Profile"
+                SET "languages" = ${languages}
+                WHERE "id" = ${profileId}
+            `;
+
+            return profile;
         });
 
         revalidatePath('/dashboard', 'layout');

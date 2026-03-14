@@ -41,6 +41,7 @@ model Profile {
   image_url   String?
   gallery     String[]  @default([])
   studioImages String[] @default([])
+  languages   String[]  @default([])
   bio         String?  @db.Text
   phone       String?
   telegramChatId String?

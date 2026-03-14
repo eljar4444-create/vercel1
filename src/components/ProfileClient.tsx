@@ -22,6 +22,7 @@ import { startConversationWithProvider } from '@/app/actions/chat';
 import { Button } from '@/components/ui/button';
 import { ProfileLocationMap } from '@/components/ProfileLocationMap';
 import ScrollReveal from '@/components/ScrollReveal';
+import { PROVIDER_LANGUAGE_OPTIONS } from '@/lib/provider-languages';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,6 +37,7 @@ interface ProfileData {
     studioImages: string[];
     bio?: string | null;
     phone?: string | null;
+    languages: string[];
     is_verified: boolean;
     created_at: string;
     latitude: number;
@@ -93,6 +95,12 @@ function getInitials(name: string) {
         .join('')
         .slice(0, 2)
         .toUpperCase();
+}
+
+function formatProviderLanguages(languages: string[]) {
+    return languages
+        .map((language) => PROVIDER_LANGUAGE_OPTIONS.find((option) => option.value === language))
+        .filter((language): language is (typeof PROVIDER_LANGUAGE_OPTIONS)[number] => Boolean(language));
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -239,6 +247,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
     const fullAddress = [profile.address, profile.city].filter(Boolean).join(', ');
     const visibleAddress =
         profile.provider_type === 'SALON' ? fullAddress || profile.city : profile.city;
+    const visibleLanguages = useMemo(() => formatProviderLanguages(profile.languages || []), [profile.languages]);
 
     const priceLevel = useMemo(() => {
         if (services.length === 0) return '€€€';
@@ -363,6 +372,16 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         <MapPin className="h-3.5 w-3.5 text-stone-400" />
                                         {visibleAddress}
                                     </span>
+                                    {visibleLanguages.length > 0 ? (
+                                        <span className="inline-flex flex-wrap items-center gap-2">
+                                            {visibleLanguages.map((language) => (
+                                                <span key={language.value} className="inline-flex items-center gap-1.5">
+                                                    <span>{language.flag}</span>
+                                                    <span>{language.label}</span>
+                                                </span>
+                                            ))}
+                                        </span>
+                                    ) : null}
                                     <span className="inline-flex items-center gap-1.5">
                                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                                         <span className="font-medium text-stone-700">

@@ -162,6 +162,14 @@ export default async function SalonProfilePage({
     const profile = await getCachedProfileBySlug(params.slug);
     if (!profile) notFound();
 
+    const languageRows = await prisma.$queryRaw<Array<{ languages: string[] | null }>>`
+        SELECT "languages"
+        FROM "Profile"
+        WHERE "slug" = ${params.slug}
+        LIMIT 1
+    `;
+    const profileLanguages = languageRows[0]?.languages ?? [];
+
     const cityCoordinates = resolveCityCoordinates(profile.city);
     const preciseCoordinates =
         profile.provider_type === 'SALON' && profile.address
@@ -228,6 +236,7 @@ export default async function SalonProfilePage({
         studioImages: profile.studioImages,
         bio: profile.bio,
         phone: profile.phone,
+        languages: profileLanguages,
         is_verified: profile.is_verified,
         created_at: profile.created_at instanceof Date
             ? profile.created_at.toISOString()

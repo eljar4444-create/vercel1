@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { SlidersHorizontal, Check } from 'lucide-react';
+import { PROVIDER_LANGUAGE_OPTIONS } from '@/lib/provider-languages';
 
 type FilterKey = 'today' | 'homeVisit' | 'promo' | 'inSalon' | 'cardPayment' | 'instantBooking';
 
@@ -28,8 +29,9 @@ export function SearchQuickFilters() {
     const inSalon = searchParams.get('inSalon') === 'true';
     const cardPayment = searchParams.get('cardPayment') === 'true';
     const instantBooking = searchParams.get('instantBooking') === 'true';
+    const activeLanguage = searchParams.get('language');
 
-    const activeCount = [today, homeVisit, promo, inSalon, cardPayment, instantBooking].filter(Boolean).length;
+    const activeCount = [today, homeVisit, promo, inSalon, cardPayment, instantBooking, Boolean(activeLanguage)].filter(Boolean).length;
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -56,6 +58,19 @@ export function SearchQuickFilters() {
 
     const isActive = (key: FilterKey) => {
         return searchParams.get(key) === 'true';
+    };
+
+    const toggleLanguage = (language: string) => {
+        const params = new URLSearchParams(searchParams.toString());
+        if (params.get('language') === language) {
+            params.delete('language');
+        } else {
+            params.set('language', language);
+        }
+        const queryString = params.toString();
+        const target = `${pathname}${queryString ? `?${queryString}` : ''}`;
+        router.push(target, { scroll: false });
+        router.refresh();
     };
 
     return (
@@ -116,6 +131,36 @@ export function SearchQuickFilters() {
                                             ) : null}
                                         </span>
                                         {label}
+                                    </button>
+                                );
+                            })}
+                            <div className="my-2 border-t border-stone-100" />
+                            <div className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-400">
+                                Язык
+                            </div>
+                            {PROVIDER_LANGUAGE_OPTIONS.map(({ value, label, flag }) => {
+                                const active = activeLanguage === value;
+                                return (
+                                    <button
+                                        key={value}
+                                        type="button"
+                                        onClick={() => toggleLanguage(value)}
+                                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors hover:bg-stone-50 ${
+                                            active ? 'bg-stone-50 font-medium text-stone-900' : 'text-stone-600'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border ${
+                                                active
+                                                    ? 'border-stone-300 bg-stone-100 text-stone-700'
+                                                    : 'border-stone-200 bg-white'
+                                            }`}
+                                        >
+                                            {active ? <Check className="h-3 w-3" strokeWidth={2.5} /> : null}
+                                        </span>
+                                        <span>
+                                            {flag} {label}
+                                        </span>
                                     </button>
                                 );
                             })}

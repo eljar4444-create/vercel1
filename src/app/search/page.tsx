@@ -68,6 +68,7 @@ export default async function SearchPage({
     const categoryFilter = typeof searchParams.category === 'string' ? searchParams.category : undefined;
     const cityFilter = typeof searchParams.city === 'string' ? searchParams.city : undefined;
     const queryFilter = typeof searchParams.q === 'string' ? searchParams.q : undefined;
+    const languageFilter = typeof searchParams.language === 'string' ? searchParams.language : undefined;
 
     // Bounding box from URL (set by client-side map interactions)
     const urlMinLat = typeof searchParams.minLat === 'string' ? parseFloat(searchParams.minLat) : undefined;
@@ -174,6 +175,10 @@ export default async function SearchPage({
                 },
             ],
         });
+    }
+
+    if (languageFilter) {
+        andConditions.push({ languages: { has: languageFilter } });
     }
 
     if (homeVisitFilter) {
@@ -294,7 +299,14 @@ export default async function SearchPage({
                     initialZoom={urlRadius ? calculateMapZoom(urlRadius) : undefined}
                     radiusKm={urlRadius}
                     headerContent={
-                        <SearchQuickFilters />
+                        <>
+                            <ActiveFilters
+                                cityFilter={cityFilter}
+                                queryFilter={queryFilter}
+                                languageFilter={languageFilter}
+                            />
+                            <SearchQuickFilters />
+                        </>
                     }
                 />
             </Suspense>
