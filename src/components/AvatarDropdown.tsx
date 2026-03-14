@@ -71,7 +71,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
 
     const isProvider = !!resolvedProfileId;
     const isAdmin = propUser.role === 'ADMIN';
-    const dashboardBase = resolvedProfileId ? `/dashboard/${resolvedProfileId}` : '/provider/onboarding';
+    const dashboardBase = resolvedProfileId ? `/dashboard/${resolvedProfileId}` : '/dashboard';
 
     const dashboardSubLinks = resolvedProfileId
         ? [

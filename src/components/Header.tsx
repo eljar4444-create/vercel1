@@ -198,7 +198,7 @@ export function Header() {
                                         Панель управления
                                     </Link>
                                 )}
-                                {(!!user.profileId || user.role === 'ADMIN') && user.profileId && (
+                                {user.profileId && (
                                     <Link
                                         href={`/dashboard/${user.profileId}`}
                                         onClick={() => setMobileMenuOpen(false)}
