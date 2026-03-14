@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { auth } from '@/auth';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { CreateServiceForm } from '@/components/provider/CreateServiceForm';
+import { AddServiceForm } from '@/components/dashboard/AddServiceForm';
 
 export default async function EditServicePage({ params }: { params: { id: string } }) {
     const session = await auth();
@@ -45,7 +45,7 @@ export default async function EditServicePage({ params }: { params: { id: string
                     &larr; Назад к профилю
                 </Link>
 
-                <CreateServiceForm
+                <AddServiceForm
                     serviceId={String(service.id)}
                     initialData={{
                         id: service.id,
@@ -55,6 +55,7 @@ export default async function EditServicePage({ params }: { params: { id: string
                         duration_min: service.duration_min,
                         images: service.images,
                     }}
+                    returnHref="/provider/profile"
                 />
             </div>
         </Suspense>

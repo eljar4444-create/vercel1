@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { CreateServiceForm } from '@/components/provider/CreateServiceForm';
+import { AddServiceForm } from '@/components/dashboard/AddServiceForm';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 
@@ -9,7 +9,7 @@ export default async function CreateServicePage() {
 
     return (
         <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
-            <CreateServiceForm />
+            <AddServiceForm returnHref="/provider/profile" />
         </Suspense>
     );
 }
