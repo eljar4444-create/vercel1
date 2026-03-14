@@ -67,7 +67,7 @@ function MapUpdater({ initialCenter, initialZoom, radiusKm }: { initialCenter?: 
                 setTimeout(() => { (map as any)._isProgrammaticMove = false; }, 100);
             });
         }
-    }, [map, initialCenter, initialZoom, urlRadiusStr]);
+    }, [map, initialCenter, initialZoom, urlRadius]);
 
     return null;
 }

@@ -156,7 +156,7 @@ export function SearchInteractiveLayout({
 
         fetchProviders();
         return () => controller.abort();
-    }, [debouncedBounds, searchParams]); // Re-run when filters in URL change
+    }, [debouncedBounds, pathname, router, searchParams]); // Re-run when filters in URL change
 
     const handleBoundsChange = useCallback((newBounds: MapBounds) => {
         setBounds(newBounds);
