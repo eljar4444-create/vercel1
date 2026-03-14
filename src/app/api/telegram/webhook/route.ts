@@ -7,6 +7,13 @@ const CONFIRM_MESSAGE =
 
 export async function POST(request: NextRequest) {
     try {
+        const configuredSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+        const secret = request.headers.get('x-telegram-bot-api-secret-token');
+
+        if (!configuredSecret || secret !== configuredSecret) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
         const body = await request.json();
         const message = body?.message;
         const text = typeof message?.text === 'string' ? message.text.trim() : '';
@@ -20,23 +27,45 @@ export async function POST(request: NextRequest) {
             return Response.json({ ok: true });
         }
 
-        const payload = text.slice(7).trim();
-        if (!payload) {
+        const token = text.slice(7).trim();
+        if (!token) {
             return Response.json({ ok: true });
         }
 
-        const profile = await prisma.profile.findFirst({
-            where: { user_id: payload },
-            select: { id: true },
-        });
+        const rows = await prisma.$queryRaw<Array<{
+            id: string;
+            profileId: number;
+            expiresAt: Date;
+        }>>`
+            SELECT "id", "profileId", "expiresAt"
+            FROM "TelegramToken"
+            WHERE "token" = ${token}
+            LIMIT 1
+        `;
+        const telegramToken = rows[0];
 
-        if (!profile) {
+        if (!telegramToken) {
             return Response.json({ ok: true });
         }
 
-        await prisma.profile.update({
-            where: { id: profile.id },
-            data: { telegramChatId: String(chatId) },
+        if (telegramToken.expiresAt <= new Date()) {
+            await prisma.$executeRaw`
+                DELETE FROM "TelegramToken"
+                WHERE "id" = ${telegramToken.id}
+            `;
+            return Response.json({ ok: true });
+        }
+
+        await prisma.$transaction(async (tx) => {
+            await tx.profile.update({
+                where: { id: telegramToken.profileId },
+                data: { telegramChatId: String(chatId) },
+            });
+
+            await tx.$executeRaw`
+                DELETE FROM "TelegramToken"
+                WHERE "id" = ${telegramToken.id}
+            `;
         });
 
         await sendTelegramMessage(String(chatId), CONFIRM_MESSAGE);

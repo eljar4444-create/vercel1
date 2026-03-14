@@ -57,6 +57,7 @@ model Profile {
   conversations Conversation[]
   favorites   Favorite[] @relation("ProviderFavorited")
   reviews     Review[]
+  telegramTokens TelegramToken[]
 
   @@index([category_id])
 }
@@ -246,4 +247,16 @@ model Review {
   @@index([profileId])
   @@index([clientId])
   @@index([createdAt])
+}
+
+model TelegramToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  profileId Int
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([profileId])
+  @@index([expiresAt])
 }

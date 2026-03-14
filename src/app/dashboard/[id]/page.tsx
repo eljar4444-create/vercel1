@@ -20,6 +20,7 @@ import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
 import { parseSchedule } from '@/lib/scheduling';
 import { Button } from '@/components/ui/button';
 import { requireProviderProfile } from '@/lib/auth-helpers';
+import { createTelegramConnectLink } from '@/lib/telegram-link';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +77,11 @@ export default async function DashboardPage({
             profile.user_id = session.user.id;
         }
     }
+
+    const connectTelegramLink =
+        process.env.TELEGRAM_BOT_USERNAME && !profile.telegramChatId
+            ? await createTelegramConnectLink(profile.id, process.env.TELEGRAM_BOT_USERNAME)
+            : null;
 
     const bookings = await prisma.booking.findMany({
         where: { profile_id: profileId },
@@ -467,11 +473,7 @@ export default async function DashboardPage({
                                         address: profile.address,
                                         studioImages: profile.studioImages,
                                     }}
-                                    connectTelegramLink={
-                                        process.env.TELEGRAM_BOT_USERNAME && profile.user_id
-                                            ? `https://t.me/${process.env.TELEGRAM_BOT_USERNAME}?start=${profile.user_id}`
-                                            : null
-                                    }
+                                    connectTelegramLink={connectTelegramLink}
                                 />
                             </div>
                         </div>
