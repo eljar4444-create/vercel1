@@ -3,8 +3,14 @@
 import { put } from '@vercel/blob';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { auth } from '@/auth';
 
 export async function uploadAvatar(formData: FormData) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('Unauthorized');
+    }
+
     const file = formData.get('file') as File;
     const profileId = parseInt(formData.get('profile_id') as string, 10);
 
@@ -24,6 +30,19 @@ export async function uploadAvatar(formData: FormData) {
     }
 
     try {
+        const profile = await prisma.profile.findUnique({
+            where: { id: profileId },
+            select: { id: true, user_id: true, slug: true },
+        });
+
+        if (!profile) {
+            return { success: false, error: 'Профиль не найден.' };
+        }
+
+        if (session.user.role !== 'ADMIN' && profile.user_id !== session.user.id) {
+            throw new Error('Forbidden');
+        }
+
         const blob = await put(`avatars/${profileId}-${Date.now()}.${file.name.split('.').pop()}`, file, {
             access: 'public',
         });
@@ -35,7 +54,7 @@ export async function uploadAvatar(formData: FormData) {
         });
 
         revalidatePath('/dashboard', 'layout');
-        if (updatedProfile?.slug) {
+        if (updatedProfile.slug) {
             revalidatePath(`/salon/${updatedProfile.slug}`);
         }
 

@@ -83,14 +83,24 @@ export async function getAdminData() {
             prisma.booking.count({ where: { status: "canceled" } }),
             prisma.user.findMany({
                 orderBy: { createdAt: "desc" },
-                include: {
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    role: true,
+                    createdAt: true,
                     _count: {
                         select: {
                             bookings: true, // Bookings as a client
                         }
                     },
                     profile: {
-                        include: {
+                        select: {
+                            id: true,
+                            name: true,
+                            slug: true,
+                            city: true,
+                            is_verified: true,
                             _count: {
                                 select: {
                                     services: true, // Services this master created
@@ -104,7 +114,17 @@ export async function getAdminData() {
             prisma.service.findMany({
                 include: {
                     profile: {
-                        include: { user: true }
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    email: true,
+                                    name: true,
+                                    role: true,
+                                    createdAt: true,
+                                }
+                            }
+                        },
                     },
                 },
                 orderBy: { id: "desc" },
@@ -112,9 +132,27 @@ export async function getAdminData() {
             prisma.booking.findMany({
                 include: {
                     service: true,
-                    user: true,
+                    user: {
+                        select: {
+                            id: true,
+                            email: true,
+                            name: true,
+                            role: true,
+                            createdAt: true,
+                        }
+                    },
                     profile: {
-                        include: { user: true }
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    email: true,
+                                    name: true,
+                                    role: true,
+                                    createdAt: true,
+                                }
+                            }
+                        }
                     }
                 },
                 orderBy: { date: "desc" },
