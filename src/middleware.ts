@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
+    const isAdminRoute = pathname.startsWith('/admin');
     const token = await getToken({
         req,
         secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
@@ -23,19 +24,14 @@ export async function middleware(req: NextRequest) {
         pathname.startsWith('/become-pro');
 
     if (!onboardingCompleted && onboardingType) {
-        if (!isOnboardingRoute && !isAuthRoute && !isApiRoute && !isPublicRoute) {
+        if (!isOnboardingRoute && !isAuthRoute && !isApiRoute && !isPublicRoute && !isAdminRoute) {
             return NextResponse.redirect(new URL(`/onboarding?type=${onboardingType}`, req.url));
         }
     }
-
-    if (pathname.startsWith('/admin')) {
-        if (!isAuthenticated) {
-            return NextResponse.redirect(new URL('/auth/login', req.url));
-        }
-
-        if (token?.role !== 'ADMIN') {
-            return NextResponse.redirect(new URL('/', req.url));
-        }
+    // /admin has its own strict server-side guard via auth() in src/app/admin/page.tsx.
+    // Skip edge redirects here to avoid false unauth redirects caused by stale/unsynced JWT reads.
+    if (isAdminRoute) {
+        return NextResponse.next();
     }
 
     const protectedPrefixes = ['/dashboard', '/provider', '/chat', '/account'];
