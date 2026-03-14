@@ -1,23 +1,18 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 
-export async function middleware(req: NextRequest) {
-    const token = await getToken({
-        req,
-        secret: process.env.NEXTAUTH_SECRET,
-    });
-
+export function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
-    const isAuthenticated = Boolean(token);
-    const isAdmin = token?.role === 'ADMIN';
+
+    const sessionToken =
+        req.cookies.get('authjs.session-token')?.value ||
+        req.cookies.get('__Secure-authjs.session-token')?.value;
+
+    const isAuthenticated = Boolean(sessionToken);
 
     if (pathname.startsWith('/admin')) {
         if (!isAuthenticated) {
             return NextResponse.redirect(new URL('/auth/login', req.url));
-        }
-        if (!isAdmin) {
-            return NextResponse.redirect(new URL('/', req.url));
         }
     }
 
