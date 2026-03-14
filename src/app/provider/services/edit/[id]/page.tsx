@@ -18,7 +18,7 @@ export default async function EditServicePage({ params }: { params: { id: string
         include: { category: true }
     });
 
-    if (!profile) redirect('/provider/profile');
+    if (!profile) redirect('/dashboard');
 
     const serviceIdInt = parseInt(params.id);
     if (isNaN(serviceIdInt)) notFound();
@@ -35,13 +35,13 @@ export default async function EditServicePage({ params }: { params: { id: string
     if (!service) notFound();
 
     if (service.profile_id !== profile.id) {
-        redirect('/provider/profile');
+        redirect(`/dashboard/${profile.id}?section=services`);
     }
 
     return (
         <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
             <div className="container mx-auto px-4 py-8">
-                <Link href="/provider/profile" className="text-blue-600 hover:underline mb-6 inline-block">
+                <Link href={`/dashboard/${profile.id}?section=services`} className="text-blue-600 hover:underline mb-6 inline-block">
                     &larr; Назад к профилю
                 </Link>
 
@@ -55,7 +55,7 @@ export default async function EditServicePage({ params }: { params: { id: string
                         duration_min: service.duration_min,
                         images: service.images,
                     }}
-                    returnHref="/provider/profile"
+                    returnHref={`/dashboard/${profile.id}`}
                 />
             </div>
         </Suspense>
