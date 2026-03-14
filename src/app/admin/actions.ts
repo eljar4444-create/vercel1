@@ -284,7 +284,7 @@ export async function checkSystemHealth() {
     try {
         const start = performance.now();
         // A simple query to check if the database is responsive
-        await prisma.$queryRawUnsafe('SELECT 1');
+        await prisma.$queryRaw`SELECT 1`;
         const end = performance.now();
 
         const ping = Math.round(end - start);

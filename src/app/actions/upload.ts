@@ -3,6 +3,8 @@
 import { auth } from '@/auth';
 import { put } from '@vercel/blob';
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 export async function uploadServicePhoto(formData: FormData) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -14,8 +16,8 @@ export async function uploadServicePhoto(formData: FormData) {
         throw new Error('No file uploaded');
     }
 
-    if (!file.type.startsWith('image/')) {
-        throw new Error('File must be an image');
+    if (!ALLOWED_TYPES.includes(file.type)) {
+        throw new Error('Invalid file type');
     }
 
     if (file.size > 5 * 1024 * 1024) {

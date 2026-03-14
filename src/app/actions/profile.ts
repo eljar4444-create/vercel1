@@ -5,6 +5,8 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { put } from '@vercel/blob';
 
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 export async function updateBasicInfo(formData: FormData) {
     const session = await auth();
 
@@ -42,8 +44,8 @@ export async function uploadProfilePhoto(formData: FormData) {
         throw new Error('No file uploaded');
     }
 
-    if (!file.type.startsWith('image/')) {
-        throw new Error('File must be an image');
+    if (!ALLOWED_TYPES.includes(file.type)) {
+        throw new Error('Invalid file type');
     }
 
     if (file.size > 5 * 1024 * 1024) {

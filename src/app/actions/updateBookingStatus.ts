@@ -3,6 +3,9 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
+import { z } from 'zod';
+
+const StatusSchema = z.enum(['pending', 'confirmed', 'cancelled', 'completed']);
 
 export async function updateBookingStatus(bookingId: number, newStatus: string) {
     const session = await auth();
@@ -11,6 +14,8 @@ export async function updateBookingStatus(bookingId: number, newStatus: string) 
     }
 
     try {
+        const validStatus = StatusSchema.parse(newStatus);
+
         const booking = await prisma.booking.findUnique({
             where: { id: bookingId },
             select: {
@@ -39,7 +44,7 @@ export async function updateBookingStatus(bookingId: number, newStatus: string) 
 
         await prisma.booking.update({
             where: { id: bookingId },
-            data: { status: newStatus },
+            data: { status: validStatus },
         });
 
         // Revalidate all dashboard pages so the UI refreshes instantly
