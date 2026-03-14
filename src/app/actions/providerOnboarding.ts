@@ -21,10 +21,6 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
         return { success: false, error: 'Требуется авторизация.' };
     }
 
-    if (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN') {
-        return { success: false, error: 'Недостаточно прав.' };
-    }
-
     const name = String(formData.get('name') || '').trim();
     const city = String(formData.get('city') || '').trim();
     const providerTypeRaw = String(formData.get('provider_type') || 'PRIVATE').trim();

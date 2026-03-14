@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { isValidTime, normalizeWorkingDays, timeToMinutes } from '@/lib/scheduling';
 import { auth } from '@/auth';
+import { requireProviderProfile } from '@/lib/auth-helpers';
 
 interface UpdateScheduleResult {
     success: boolean;
@@ -12,8 +13,16 @@ interface UpdateScheduleResult {
 
 export async function updateSchedule(formData: FormData): Promise<UpdateScheduleResult> {
     const session = await auth();
-    if (!session?.user || (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN')) {
+    if (!session?.user?.id) {
         return { success: false, error: 'Unauthorized' };
+    }
+
+    if (session.user.role !== 'ADMIN') {
+        try {
+            await requireProviderProfile(session.user.id, session.user.email);
+        } catch {
+            return { success: false, error: 'Unauthorized' };
+        }
     }
 
     const profileId = Number(formData.get('profile_id'));

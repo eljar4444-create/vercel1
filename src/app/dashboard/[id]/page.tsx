@@ -19,6 +19,7 @@ import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
 import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
 import { parseSchedule } from '@/lib/scheduling';
 import { Button } from '@/components/ui/button';
+import { requireProviderProfile } from '@/lib/auth-helpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,8 +34,15 @@ export default async function DashboardPage({
     if (isNaN(profileId)) notFound();
 
     const session = await auth();
-    if (!session?.user) redirect('/auth/login');
-    if (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN') redirect('/');
+    if (!session?.user?.id) redirect('/auth/login');
+
+    if (session.user.role !== 'ADMIN') {
+        try {
+            await requireProviderProfile(session.user.id, session.user.email);
+        } catch {
+            redirect('/');
+        }
+    }
 
     const profile = await prisma.profile.findUnique({
         where: { id: profileId },
@@ -182,7 +190,7 @@ export default async function DashboardPage({
 
                     {/* Back link */}
                     <Link
-                        href={`/profile/${profileId}`}
+                        href={`/salon/${profile.slug}`}
                         className="inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-700"
                     >
                         <ArrowLeft className="w-4 h-4" />
@@ -388,7 +396,7 @@ export default async function DashboardPage({
                                                 Поделитесь ссылкой на профиль, чтобы клиенты начали бронировать услуги.
                                             </p>
                                             <Button asChild className="mt-5 bg-slate-900 text-white hover:bg-slate-800">
-                                                <Link href={`/profile/${profileId}`} target="_blank" rel="noopener noreferrer">
+                                                <Link href={`/salon/${profile.slug}`} target="_blank" rel="noopener noreferrer">
                                                     Поделиться ссылкой на профиль
                                                 </Link>
                                             </Button>

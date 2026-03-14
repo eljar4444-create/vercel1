@@ -8,6 +8,7 @@
         "start": "next start",
         "lint": "next lint",
         "studio": "prisma generate && prisma studio",
+        "seed": "prisma db seed",
         "sync:categories": "ts-node scripts/sync-categories.ts"
     },
     "dependencies": {

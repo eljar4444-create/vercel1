@@ -12,10 +12,6 @@ export default async function ProviderOnboardingPage() {
         redirect('/auth/login');
     }
 
-    if (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN') {
-        redirect('/');
-    }
-
     const existingProfile = await prisma.profile.findFirst({
         where: {
             OR: [

@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache';
 /** Get profile IDs that the current client has favorited. */
 export async function getFavoriteProfileIds(): Promise<number[]> {
     const session = await auth();
-    if (!session?.user?.id || (session.user.role !== 'CLIENT' && session.user.role !== 'ADMIN')) {
+    if (!session?.user?.id) {
         return [];
     }
     const rows = await prisma.favorite.findMany({
@@ -22,9 +22,6 @@ export async function toggleFavorite(providerProfileId: number): Promise<{ succe
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, isFavorited: false, error: 'Войдите в аккаунт' };
-    }
-    if (session.user.role !== 'CLIENT' && session.user.role !== 'ADMIN') {
-        return { success: false, isFavorited: false, error: 'Доступно только клиентам' };
     }
     const profileId = Number(providerProfileId);
     if (!Number.isInteger(profileId)) {

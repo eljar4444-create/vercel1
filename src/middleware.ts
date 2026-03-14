@@ -1,21 +1,32 @@
 import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { auth } from '@/auth';
 
-export async function middleware(req: NextRequest) {
-    const { nextUrl } = req;
+export default auth((req) => {
+    const { pathname } = req.nextUrl;
+    const isAuthenticated = Boolean(req.auth?.user?.id);
+    const isAdmin = req.auth?.user?.role === 'ADMIN';
 
-    const isApiRoute = nextUrl.pathname.startsWith('/api');
-    const isStatic = nextUrl.pathname.startsWith('/_next') || nextUrl.pathname.includes('.');
-    const isAuthPage = nextUrl.pathname.startsWith('/auth');
+    const protectedPrefixes = ['/dashboard', '/provider', '/chat', '/account'];
+    const isProtectedRoute = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
+    const isAdminRoute = pathname.startsWith('/admin');
 
-    if (isApiRoute || isStatic || isAuthPage) {
-        return NextResponse.next();
+    if (isAdminRoute) {
+        if (!isAuthenticated) {
+            return NextResponse.redirect(new URL('/auth/login', req.url));
+        }
+
+        if (!isAdmin) {
+            return NextResponse.redirect(new URL('/', req.url));
+        }
     }
 
-    // Keep middleware non-blocking. Access control is enforced server-side in pages/actions.
+    if (isProtectedRoute && !isAuthenticated) {
+        return NextResponse.redirect(new URL('/auth/login', req.url));
+    }
+
     return NextResponse.next();
-}
+});
 
 export const config = {
-    matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-}
+    matcher: ['/dashboard/:path*', '/provider/:path*', '/admin/:path*', '/chat/:path*', '/account/:path*'],
+};

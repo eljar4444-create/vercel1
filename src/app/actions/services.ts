@@ -4,11 +4,20 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { isBeautyServiceTitle } from '@/lib/constants/services-taxonomy';
+import { requireProviderProfile } from '@/lib/auth-helpers';
 
 export async function addService(formData: FormData) {
     const session = await auth();
-    if (!session?.user || (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN')) {
+    if (!session?.user?.id) {
         return { success: false, error: 'Unauthorized' };
+    }
+
+    if (session.user.role !== 'ADMIN') {
+        try {
+            await requireProviderProfile(session.user.id, session.user.email);
+        } catch {
+            return { success: false, error: 'Unauthorized' };
+        }
     }
 
     const profileId = parseInt(formData.get('profile_id') as string, 10);
@@ -77,8 +86,16 @@ export async function addService(formData: FormData) {
 
 export async function deleteService(serviceId: number) {
     const session = await auth();
-    if (!session?.user || (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN')) {
+    if (!session?.user?.id) {
         return { success: false, error: 'Unauthorized' };
+    }
+
+    if (session.user.role !== 'ADMIN') {
+        try {
+            await requireProviderProfile(session.user.id, session.user.email);
+        } catch {
+            return { success: false, error: 'Unauthorized' };
+        }
     }
 
     try {

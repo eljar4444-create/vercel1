@@ -19,7 +19,7 @@ export default async function ProviderProfile() {
     // but legacy code had it. We keep it or relax it? 
     // Let's relax it slightly or redirect to "become provider".
     // Actually, legacy code redirected to '/' if not provider.
-    // We'll keep it simple: if no profile, redirect to become-provider.
+    // We'll keep it simple: if no profile, redirect to become-pro.
 
     const user = await prisma.user.findUnique({
         where: { email: session.user.email }
@@ -40,7 +40,7 @@ export default async function ProviderProfile() {
     });
 
     if (!profile) {
-        return redirect('/become-provider');
+        return redirect('/become-pro');
     }
 
     // Map new fields to legacy expected props
@@ -80,7 +80,7 @@ export default async function ProviderProfile() {
                     )}
                 </p>
                 <div className="mt-4">
-                    <Link href="/provider/profile/edit" className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">
+                    <Link href={`/dashboard/${profile.id}?section=profile`} className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200">
                         Редактировать профиль
                     </Link>
                 </div>

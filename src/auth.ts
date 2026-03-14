@@ -92,11 +92,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     callbacks: {
         async jwt({ token, user, trigger, session }: any) {
             const syncProviderProfileId = async () => {
-                const role = token.role as string | undefined;
                 const userId = token.id as string | undefined;
                 const email = token.email as string | undefined;
 
-                if (!userId || (role !== 'PROVIDER' && role !== 'ADMIN')) {
+                if (!userId) {
                     token.profileId = null;
                     return;
                 }

@@ -5,14 +5,23 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
 import { generateUniqueProfileSlug } from '@/lib/slugify';
 import { geocodeAddress } from '@/lib/geocode';
+import { requireProviderProfile } from '@/lib/auth-helpers';
 
 const GEO_ERROR_MESSAGE =
     'Мы не смогли найти этот адрес на карте. Пожалуйста, проверьте правильность написания города и адреса или укажите ближайший крупный ориентир.';
 
 export async function updateProfile(formData: FormData) {
     const session = await auth();
-    if (!session?.user || (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN')) {
+    if (!session?.user?.id) {
         return { success: false, error: 'Unauthorized' };
+    }
+
+    if (session.user.role !== 'ADMIN') {
+        try {
+            await requireProviderProfile(session.user.id, session.user.email);
+        } catch {
+            return { success: false, error: 'Unauthorized' };
+        }
     }
 
     const profileId = parseInt(formData.get('profile_id') as string, 10);

@@ -3,11 +3,20 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
+import { requireProviderProfile } from '@/lib/auth-helpers';
 
 export async function disconnectTelegram(profileId: number) {
     const session = await auth();
-    if (!session?.user || (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN')) {
+    if (!session?.user?.id) {
         return { success: false, error: 'Unauthorized' };
+    }
+
+    if (session.user.role !== 'ADMIN') {
+        try {
+            await requireProviderProfile(session.user.id, session.user.email);
+        } catch {
+            return { success: false, error: 'Unauthorized' };
+        }
     }
 
     const id = Number(profileId);

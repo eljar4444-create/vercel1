@@ -8,7 +8,6 @@ const RegisterSchema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
     name: z.string().min(2),
-    role: z.enum(['USER', 'ADMIN']).default('USER'),
 });
 
 export async function POST(req: NextRequest) {
@@ -24,11 +23,6 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
 
-        // Temporarily map legacy roles from frontend
-        if (body.role === 'CLIENT' || body.role === 'PROVIDER') {
-            body.role = 'USER';
-        }
-
         const result = RegisterSchema.safeParse(body);
 
         if (!result.success) {
@@ -37,7 +31,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: message }, { status: 400 });
         }
 
-        const { email, password, name, role } = result.data;
+        const { email, password, name } = result.data;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
@@ -54,7 +48,7 @@ export async function POST(req: NextRequest) {
                 email,
                 password: hashedPassword,
                 name,
-                role,
+                role: 'USER',
             },
         });
 

@@ -9,8 +9,8 @@ export async function GET() {
         return NextResponse.json({ profileId: null }, { status: 401 });
     }
 
-    if (session.user.role !== 'PROVIDER' && session.user.role !== 'ADMIN') {
-        return NextResponse.json({ profileId: null }, { status: 200 });
+    if (session.user.role !== 'ADMIN' && !session.user.profileId) {
+        return NextResponse.json({ profileId: null }, { status: 403 });
     }
 
     const profile = await prisma.profile.findFirst({

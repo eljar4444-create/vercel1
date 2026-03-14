@@ -78,7 +78,7 @@ export async function linkLegacyBookingsState(
     formData: FormData
 ) {
     const session = await auth();
-    if (!session?.user?.id || (session.user.role !== 'CLIENT' && session.user.role !== 'ADMIN')) {
+    if (!session?.user?.id) {
         return { success: false, error: 'Войдите в клиентский аккаунт.', linked: 0 };
     }
 

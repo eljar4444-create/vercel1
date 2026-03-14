@@ -125,7 +125,7 @@ function AuthContent() {
                         email,
                         password,
                         name,
-                        role: isProvider ? 'PROVIDER' : 'CLIENT',
+                        role: 'USER',
                     }),
                 });
 
