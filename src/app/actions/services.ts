@@ -3,8 +3,142 @@
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 import { isBeautyServiceTitle } from '@/lib/constants/services-taxonomy';
 import { requireProviderProfile } from '@/lib/auth-helpers';
+
+function parseImages(rawImages: FormDataEntryValue | null): string[] {
+    if (!rawImages || typeof rawImages !== 'string') return [];
+
+    try {
+        const parsed = JSON.parse(rawImages);
+        if (!Array.isArray(parsed)) return [];
+
+        return parsed
+            .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+            .slice(0, 10);
+    } catch {
+        return [];
+    }
+}
+
+export async function createService(prevState: any, formData: FormData) {
+    void prevState;
+
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { message: 'Unauthorized' };
+    }
+
+    try {
+        const profile = await requireProviderProfile(session.user.id, session.user.email);
+        const title = (formData.get('title') as string | null)?.trim() || '';
+        const rawPrice = formData.get('price');
+        const price = rawPrice ? parseFloat(rawPrice as string) : 0;
+        const durationMinRaw = formData.get('duration_min') ?? formData.get('duration');
+        const durationMin = durationMinRaw ? parseInt(durationMinRaw as string, 10) : 60;
+        const description = (formData.get('description') as string | null)?.trim() || null;
+        const images = parseImages(formData.get('images') ?? formData.get('uploadedPhotoUrls'));
+
+        if (!title || !isBeautyServiceTitle(title)) {
+            return { message: 'Выберите услугу из справочника.' };
+        }
+        if (Number.isNaN(price) || Number.isNaN(durationMin)) {
+            return { message: 'Цена и длительность заполнены некорректно.' };
+        }
+
+        await prisma.service.create({
+            data: {
+                title,
+                description,
+                images,
+                price,
+                duration_min: durationMin,
+                profile_id: profile.id,
+            },
+        });
+
+        revalidatePath('/provider/profile');
+        revalidatePath('/dashboard', 'layout');
+        redirect('/provider/profile');
+    } catch (error: any) {
+        if (error?.message === 'PROFILE_NOT_FOUND') {
+            return { message: 'Профиль не найден. Пожалуйста, заполните профиль.' };
+        }
+        if (error?.message === 'NEXT_REDIRECT' || error?.digest?.includes('NEXT_REDIRECT')) {
+            throw error;
+        }
+
+        console.error('createService error:', error);
+        return { message: error?.message || 'Ошибка создания услуги' };
+    }
+}
+
+export async function updateService(serviceId: string, prevState: any, formData: FormData) {
+    void prevState;
+
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { message: 'Unauthorized' };
+    }
+
+    try {
+        const profile = await requireProviderProfile(session.user.id, session.user.email);
+        const serviceIdInt = parseInt(serviceId, 10);
+        const title = (formData.get('title') as string | null)?.trim() || '';
+        const rawPrice = formData.get('price');
+        const price = rawPrice ? parseFloat(rawPrice as string) : 0;
+        const durationMinRaw = formData.get('duration_min') ?? formData.get('duration');
+        const durationMin = durationMinRaw ? parseInt(durationMinRaw as string, 10) : 60;
+        const description = (formData.get('description') as string | null)?.trim() || null;
+        const images = parseImages(formData.get('images') ?? formData.get('uploadedPhotoUrls'));
+
+        if (!title || !isBeautyServiceTitle(title)) {
+            return { message: 'Выберите услугу из справочника.' };
+        }
+        if (Number.isNaN(price) || Number.isNaN(durationMin)) {
+            return { message: 'Цена и длительность заполнены некорректно.' };
+        }
+        if (Number.isNaN(serviceIdInt)) {
+            return { message: 'Некорректный идентификатор услуги.' };
+        }
+
+        const service = await prisma.service.findUnique({
+            where: { id: serviceIdInt },
+            select: { id: true, profile_id: true },
+        });
+
+        if (!service || service.profile_id !== profile.id) {
+            return { message: 'Unauthorized or Service not found' };
+        }
+
+        await prisma.service.update({
+            where: { id: serviceIdInt },
+            data: {
+                title,
+                description,
+                images,
+                price,
+                duration_min: durationMin,
+            },
+        });
+
+        revalidatePath('/provider/profile');
+        revalidatePath(`/services/${serviceId}`);
+        revalidatePath('/dashboard', 'layout');
+        redirect('/provider/profile');
+    } catch (error: any) {
+        if (error?.message === 'PROFILE_NOT_FOUND') {
+            return { message: 'Профиль не найден' };
+        }
+        if (error?.message === 'NEXT_REDIRECT' || error?.digest?.includes('NEXT_REDIRECT')) {
+            throw error;
+        }
+
+        console.error('updateService error:', error);
+        return { message: error?.message || 'Ошибка обновления услуги' };
+    }
+}
 
 export async function addService(formData: FormData) {
     const session = await auth();
@@ -41,10 +175,7 @@ export async function addService(formData: FormData) {
     }
     if (rawImages) {
         try {
-            const parsed = JSON.parse(rawImages);
-            if (Array.isArray(parsed)) {
-                images = parsed.filter((value): value is string => typeof value === 'string' && value.length > 0);
-            }
+            images = parseImages(rawImages);
         } catch {
             return { success: false, error: 'Некорректный формат изображений.' };
         }

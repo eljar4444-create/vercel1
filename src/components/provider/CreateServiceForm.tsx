@@ -1,6 +1,6 @@
 'use client';
 
-import { createService, updateService } from '@/app/actions/service';
+import { createService, updateService } from '@/app/actions/services';
 import { uploadServicePhoto } from '@/app/actions/upload';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
