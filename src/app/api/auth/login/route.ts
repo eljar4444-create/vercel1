@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
+import { checkRateLimit } from '@/lib/rate-limit';
 
 const LoginSchema = z.object({
     email: z.string().email(),
@@ -11,6 +12,22 @@ const LoginSchema = z.object({
 
 export async function POST(req: NextRequest) {
     try {
+        const forwardedFor = req.headers.get('x-forwarded-for');
+        const ip = forwardedFor?.split(',')[0]?.trim() || 'unknown';
+        const rateLimit = checkRateLimit(ip);
+
+        if (!rateLimit.allowed) {
+            return NextResponse.json(
+                { error: 'Too Many Requests' },
+                {
+                    status: 429,
+                    headers: {
+                        'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+                    },
+                }
+            );
+        }
+
         const body = await req.json();
         const result = LoginSchema.safeParse(body);
 
