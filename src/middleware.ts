@@ -5,6 +5,11 @@ import type { NextRequest } from 'next/server';
 export async function middleware(req: NextRequest) {
     const { pathname } = req.nextUrl;
     const isAdminRoute = pathname.startsWith('/admin');
+    const hasSessionCookie =
+        req.cookies.has('authjs.session-token') ||
+        req.cookies.has('__Secure-authjs.session-token') ||
+        req.cookies.has('next-auth.session-token') ||
+        req.cookies.has('__Secure-next-auth.session-token');
     const token = await getToken({
         req,
         secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
@@ -37,7 +42,9 @@ export async function middleware(req: NextRequest) {
     const protectedPrefixes = ['/dashboard', '/provider', '/chat', '/account'];
     const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
-    if (isProtected && !isAuthenticated) {
+    // getToken() can return null in edge runtime even with a valid session cookie.
+    // When we do have a session cookie, let route-level auth() guards decide.
+    if (isProtected && !isAuthenticated && !hasSessionCookie) {
         return NextResponse.redirect(new URL('/auth/login', req.url));
     }
 
