@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
-import { Star, User } from 'lucide-react';
+import { Star } from 'lucide-react';
 import type { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import dynamic from 'next/dynamic';
@@ -8,8 +7,22 @@ import dynamic from 'next/dynamic';
 const ScrollReveal = dynamic(() => import('@/components/ScrollReveal'), { ssr: true });
 
 type MasterWithReviews = Prisma.ProfileGetPayload<{
-    include: { reviews: { select: { rating: true } }; category: { select: { name: true } } };
+    include: {
+        reviews: { select: { rating: true } };
+        category: { select: { name: true } };
+        user: { select: { image: true } };
+    };
 }>;
+
+function getInitials(name: string) {
+    const parts = name
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+    if (parts.length === 0) return 'M';
+    if (parts.length === 1) return parts[0][0]?.toUpperCase() || 'M';
+    return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+}
 
 export default async function TopMastersSection() {
     let masters: MasterWithReviews[] = [];
@@ -23,6 +36,7 @@ export default async function TopMastersSection() {
             include: {
                 reviews: { select: { rating: true } },
                 category: { select: { name: true } },
+                user: { select: { image: true } },
             },
             orderBy: { created_at: 'desc' },
         });
@@ -45,6 +59,12 @@ export default async function TopMastersSection() {
                                 ? (master.reviews.reduce((sum, r) => sum + r.rating, 0) / master.reviews.length).toFixed(1)
                                 : '5.0';
                         const reviewCount = master.reviews.length;
+                        const avatarSrc = master.image_url?.trim() || null;
+                        const gallerySrc = master.gallery.find((photo) => typeof photo === 'string' && photo.trim().length > 0) || null;
+                        const userImageSrc = master.user?.image?.trim() || null;
+                        const studioSrc = master.studioImages.find((photo) => typeof photo === 'string' && photo.trim().length > 0) || null;
+                        const cardImageSrc = avatarSrc || gallerySrc || userImageSrc || studioSrc;
+                        const initials = getInitials(master.name);
 
                         return (
                             <div
@@ -53,17 +73,15 @@ export default async function TopMastersSection() {
                             >
                                 {/* Avatar */}
                                 <div className="flex justify-center mb-4">
-                                    {master.image_url ? (
-                                        <Image
-                                            src={master.image_url}
+                                    {cardImageSrc ? (
+                                        <img
+                                            src={cardImageSrc}
                                             alt={master.name}
-                                            width={96}
-                                            height={96}
                                             className="w-24 h-24 rounded-full object-cover"
                                         />
                                     ) : (
                                         <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center">
-                                            <User className="w-10 h-10 text-slate-400" />
+                                            <span className="text-xl font-semibold text-slate-500">{initials}</span>
                                         </div>
                                     )}
                                 </div>
@@ -104,4 +122,3 @@ export default async function TopMastersSection() {
         </section>
     );
 }
-

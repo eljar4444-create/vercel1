@@ -43,13 +43,17 @@ export async function uploadAvatar(formData: FormData) {
             throw new Error('Forbidden');
         }
 
-        const blob = await put(`avatars/${profileId}-${Date.now()}.${file.name.split('.').pop()}`, file, {
+        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '') || 'avatar.jpg';
+        const filename = `avatars/${profileId}-${Date.now()}-${safeName}`;
+
+        const { url } = await put(filename, file, {
             access: 'public',
+            token: process.env.BLOB_READ_WRITE_TOKEN,
         });
 
         const updatedProfile = await prisma.profile.update({
             where: { id: profileId },
-            data: { image_url: blob.url },
+            data: { image_url: url },
             select: { slug: true },
         });
 
@@ -58,7 +62,7 @@ export async function uploadAvatar(formData: FormData) {
             revalidatePath(`/salon/${updatedProfile.slug}`);
         }
 
-        return { success: true, url: blob.url };
+        return { success: true, url };
     } catch (error: any) {
         console.error('uploadAvatar error:', error);
         return { success: false, error: 'Ошибка при загрузке файла.' };

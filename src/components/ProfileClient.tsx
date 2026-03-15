@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
     Clock,
     ChevronLeft,
@@ -73,7 +72,7 @@ const RATING_BREAKDOWN = [
 ];
 
 const FALLBACK_COVER =
-    'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=2000&q=80';
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23F5F2ED'/%3E%3Cstop offset='100%25' stop-color='%23E6DFD3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='800' fill='url(%23g)'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23806E5A' font-family='Arial, sans-serif' font-size='56'%3ESvoi.de%3C/text%3E%3C/svg%3E";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -129,23 +128,42 @@ function RatingBar({ label, score }: { label: string; score: number }) {
 function ServiceRow({
     service,
     onBook,
+    fallbackThumb,
 }: {
     service: ProfileData['services'][number];
     onBook: () => void;
+    fallbackThumb?: string | null;
 }) {
-    const hasThumbnail = service.images && service.images.length > 0;
-    const thumb = hasThumbnail ? service.images![0] : null;
+    const primaryThumb = service.images?.find((image) => typeof image === 'string' && image.trim().length > 0) || null;
+    const resolvedFallbackThumb = fallbackThumb || FALLBACK_COVER;
+    const [thumb, setThumb] = useState<string | null>(primaryThumb || resolvedFallbackThumb);
+
+    useEffect(() => {
+        setThumb(primaryThumb || resolvedFallbackThumb);
+    }, [primaryThumb, resolvedFallbackThumb, service.id]);
+
+    const handleThumbError = () => {
+        if (resolvedFallbackThumb && thumb !== resolvedFallbackThumb) {
+            setThumb(resolvedFallbackThumb);
+            return;
+        }
+        if (thumb !== FALLBACK_COVER) {
+            setThumb(FALLBACK_COVER);
+            return;
+        }
+        setThumb(null);
+    };
 
     return (
         <div className="flex items-center gap-4 py-4">
             {/* Thumbnail */}
             {thumb ? (
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[#F0EBE3]">
-                    <Image
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[#F0EBE3]">
+                    <img
                         src={thumb}
                         alt={service.title}
-                        fill
-                        className="object-cover"
+                        className="h-full w-full object-cover"
+                        onError={handleThumbError}
                     />
                 </div>
             ) : (
@@ -281,6 +299,11 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
         ...(profile.studioImages || []),
     ].filter(Boolean);
     const coverSrc = coverImages[0] || FALLBACK_COVER;
+    const [headerAvatarSrc, setHeaderAvatarSrc] = useState<string | null>(coverSrc);
+
+    useEffect(() => {
+        setHeaderAvatarSrc(coverSrc);
+    }, [coverSrc, profile.id]);
 
     const openStreetMapUrl = `https://www.openstreetmap.org/?mlat=${profile.latitude}&mlon=${profile.longitude}#map=15/${profile.latitude}/${profile.longitude}`;
 
@@ -517,11 +540,24 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                     <section className="bg-transparent mb-6">
                         {/* Header */}
                         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-10">
-                            <img
-                                src={coverSrc}
-                                alt={profile.name}
-                                className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-sm shrink-0 object-top"
-                            />
+                            {headerAvatarSrc ? (
+                                <img
+                                    src={headerAvatarSrc}
+                                    alt={profile.name}
+                                    className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-sm shrink-0 object-top"
+                                    onError={() => {
+                                        if (headerAvatarSrc !== FALLBACK_COVER) {
+                                            setHeaderAvatarSrc(FALLBACK_COVER);
+                                            return;
+                                        }
+                                        setHeaderAvatarSrc(null);
+                                    }}
+                                />
+                            ) : (
+                                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-stone-200 text-stone-600 shadow-sm shrink-0 flex items-center justify-center">
+                                    <span className="text-2xl md:text-3xl font-semibold">{getInitials(profile.name)}</span>
+                                </div>
+                            )}
                             <div className="flex-1 min-w-0">
                                 <h1 className="text-3xl font-bold tracking-tight text-stone-900 truncate">
                                     {profile.name}
@@ -594,6 +630,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                                     <ServiceRow
                                                         key={service.id}
                                                         service={service}
+                                                        fallbackThumb={coverSrc}
                                                         onBook={() =>
                                                             openBooking({
                                                                 id: service.id,

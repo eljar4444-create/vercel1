@@ -24,14 +24,15 @@ export async function uploadServicePhoto(formData: FormData) {
         throw new Error('File size must be less than 5MB');
     }
 
-    const filename = `service-${session.user.id}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '') || 'service-photo.jpg';
+    const filename = `services/${session.user.id}-${Date.now()}-${safeName}`;
 
     try {
-        const blob = await put(filename, file, {
+        const { url } = await put(filename, file, {
             access: 'public',
             token: process.env.BLOB_READ_WRITE_TOKEN
         });
-        return { success: true, imageUrl: blob.url };
+        return { success: true, imageUrl: url };
     } catch (e) {
         console.error('Error uploading to blob:', e);
         throw new Error('Failed to upload file');
