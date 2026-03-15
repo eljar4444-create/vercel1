@@ -72,7 +72,7 @@ export async function updateProfile(formData: FormData) {
 
     if (!name) name = currentProfile.name ?? '';
     if (!city) city = (currentProfile.city ?? '').trim();
-    if (providerType === 'SALON' && !address) address = (currentProfile.address ?? '').trim();
+    if (!address) address = (currentProfile.address ?? '').trim();
     const bioToSave = (typeof bio === 'string' && bio.trim()) ? bio.trim() : (currentProfile.bio ?? '');
 
     if (!name || !city) {
@@ -100,7 +100,7 @@ export async function updateProfile(formData: FormData) {
 
         if (nameChanged || addressChanged || city !== currentProfile.city) {
             try {
-                const fullAddress = (providerType === 'SALON' && address) ? address : city;
+                const fullAddress = address || city;
                 const coords = await geocodeAddress(fullAddress, city, '');
                 if (!coords) {
                     return { success: false, error: GEO_ERROR_MESSAGE };
@@ -124,7 +124,7 @@ export async function updateProfile(formData: FormData) {
         // If profile somehow has no coordinates (legacy), force geocoding
         if (latitude == null || longitude == null) {
             try {
-                const fullAddress = (providerType === 'SALON' && address) ? address : city;
+                const fullAddress = address || city;
                 const coords = await geocodeAddress(fullAddress, city, '');
                 if (!coords) {
                     return { success: false, error: GEO_ERROR_MESSAGE };
@@ -150,7 +150,7 @@ export async function updateProfile(formData: FormData) {
                     phone: phone || null,
                     ...(telegramChatId !== undefined && { telegramChatId }),
                     city: officialCity,
-                    address: providerType === 'SALON' ? address || null : null,
+                    address: address || null,
                     studioImages,
                     latitude,
                     longitude,

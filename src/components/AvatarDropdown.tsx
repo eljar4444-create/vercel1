@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,8 @@ export function getRoleLabel(role?: string | null, profileId?: number | null) {
 }
 
 export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
+    const pathname = usePathname();
+    const isOnboarding = pathname?.startsWith('/onboarding');
     const [resolvedProfileId, setResolvedProfileId] = useState<number | null | undefined>(propUser?.profileId);
     const [isDashboardOpen, setIsDashboardOpen] = useState(false);
     const [popoverOpen, setPopoverOpen] = useState(false);
@@ -69,6 +72,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
 
     if (!propUser) return null;
 
+    const isMaster = Boolean(resolvedProfileId) || Boolean(isOnboarding);
     const isProvider = !!resolvedProfileId;
     const isAdmin = propUser.role === 'ADMIN';
     const dashboardBase = resolvedProfileId ? `/dashboard/${resolvedProfileId}` : '/dashboard';
@@ -110,7 +114,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                     <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-semibold text-gray-900">{propUser.name || 'Пользователь'}</p>
                         <Badge variant="outline" className="border-gray-200 bg-white text-[10px] font-medium text-gray-600">
-                            {getRoleLabel(propUser.role, resolvedProfileId)}
+                            {propUser.role === 'ADMIN' ? 'Администратор' : isMaster ? 'Мастер' : 'Клиент'}
                         </Badge>
                     </div>
                     <p className="truncate text-xs text-gray-500">{propUser.email || 'Без email'}</p>

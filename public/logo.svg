@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 240" width="300" height="240">
+
+  <!-- Left leaf: leans inward to the right, lighter -->
+  <path d="M150,148 C140,134 130,104 138,78 C148,88 154,124 150,148 Z"
+        fill="#C4BDB5"/>
+
+  <!-- Right leaf: leans inward to the left, darker, slightly overlapping -->
+  <path d="M150,148 C160,134 170,104 162,78 C152,88 146,124 150,148 Z"
+        fill="#9B9389" opacity="0.85"/>
+
+  <!-- Stem -->
+  <line x1="150" y1="148" x2="150" y2="168"
+        stroke="#9B9389" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Text: svoi.de, lowercase, tracked, sans-serif -->
+  <text x="150" y="204"
+        text-anchor="middle"
+        font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="22"
+        font-weight="300"
+        letter-spacing="5"
+        fill="#5F5E5A">svoi.de</text>
+
+</svg>

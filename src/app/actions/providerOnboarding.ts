@@ -12,6 +12,14 @@ interface ProviderOnboardingResult {
     profileId?: number;
 }
 
+type WorkLocationPayload = {
+    placeName: string;
+    address: string;
+    zipCode: string;
+    city: string;
+    hideExactAddress: boolean;
+};
+
 const GEO_ERROR_MESSAGE =
     'Мы не смогли найти этот адрес на карте. Пожалуйста, проверьте правильность написания города и адреса или укажите ближайший крупный ориентир.';
 
@@ -22,11 +30,12 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
     }
 
     const name = String(formData.get('name') || '').trim();
-    const city = String(formData.get('city') || '').trim();
+    let city = String(formData.get('city') || '').trim();
     const providerTypeRaw = String(formData.get('provider_type') || 'PRIVATE').trim();
-    const address = String(formData.get('address') || '').trim();
-    const bio = String(formData.get('bio') || '').trim();
+    let address = String(formData.get('address') || '').trim();
+    let bio = String(formData.get('bio') || '').trim();
     const submittedCategoryId = Number(formData.get('category_id'));
+    const workLocationsRaw = String(formData.get('work_locations') || '').trim();
     const providerType = providerTypeRaw === 'SALON' ? 'SALON' : 'PRIVATE';
 
     try {
@@ -34,13 +43,42 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
             where: { slug: 'beauty' },
             select: { id: true },
         });
-        const categoryId = beautyCategory?.id ?? submittedCategoryId;
+        const categoryId = Number.isInteger(submittedCategoryId) ? submittedCategoryId : beautyCategory?.id;
+
+        let workLocations: WorkLocationPayload[] = [];
+        if (providerType !== 'SALON' && workLocationsRaw) {
+            try {
+                const parsed = JSON.parse(workLocationsRaw);
+                if (Array.isArray(parsed)) {
+                    workLocations = parsed
+                        .map((item) => ({
+                            placeName: String(item?.placeName || '').trim(),
+                            address: String(item?.address || '').trim(),
+                            zipCode: String(item?.zipCode || '').trim(),
+                            city: String(item?.city || '').trim(),
+                            hideExactAddress: Boolean(item?.hideExactAddress),
+                        }))
+                        .filter((location) =>
+                            location.placeName || location.address || location.zipCode || location.city
+                        );
+                }
+            } catch (parseError) {
+                console.error('[providerOnboarding] work_locations parse error:', parseError);
+                return { success: false, error: 'Некорректный формат мест работы.' };
+            }
+        }
+
+        if (providerType !== 'SALON' && workLocations.length > 0) {
+            const firstLocation = workLocations[0];
+            city = firstLocation.city;
+            address = firstLocation.address;
+        }
 
         if (!name || !city || !Number.isInteger(categoryId)) {
             return { success: false, error: 'Заполните все обязательные поля.' };
         }
-        if (providerType === 'SALON' && !address) {
-            return { success: false, error: 'Для салона укажите полный адрес.' };
+        if (!address) {
+            return { success: false, error: 'Укажите полный адрес первого места работы.' };
         }
 
         const existingByUserId = await prisma.profile.findFirst({
@@ -70,12 +108,38 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
         // ── Strict geocoding: must succeed BEFORE profile creation ──
         let coords: { lat: number; lng: number };
         try {
-            const fullAddress = address || city;
-            const result = await geocodeAddress(fullAddress, city, '');
-            if (!result) {
-                return { success: false, error: GEO_ERROR_MESSAGE };
+            if (providerType !== 'SALON' && workLocations.length > 0) {
+                const geocodedLocations = [];
+                for (const location of workLocations) {
+                    if (!location.placeName || !location.address || !location.zipCode || !location.city) {
+                        return { success: false, error: 'Заполните все поля в каждом месте работы.' };
+                    }
+                    const geo = await geocodeAddress(location.address, location.city, location.zipCode);
+                    if (!geo) {
+                        return { success: false, error: GEO_ERROR_MESSAGE };
+                    }
+                    geocodedLocations.push({
+                        ...location,
+                        city: geo.city || location.city,
+                        lat: geo.lat,
+                        lng: geo.lng,
+                    });
+                }
+
+                const firstLocation = geocodedLocations[0];
+                city = firstLocation.city;
+                address = firstLocation.address;
+                coords = { lat: firstLocation.lat, lng: firstLocation.lng };
+
+                bio = `${bio}${bio ? '\n\n' : ''}[workLocations:${JSON.stringify(geocodedLocations)}]`;
+            } else {
+                const result = await geocodeAddress(address || city, city, '');
+                if (!result) {
+                    return { success: false, error: GEO_ERROR_MESSAGE };
+                }
+                city = result.city || city;
+                coords = result;
             }
-            coords = result;
         } catch (geoError) {
             console.error('[providerOnboarding] Geocoding error:', geoError);
             return { success: false, error: GEO_ERROR_MESSAGE };
@@ -91,7 +155,7 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
                 slug,
                 provider_type: providerType,
                 city,
-                address: providerType === 'SALON' ? address : null,
+                address: address || null,
                 bio: bio || null,
                 category_id: categoryId,
                 attributes: {},

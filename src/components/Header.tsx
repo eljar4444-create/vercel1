@@ -65,8 +65,8 @@ export function Header() {
             <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl lg:grid lg:grid-cols-[1fr_minmax(0,560px)_1fr]">
                 {/* Left Area (Logo) */}
                 <div className="flex flex-1 items-center justify-start">
-                    <Link href="/" className="flex items-center shrink-0 relative z-10">
-                        <img src="/logo.png?v=6" alt="Svoi.de" className="h-9 w-auto object-contain" />
+                    <Link href="/" className="relative z-10 m-0 flex shrink-0 items-center p-0 leading-none">
+                        <img src="/logo.svg" alt="Svoi.de" className="block h-16 w-auto object-contain" />
                     </Link>
                 </div>
 

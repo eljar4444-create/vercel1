@@ -39,7 +39,7 @@ export function Footer() {
                     <div className="col-span-2 md:col-span-1">
                         <Link href="/" className="mb-4 inline-block">
                             <img
-                                src="/logo.png?v=6"
+                                src="/logo.svg"
                                 alt="Svoi.de"
                                 className="h-9 w-auto object-contain"
                             />

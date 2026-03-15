@@ -224,7 +224,7 @@ function AuthContent() {
                     {/* Logo */}
                     <Link href="/" className="mb-12 transition-opacity hover:opacity-80">
                         <Image
-                            src="/logo-black.png"
+                            src="/logo.svg"
                             alt="Svoi.de"
                             width={120}
                             height={40}
