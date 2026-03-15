@@ -43,7 +43,9 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
             where: { slug: 'beauty' },
             select: { id: true },
         });
-        const categoryId = Number.isInteger(submittedCategoryId) ? submittedCategoryId : beautyCategory?.id;
+        const categoryIdCandidate: number | null = Number.isInteger(submittedCategoryId)
+            ? submittedCategoryId
+            : beautyCategory?.id ?? null;
 
         let workLocations: WorkLocationPayload[] = [];
         if (providerType !== 'SALON' && workLocationsRaw) {
@@ -74,9 +76,10 @@ export async function createProviderProfile(formData: FormData): Promise<Provide
             address = firstLocation.address;
         }
 
-        if (!name || !city || !Number.isInteger(categoryId)) {
+        if (!name || !city || categoryIdCandidate === null) {
             return { success: false, error: 'Заполните все обязательные поля.' };
         }
+        const categoryId = categoryIdCandidate;
         if (!address) {
             return { success: false, error: 'Укажите полный адрес первого места работы.' };
         }
