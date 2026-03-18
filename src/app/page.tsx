@@ -37,7 +37,7 @@ const FEATURE_COLUMNS = [
             'Актуальные профили с понятными услугами',
             'Онлайн-запись и быстрый повторный визит',
         ],
-        accent: 'from-[#fff4cc] via-[#ffe291] to-[#ffc83d]',
+        accent: 'bg-[#E8D39A]',
     },
     {
         eyebrow: 'Для мастеров',
@@ -48,7 +48,7 @@ const FEATURE_COLUMNS = [
             'Календарь, статусы записей и уведомления',
             'Поток новых клиентов из органического поиска',
         ],
-        accent: 'from-[#d6f5ea] via-[#ade9d0] to-[#74d8b1]',
+        accent: 'bg-[#BFD9CD]',
     },
 ];
 
@@ -124,11 +124,10 @@ const CITY_PILLS = ['Berlin', 'Hamburg', 'München', 'Köln', 'Frankfurt', 'Düs
 
 export default function HomePage() {
     return (
-        <div className="min-h-screen bg-transparent">
+        <div className="min-h-screen">
             <HomeHero />
 
-            <section className="relative overflow-hidden bg-[#f7f1e6] py-8">
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-black/10 to-transparent" />
+            <section className="relative overflow-hidden border-b border-stone-200/80 py-8">
                 <ScrollReveal className="container mx-auto max-w-7xl px-4 md:px-8">
                     <div className="grid gap-4 md:grid-cols-4">
                         {TRUST_METRICS.map((item) => (
@@ -144,9 +143,7 @@ export default function HomePage() {
                 </ScrollReveal>
             </section>
 
-            <section className="relative overflow-hidden bg-[#fcfaf6] py-20 md:py-24">
-                <div className="absolute left-0 top-0 h-64 w-64 rounded-full bg-[#ffe7a3]/50 blur-3xl" />
-                <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-[#dff7ee] blur-3xl" />
+            <section className="relative overflow-hidden border-b border-stone-200/80 py-20 md:py-24">
                 <ScrollReveal className="container relative mx-auto max-w-7xl px-4 md:px-8">
                     <div className="mx-auto max-w-3xl text-center">
                         <span className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-slate-600">
@@ -168,7 +165,7 @@ export default function HomePage() {
                                 key={column.title}
                                 className="relative overflow-hidden rounded-[2rem] border border-black/5 bg-white p-8 shadow-[0_20px_70px_rgba(15,23,42,0.08)]"
                             >
-                                <div className={`absolute inset-x-0 top-0 h-2 bg-gradient-to-r ${column.accent}`} />
+                                <div className={`absolute inset-x-0 top-0 h-2 ${column.accent}`} />
                                 <div className="text-xs font-bold uppercase tracking-[0.25em] text-slate-500">{column.eyebrow}</div>
                                 <h3 className="mt-4 max-w-lg text-2xl font-black tracking-tight text-slate-950">{column.title}</h3>
                                 <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600 md:text-base">{column.description}</p>
@@ -186,7 +183,7 @@ export default function HomePage() {
                 </ScrollReveal>
             </section>
 
-            <section className="bg-white py-20 md:py-24">
+            <section className="border-b border-stone-200/80 py-20 md:py-24">
                 <ScrollReveal className="container mx-auto max-w-7xl px-4 md:px-8">
                     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         <div className="max-w-2xl">
@@ -206,7 +203,7 @@ export default function HomePage() {
                             <Link
                                 key={card.title}
                                 href={card.href}
-                                className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(255,209,102,0.22),_transparent_40%),linear-gradient(180deg,_#ffffff,_#f8f4ec)] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] transition-transform duration-300 hover:-translate-y-1.5"
+                                className="group relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] transition-transform duration-300 hover:-translate-y-1.5"
                             >
                                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-sm font-bold text-white">
                                     0{index + 1}
@@ -233,11 +230,11 @@ export default function HomePage() {
                 </ScrollReveal>
             </section>
 
-            <Suspense fallback={<div className="h-96 w-full animate-pulse bg-[#F8F9FA]" />}>
+            <Suspense fallback={<div className="h-96 w-full animate-pulse bg-[#ece5d8]" />}>
                 <TopMastersSection />
             </Suspense>
 
-            <section className="bg-[#f5efe3] py-20 md:py-24">
+            <section className="border-b border-stone-200/80 py-20 md:py-24">
                 <ScrollReveal className="container mx-auto max-w-6xl px-4 md:px-8">
                     <div className="text-center">
                         <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Как это работает</p>
@@ -269,10 +266,11 @@ export default function HomePage() {
                 </ScrollReveal>
             </section>
 
-            <section className="bg-[#0f172a] py-20 text-white md:py-24">
+            <section className="border-b border-stone-200/80 py-20 md:py-24">
                 <ScrollReveal className="container mx-auto max-w-7xl px-4 md:px-8">
-                    <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-                        <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur">
+                    <div className="rounded-[2.5rem] border border-slate-900/5 bg-slate-950 p-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.14)] lg:p-8">
+                        <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+                            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 backdrop-blur">
                             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-white/60">Почему платформа удобнее</p>
                             <h2 className="mt-3 max-w-xl text-3xl font-black tracking-tight md:text-4xl">
                                 Не просто витрина, а рабочий сайт с реальной пользой
@@ -288,27 +286,28 @@ export default function HomePage() {
                                     </span>
                                 ))}
                             </div>
-                        </div>
+                            </div>
 
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-                            {BENEFITS.map((benefit) => {
-                                const Icon = benefit.icon;
-                                return (
-                                    <div key={benefit.title} className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
-                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
-                                            <Icon className="h-5 w-5" />
+                            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+                                {BENEFITS.map((benefit) => {
+                                    const Icon = benefit.icon;
+                                    return (
+                                        <div key={benefit.title} className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+                                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+                                                <Icon className="h-5 w-5" />
+                                            </div>
+                                            <h3 className="mt-4 text-lg font-bold">{benefit.title}</h3>
+                                            <p className="mt-2 text-sm leading-6 text-white/70">{benefit.text}</p>
                                         </div>
-                                        <h3 className="mt-4 text-lg font-bold">{benefit.title}</h3>
-                                        <p className="mt-2 text-sm leading-6 text-white/70">{benefit.text}</p>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </ScrollReveal>
             </section>
 
-            <section className="bg-[linear-gradient(180deg,#fff7dd_0%,#fff 100%)] px-4 py-16 md:px-8 md:py-24">
+            <section className="px-4 py-16 md:px-8 md:py-24">
                 <ScrollReveal className="mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] border border-black/5 bg-slate-950 px-8 py-10 text-center shadow-[0_24px_80px_rgba(15,23,42,0.18)] md:px-14 md:py-16">
                     <Star className="mx-auto h-8 w-8 text-[#ffd166]" />
                     <h2 className="mt-5 text-3xl font-black tracking-tight text-white md:text-5xl">

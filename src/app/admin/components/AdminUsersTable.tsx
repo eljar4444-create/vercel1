@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useState, useEffect } from "react";
-import { toggleUserBan, getUserBookings } from "../actions";
+import { toggleUserBan, getUserBookings, approveMaster, rejectMaster } from "../actions";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
@@ -19,6 +19,7 @@ import {
     User as UserIcon, ChevronRight, Star, Briefcase, BookOpen,
     Ban, CircleCheckBig, ExternalLink, RefreshCw, Clock, DollarSign
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
     Sheet,
     SheetContent,
@@ -39,6 +40,17 @@ import {
 } from "@/components/ui/avatar";
 
 type AugmentedUser = any;
+
+const APPROVED_PROVIDER_STATUSES = new Set(["PUBLISHED", "ACTIVE"]);
+const REJECTED_PROVIDER_STATUSES = new Set(["SUSPENDED", "REJECTED"]);
+
+function isApprovedProviderStatus(status?: string | null) {
+    return !!status && APPROVED_PROVIDER_STATUSES.has(status);
+}
+
+function isRejectedProviderStatus(status?: string | null) {
+    return !!status && REJECTED_PROVIDER_STATUSES.has(status);
+}
 
 function getInitials(name: string | null | undefined): string {
     if (!name) return "?";
@@ -92,15 +104,41 @@ function StatusBadge({ isBanned }: { isBanned: boolean }) {
     );
 }
 
+function ProviderModerationBadge({ status }: { status?: string | null }) {
+    if (!status) return null;
+
+    const map: Record<string, { label: string; classes: string }> = {
+        DRAFT: { label: "Черновик", classes: "border-stone-200 bg-stone-50 text-stone-700" },
+        PENDING: { label: "На проверке", classes: "border-indigo-200 bg-indigo-50 text-indigo-700" },
+        PENDING_REVIEW: { label: "На проверке", classes: "border-indigo-200 bg-indigo-50 text-indigo-700" },
+        ACTIVE: { label: "Одобрен", classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+        PUBLISHED: { label: "Одобрен", classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+        REJECTED: { label: "Отклонён", classes: "border-rose-200 bg-rose-50 text-rose-700" },
+        SUSPENDED: { label: "Отклонён", classes: "border-rose-200 bg-rose-50 text-rose-700" },
+    };
+
+    const config = map[status] ?? { label: status, classes: "border-gray-200 bg-gray-50 text-gray-700" };
+
+    return (
+        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${config.classes}`}>
+            {config.label}
+        </span>
+    );
+}
+
 /* ── User Dossier Panel ───────────────────────────────────────── */
 function UserDossier({
     user,
     isPending,
     onToggleBan,
+    onApproveProvider,
+    onRejectProvider,
 }: {
     user: AugmentedUser;
     isPending: boolean;
     onToggleBan: () => void;
+    onApproveProvider: () => void;
+    onRejectProvider: () => void;
 }) {
     const isAdmin = user.role === "ADMIN";
     const hasMasterProfile = !!user.profile;
@@ -278,6 +316,32 @@ function UserDossier({
                                 <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">
                                     Действия администратора
                                 </p>
+
+                                {hasMasterProfile && (
+                                    <div className="mb-4 rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+                                        <div className="mb-3 flex items-center justify-between gap-3">
+                                            <p className="text-xs font-semibold text-gray-900">Модерация профиля мастера</p>
+                                            <ProviderModerationBadge status={user.profile.status} />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Button
+                                                onClick={onApproveProvider}
+                                                disabled={isPending || isApprovedProviderStatus(user.profile.status)}
+                                                className="bg-emerald-600 text-white hover:bg-emerald-700"
+                                            >
+                                                Одобрить
+                                            </Button>
+                                            <Button
+                                                onClick={onRejectProvider}
+                                                disabled={isPending || isRejectedProviderStatus(user.profile.status)}
+                                                variant="outline"
+                                                className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                                            >
+                                                Отклонить
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {isAdmin ? (
                                     <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-center">
@@ -474,6 +538,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
     const [isPending, startTransition] = useTransition();
     const [selectedUser, setSelectedUser] = useState<AugmentedUser | null>(null);
     const [userFilter, setUserFilter] = useState<"all" | "masters" | "clients">("all");
+    const router = useRouter();
 
     const filteredUsers = users.filter((user) => {
         if (userFilter === "masters") return !!user.profile;
@@ -485,8 +550,54 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
         if (!currentStatus && !window.confirm("Вы уверены, что хотите заблокировать этого пользователя?")) {
             return;
         }
-        startTransition(() => {
-            toggleUserBan(userId, currentStatus);
+        startTransition(async () => {
+            await toggleUserBan(userId, currentStatus);
+            router.refresh();
+        });
+    };
+
+    const syncSelectedUserModeration = (profileId: number, status: string) => {
+        setSelectedUser((current: AugmentedUser | null) => {
+            if (!current?.profile || current.profile.id !== profileId) {
+                return current;
+            }
+
+            return {
+                ...current,
+                profile: {
+                    ...current.profile,
+                    status,
+                    is_verified: isApprovedProviderStatus(status),
+                },
+            };
+        });
+    };
+
+    const handleApproveProvider = (profileId: number) => {
+        startTransition(async () => {
+            const formData = new FormData();
+            formData.set("profile_id", String(profileId));
+            const result = await approveMaster(formData);
+            if (result?.status) {
+                syncSelectedUserModeration(profileId, result.status);
+            }
+            router.refresh();
+        });
+    };
+
+    const handleRejectProvider = (profileId: number) => {
+        if (!window.confirm("Отклонить профиль и скрыть его из каталога?")) {
+            return;
+        }
+
+        startTransition(async () => {
+            const formData = new FormData();
+            formData.set("profile_id", String(profileId));
+            const result = await rejectMaster(formData);
+            if (result?.status) {
+                syncSelectedUserModeration(profileId, result.status);
+            }
+            router.refresh();
         });
     };
 
@@ -568,9 +679,12 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                                     </TableCell>
                                     <TableCell className="py-3.5">
                                         {user.profile ? (
-                                            <span className="inline-flex items-center rounded-sm bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
-                                                💅 Мастер
-                                            </span>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className="inline-flex items-center rounded-sm bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                                                    💅 Мастер
+                                                </span>
+                                                <ProviderModerationBadge status={user.profile.status} />
+                                            </div>
                                         ) : (
                                             <span className="inline-flex items-center rounded-sm bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
                                                 👤 Клиент
@@ -585,6 +699,33 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                                     </TableCell>
                                     <TableCell className="py-3.5 text-right">
                                         <div className="flex items-center justify-end gap-2">
+                                            {user.profile && (
+                                                <>
+                                                    <Button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleApproveProvider(user.profile.id);
+                                                        }}
+                                                        disabled={isPending || isApprovedProviderStatus(user.profile.status)}
+                                                        size="sm"
+                                                        className="bg-emerald-600 text-xs text-white hover:bg-emerald-700"
+                                                    >
+                                                        Одобрить
+                                                    </Button>
+                                                    <Button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleRejectProvider(user.profile.id);
+                                                        }}
+                                                        disabled={isPending || isRejectedProviderStatus(user.profile.status)}
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="border-rose-200 text-xs text-rose-700 hover:border-rose-300 hover:bg-rose-50"
+                                                    >
+                                                        Отклонить
+                                                    </Button>
+                                                </>
+                                            )}
                                             <Button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -631,6 +772,8 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                             user={selectedUser}
                             isPending={isPending}
                             onToggleBan={() => handleToggleBan(selectedUser.id, selectedUser.isBanned)}
+                            onApproveProvider={() => selectedUser.profile && handleApproveProvider(selectedUser.profile.id)}
+                            onRejectProvider={() => selectedUser.profile && handleRejectProvider(selectedUser.profile.id)}
                         />
                     )}
                 </SheetContent>

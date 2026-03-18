@@ -35,13 +35,13 @@ export default async function EditServicePage({ params }: { params: { id: string
     if (!service) notFound();
 
     if (service.profile_id !== profile.id) {
-        redirect(`/dashboard/${profile.id}?section=services`);
+        redirect('/dashboard?section=services');
     }
 
     return (
         <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
             <div className="container mx-auto px-4 py-8">
-                <Link href={`/dashboard/${profile.id}?section=services`} className="text-blue-600 hover:underline mb-6 inline-block">
+                <Link href="/dashboard?section=services" className="text-blue-600 hover:underline mb-6 inline-block">
                     &larr; Назад к профилю
                 </Link>
 
@@ -55,7 +55,7 @@ export default async function EditServicePage({ params }: { params: { id: string
                         duration_min: service.duration_min,
                         images: service.images,
                     }}
-                    returnHref={`/dashboard/${profile.id}`}
+                    returnHref="/dashboard"
                 />
             </div>
         </Suspense>

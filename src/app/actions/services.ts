@@ -58,9 +58,9 @@ export async function createService(prevState: any, formData: FormData) {
             },
         });
 
-        revalidatePath(`/dashboard/${profile.id}`);
+        revalidatePath('/dashboard');
         revalidatePath('/dashboard', 'layout');
-        redirect(`/dashboard/${profile.id}?section=services`);
+        redirect('/dashboard?section=services');
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {
             return { message: 'Профиль не найден. Пожалуйста, заполните профиль.' };
@@ -123,10 +123,10 @@ export async function updateService(serviceId: string, prevState: any, formData:
             },
         });
 
-        revalidatePath(`/dashboard/${profile.id}`);
+        revalidatePath('/dashboard');
         revalidatePath(`/services/${serviceId}`);
         revalidatePath('/dashboard', 'layout');
-        redirect(`/dashboard/${profile.id}?section=services`);
+        redirect('/dashboard?section=services');
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {
             return { message: 'Профиль не найден' };

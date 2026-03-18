@@ -5,6 +5,9 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 
+const APPROVED_PROVIDER_STATUS = 'PUBLISHED' as const;
+const REJECTED_PROVIDER_STATUS = 'SUSPENDED' as const;
+
 function parseProfileId(formData: FormData) {
     const profileId = Number(formData.get('profile_id'));
     if (!Number.isInteger(profileId)) {
@@ -21,13 +24,21 @@ export async function approveMaster(formData: FormData) {
 
     const profileId = parseProfileId(formData);
 
-    await prisma.profile.update({
+    const updated = await prisma.profile.update({
         where: { id: profileId },
-        data: { is_verified: true },
+        data: { is_verified: true, status: APPROVED_PROVIDER_STATUS },
+        select: { slug: true, status: true },
     });
 
+    revalidatePath('/');
     revalidatePath('/admin');
+    revalidatePath('/dashboard');
     revalidatePath('/search');
+    if (updated.slug) {
+        revalidatePath(`/salon/${updated.slug}`);
+    }
+
+    return { ok: true, status: updated.status };
 }
 
 export async function rejectMaster(formData: FormData) {
@@ -38,14 +49,22 @@ export async function rejectMaster(formData: FormData) {
 
     const profileId = parseProfileId(formData);
 
-    await prisma.$transaction([
-        prisma.booking.deleteMany({ where: { profile_id: profileId } }),
-        prisma.service.deleteMany({ where: { profile_id: profileId } }),
-        prisma.profile.delete({ where: { id: profileId } }),
-    ]);
+    const updated = await prisma.profile.update({
+        where: { id: profileId },
+        // The current schema uses SUSPENDED as the rejected terminal status for providers.
+        data: { is_verified: false, status: REJECTED_PROVIDER_STATUS },
+        select: { slug: true, status: true },
+    });
 
+    revalidatePath('/');
     revalidatePath('/admin');
+    revalidatePath('/dashboard');
     revalidatePath('/search');
+    if (updated.slug) {
+        revalidatePath(`/salon/${updated.slug}`);
+    }
+
+    return { ok: true, status: updated.status };
 }
 
 export async function checkAdmin() {
@@ -77,7 +96,7 @@ export async function getAdminData() {
         ] = await Promise.all([
             prisma.user.count(),
             prisma.service.count(),
-            prisma.profile.count(),
+            prisma.profile.count({ where: { status: 'PUBLISHED' } }),
             prisma.booking.count(),
             prisma.booking.count({ where: { status: "completed" } }),
             prisma.booking.count({ where: { status: "canceled" } }),
@@ -101,6 +120,7 @@ export async function getAdminData() {
                             slug: true,
                             city: true,
                             is_verified: true,
+                            status: true,
                             _count: {
                                 select: {
                                     services: true, // Services this master created
@@ -157,7 +177,6 @@ export async function getAdminData() {
                 },
                 orderBy: { date: "desc" },
             }),
-            prisma.profile.count(),
         ]);
 
         return {

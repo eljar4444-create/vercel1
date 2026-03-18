@@ -1,9 +1,9 @@
 'use server';
 
-import { put } from '@vercel/blob';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/auth';
+import { savePublicUpload } from '@/lib/server/public-upload';
 
 export async function uploadAvatar(formData: FormData) {
     const session = await auth();
@@ -43,12 +43,11 @@ export async function uploadAvatar(formData: FormData) {
             throw new Error('Forbidden');
         }
 
-        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '') || 'avatar.jpg';
-        const filename = `avatars/${profileId}-${Date.now()}-${safeName}`;
-
-        const { url } = await put(filename, file, {
-            access: 'public',
-            token: process.env.BLOB_READ_WRITE_TOKEN,
+        const { url } = await savePublicUpload(file, {
+            blobFolder: 'avatars',
+            localFolder: 'uploads/avatars',
+            filenamePrefix: String(profileId),
+            fallbackName: 'avatar.jpg',
         });
 
         const updatedProfile = await prisma.profile.update({
@@ -65,6 +64,11 @@ export async function uploadAvatar(formData: FormData) {
         return { success: true, url };
     } catch (error: any) {
         console.error('uploadAvatar error:', error);
+
+        if (!process.env.BLOB_READ_WRITE_TOKEN?.trim() && process.env.NODE_ENV === 'production') {
+            return { success: false, error: 'Хранилище изображений не настроено. Укажите BLOB_READ_WRITE_TOKEN.' };
+        }
+
         return { success: false, error: 'Ошибка при загрузке файла.' };
     }
 }

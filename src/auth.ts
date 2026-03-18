@@ -97,12 +97,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     callbacks: {
         async jwt({ token, user, trigger, session }: any) {
-            const syncProviderProfileId = async () => {
+            const syncProviderProfileState = async () => {
                 const userId = token.id as string | undefined;
                 const email = token.email as string | undefined;
 
                 if (!userId) {
                     token.profileId = null;
+                    token.profileSlug = null;
+                    token.profileStatus = null;
                     return;
                 }
 
@@ -113,10 +115,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                             ...(email ? [{ user_email: email }] : []),
                         ],
                     },
-                    select: { id: true, image_url: true },
+                    select: { id: true, image_url: true, slug: true, status: true },
                 });
 
                 token.profileId = profile?.id ?? null;
+                token.profileSlug = profile?.slug ?? null;
+                token.profileStatus = profile?.status ?? null;
 
                 // Use profile image as fallback when user has no avatar
                 if (!token.picture && profile?.image_url) {
@@ -167,7 +171,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 }
             }
 
-            await syncProviderProfileId();
+            await syncProviderProfileState();
 
             if ((trigger === 'update' || !token.onboardingCompleted) && token.id) {
                 try {
@@ -199,6 +203,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 ) {
                     token.onboardingType = session.onboardingType;
                 }
+                if (typeof session?.profileId === 'number' || session?.profileId === null) {
+                    token.profileId = session.profileId;
+                }
+                if (
+                    typeof session?.profileStatus === 'string' ||
+                    session?.profileStatus === null
+                ) {
+                    token.profileStatus = session.profileStatus;
+                }
+                if (
+                    typeof session?.profileSlug === 'string' ||
+                    session?.profileSlug === null
+                ) {
+                    token.profileSlug = session.profileSlug;
+                }
             }
             return token
         },
@@ -208,6 +227,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 session.user.id = token.id
                 session.user.image = token.picture
                 session.user.profileId = token.profileId
+                session.user.profileSlug = token.profileSlug ?? null
+                session.user.profileStatus = token.profileStatus ?? null
                 session.user.onboardingCompleted = token.onboardingCompleted ?? false
                 session.user.onboardingType = token.onboardingType ?? null
             }

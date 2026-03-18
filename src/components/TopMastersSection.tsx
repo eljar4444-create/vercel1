@@ -30,6 +30,7 @@ export default async function TopMastersSection() {
         masters = await prisma.profile.findMany({
             where: {
                 user: { isBanned: false },
+                status: 'PUBLISHED',
                 is_verified: true,
             },
             take: 4,
@@ -47,7 +48,7 @@ export default async function TopMastersSection() {
     if (masters.length === 0) return null;
 
     return (
-        <section className="bg-[#F8F9FA] py-16 md:py-24">
+        <section className="border-b border-stone-200/80 py-16 md:py-24">
             <ScrollReveal className="max-w-7xl mx-auto px-4">
                 <h2 className="text-2xl md:text-3xl font-bold text-center text-slate-900 mb-10">
                     Топ-мастера с высоким рейтингом

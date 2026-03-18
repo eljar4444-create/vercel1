@@ -32,7 +32,7 @@ export default async function AdminPage() {
             redirect('/auth/login');
         }
         return (
-            <section className="min-h-screen bg-gray-50 px-4 py-10">
+            <section className="min-h-screen px-4 py-10">
                 <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-gray-200 shadow-xl">
                     <div className="bg-gray-950 px-6 py-5 text-white">
                         <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ export default async function AdminPage() {
     } = await getAdminData();
 
     return (
-        <section className="min-h-screen bg-gray-50/80 pb-12">
+        <section className="min-h-screen pb-12">
 
             {/* ── Hero Header ── */}
             <div className="relative overflow-hidden border-b border-white/10 bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 shadow-2xl">

@@ -90,6 +90,7 @@ export default async function SearchPage({
     const instantBookingFilter = searchParams.instantBooking === 'true';
 
     const andConditions: any[] = [
+        { status: 'PUBLISHED' },
         { is_verified: true },
         { category: { slug: { not: 'health' } } },
         { user: { isBanned: false } },
@@ -289,7 +290,7 @@ export default async function SearchPage({
     }));
 
     return (
-        <main className="h-[calc(100vh-64px)] overflow-hidden bg-[#FCFAF8]">
+        <main className="h-[calc(100vh-64px)] overflow-hidden bg-transparent">
             <Suspense fallback={<div className="flex h-full items-center justify-center"><p className="text-slate-500">Загрузка...</p></div>}>
                 <SearchInteractiveLayout
                     initialProfiles={mappedProfiles}

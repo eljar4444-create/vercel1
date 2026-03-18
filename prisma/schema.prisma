@@ -18,6 +18,13 @@ enum ProviderType {
   INDIVIDUAL
 }
 
+enum ProfileStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  SUSPENDED
+}
+
 model Category {
   id          Int       @id @default(autoincrement())
   name        String
@@ -48,6 +55,11 @@ model Profile {
   latitude    Float?
   longitude   Float?
   schedule    Json?
+  status      ProfileStatus @default(PENDING_REVIEW)
+  onboardingStep Int        @default(1)
+  providesInStudio Boolean  @default(true)
+  providesOutcall  Boolean  @default(false)
+  outcallRadiusKm  Int?
   is_verified Boolean   @default(false)
   created_at  DateTime  @default(now())
   

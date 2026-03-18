@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     }
 
     const andConditions: any[] = [
+        { status: 'PUBLISHED' },
         { is_verified: true },
         { category: { slug: { not: 'health' } } },
         { user: { isBanned: false } },

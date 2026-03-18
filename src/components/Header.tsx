@@ -7,7 +7,12 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { signOut } from 'next-auth/react';
-import { AvatarDropdown, getRoleLabel } from '@/components/AvatarDropdown';
+import {
+    AvatarDropdown,
+    getContinueOnboardingHref,
+    getRoleLabel,
+    hasIncompleteProviderOnboarding,
+} from '@/components/AvatarDropdown';
 import { Menu, X, MessageCircle, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -21,12 +26,20 @@ const QUICK_BEAUTY_LINKS = [
     { label: 'Массаж', href: '/search?q=Массаж' },
 ];
 
-export function Header() {
+type HeaderProps = {
+    variant?: 'default' | 'minimal';
+};
+
+export function Header({ variant = 'default' }: HeaderProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const { data: session } = useSession(); // removed status
     const isAuthPage = pathname?.startsWith('/auth');
+    const isBecomeProPage = pathname === '/become-pro';
+    const isOnboardingPage = pathname?.startsWith('/onboarding');
     const isSearchPage = pathname === '/search';
+    const resolvedVariant = variant === 'minimal' || pathname === '/become-pro' ? 'minimal' : 'default';
+    const isMinimal = resolvedVariant === 'minimal';
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -37,7 +50,8 @@ export function Header() {
     }, []);
 
     const user = session?.user;
-    const isProvider = !!user?.profileId || user?.role === 'ADMIN';
+    const hasIncompleteOnboarding = hasIncompleteProviderOnboarding(user);
+    const continueOnboardingHref = getContinueOnboardingHref(user);
     const initials =
         user?.name
             ?.split(' ')
@@ -47,7 +61,7 @@ export function Header() {
             .toUpperCase() || 'U';
 
 
-    if (isAuthPage) return null;
+    if (isAuthPage || isBecomeProPage) return null;
 
     // REUSABLE AVATAR DROPDOWN
     // ... (Avatar render logic can stay, but need to check if AvatarDropdown uses legacy stuff)
@@ -56,21 +70,29 @@ export function Header() {
     return (
         <header className={cn(
             "relative z-50 transition-all duration-300",
-            pathname === '/'
+            isMinimal
+                ? "bg-[#F5F2EB]/95 backdrop-blur-md border-b border-stone-200"
+                : pathname === '/'
                 ? scrolled
                     ? "bg-slate-950/90 backdrop-blur-md shadow-sm border-b border-white/10"
                     : "bg-transparent border-b border-transparent"
-                : "bg-white/80 backdrop-blur-md border-b border-stone-100"
+                : "bg-[#F5F2EB]/90 backdrop-blur-md border-b border-stone-200"
         )}>
-            <div className="container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl lg:grid lg:grid-cols-[1fr_minmax(0,560px)_1fr]">
+            <div
+                className={cn(
+                    isMinimal
+                        ? "mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6"
+                        : "container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl lg:grid lg:grid-cols-[1fr_minmax(0,560px)_1fr]"
+                )}
+            >
                 {/* Left Area (Logo) */}
-                <div className="flex flex-1 items-center justify-start">
+                <div className={cn("flex items-center justify-start", isMinimal ? "shrink-0" : "flex-1")}>
                     <Link href="/" className="relative z-10 m-0 flex shrink-0 items-center p-0 leading-none">
                         <img src="/logo.svg" alt="Svoi.de" className="block h-16 w-auto object-contain" />
                     </Link>
                 </div>
 
-                {isSearchPage ? (
+                {isSearchPage && !isMinimal && !isOnboardingPage ? (
                     <div className="hidden lg:block flex-1 min-w-0">
                         <SearchFiltersForm
                             categoryFilter={typeof searchParams.get('category') === 'string' ? searchParams.get('category') || undefined : undefined}
@@ -81,7 +103,7 @@ export function Header() {
                     </div>
                 ) : null}
 
-                {!isSearchPage ? (
+                {!isSearchPage && !isMinimal && !isOnboardingPage ? (
                     <nav className="hidden lg:flex flex-1 items-center justify-center shrink-0 gap-6 lg:gap-8">
                         {QUICK_BEAUTY_LINKS.map((item) => (
                             <Link
@@ -99,16 +121,27 @@ export function Header() {
                 ) : null}
 
                 {/* Right Actions */}
-                <div className="flex flex-1 items-center justify-end gap-2">
-                    {user ? (
-                        <div className="hidden items-center gap-2 lg:flex">
+                <div className={cn("flex items-center justify-end", isMinimal ? "shrink-0" : "flex-1 gap-2")}>
+                    {isMinimal ? (
+                        <div className="flex items-center">
                             <Link
-                                href="/chat"
-                                aria-label="Открыть чат"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-900 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md"
+                                href="/auth/login"
+                                className="inline-flex h-9 items-center rounded-xl px-3 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900 whitespace-nowrap"
                             >
-                                <MessageCircle className="h-4 w-4" />
+                                Войти
                             </Link>
+                        </div>
+                    ) : user ? (
+                        <div className="hidden items-center gap-2 lg:flex">
+                            {!isOnboardingPage ? (
+                                <Link
+                                    href="/chat"
+                                    aria-label="Открыть чат"
+                                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-900 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md"
+                                >
+                                    <MessageCircle className="h-4 w-4" />
+                                </Link>
+                            ) : null}
                             <AvatarDropdown user={user} />
                         </div>
                     ) : (
@@ -128,18 +161,20 @@ export function Header() {
                         </div>
                     )}
 
-                    <button
-                        type="button"
-                        aria-label={mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
-                        onClick={() => setMobileMenuOpen((prev) => !prev)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-gray-900 transition-colors hover:bg-gray-50 lg:hidden"
-                    >
-                        {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                    </button>
+                    {!isMinimal && !isOnboardingPage ? (
+                        <button
+                            type="button"
+                            aria-label={mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
+                            onClick={() => setMobileMenuOpen((prev) => !prev)}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-gray-900 transition-colors hover:bg-gray-50 lg:hidden"
+                        >
+                            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                        </button>
+                    ) : null}
                 </div>
             </div>
 
-            {mobileMenuOpen && (
+            {mobileMenuOpen && !isMinimal && (
                 <div className="border-t border-gray-100 bg-[#F5F2EB] px-4 pb-4 pt-3 shadow-sm lg:hidden">
                     <div className="mx-auto max-w-7xl space-y-2">
                         <Link
@@ -185,10 +220,19 @@ export function Header() {
                                         <p className="truncate text-xs text-gray-500">{user.email || 'Без email'}</p>
                                     </div>
                                     <Badge variant="outline" className="border-gray-200 bg-white text-[10px] font-medium text-gray-600">
-                                        {getRoleLabel(user.role)}
+                                        {getRoleLabel(user)}
                                     </Badge>
                                 </div>
 
+                                {hasIncompleteOnboarding && (
+                                    <Link
+                                        href={continueOnboardingHref}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block rounded-md bg-stone-50 px-3 py-2 text-sm font-medium text-stone-900 hover:bg-stone-100"
+                                    >
+                                        Продолжить настройку профиля
+                                    </Link>
+                                )}
                                 {user.role === 'ADMIN' && (
                                     <Link
                                         href="/admin"
@@ -198,16 +242,16 @@ export function Header() {
                                         Панель управления
                                     </Link>
                                 )}
-                                {user.profileId && (
+                                {user.profileId && !hasIncompleteOnboarding && (
                                     <Link
-                                        href={`/dashboard/${user.profileId}`}
+                                        href="/dashboard"
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="block rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                     >
                                         Кабинет мастера
                                     </Link>
                                 )}
-                                {!user.profileId && user.role !== 'ADMIN' && (
+                                {(!user.profileId || hasIncompleteOnboarding) && user.role !== 'ADMIN' && (
                                     <Link
                                         href="/dashboard"
                                         onClick={() => setMobileMenuOpen(false)}

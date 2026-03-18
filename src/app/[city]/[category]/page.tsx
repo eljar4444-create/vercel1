@@ -81,6 +81,7 @@ export default async function CityCategoryPage({
 
     // Build query conditions
     const andConditions: any[] = [
+        { status: 'PUBLISHED' },
         { is_verified: true },
         { category: { slug: { not: 'health' } } },
         { user: { isBanned: false } }
@@ -123,7 +124,7 @@ export default async function CityCategoryPage({
     }
 
     return (
-        <main className="min-h-screen bg-[#fbfbfb]">
+        <main className="min-h-screen">
             <div className="container mx-auto max-w-5xl px-4 py-8">
                 <nav aria-label="Навигация" className="mb-6 flex items-center gap-2 text-sm text-slate-500">
                     <Link href="/" className="transition hover:text-slate-800">Главная</Link>

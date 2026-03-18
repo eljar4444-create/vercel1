@@ -102,6 +102,12 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
 
         try {
             const result = await uploadProfilePhoto(formData);
+            if (!result.success) {
+                setAvatarPreview(user.image);
+                toast.error(result.error || 'Ошибка загрузки фото');
+                return;
+            }
+
             toast.success('Фото обновлено');
 
             // Update local preview with permanent URL

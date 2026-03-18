@@ -82,7 +82,7 @@ function AuthContent() {
 
     // State
     const [showEmailForm, setShowEmailForm] = useState(false);
-    const [isRegisterMode, setIsRegisterMode] = useState(false);
+    const [isRegisterMode, setIsRegisterMode] = useState(isProvider);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
@@ -102,11 +102,14 @@ function AuthContent() {
                         ? `Ошибка входа: ${errorCode}`
                         : null;
 
+    const persistProviderIntent = () => {
+        if (!isProvider) return;
+        document.cookie = `onboarding_role=${role}; path=/; max-age=3600`;
+        document.cookie = `onboarding_type=${providerType}; path=/; max-age=3600`;
+    };
+
     const handleAuth = (provider: 'google' | 'apple') => {
-        if (isProvider) {
-            document.cookie = `onboarding_role=${role}; path=/; max-age=3600`;
-            document.cookie = `onboarding_type=${providerType}; path=/; max-age=3600`;
-        }
+        persistProviderIntent();
         signIn(provider, { callbackUrl: postAuthRedirect });
     };
 
@@ -149,17 +152,24 @@ function AuthContent() {
                     saveToken(data.token);
                 }
 
+                persistProviderIntent();
+
                 // Create NextAuth session so UI (header, etc.) reflects logged-in state
-                await signIn('credentials', {
+                const signInResult = await signIn('credentials', {
                     email,
                     password,
                     redirect: false,
+                    callbackUrl: postAuthRedirect,
                 });
 
+                if (signInResult?.error) {
+                    setFormError('Не удалось создать сессию. Попробуйте войти ещё раз.');
+                    return;
+                }
+
                 setSuccessMessage('Аккаунт создан! Перенаправление...');
-                setTimeout(() => {
-                    router.push(postAuthRedirect);
-                }, 1000);
+                router.replace(signInResult?.url ?? postAuthRedirect);
+                router.refresh();
             } else {
                 // Login via our API
                 const res = await fetch('/api/auth/login', {
@@ -180,17 +190,24 @@ function AuthContent() {
                     saveToken(data.token);
                 }
 
+                persistProviderIntent();
+
                 // Create NextAuth session so UI (header, etc.) reflects logged-in state
-                await signIn('credentials', {
+                const signInResult = await signIn('credentials', {
                     email,
                     password,
                     redirect: false,
+                    callbackUrl: postAuthRedirect,
                 });
 
+                if (signInResult?.error) {
+                    setFormError('Не удалось создать сессию. Попробуйте снова.');
+                    return;
+                }
+
                 setSuccessMessage('Вход выполнен! Перенаправление...');
-                setTimeout(() => {
-                    router.push(postAuthRedirect);
-                }, 1000);
+                router.replace(signInResult?.url ?? postAuthRedirect);
+                router.refresh();
             }
         } catch {
             setFormError('Ошибка сервера. Попробуйте позже.');
@@ -202,19 +219,23 @@ function AuthContent() {
     // Dynamic copy
     const heading = showEmailForm
         ? isRegisterMode
-            ? 'Создать аккаунт'
+            ? isProvider
+                ? 'Создайте профиль мастера'
+                : 'Создать аккаунт'
             : 'Войти по Email'
         : isProvider
-            ? 'Войти как партнёр'
-            : 'Добро пожаловать в Svoi';
+            ? 'Создайте профиль мастера'
+            : 'Вход';
 
     const subheading = showEmailForm
         ? isRegisterMode
-            ? 'Заполните данные для регистрации'
+            ? isProvider
+                ? 'Зарегистрируйтесь, чтобы начать принимать клиентов'
+                : 'Заполните данные для регистрации'
             : 'Введите email и пароль'
         : isProvider
-            ? 'Авторизуйтесь, чтобы начать принимать клиентов'
-            : 'Войдите или создайте аккаунт';
+            ? 'Зарегистрируйтесь, чтобы начать принимать клиентов'
+            : 'Авторизуйтесь, чтобы продолжить';
 
     return (
         <div className="min-h-screen grid md:grid-cols-2">
@@ -499,7 +520,7 @@ function AuthContent() {
 
 export default function LoginPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-white" />}>
+        <Suspense fallback={<div className="min-h-screen bg-transparent" />}>
             <AuthContent />
         </Suspense>
     );

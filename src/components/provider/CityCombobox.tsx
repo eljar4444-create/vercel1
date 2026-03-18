@@ -1,93 +1,22 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronsUpDown, Loader2, LocateFixed } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from '@/components/ui/command';
 import { cn } from '@/lib/utils';
-import { GERMAN_CITIES } from '@/constants/germanCities';
+import {
+    findGermanCitySelection,
+    GERMAN_CITY_OPTIONS,
+    normalizeGermanCityName,
+    type GermanCitySelection,
+} from '@/lib/german-city-options';
 import toast from 'react-hot-toast';
-
-type CityOption = {
-    value: string;
-    searchText: string;
-    isPopular: boolean;
-    aliases: string[];
-};
-
-function prettifyCity(raw: string) {
-    return raw
-        .split(/[\s-]+/)
-        .map((part) => (part ? part.charAt(0).toUpperCase() + part.slice(1) : part))
-        .join(' ');
-}
-
-function normalizeCityName(value: string) {
-    return value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[^a-zа-яё\s-]/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-const POPULAR_CITY_TOKENS = new Set([
-    'berlin', 'берлин',
-    'hamburg', 'гамбург',
-    'münchen', 'munchen', 'мюнхен',
-    'köln', 'koeln', 'кёльн', 'кельн',
-    'frankfurt', 'frankfurt am main', 'франкфурт', 'франкфурт-на-майне',
-    'stuttgart', 'штутгарт',
-    'düsseldorf', 'duesseldorf', 'дюссельдорф',
-    'leipzig', 'лейпциг',
-    'dortmund', 'дортмунд',
-    'essen', 'эссен',
-    'bremen', 'бремен',
-    'dresden', 'дрезден',
-    'hannover', 'ганновер',
-    'nürnberg', 'nuernberg', 'нюрнберг',
-]);
-
-const CITY_OPTIONS: CityOption[] = GERMAN_CITIES.map((city: any) => {
-    const names = Array.isArray(city.names) ? city.names : [];
-    const cyrillicName = names.find((name: string) => /[а-яё]/i.test(name));
-    const primaryName = cyrillicName || names[0] || city.data?.display_name?.split(',')?.[0] || '';
-    const value = prettifyCity(primaryName.trim());
-    const searchParts = [
-        ...names,
-        ...(Array.isArray(city.triggers) ? city.triggers : []),
-        city.data?.display_name || '',
-        value,
-    ]
-        .map((part) => String(part).toLowerCase())
-        .join(' ');
-
-    const isPopularByNames = names.some((name: string) => POPULAR_CITY_TOKENS.has(String(name).toLowerCase()));
-    const isPopularByValue = POPULAR_CITY_TOKENS.has(value.toLowerCase());
-    const aliases = [
-        ...names,
-        city.data?.display_name || '',
-        value,
-    ]
-        .map((part) => normalizeCityName(String(part)))
-        .filter(Boolean);
-
-    return { value, searchText: searchParts, isPopular: isPopularByNames || isPopularByValue, aliases };
-}).filter((item) => item.value);
 
 interface CityComboboxProps {
     name: string;
     value: string;
     onValueChange: (value: string) => void;
+    onCitySelect?: (city: GermanCitySelection) => void;
+    onZipCodeDetect?: (zipCode: string) => void;
     placeholder?: string;
 }
 
@@ -95,39 +24,78 @@ export function CityCombobox({
     name,
     value,
     onValueChange,
+    onCitySelect,
+    onZipCodeDetect,
     placeholder = 'Начните вводить ваш город...',
 }: CityComboboxProps) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const [open, setOpen] = useState(false);
-    const [popularOnly, setPopularOnly] = useState(false);
     const [isGeoLoading, setIsGeoLoading] = useState(false);
+    const [query, setQuery] = useState(value);
+    const [highlightedIndex, setHighlightedIndex] = useState(0);
+
+    useEffect(() => {
+        const matched = findGermanCitySelection(value);
+        setQuery(matched?.germanName || value);
+    }, [value]);
+
+    useEffect(() => {
+        const handlePointerDown = (event: MouseEvent) => {
+            if (!containerRef.current?.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handlePointerDown);
+        return () => document.removeEventListener('mousedown', handlePointerDown);
+    }, []);
 
     const uniqueCities = useMemo(() => {
         const seen = new Set<string>();
-        return CITY_OPTIONS.filter((city) => {
-            if (seen.has(city.value)) return false;
-            seen.add(city.value);
+        return GERMAN_CITY_OPTIONS.filter((city) => {
+            if (seen.has(city.germanName)) return false;
+            seen.add(city.germanName);
             return true;
         });
     }, []);
 
-    const displayedCities = useMemo(
-        () => (popularOnly ? uniqueCities.filter((city) => city.isPopular) : uniqueCities),
-        [uniqueCities, popularOnly]
-    );
+    const filteredCities = useMemo(() => {
+        const normalizedQuery = normalizeGermanCityName(query);
+        const base = uniqueCities;
+
+        if (!normalizedQuery) {
+            return base.slice(0, 80);
+        }
+
+        return base
+            .filter((city) => {
+                const normalizedValue = normalizeGermanCityName(city.germanName);
+                return (
+                    normalizedValue.includes(normalizedQuery) ||
+                    city.aliases.some((alias) => alias.includes(normalizedQuery)) ||
+                    city.searchText.includes(query.toLowerCase())
+                );
+            })
+            .slice(0, 80);
+    }, [query, uniqueCities]);
+
+    useEffect(() => {
+        setHighlightedIndex(0);
+    }, [filteredCities.length, query]);
 
     const aliasMap = useMemo(() => {
         const map = new Map<string, string>();
         for (const city of uniqueCities) {
-            map.set(normalizeCityName(city.value), city.value);
+            map.set(normalizeGermanCityName(city.germanName), city.germanName);
             for (const alias of city.aliases) {
-                if (!map.has(alias)) map.set(alias, city.value);
+                if (!map.has(alias)) map.set(alias, city.germanName);
             }
         }
         return map;
     }, [uniqueCities]);
 
     const resolveCityFromGeolocation = (rawCity: string) => {
-        const normalized = normalizeCityName(rawCity);
+        const normalized = normalizeGermanCityName(rawCity);
         if (!normalized) return null;
 
         const direct = aliasMap.get(normalized);
@@ -157,12 +125,35 @@ export function CityCombobox({
         return null;
     };
 
+    const selectCity = (city: GermanCitySelection) => {
+        setQuery(city.germanName);
+        onValueChange(city.germanName);
+        onCitySelect?.(city);
+        setOpen(false);
+    };
+
+    const handleInputChange = (nextValue: string) => {
+        setQuery(nextValue);
+        onValueChange(nextValue);
+        setOpen(true);
+
+        const exactMatch = findGermanCitySelection(nextValue);
+        if (
+            exactMatch &&
+            exactMatch.aliases.includes(normalizeGermanCityName(nextValue))
+        ) {
+            setQuery(exactMatch.germanName);
+            onValueChange(exactMatch.germanName);
+            onCitySelect?.(exactMatch);
+        }
+    };
+
     const handleGeolocation = async (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
         event.stopPropagation();
 
         if (!navigator.geolocation || isGeoLoading) {
-            toast.error('Геолокация недоступна в вашем браузере');
+            toast('Не удалось определить местоположение. Пожалуйста, выберите город из списка вручную.');
             return;
         }
 
@@ -200,95 +191,117 @@ export function CityCombobox({
                 address.municipality ||
                 address.county ||
                 '';
+            const postalCode = typeof address.postcode === 'string' ? address.postcode.trim() : '';
 
             const matchedCity = resolveCityFromGeolocation(String(rawCity));
             if (!matchedCity) {
-                toast.error('Ваш город не найден в базе. Выберите ближайший крупный город из списка вручную');
+                toast('Не удалось определить местоположение. Пожалуйста, выберите город из списка вручную.');
                 return;
             }
 
-            onValueChange(matchedCity);
+            const matchedSelection = findGermanCitySelection(matchedCity);
+            if (matchedSelection) {
+                selectCity(matchedSelection);
+            } else {
+                onValueChange(matchedCity);
+            }
+            if (postalCode) {
+                onZipCodeDetect?.(postalCode);
+            }
             toast.success(`Определен город: ${matchedCity}`);
         } catch (error) {
-            if ((error as GeolocationPositionError)?.code === 1) {
-                toast.error('Доступ к геолокации запрещен');
-            } else {
-                toast.error('Не удалось определить город автоматически');
-            }
+            toast('Не удалось определить местоположение. Пожалуйста, выберите город из списка вручную.');
         } finally {
             setIsGeoLoading(false);
         }
     };
 
     return (
-        <div>
+        <div ref={containerRef}>
             <input type="hidden" name={name} value={value} />
             <div className="relative">
-                <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={open}
-                            className="h-11 w-full justify-start rounded-xl border-gray-200 bg-gray-50 px-3 pr-20 text-sm font-normal text-gray-900 hover:bg-gray-100"
-                        >
-                            <span className={cn('truncate', !value && 'text-gray-400')}>{value || placeholder}</span>
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-                        <Command>
-                            <div className="flex items-center gap-1 border-b px-2 py-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setPopularOnly(false)}
-                                    className={cn(
-                                        'rounded-md px-2.5 py-1 text-xs font-medium transition',
-                                        !popularOnly ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-                                    )}
-                                >
-                                    Все
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setPopularOnly(true)}
-                                    className={cn(
-                                        'rounded-md px-2.5 py-1 text-xs font-medium transition',
-                                        popularOnly ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-                                    )}
-                                >
-                                    Популярные
-                                </button>
-                            </div>
-                            <CommandInput placeholder={placeholder} />
-                            <CommandList>
-                                <CommandEmpty>
-                                    Город не найден. Выберите ближайший крупный город
-                                </CommandEmpty>
-                                <CommandGroup>
-                                    {displayedCities.map((city) => (
-                                        <CommandItem
-                                            key={city.value}
-                                            value={`${city.value} ${city.searchText}`}
-                                            onSelect={() => {
-                                                onValueChange(city.value);
-                                                setOpen(false);
-                                            }}
-                                        >
+                <input
+                    type="text"
+                    role="combobox"
+                    aria-expanded={open}
+                    aria-autocomplete="list"
+                    value={query}
+                    onChange={(event) => handleInputChange(event.target.value)}
+                    onFocus={() => setOpen(true)}
+                    onKeyDown={(event) => {
+                        if (!open && (event.key === 'ArrowDown' || event.key === 'Enter')) {
+                            setOpen(true);
+                            return;
+                        }
+
+                        if (event.key === 'ArrowDown') {
+                            event.preventDefault();
+                            if (!filteredCities.length) return;
+                            setHighlightedIndex((current) => Math.min(current + 1, filteredCities.length - 1));
+                        }
+
+                        if (event.key === 'ArrowUp') {
+                            event.preventDefault();
+                            if (!filteredCities.length) return;
+                            setHighlightedIndex((current) => Math.max(current - 1, 0));
+                        }
+
+                        if (event.key === 'Enter' && open && filteredCities[highlightedIndex]) {
+                            event.preventDefault();
+                            selectCity(filteredCities[highlightedIndex]);
+                        }
+
+                        if (event.key === 'Escape') {
+                            setOpen(false);
+                        }
+                    }}
+                    placeholder={placeholder}
+                    className="h-11 w-full rounded-xl border border-gray-300 bg-white px-3 pr-20 text-sm text-gray-900 outline-none transition focus:border-gray-900"
+                />
+                {open ? (
+                    <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+                        {filteredCities.length ? (
+                            <div className="max-h-64 overflow-y-auto py-1">
+                                {filteredCities.map((city, index) => (
+                                    <button
+                                        key={city.value}
+                                        type="button"
+                    onMouseDown={(event) => {
+                        event.preventDefault();
+                        selectCity(city);
+                                        }}
+                                        onMouseEnter={() => setHighlightedIndex(index)}
+                                        className={cn(
+                                            'flex w-full items-center px-3 py-2 text-left text-sm text-gray-700 transition hover:bg-slate-50',
+                                            index === highlightedIndex && 'bg-slate-50',
+                                            normalizeGermanCityName(value) === normalizeGermanCityName(city.germanName) &&
+                                                'text-slate-900'
+                                        )}
+                                    >
                                             <Check
                                                 className={cn(
                                                     'mr-2 h-4 w-4',
-                                                    value === city.value ? 'opacity-100' : 'opacity-0'
+                                                    normalizeGermanCityName(value) === normalizeGermanCityName(city.germanName)
+                                                        ? 'opacity-100'
+                                                        : 'opacity-0'
                                                 )}
                                             />
-                                            <span className="truncate">{city.value}</span>
-                                        </CommandItem>
-                                    ))}
-                                </CommandGroup>
-                            </CommandList>
-                        </Command>
-                    </PopoverContent>
-                </Popover>
+                                        <span className="truncate">
+                                            {city.germanName}
+                                            {city.russianName && city.russianName !== city.germanName
+                                                ? ` (${city.russianName})`
+                                                : ''}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="px-3 py-3 text-sm text-gray-500">
+                                Город не найден. Выберите ближайший крупный город
+                            </div>
+                        )}
+                    </div>
+                ) : null}
                 <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center gap-1">
                     <button
                         type="button"
@@ -304,7 +317,14 @@ export function CityCombobox({
                             <LocateFixed className="h-4 w-4" />
                         )}
                     </button>
-                    <ChevronsUpDown className="h-4 w-4 shrink-0 text-slate-400" />
+                    <button
+                        type="button"
+                        onClick={() => setOpen((current) => !current)}
+                        aria-label="Открыть список городов"
+                        className="pointer-events-auto inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
+                    >
+                        <ChevronsUpDown className="h-4 w-4 shrink-0" />
+                    </button>
                 </div>
             </div>
         </div>

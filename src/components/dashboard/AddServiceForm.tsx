@@ -94,6 +94,9 @@ export function AddServiceForm({ profileId, initialData, serviceId, returnHref }
                 if (result.success && result.imageUrl) {
                     currentCount += 1;
                     setImages((prev) => [...prev, result.imageUrl]);
+                } else if (!result.success) {
+                    toast.error(result.error || 'Не удалось загрузить фото');
+                    break;
                 }
             }
         } catch (uploadError: any) {
@@ -205,7 +208,7 @@ export function AddServiceForm({ profileId, initialData, serviceId, returnHref }
     };
 
     return (
-        <div className={profileId != null && !isEditing ? '' : 'min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8'}>
+        <div className={profileId != null && !isEditing ? '' : 'min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8'}>
             <div className={profileId != null && !isEditing ? '' : 'bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-gray-100'}>
                 {(profileId == null || isEditing) && (
                     <h1 className="text-2xl font-bold mb-2 text-center text-gray-900">

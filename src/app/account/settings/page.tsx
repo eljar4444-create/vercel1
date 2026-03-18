@@ -47,7 +47,7 @@ export default async function AccountSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-12 pt-24">
+        <div className="min-h-screen pb-12 pt-24">
             <div className="container mx-auto max-w-4xl px-4">
                 <AccountSettingsView
                     user={{

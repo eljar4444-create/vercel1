@@ -369,7 +369,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
     // ─────────────────────────────────────────────────────────────────────────
 
     return (
-        <div className="min-h-screen bg-stone-50">
+        <div className="min-h-screen">
 
             {/* ── Back nav ──────────────────────────────────────────────── */}
             <div className="container mx-auto max-w-5xl px-4 pt-6 pb-0">

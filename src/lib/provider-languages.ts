@@ -1,7 +1,8 @@
 export const LANGUAGES = {
-  'Русский': { flag: '🇷🇺', label: 'Русский' },
-  'Украинский': { flag: '🇺🇦', label: 'Украинский' },
-  'Немецкий': { flag: '🇩🇪', label: 'Немецкий' },
+  'Русский': { code: 'ru', flag: '🇷🇺', label: 'Русский' },
+  'Украинский': { code: 'uk', flag: '🇺🇦', label: 'Украинский' },
+  'Немецкий': { code: 'de', flag: '🇩🇪', label: 'Немецкий' },
+  'Английский': { code: 'en', flag: 'EN', label: 'Английский' },
 } as const;
 
 export type ProviderLanguage = keyof typeof LANGUAGES;
@@ -11,9 +12,11 @@ const LANGUAGE_ALIASES: Record<string, ProviderLanguage> = {
   ua: 'Украинский',
   uk: 'Украинский',
   de: 'Немецкий',
+  en: 'Английский',
   'Русский': 'Русский',
   'Украинский': 'Украинский',
   'Немецкий': 'Немецкий',
+  'Английский': 'Английский',
 };
 
 export const PROVIDER_LANGUAGE_OPTIONS = Object.entries(LANGUAGES).map(([value, meta]) => ({

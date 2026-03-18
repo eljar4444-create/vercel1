@@ -19,11 +19,15 @@ export default async function ProviderOnboardingPage() {
                 { user_email: session.user.email },
             ],
         },
-        select: { id: true },
+        select: { id: true, provider_type: true, status: true },
     });
 
     if (existingProfile) {
-        redirect(`/dashboard/${existingProfile.id}`);
+        if (existingProfile.status === 'DRAFT') {
+            const type = existingProfile.provider_type === 'SALON' ? 'SALON' : 'INDIVIDUAL';
+            redirect(`/onboarding?type=${type}`);
+        }
+        redirect('/dashboard');
     }
 
     const beautyCategory = await prisma.category.findFirst({
@@ -32,7 +36,7 @@ export default async function ProviderOnboardingPage() {
     });
 
     return (
-        <section className="min-h-screen bg-gray-50 px-4 py-8">
+        <section className="min-h-screen px-4 py-8">
             <div className="mx-auto w-full max-w-lg">
                 <div className="mb-5 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-5 text-white shadow-lg">
                     <p className="text-xs uppercase tracking-[0.18em] text-gray-300">Provider onboarding</p>

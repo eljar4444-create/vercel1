@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma';
+import { auth } from '@/auth';
 import { notFound } from 'next/navigation';
-import { unstable_cache } from 'next/cache';
 import { ProfileClient } from '@/components/ProfileClient';
 import { GERMAN_CITIES } from '@/constants/germanCities';
 import type { Metadata } from 'next';
@@ -65,12 +65,14 @@ async function resolveAddressCoordinates(address: string, city: string) {
     }
 }
 
-async function getProfileBySlug(slug: string) {
-    return prisma.profile.findUnique({
-        where: { slug },
+async function getProfileBySlug(slug: string, includeDraft: boolean = false) {
+    return prisma.profile.findFirst({
+        where: includeDraft ? { slug } : { slug, status: 'PUBLISHED' },
         select: {
             id: true,
             slug: true,
+            user_id: true,
+            user_email: true,
             name: true,
             provider_type: true,
             city: true,
@@ -84,6 +86,7 @@ async function getProfileBySlug(slug: string) {
             created_at: true,
             attributes: true,
             schedule: true,
+            status: true,
             category: {
                 select: {
                     id: true,
@@ -118,21 +121,12 @@ async function getProfileBySlug(slug: string) {
     });
 }
 
-const CACHE_TTL = 60;
-
-const getCachedProfileBySlug = (slug: string) =>
-    unstable_cache(
-        () => getProfileBySlug(slug),
-        ['salon-profile', slug],
-        { revalidate: CACHE_TTL, tags: [`salon-${slug}`] }
-    )();
-
 export async function generateMetadata({
     params,
 }: {
     params: { slug: string };
 }): Promise<Metadata> {
-    const profile = await getCachedProfileBySlug(params.slug);
+    const profile = await getProfileBySlug(params.slug);
     if (!profile) {
         return { title: 'Профиль не найден | Svoi.de' };
     }
@@ -159,13 +153,23 @@ export default async function SalonProfilePage({
 }: {
     params: { slug: string };
 }) {
-    const profile = await getCachedProfileBySlug(params.slug);
+    const session = await auth();
+    const profile = await getProfileBySlug(params.slug, true);
     if (!profile) notFound();
+
+    const isOwner =
+        session?.user?.role === 'ADMIN' ||
+        profile.user_id === session?.user?.id ||
+        (session?.user?.email ? profile.user_email === session.user.email : false);
+
+    if (profile.status !== 'PUBLISHED' && !isOwner) {
+        notFound();
+    }
 
     const languageRows = await prisma.$queryRaw<Array<{ languages: string[] | null }>>`
         SELECT "languages"
         FROM "Profile"
-        WHERE "slug" = ${params.slug}
+        WHERE "id" = ${profile.id}
         LIMIT 1
     `;
     const profileLanguages = languageRows[0]?.languages ?? [];

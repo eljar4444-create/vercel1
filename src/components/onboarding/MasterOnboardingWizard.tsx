@@ -1,15 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Camera, Check, Loader2 } from 'lucide-react';
+import { Camera, Check, Loader2, Upload, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { createProviderProfile } from '@/app/actions/providerOnboarding';
-import { addService } from '@/app/actions/services';
-import { updateSchedule } from '@/app/actions/updateSchedule';
-import { updateProfile } from '@/app/actions/updateProfile';
+import { publishProviderProfile, saveProviderDraft } from '@/app/actions/providerOnboarding';
+import { uploadServicePhoto } from '@/app/actions/upload';
 import { uploadAvatar } from '@/app/actions/uploadAvatar';
-import { completeOnboarding as completeOnboardingStatus } from '@/app/actions/updateOnboardingStatus';
 import type { OnboardingCategoryOption } from '@/app/actions/onboardingCategories';
 import {
     BEAUTY_SERVICES,
@@ -20,6 +17,9 @@ import {
     PROVIDER_LANGUAGE_OPTIONS,
     type ProviderLanguage,
 } from '@/lib/provider-languages';
+import { CityCombobox } from '@/components/provider/CityCombobox';
+import { StreetAddressAutocomplete } from '@/components/provider/StreetAddressAutocomplete';
+import { findGermanCitySelection } from '@/lib/german-city-options';
 
 type FlowType = 'INDIVIDUAL' | 'SALON';
 type StepNumber = 1 | 2 | 3 | 4 | 5;
@@ -36,9 +36,15 @@ type StepDay = {
 
 type WorkLocationInput = {
     placeName: string;
+    street: string;
+    houseNumber: string;
     address: string;
     zipCode: string;
     city: string;
+    cityLatitude: number | null;
+    cityLongitude: number | null;
+    latitude: number | null;
+    longitude: number | null;
     hideExactAddress: boolean;
 };
 
@@ -56,18 +62,31 @@ type WizardState = {
         audiences: AudienceValue[];
     };
     step3: {
+        providesInStudio: boolean;
+        providesOutcall: boolean;
+        outcallRadiusKm: string;
         workLocations: WorkLocationInput[];
         city: string;
+        cityLatitude: number | null;
+        cityLongitude: number | null;
+        street: string;
+        houseNumber: string;
         address: string;
+        addressLatitude: number | null;
+        addressLongitude: number | null;
         zipCode: string;
     };
     step4: {
         serviceCategory: ServiceCategoryKey | '';
         serviceSubservice: string;
+        otherCategoryDetail: string;
         title: string;
         price: string;
+        isStartingPrice: boolean;
         duration: string;
         description: string;
+        imageFile: File | null;
+        imagePreviewUrl: string | null;
     };
     step5: Record<DayId, StepDay>;
 };
@@ -82,6 +101,16 @@ type InitialProfile = {
     categoryId: number;
     languages: string[];
     imageUrl?: string | null;
+    onboardingStep?: number;
+    workLocations?: WorkLocationInput[];
+    audiences?: AudienceValue[];
+    managerName?: string;
+    zipCode?: string;
+    providesInStudio?: boolean;
+    providesOutcall?: boolean;
+    outcallRadiusKm?: number | null;
+    latitude?: number | null;
+    longitude?: number | null;
 };
 
 type ServiceDefaults = Record<string, { price: number; duration: number }>;
@@ -94,9 +123,11 @@ type MasterOnboardingWizardProps = {
     initialProfile: InitialProfile | null;
 };
 
-const SALON_DURATION_OPTIONS = [30, 45, 60, 90, 120];
-const INDIVIDUAL_DURATION_OPTIONS = [15, 30, 45, 60, 90, 120, 180];
+const DURATION_OPTIONS = Array.from({ length: 20 }, (_, index) => (index + 1) * 15);
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const DEFAULT_STEP2_LANGUAGES: ProviderLanguage[] = ['Русский'];
+const OUTCALL_RADIUS_MIN = 1;
+const OUTCALL_RADIUS_MAX = 100;
 
 const BIO_QUICK_TAGS = [
     '8 лет опыта',
@@ -105,6 +136,8 @@ const BIO_QUICK_TAGS = [
     'Работаю с детьми',
     'Только натуральные материалы',
 ];
+
+const PLACE_NAME_PRESETS = ['Арендую место', 'Свой салон', 'Работаю на дому'];
 
 const AUDIENCE_OPTIONS: Array<{ value: AudienceValue; icon: string; label: string }> = [
     { value: 'women', icon: '👩', label: 'Женщины' },
@@ -158,7 +191,7 @@ const STEP_META: Record<FlowType, Record<StepNumber, { label: string; title: str
         },
         2: {
             label: 'Ваша специализация',
-            title: 'Чем вы занимаетесь?',
+            title: 'Детали работы',
         },
         3: {
             label: 'Как и где вы работаете?',
@@ -234,11 +267,77 @@ const BEAUTY_CATEGORY_TITLES: Record<string, string[]> = Object.entries(BEAUTY_S
 function createEmptyWorkLocation(): WorkLocationInput {
     return {
         placeName: '',
+        street: '',
+        houseNumber: '',
         address: '',
         zipCode: '',
         city: '',
+        cityLatitude: null,
+        cityLongitude: null,
+        latitude: null,
+        longitude: null,
         hideExactAddress: true,
     };
+}
+
+function splitStreetAndHouse(address: string | null | undefined) {
+    const value = (address || '').trim();
+    if (!value) {
+        return { street: '', houseNumber: '' };
+    }
+
+    const match = value.match(/^(.*?)(?:\s+(\d+[a-zA-Z]?(?:[/-]\d+[a-zA-Z]?)?))$/);
+    if (!match) {
+        return { street: value, houseNumber: '' };
+    }
+
+    return {
+        street: match[1]?.trim() || value,
+        houseNumber: match[2]?.trim() || '',
+    };
+}
+
+function combineStreetAndHouse(street: string, houseNumber: string) {
+    return [street.trim(), houseNumber.trim()].filter(Boolean).join(' ').trim();
+}
+
+function normalizePriceInput(value: string) {
+    const normalized = value.replace(',', '.').replace(/[^\d.]/g, '');
+    const [integerPart, ...decimalParts] = normalized.split('.');
+
+    if (decimalParts.length === 0) {
+        return integerPart;
+    }
+
+    return `${integerPart}.${decimalParts.join('')}`;
+}
+
+function resolveInitialCitySelection(
+    city: string | null | undefined,
+    latitude?: number | null,
+    longitude?: number | null,
+) {
+    const normalizedCity = city?.trim().toLowerCase() === 'draft' ? '' : city || '';
+    const matched = city ? findGermanCitySelection(city) : null;
+    return {
+        city: matched?.germanName || normalizedCity,
+        cityLatitude: matched?.lat ?? latitude ?? null,
+        cityLongitude: matched?.lng ?? longitude ?? null,
+    };
+}
+
+function hasSelectedCity(city: string) {
+    const normalized = city.trim().toLowerCase();
+    if (!normalized || normalized === 'draft') {
+        return false;
+    }
+
+    return Boolean(findGermanCitySelection(city));
+}
+
+function clampOutcallRadius(value?: number | null) {
+    if (!Number.isFinite(value)) return 15;
+    return Math.min(OUTCALL_RADIUS_MAX, Math.max(OUTCALL_RADIUS_MIN, Math.round(Number(value))));
 }
 
 function resolveCategoryIdFromServiceCategory(
@@ -304,6 +403,11 @@ function normalizeLanguages(values: string[]): ProviderLanguage[] {
     return Array.from(new Set(normalized));
 }
 
+function getInitialLanguages(initialProfile: InitialProfile | null): ProviderLanguage[] {
+    const normalized = initialProfile ? normalizeLanguages(initialProfile.languages) : [];
+    return normalized.length > 0 ? normalized : DEFAULT_STEP2_LANGUAGES;
+}
+
 function resolveBeautyCategory(option: OnboardingCategoryOption | null): keyof typeof BEAUTY_SERVICES | null {
     if (!option) return null;
     const haystack = `${option.name} ${option.slug}`.toLowerCase();
@@ -321,6 +425,12 @@ function isAllowedImageType(file: File) {
     return ALLOWED_IMAGE_TYPES.includes(file.type);
 }
 
+function clampStep(value?: number): StepNumber {
+    if (!value || value < 1) return 1;
+    if (value > 5) return 5;
+    return value as StepNumber;
+}
+
 export function MasterOnboardingWizard({
     userName,
     flowType = 'INDIVIDUAL',
@@ -329,12 +439,20 @@ export function MasterOnboardingWizard({
     initialProfile,
 }: MasterOnboardingWizardProps) {
     const safeFlowType: FlowType = flowType === 'SALON' ? 'SALON' : 'INDIVIDUAL';
+    const initialBaseCity = resolveInitialCitySelection(
+        initialProfile?.city,
+        initialProfile?.latitude,
+        initialProfile?.longitude,
+    );
+    const initialAddressParts = splitStreetAndHouse(initialProfile?.address);
     const router = useRouter();
     const { data: session, update } = useSession();
-    const [currentStep, setCurrentStep] = useState<StepNumber>(1);
+    const [currentStep, setCurrentStep] = useState<StepNumber>(clampStep(initialProfile?.onboardingStep));
+    const [draftProfileId, setDraftProfileId] = useState<number | null>(initialProfile?.id ?? null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [stepError, setStepError] = useState<string | null>(null);
+    const [serviceImageError, setServiceImageError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [showServiceSuggestions, setShowServiceSuggestions] = useState(false);
 
@@ -342,36 +460,64 @@ export function MasterOnboardingWizard({
         step1: {
             profileName: initialProfile?.name || userName || '',
             bio: initialProfile?.bio || '',
-            managerName: userName || '',
+            managerName: initialProfile?.managerName || userName || '',
             avatarFile: null,
             avatarPreviewUrl: initialProfile?.imageUrl || null,
         },
         step2: {
             categoryIds: initialProfile?.categoryId ? [String(initialProfile.categoryId)] : [],
-            languages: initialProfile ? normalizeLanguages(initialProfile.languages) : [],
-            audiences: [],
+            languages: getInitialLanguages(initialProfile),
+            audiences: initialProfile?.audiences || [],
         },
         step3: {
-            workLocations: initialProfile
-                ? [{
-                    placeName: initialProfile.providerType === 'SALON' ? initialProfile.name : 'Основное место работы',
-                    address: initialProfile.address || '',
-                    zipCode: '',
-                    city: initialProfile.city || '',
-                    hideExactAddress: true,
-                }]
+            providesInStudio: initialProfile?.providesInStudio ?? false,
+            providesOutcall: initialProfile?.providesOutcall ?? false,
+            outcallRadiusKm: String(clampOutcallRadius(initialProfile?.outcallRadiusKm)),
+            workLocations: initialProfile?.workLocations?.length
+                ? initialProfile.workLocations.map((location) => {
+                    const parts = splitStreetAndHouse(location.address);
+                    return {
+                        ...location,
+                        street: location.street || parts.street,
+                        houseNumber: location.houseNumber || parts.houseNumber,
+                    };
+                })
+                : initialProfile
+                    ? [{
+                        placeName: initialProfile.providerType === 'SALON' ? initialProfile.name : '',
+                        street: initialAddressParts.street,
+                        houseNumber: initialAddressParts.houseNumber,
+                        address: initialProfile.address || '',
+                        zipCode: initialProfile.zipCode || '',
+                        city: initialBaseCity.city,
+                        cityLatitude: initialBaseCity.cityLatitude,
+                        cityLongitude: initialBaseCity.cityLongitude,
+                        latitude: initialProfile.latitude ?? null,
+                        longitude: initialProfile.longitude ?? null,
+                        hideExactAddress: true,
+                    }]
                 : [createEmptyWorkLocation()],
-            city: initialProfile?.city || '',
+            city: initialBaseCity.city,
+            cityLatitude: initialBaseCity.cityLatitude,
+            cityLongitude: initialBaseCity.cityLongitude,
+            street: initialAddressParts.street,
+            houseNumber: initialAddressParts.houseNumber,
             address: initialProfile?.address || '',
-            zipCode: '',
+            addressLatitude: initialProfile?.latitude ?? null,
+            addressLongitude: initialProfile?.longitude ?? null,
+            zipCode: initialProfile?.zipCode || '',
         },
         step4: {
             serviceCategory: '',
             serviceSubservice: '',
+            otherCategoryDetail: '',
             title: '',
             price: '',
+            isStartingPrice: false,
             duration: '60',
             description: '',
+            imageFile: null,
+            imagePreviewUrl: null,
         },
         step5: createDefaultDayState(safeFlowType),
     }));
@@ -402,17 +548,25 @@ export function MasterOnboardingWizard({
         return source.slice(0, 40);
     }, [categoryServiceCatalog, wizard.step4.title]);
 
-    const validActiveDayTimes = useMemo(
+    const invalidActiveDayIds = useMemo(
         () =>
-            activeDays.every((day) => {
-                const start = parseTimeToMinutes(wizard.step5[day.id].start);
-                const end = parseTimeToMinutes(wizard.step5[day.id].end);
-                return start !== null && end !== null && end > start;
-            }),
+            activeDays
+                .filter((day) => {
+                    const start = parseTimeToMinutes(wizard.step5[day.id].start);
+                    const end = parseTimeToMinutes(wizard.step5[day.id].end);
+                    return start === null || end === null || end <= start;
+                })
+                .map((day) => day.id),
         [activeDays, wizard.step5]
     );
 
-    const parsedPrice = wizard.step4.price.trim() === '' ? Number.NaN : Number(wizard.step4.price);
+    const validActiveDayTimes = useMemo(
+        () => invalidActiveDayIds.length === 0,
+        [invalidActiveDayIds]
+    );
+
+    const normalizedPriceValue = normalizePriceInput(wizard.step4.price.trim());
+    const parsedPrice = normalizedPriceValue === '' ? Number.NaN : Number(normalizedPriceValue);
     const isStep1Valid = safeFlowType === 'SALON'
         ? wizard.step1.profileName.trim().length > 0 &&
             wizard.step1.bio.trim().length > 0 &&
@@ -423,30 +577,42 @@ export function MasterOnboardingWizard({
         ? wizard.step2.categoryIds.length > 0 && wizard.step2.languages.length > 0
         : wizard.step2.audiences.length > 0 && wizard.step2.languages.length > 0;
 
-    const isStep3Valid = safeFlowType === 'SALON'
-        ? wizard.step3.city.trim().length > 0 &&
-            wizard.step3.address.trim().length > 0 &&
+    const hasAnyServiceMode = wizard.step3.providesInStudio || wizard.step3.providesOutcall;
+    const hasValidOutcallRadius =
+        Number(wizard.step3.outcallRadiusKm) >= OUTCALL_RADIUS_MIN &&
+        Number(wizard.step3.outcallRadiusKm) <= OUTCALL_RADIUS_MAX;
+    const hasValidInStudioLocation = safeFlowType === 'SALON'
+        ? hasSelectedCity(wizard.step3.city) &&
+            wizard.step3.street.trim().length > 0 &&
+            wizard.step3.houseNumber.trim().length > 0 &&
             wizard.step3.zipCode.trim().length > 0
         : wizard.step3.workLocations.length > 0 &&
             wizard.step3.workLocations.every(
                 (location) =>
-                    location.placeName.trim().length > 0 &&
-                    location.address.trim().length > 0 &&
-                    location.zipCode.trim().length > 0 &&
-                    location.city.trim().length > 0
+                    hasSelectedCity(location.city) &&
+                    location.street.trim().length > 0 &&
+                    location.houseNumber.trim().length > 0 &&
+                    location.zipCode.trim().length > 0
             );
+    const hasValidOutcallBase = wizard.step3.providesInStudio || (
+        hasSelectedCity(wizard.step3.city)
+    );
+    const isStep3Valid = hasAnyServiceMode &&
+        (!wizard.step3.providesInStudio || hasValidInStudioLocation) &&
+        (!wizard.step3.providesOutcall || (hasValidOutcallRadius && hasValidOutcallBase));
 
     const isStep4Valid = safeFlowType === 'SALON'
         ? wizard.step4.title.trim().length > 0 &&
             wizard.step4.duration.trim().length > 0 &&
             wizard.step4.price.trim().length > 0 &&
             !Number.isNaN(parsedPrice) &&
-            parsedPrice >= 0
+            parsedPrice > 0
         : wizard.step4.serviceCategory.length > 0 &&
+            (wizard.step4.serviceCategory !== 'OTHER' || wizard.step4.otherCategoryDetail.trim().length > 0) &&
             wizard.step4.title.trim().length > 0 &&
             wizard.step4.price.trim().length > 0 &&
             !Number.isNaN(parsedPrice) &&
-            parsedPrice >= 0;
+            parsedPrice > 0;
 
     const isStep5Valid = activeDays.length > 0 && validActiveDayTimes;
 
@@ -627,12 +793,58 @@ export function MasterOnboardingWizard({
         event.target.value = '';
     };
 
+    const handleServiceImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0] || null;
+        if (!file) return;
+
+        if (!isAllowedImageType(file)) {
+            setServiceImageError('Допустимы только JPEG, PNG и WebP.');
+            event.target.value = '';
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setServiceImageError('Файл слишком большой. Максимум 5 МБ.');
+            event.target.value = '';
+            return;
+        }
+
+        try {
+            if (wizard.step4.imagePreviewUrl?.startsWith('blob:')) {
+                URL.revokeObjectURL(wizard.step4.imagePreviewUrl);
+            }
+
+            updateStep4({
+                imageFile: file,
+                imagePreviewUrl: URL.createObjectURL(file),
+            });
+            setServiceImageError(null);
+            setError(null);
+        } catch {
+            setServiceImageError('Не удалось подготовить превью изображения.');
+        }
+
+        event.target.value = '';
+    };
+
     const removeAvatar = () => {
         updateStep1({
             avatarFile: null,
             avatarPreviewUrl: null,
         });
         setStepError(null);
+    };
+
+    const removeServiceImage = () => {
+        if (wizard.step4.imagePreviewUrl?.startsWith('blob:')) {
+            URL.revokeObjectURL(wizard.step4.imagePreviewUrl);
+        }
+
+        updateStep4({
+            imageFile: null,
+            imagePreviewUrl: null,
+        });
+        setServiceImageError(null);
     };
 
     const appendBioTag = (tag: string) => {
@@ -653,8 +865,10 @@ export function MasterOnboardingWizard({
         updateStep4({
             serviceCategory: category,
             serviceSubservice: '',
+            otherCategoryDetail: category === 'OTHER' ? wizard.step4.otherCategoryDetail : '',
             title: '',
             price: '',
+            isStartingPrice: false,
             duration: '60',
         });
     };
@@ -664,6 +878,7 @@ export function MasterOnboardingWizard({
             serviceSubservice: subservice,
             title: subservice === 'Другое' ? '' : subservice,
             price: '',
+            isStartingPrice: false,
             duration: '60',
         });
     };
@@ -706,31 +921,170 @@ export function MasterOnboardingWizard({
         });
     };
 
+    const buildPreparedBio = () => {
+        const managerName = wizard.step1.managerName.trim();
+        const bio = wizard.step1.bio.trim();
+        const normalizedWorkLocations = safeFlowType === 'INDIVIDUAL' && wizard.step3.providesInStudio
+            ? wizard.step3.workLocations
+                .map((location) => ({
+                    placeName: location.placeName.trim(),
+                    street: location.street.trim(),
+                    houseNumber: location.houseNumber.trim(),
+                    address: combineStreetAndHouse(location.street, location.houseNumber),
+                    zipCode: location.zipCode.trim(),
+                    city: location.city.trim(),
+                    cityLatitude: location.cityLatitude,
+                    cityLongitude: location.cityLongitude,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    hideExactAddress: location.hideExactAddress,
+                }))
+                .filter((location) =>
+                    location.placeName.length > 0 ||
+                    location.street.length > 0 ||
+                    location.houseNumber.length > 0 ||
+                    location.zipCode.length > 0 ||
+                    location.city.length > 0
+                )
+            : [];
+
+        let preparedBio = safeFlowType === 'SALON'
+            ? `Контактное лицо: ${managerName}\n\n${bio}`.trim()
+            : bio;
+
+        if (safeFlowType === 'INDIVIDUAL' && normalizedWorkLocations.length > 0) {
+            const locationsSummary = normalizedWorkLocations
+                .map((location, index) => {
+                    const label = location.placeName || location.address || location.city;
+                    return `${index + 1}. ${label} — ${location.city}`;
+                })
+                .join('\n');
+            preparedBio = `${preparedBio}${preparedBio ? '\n\n' : ''}Места работы:\n${locationsSummary}`;
+        }
+
+        return { preparedBio, normalizedWorkLocations };
+    };
+
+    const buildDraftFormData = (step: StepNumber, geocode: boolean = step >= 3) => {
+        const providerType: ProviderTypePayload = safeFlowType === 'SALON' ? 'SALON' : 'INDIVIDUAL';
+        const selectedCategoryId = safeFlowType === 'SALON'
+            ? Number(selectedPrimaryCategoryId)
+            : resolveCategoryIdFromServiceCategory(
+                wizard.step4.serviceCategory,
+                categories,
+                initialProfile?.categoryId
+            );
+        const { preparedBio, normalizedWorkLocations } = buildPreparedBio();
+        const primaryLocation = normalizedWorkLocations[0];
+        const derivedCity = safeFlowType === 'SALON'
+            ? wizard.step3.city.trim()
+            : primaryLocation?.city || wizard.step3.city.trim();
+        const derivedCityLatitude = safeFlowType === 'SALON'
+            ? wizard.step3.cityLatitude
+            : primaryLocation?.cityLatitude ?? wizard.step3.cityLatitude;
+        const derivedCityLongitude = safeFlowType === 'SALON'
+            ? wizard.step3.cityLongitude
+            : primaryLocation?.cityLongitude ?? wizard.step3.cityLongitude;
+        const derivedAddress = safeFlowType === 'SALON'
+            ? combineStreetAndHouse(wizard.step3.street, wizard.step3.houseNumber)
+            : primaryLocation?.address || '';
+        const derivedAddressLatitude = safeFlowType === 'SALON'
+            ? wizard.step3.addressLatitude
+            : primaryLocation?.latitude ?? null;
+        const derivedAddressLongitude = safeFlowType === 'SALON'
+            ? wizard.step3.addressLongitude
+            : primaryLocation?.longitude ?? null;
+        const derivedZipCode = safeFlowType === 'SALON'
+            ? wizard.step3.zipCode.trim()
+            : primaryLocation?.zipCode || wizard.step3.zipCode.trim();
+        const formData = new FormData();
+
+        formData.set('step', String(step));
+        formData.set('geocode', geocode ? 'true' : 'false');
+        formData.set('name', wizard.step1.profileName.trim());
+        formData.set('provider_type', providerType);
+        formData.set('bio', preparedBio);
+        formData.set('manager_name', wizard.step1.managerName.trim());
+        formData.set('zip_code', derivedZipCode);
+        formData.set('city_latitude', derivedCityLatitude != null ? String(derivedCityLatitude) : '');
+        formData.set('city_longitude', derivedCityLongitude != null ? String(derivedCityLongitude) : '');
+        formData.set('address_latitude', derivedAddressLatitude != null ? String(derivedAddressLatitude) : '');
+        formData.set('address_longitude', derivedAddressLongitude != null ? String(derivedAddressLongitude) : '');
+        formData.set('provides_in_studio', String(wizard.step3.providesInStudio));
+        formData.set('provides_outcall', String(wizard.step3.providesOutcall));
+        formData.set('outcall_radius_km', wizard.step3.providesOutcall ? wizard.step3.outcallRadiusKm : '');
+
+        if (Number.isInteger(selectedCategoryId) && selectedCategoryId > 0) {
+            formData.set('category_id', String(selectedCategoryId));
+        }
+
+        wizard.step2.languages.forEach((language) => {
+            formData.append('languages', language);
+        });
+        wizard.step2.audiences.forEach((audience) => {
+            formData.append('audiences', audience);
+        });
+
+        if (safeFlowType === 'SALON') {
+            formData.set('city', derivedCity);
+            formData.set('address', wizard.step3.providesInStudio ? derivedAddress : '');
+        } else {
+            formData.set('city', derivedCity);
+            formData.set('address', wizard.step3.providesInStudio ? derivedAddress : '');
+            formData.set(
+                'work_locations',
+                JSON.stringify(wizard.step3.providesInStudio ? normalizedWorkLocations : [])
+            );
+        }
+
+        if (draftProfileId != null) {
+            formData.set('profile_id', String(draftProfileId));
+        }
+
+        return formData;
+    };
+
     const goBack = () => {
         setError(null);
         setStepError(null);
         setCurrentStep((prev) => (prev === 1 ? prev : ((prev - 1) as StepNumber)));
     };
 
-    const goNext = () => {
-        if (!canGoNext) return;
+    const goNext = async () => {
+        if (!canGoNext || isSubmitting) return;
         if (stepError) {
             setError('Пожалуйста, исправьте ошибки перед продолжением');
             return;
         }
+
+        setIsSubmitting(true);
         setError(null);
         setStepError(null);
-        setCurrentStep((prev) => (prev === 5 ? prev : ((prev + 1) as StepNumber)));
+        setServiceImageError(null);
+
+        try {
+            const nextStep = (currentStep === 5 ? currentStep : ((currentStep + 1) as StepNumber));
+            const draftResult = await saveProviderDraft(buildDraftFormData(nextStep, currentStep >= 3));
+            if (!draftResult.success || !draftResult.profileId) {
+                setError(draftResult.error || 'Не удалось сохранить черновик.');
+                return;
+            }
+
+            setDraftProfileId(draftResult.profileId);
+            setCurrentStep(nextStep);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const skipAvatarStep = () => {
+    const skipAvatarStep = async () => {
         updateStep1({
             avatarFile: null,
             avatarPreviewUrl: null,
         });
         setError(null);
         setStepError(null);
-        setCurrentStep((prev) => (prev === 5 ? prev : ((prev + 1) as StepNumber)));
+        await goNext();
     };
 
     const completeOnboarding = async () => {
@@ -743,28 +1097,15 @@ export function MasterOnboardingWizard({
         try {
             const providerType: ProviderTypePayload = safeFlowType === 'SALON' ? 'SALON' : 'INDIVIDUAL';
             const profileName = wizard.step1.profileName.trim();
-            const managerName = wizard.step1.managerName.trim();
-            const bio = wizard.step1.bio.trim();
-            const normalizedWorkLocations = safeFlowType === 'INDIVIDUAL'
-                ? wizard.step3.workLocations
-                    .map((location) => ({
-                        placeName: location.placeName.trim(),
-                        address: location.address.trim(),
-                        zipCode: location.zipCode.trim(),
-                        city: location.city.trim(),
-                        hideExactAddress: location.hideExactAddress,
-                    }))
-                    .filter((location) => {
-                        return (
-                            location.placeName.length > 0 ||
-                            location.address.length > 0 ||
-                            location.zipCode.length > 0 ||
-                            location.city.length > 0
-                        );
-                    })
-                : [];
+            const { normalizedWorkLocations } = buildPreparedBio();
 
-            if (safeFlowType === 'INDIVIDUAL' && normalizedWorkLocations.length === 0) {
+            if (!hasAnyServiceMode) {
+                setError('Выберите хотя бы один формат работы.');
+                setIsSubmitting(false);
+                return;
+            }
+
+            if (safeFlowType === 'INDIVIDUAL' && wizard.step3.providesInStudio && normalizedWorkLocations.length === 0) {
                 setError('Добавьте минимум одно место работы.');
                 setIsSubmitting(false);
                 return;
@@ -772,11 +1113,42 @@ export function MasterOnboardingWizard({
 
             if (
                 safeFlowType === 'INDIVIDUAL' &&
+                wizard.step3.providesInStudio &&
                 normalizedWorkLocations.some((location) =>
-                    !location.placeName || !location.address || !location.zipCode || !location.city
+                    !hasSelectedCity(location.city) ||
+                    !location.street ||
+                    !location.houseNumber ||
+                    !location.zipCode
                 )
             ) {
-                setError('Заполните все поля в каждом месте работы.');
+                setError('Укажите город, улицу, номер дома и индекс в каждом месте работы.');
+                setIsSubmitting(false);
+                return;
+            }
+
+            if (
+                safeFlowType === 'SALON' &&
+                wizard.step3.providesInStudio &&
+                (
+                    !hasSelectedCity(wizard.step3.city) ||
+                    !wizard.step3.street.trim() ||
+                    !wizard.step3.houseNumber.trim() ||
+                    !wizard.step3.zipCode.trim()
+                )
+            ) {
+                setError('Укажите город, улицу, номер дома и индекс салона.');
+                setIsSubmitting(false);
+                return;
+            }
+
+            if (wizard.step3.providesOutcall && !hasValidOutcallBase) {
+                setError('Укажите базовый город для выезда к клиенту.');
+                setIsSubmitting(false);
+                return;
+            }
+
+            if (wizard.step3.providesOutcall && !hasValidOutcallRadius) {
+                setError('Укажите радиус выезда от 1 до 100 км.');
                 setIsSubmitting(false);
                 return;
             }
@@ -784,21 +1156,10 @@ export function MasterOnboardingWizard({
             const primaryWorkLocation = normalizedWorkLocations[0];
             const city = safeFlowType === 'SALON'
                 ? wizard.step3.city.trim()
-                : primaryWorkLocation?.city || '';
+                : primaryWorkLocation?.city || wizard.step3.city.trim();
             const address = safeFlowType === 'SALON'
-                ? wizard.step3.address.trim()
-                : primaryWorkLocation?.address || '';
-            let preparedBio = safeFlowType === 'SALON'
-                ? `Контактное лицо: ${managerName}\n\n${bio}`
-                : bio;
-
-            if (safeFlowType === 'INDIVIDUAL' && normalizedWorkLocations.length > 0) {
-                const locationsSummary = normalizedWorkLocations
-                    .map((location, index) => `${index + 1}. ${location.placeName} — ${location.city}`)
-                    .join('\n');
-                preparedBio = `${preparedBio}${preparedBio ? '\n\n' : ''}Места работы:\n${locationsSummary}`;
-            }
-
+                ? (wizard.step3.providesInStudio ? combineStreetAndHouse(wizard.step3.street, wizard.step3.houseNumber) : '')
+                : (wizard.step3.providesInStudio ? primaryWorkLocation?.address || '' : '');
             const selectedCategoryId = safeFlowType === 'SALON'
                 ? Number(selectedPrimaryCategoryId)
                 : resolveCategoryIdFromServiceCategory(
@@ -816,10 +1177,13 @@ export function MasterOnboardingWizard({
             const serviceData = {
                 category: wizard.step4.serviceCategory,
                 subservice: wizard.step4.serviceSubservice,
+                otherCategoryDetail: wizard.step4.otherCategoryDetail.trim(),
                 title: wizard.step4.title.trim(),
                 price: wizard.step4.price.trim(),
+                isStartingPrice: wizard.step4.isStartingPrice,
                 duration: wizard.step4.duration,
                 description: wizard.step4.description.trim(),
+                hasImage: Boolean(wizard.step4.imageFile),
             };
             const scheduleData = DAYS
                 .filter((day) => wizard.step5[day.id].enabled)
@@ -835,55 +1199,21 @@ export function MasterOnboardingWizard({
                 category: selectedCategoryId,
                 city,
                 address,
-                zip: safeFlowType === 'SALON' ? wizard.step3.zipCode.trim() : primaryWorkLocation?.zipCode || '',
+                zip: safeFlowType === 'SALON' ? wizard.step3.zipCode.trim() : primaryWorkLocation?.zipCode || wizard.step3.zipCode.trim(),
                 services: serviceData,
                 schedule: scheduleData,
             });
 
-            const onboardingStatusResult = await completeOnboardingStatus(session?.user?.id);
-            if (!onboardingStatusResult.success) {
-                setError(onboardingStatusResult.error || 'Не удалось завершить онбординг.');
-                setIsSubmitting(false);
-                return;
-            }
-
-            const profileFormData = new FormData();
-            profileFormData.set('name', profileName);
-            profileFormData.set('provider_type', providerType);
-            profileFormData.set('city', city);
-            profileFormData.set('address', address);
-            profileFormData.set('bio', preparedBio);
-            profileFormData.set('category_id', String(selectedCategoryId));
-            if (safeFlowType === 'INDIVIDUAL') {
-                profileFormData.set('work_locations', JSON.stringify(normalizedWorkLocations));
-            }
-
-            const profileResult = await createProviderProfile(profileFormData);
+            const profileFormData = buildDraftFormData(5, true);
+            const profileResult = await saveProviderDraft(profileFormData);
             if (!profileResult.success || !profileResult.profileId) {
-                setError(profileResult.error || 'Не удалось создать профиль.');
+                setError(profileResult.error || 'Не удалось сохранить черновик профиля.');
                 setIsSubmitting(false);
                 return;
             }
 
             const profileId = profileResult.profileId;
-
-            const profileUpdateData = new FormData();
-            profileUpdateData.set('profile_id', String(profileId));
-            profileUpdateData.set('name', profileName);
-            profileUpdateData.set('provider_type', providerType);
-            profileUpdateData.set('city', city);
-            profileUpdateData.set('address', address);
-            profileUpdateData.set('bio', preparedBio);
-            wizard.step2.languages.forEach((language) => {
-                profileUpdateData.append('languages', language);
-            });
-
-            const profileUpdateResult = await updateProfile(profileUpdateData);
-            if (!profileUpdateResult.success) {
-                setError(profileUpdateResult.error || 'Не удалось обновить профиль.');
-                setIsSubmitting(false);
-                return;
-            }
+            setDraftProfileId(profileId);
 
             if (safeFlowType === 'INDIVIDUAL' && wizard.step1.avatarFile) {
                 try {
@@ -900,6 +1230,29 @@ export function MasterOnboardingWizard({
                 }
             }
 
+            let serviceImageUrl: string | null = null;
+            if (wizard.step4.imageFile) {
+                try {
+                    const serviceImageFormData = new FormData();
+                    serviceImageFormData.set('photo', wizard.step4.imageFile);
+
+                    const serviceImageUploadResult = await uploadServicePhoto(serviceImageFormData);
+                    if (serviceImageUploadResult.success && serviceImageUploadResult.imageUrl) {
+                        serviceImageUrl = serviceImageUploadResult.imageUrl;
+                    } else if (!serviceImageUploadResult.success) {
+                        console.warn(
+                            'Service image upload failed, continuing without service photo:',
+                            serviceImageUploadResult.error,
+                        );
+                    }
+                } catch (serviceImageUploadError) {
+                    console.warn(
+                        'Service image upload failed, continuing without service photo:',
+                        serviceImageUploadError,
+                    );
+                }
+            }
+
             const finalServiceTitle = wizard.step4.title.trim();
             if (!finalServiceTitle) {
                 setError('Укажите название услуги.');
@@ -907,21 +1260,24 @@ export function MasterOnboardingWizard({
                 return;
             }
 
-            const serviceFormData = new FormData();
-            serviceFormData.set('profile_id', String(profileId));
-            serviceFormData.set('title', finalServiceTitle);
-            serviceFormData.set('price', String(parsedPrice));
-            serviceFormData.set('duration', wizard.step4.duration);
-            if (wizard.step4.description.trim()) {
-                serviceFormData.set('description', wizard.step4.description.trim());
-            }
-
-            const serviceResult = await addService(serviceFormData);
-            if (!serviceResult.success) {
-                setError(serviceResult.error || 'Не удалось добавить услугу.');
+            if (
+                safeFlowType === 'INDIVIDUAL' &&
+                wizard.step4.serviceCategory === 'OTHER' &&
+                !wizard.step4.otherCategoryDetail.trim()
+            ) {
+                setError('Уточните категорию для услуги.');
                 setIsSubmitting(false);
                 return;
             }
+
+            const descriptionMeta: string[] = [];
+            if (safeFlowType === 'INDIVIDUAL' && wizard.step4.serviceCategory === 'OTHER' && wizard.step4.otherCategoryDetail.trim()) {
+                descriptionMeta.push(`Категория: ${wizard.step4.otherCategoryDetail.trim()}`);
+            }
+            if (wizard.step4.isStartingPrice) {
+                descriptionMeta.push('Цена от: зависит от сложности');
+            }
+            const finalServiceDescription = [wizard.step4.description.trim(), ...descriptionMeta].filter(Boolean).join('\n');
 
             const startMinutes = activeDays
                 .map((day) => parseTimeToMinutes(wizard.step5[day.id].start))
@@ -931,26 +1287,39 @@ export function MasterOnboardingWizard({
                 .map((day) => parseTimeToMinutes(wizard.step5[day.id].end))
                 .filter((value): value is number => value !== null);
 
-            const scheduleFormData = new FormData();
-            scheduleFormData.set('profile_id', String(profileId));
-            scheduleFormData.set('start_time', minutesToTime(Math.min(...startMinutes)));
-            scheduleFormData.set('end_time', minutesToTime(Math.max(...endMinutes)));
+            const publishFormData = buildDraftFormData(5, true);
+            publishFormData.set('profile_id', String(profileId));
+            publishFormData.set('service_title', finalServiceTitle);
+            publishFormData.set('service_price', String(parsedPrice));
+            publishFormData.set('service_duration', wizard.step4.duration);
+            if (finalServiceDescription) {
+                publishFormData.set('service_description', finalServiceDescription);
+            }
+            if (serviceImageUrl) {
+                publishFormData.set('service_image_url', serviceImageUrl);
+            }
+            publishFormData.set('start_time', minutesToTime(Math.min(...startMinutes)));
+            publishFormData.set('end_time', minutesToTime(Math.max(...endMinutes)));
             activeDays.forEach((day) => {
-                scheduleFormData.append('working_days', String(day.id));
+                publishFormData.append('working_days', String(day.id));
             });
 
-            const scheduleResult = await updateSchedule(scheduleFormData);
-            if (!scheduleResult.success) {
-                setError(scheduleResult.error || 'Не удалось сохранить расписание.');
+            const publishResult = await publishProviderProfile(publishFormData);
+            if (!publishResult.success) {
+                setError(publishResult.error || 'Не удалось опубликовать профиль.');
                 setIsSubmitting(false);
                 return;
             }
 
-            await update();
-            await new Promise((resolve) => setTimeout(resolve, 800));
-
-            setSuccessMessage('Профиль создан! Перенаправляем...');
-            router.push(`/dashboard/${profileId}`);
+            setSuccessMessage('Профиль отправлен на модерацию! Перенаправляем...');
+            await update({
+                onboardingCompleted: true,
+                onboardingType: null,
+                profileId,
+                profileStatus: 'PENDING_REVIEW',
+            });
+            router.replace('/dashboard');
+            router.refresh();
         } catch (error) {
             console.error('ONBOARDING ERROR:', error);
             try {
@@ -964,10 +1333,10 @@ export function MasterOnboardingWizard({
         }
     };
 
-    const durationOptions = safeFlowType === 'INDIVIDUAL' ? INDIVIDUAL_DURATION_OPTIONS : SALON_DURATION_OPTIONS;
+    const durationOptions = DURATION_OPTIONS;
 
     return (
-        <main className="min-h-screen bg-gray-50 px-4 py-10">
+        <main className="min-h-screen px-4 py-10">
             <div className="mx-auto w-full max-w-[600px]">
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-xl sm:p-8">
                     <div className="mb-8">
@@ -1076,7 +1445,7 @@ export function MasterOnboardingWizard({
                                         </p>
                                         <button
                                             type="button"
-                                            onClick={skipAvatarStep}
+                                            onClick={() => void skipAvatarStep()}
                                             className="mt-2 text-xs font-medium text-slate-700 underline underline-offset-2 hover:text-slate-900"
                                         >
                                             Пропустить, добавлю позже →
@@ -1222,128 +1591,451 @@ export function MasterOnboardingWizard({
 
                     {currentStep === 3 ? (
                         <section className="space-y-5">
+                            <div className="space-y-3">
+                                <p className="text-sm font-medium text-gray-700">Формат работы</p>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-300 px-4 py-4 text-sm text-gray-700 transition hover:border-gray-400">
+                                        <input
+                                            type="checkbox"
+                                            checked={wizard.step3.providesInStudio}
+                                            onChange={(event) => updateStep3({ providesInStudio: event.target.checked })}
+                                            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-slate-900 focus:ring-slate-300"
+                                        />
+                                        <span>
+                                            <span className="block font-medium text-gray-900">Принимаю у себя</span>
+                                            <span className="mt-1 block text-xs text-gray-500">Салон, кабинет, студия или домашний кабинет</span>
+                                        </span>
+                                    </label>
+                                    <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-300 px-4 py-4 text-sm text-gray-700 transition hover:border-gray-400">
+                                        <input
+                                            type="checkbox"
+                                            checked={wizard.step3.providesOutcall}
+                                            onChange={(event) => updateStep3({ providesOutcall: event.target.checked })}
+                                            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-slate-900 focus:ring-slate-300"
+                                        />
+                                        <span>
+                                            <span className="block font-medium text-gray-900">Выезжаю к клиенту</span>
+                                            <span className="mt-1 block text-xs text-gray-500">Можно выбрать вместе с приёмом у себя</span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            {!hasAnyServiceMode ? (
+                                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                                    Выберите хотя бы один формат работы, чтобы продолжить.
+                                </div>
+                            ) : null}
+
                             {safeFlowType === 'INDIVIDUAL' ? (
                                 <>
-                                    <h2 className="text-base font-semibold text-gray-900">Где вы принимаете клиентов?</h2>
-                                    <div className="space-y-4">
-                                        {wizard.step3.workLocations.map((location, index) => (
-                                            <div key={`work-location-${index}`} className="rounded-xl border border-gray-300 p-4">
-                                                <div className="mb-3 flex items-center justify-between">
-                                                    <p className="text-sm font-semibold text-gray-800">Место {index + 1}</p>
-                                                    {wizard.step3.workLocations.length > 1 ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeWorkLocation(index)}
-                                                            className="text-xs font-medium text-gray-500 underline underline-offset-2 hover:text-gray-700"
-                                                        >
-                                                            Удалить
-                                                        </button>
-                                                    ) : null}
+                                    {wizard.step3.providesInStudio ? (
+                                        <>
+                                            <div className="space-y-4">
+                                                {wizard.step3.workLocations.map((location, index) => (
+                                                    <div key={`work-location-${index}`} className="rounded-xl border border-gray-300 p-4">
+                                                        <div className="mb-3 flex items-center justify-between">
+                                                            <p className="text-sm font-semibold text-gray-800">Место {index + 1}</p>
+                                                            {wizard.step3.workLocations.length > 1 ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeWorkLocation(index)}
+                                                                    className="text-xs font-medium text-gray-500 underline underline-offset-2 hover:text-gray-700"
+                                                                >
+                                                                    Удалить
+                                                                </button>
+                                                            ) : null}
+                                                        </div>
+
+                                                        <div className="space-y-3">
+                                                            <div>
+                                                                <label className="mb-2 block text-sm font-medium text-gray-700">Название места</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={location.placeName}
+                                                                        onChange={(event) => updateWorkLocation(index, { placeName: event.target.value })}
+                                                                    placeholder="Название (напр. Студия 'Bliss' или Аренда кресла)"
+                                                                    className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
+                                                                />
+                                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                                    {PLACE_NAME_PRESETS.map((preset) => (
+                                                                        <button
+                                                                            key={`${index}-${preset}`}
+                                                                            type="button"
+                                                                            onClick={() => updateWorkLocation(index, { placeName: preset })}
+                                                                            className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 transition hover:border-gray-400 hover:bg-gray-50"
+                                                                        >
+                                                                            {preset}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-10">
+                                                                <div className="sm:col-span-7">
+                                                                    <label className="mb-2 block text-sm font-medium text-gray-700">Город</label>
+                                                                    <CityCombobox
+                                                                        name={`work-location-city-${index}`}
+                                                                        value={location.city}
+                                                                        onValueChange={(value) =>
+                                                                            updateWorkLocation(index, {
+                                                                                city: value,
+                                                                                cityLatitude: null,
+                                                                                cityLongitude: null,
+                                                                                street: '',
+                                                                                houseNumber: '',
+                                                                                address: '',
+                                                                                latitude: null,
+                                                                                longitude: null,
+                                                                            })
+                                                                        }
+                                                                        onCitySelect={(city) =>
+                                                                            updateWorkLocation(index, {
+                                                                                city: city.germanName,
+                                                                                cityLatitude: city.lat,
+                                                                                cityLongitude: city.lng,
+                                                                                street: '',
+                                                                                houseNumber: '',
+                                                                                address: '',
+                                                                                latitude: null,
+                                                                                longitude: null,
+                                                                            })
+                                                                        }
+                                                                        onZipCodeDetect={(zipCode) =>
+                                                                            updateWorkLocation(index, { zipCode })
+                                                                        }
+                                                                        placeholder="Выберите город"
+                                                                    />
+                                                                </div>
+                                                                <div className="sm:col-span-3">
+                                                                    <label className="mb-2 block text-sm font-medium text-gray-700">Индекс</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={location.zipCode}
+                                                                        onChange={(event) => updateWorkLocation(index, { zipCode: event.target.value })}
+                                                                        className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+                                                                <div className="sm:col-span-3">
+                                                                    <label className="mb-2 block text-sm font-medium text-gray-700">Улица</label>
+                                                                    <StreetAddressAutocomplete
+                                                                        value={location.street}
+                                                                        city={location.city}
+                                                                        disabled={!hasSelectedCity(location.city)}
+                                                                        isValidated={location.latitude != null && location.longitude != null}
+                                                                        onValueChange={(value) =>
+                                                                            updateWorkLocation(index, {
+                                                                                street: value,
+                                                                                address: combineStreetAndHouse(value, location.houseNumber),
+                                                                                latitude: null,
+                                                                                longitude: null,
+                                                                            })
+                                                                        }
+                                                                    onSuggestionSelect={(suggestion) =>
+                                                                        updateWorkLocation(index, {
+                                                                            street: suggestion.streetName,
+                                                                            address: combineStreetAndHouse(suggestion.streetName, location.houseNumber),
+                                                                            latitude: suggestion.lat,
+                                                                            longitude: suggestion.lon,
+                                                                            zipCode: suggestion.postcode || '',
+                                                                        })
+                                                                    }
+                                                                        placeholder={
+                                                                            hasSelectedCity(location.city)
+                                                                                ? 'Начните вводить название улицы...'
+                                                                                : 'Сначала выберите город'
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                                <div className="sm:col-span-1">
+                                                                    <label className="mb-2 block text-sm font-medium text-gray-700">Дом</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={location.houseNumber}
+                                                                        onChange={(event) =>
+                                                                            updateWorkLocation(index, {
+                                                                                houseNumber: event.target.value,
+                                                                                address: combineStreetAndHouse(location.street, event.target.value),
+                                                                            })
+                                                                        }
+                                                                        disabled={!hasSelectedCity(location.city)}
+                                                                        className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900 disabled:bg-gray-50 disabled:text-gray-400"
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 px-3 py-3 text-sm text-gray-700">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={location.hideExactAddress}
+                                                                    onChange={(event) =>
+                                                                        updateWorkLocation(index, { hideExactAddress: event.target.checked })
+                                                                    }
+                                                                    className="h-4 w-4 rounded border-gray-300 text-slate-900 focus:ring-slate-300"
+                                                                />
+                                                                Не показывать точный адрес - показывать только район
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={addWorkLocation}
+                                                className="w-full rounded-xl border border-dashed border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                                            >
+                                                + Добавить ещё одно место
+                                            </button>
+                                            <p className="text-xs text-gray-500">
+                                                Основным для поиска будет первое место из списка.
+                                            </p>
+                                        </>
+                                    ) : null}
+
+                                    {wizard.step3.providesOutcall ? (
+                                        <div className="space-y-4 rounded-2xl border border-gray-300 p-4">
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">Радиус выезда (км)</p>
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    Клиенты увидят вас, если их адрес находится в этом радиусе от вашего базового города.
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <input
+                                                    type="range"
+                                                    min={OUTCALL_RADIUS_MIN}
+                                                    max={OUTCALL_RADIUS_MAX}
+                                                    value={wizard.step3.outcallRadiusKm}
+                                                    onChange={(event) => updateStep3({ outcallRadiusKm: event.target.value })}
+                                                    className="w-full accent-slate-900"
+                                                />
+                                                <div className="flex items-center justify-between text-sm">
+                                                    <span className="text-gray-500">{OUTCALL_RADIUS_MIN} км</span>
+                                                    <span className="rounded-full bg-slate-900 px-3 py-1 font-medium text-white">
+                                                        {wizard.step3.outcallRadiusKm} км
+                                                    </span>
+                                                    <span className="text-gray-500">{OUTCALL_RADIUS_MAX} км</span>
                                                 </div>
+                                            </div>
 
+                                            {!wizard.step3.providesInStudio ? (
                                                 <div className="space-y-3">
-                                                    <div>
-                                                        <label className="mb-2 block text-sm font-medium text-gray-700">Название места</label>
-                                                        <input
-                                                            type="text"
-                                                            value={location.placeName}
-                                                            onChange={(event) => updateWorkLocation(index, { placeName: event.target.value })}
-                                                            placeholder="Например: Мой салон, Аренда кресла у Марины"
-                                                            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
-                                                        />
-                                                    </div>
-
-                                                    <div>
-                                                        <label className="mb-2 block text-sm font-medium text-gray-700">Улица и номер дома</label>
-                                                        <input
-                                                            type="text"
-                                                            value={location.address}
-                                                            onChange={(event) => updateWorkLocation(index, { address: event.target.value })}
-                                                            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
-                                                        />
-                                                    </div>
-
+                                                    <p className="text-sm font-medium text-gray-900">Ваш базовый город (для расчета радиуса)</p>
                                                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                    <div>
+                                                        <label className="mb-2 block text-sm font-medium text-gray-700">Город</label>
+                                                        <CityCombobox
+                                                            name="outcall-base-city-individual"
+                                                            value={wizard.step3.city}
+                                                            onValueChange={(value) =>
+                                                                updateStep3({
+                                                                    city: value,
+                                                                    cityLatitude: null,
+                                                                    cityLongitude: null,
+                                                                })
+                                                            }
+                                                            onCitySelect={(city) =>
+                                                                updateStep3({
+                                                                    city: city.germanName,
+                                                                    cityLatitude: city.lat,
+                                                                    cityLongitude: city.lng,
+                                                                })
+                                                            }
+                                                            onZipCodeDetect={(zipCode) => updateStep3({ zipCode })}
+                                                            placeholder="Выберите город"
+                                                        />
+                                                    </div>
                                                         <div>
                                                             <label className="mb-2 block text-sm font-medium text-gray-700">Почтовый индекс</label>
                                                             <input
                                                                 type="text"
-                                                                value={location.zipCode}
-                                                                onChange={(event) => updateWorkLocation(index, { zipCode: event.target.value })}
-                                                                className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="mb-2 block text-sm font-medium text-gray-700">Город</label>
-                                                            <input
-                                                                type="text"
-                                                                value={location.city}
-                                                                onChange={(event) => updateWorkLocation(index, { city: event.target.value })}
+                                                                value={wizard.step3.zipCode}
+                                                                onChange={(event) => updateStep3({ zipCode: event.target.value })}
                                                                 className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
                                                             />
                                                         </div>
                                                     </div>
-
-                                                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 px-3 py-3 text-sm text-gray-700">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={location.hideExactAddress}
-                                                            onChange={(event) =>
-                                                                updateWorkLocation(index, { hideExactAddress: event.target.checked })
-                                                            }
-                                                            className="h-4 w-4 rounded border-gray-300 text-slate-900 focus:ring-slate-300"
-                                                        />
-                                                        Не показывать точный адрес - показывать только район
-                                                    </label>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={addWorkLocation}
-                                        className="w-full rounded-xl border border-dashed border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-                                    >
-                                        + Добавить ещё одно место
-                                    </button>
-                                    <p className="text-xs text-gray-500">
-                                        Основным для поиска будет первое место из списка.
-                                    </p>
+                                            ) : null}
+                                        </div>
+                                    ) : null}
                                 </>
                             ) : (
                                 <>
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Город</label>
-                                        <input
-                                            type="text"
-                                            value={wizard.step3.city}
-                                            onChange={(event) => updateStep3({ city: event.target.value })}
-                                            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
-                                        />
-                                    </div>
+                                    {wizard.step3.providesInStudio ? (
+                                        <>
+                                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-10">
+                                                <div className="sm:col-span-7">
+                                                    <label className="mb-2 block text-sm font-medium text-gray-700">Город</label>
+                                                    <CityCombobox
+                                                        name="salon-city"
+                                                        value={wizard.step3.city}
+                                                        onValueChange={(value) =>
+                                                            updateStep3({
+                                                                city: value,
+                                                                cityLatitude: null,
+                                                                cityLongitude: null,
+                                                                street: '',
+                                                                houseNumber: '',
+                                                                address: '',
+                                                                addressLatitude: null,
+                                                                addressLongitude: null,
+                                                            })
+                                                        }
+                                                        onCitySelect={(city) =>
+                                                            updateStep3({
+                                                                city: city.germanName,
+                                                                cityLatitude: city.lat,
+                                                                cityLongitude: city.lng,
+                                                                street: '',
+                                                                houseNumber: '',
+                                                                address: '',
+                                                                addressLatitude: null,
+                                                                addressLongitude: null,
+                                                            })
+                                                        }
+                                                        onZipCodeDetect={(zipCode) => updateStep3({ zipCode })}
+                                                        placeholder="Выберите город"
+                                                    />
+                                                </div>
+                                                <div className="sm:col-span-3">
+                                                    <label className="mb-2 block text-sm font-medium text-gray-700">Индекс</label>
+                                                    <input
+                                                        type="text"
+                                                        value={wizard.step3.zipCode}
+                                                        onChange={(event) => updateStep3({ zipCode: event.target.value })}
+                                                        className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
+                                                    />
+                                                </div>
+                                            </div>
 
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">
-                                            Улица и номер дома
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={wizard.step3.address}
-                                            onChange={(event) => updateStep3({ address: event.target.value })}
-                                            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
-                                        />
-                                    </div>
+                                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+                                                <div className="sm:col-span-3">
+                                                    <label className="mb-2 block text-sm font-medium text-gray-700">Улица</label>
+                                                    <StreetAddressAutocomplete
+                                                        value={wizard.step3.street}
+                                                        city={wizard.step3.city}
+                                                        disabled={!hasSelectedCity(wizard.step3.city)}
+                                                        isValidated={
+                                                            wizard.step3.addressLatitude != null &&
+                                                            wizard.step3.addressLongitude != null
+                                                        }
+                                                        onValueChange={(value) =>
+                                                            updateStep3({
+                                                                street: value,
+                                                                address: combineStreetAndHouse(value, wizard.step3.houseNumber),
+                                                                addressLatitude: null,
+                                                                addressLongitude: null,
+                                                            })
+                                                        }
+                                                        onSuggestionSelect={(suggestion) =>
+                                                            updateStep3({
+                                                                street: suggestion.streetName,
+                                                                address: combineStreetAndHouse(suggestion.streetName, wizard.step3.houseNumber),
+                                                                addressLatitude: suggestion.lat,
+                                                                addressLongitude: suggestion.lon,
+                                                                zipCode: suggestion.postcode || '',
+                                                            })
+                                                        }
+                                                        placeholder={
+                                                            hasSelectedCity(wizard.step3.city)
+                                                                ? 'Начните вводить название улицы...'
+                                                                : 'Сначала выберите город'
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="sm:col-span-1">
+                                                    <label className="mb-2 block text-sm font-medium text-gray-700">Дом</label>
+                                                    <input
+                                                        type="text"
+                                                        value={wizard.step3.houseNumber}
+                                                        onChange={(event) =>
+                                                            updateStep3({
+                                                                houseNumber: event.target.value,
+                                                                address: combineStreetAndHouse(wizard.step3.street, event.target.value),
+                                                            })
+                                                        }
+                                                        disabled={!hasSelectedCity(wizard.step3.city)}
+                                                        className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900 disabled:bg-gray-50 disabled:text-gray-400"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : null}
 
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Почтовый индекс</label>
-                                        <input
-                                            type="text"
-                                            value={wizard.step3.zipCode}
-                                            onChange={(event) => updateStep3({ zipCode: event.target.value })}
-                                            className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
-                                        />
-                                    </div>
+                                    {wizard.step3.providesOutcall ? (
+                                        <div className="space-y-4 rounded-2xl border border-gray-300 p-4">
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">Радиус выезда (км)</p>
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    Клиенты увидят вас, если их адрес находится в этом радиусе от вашего базового города.
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <input
+                                                    type="range"
+                                                    min={OUTCALL_RADIUS_MIN}
+                                                    max={OUTCALL_RADIUS_MAX}
+                                                    value={wizard.step3.outcallRadiusKm}
+                                                    onChange={(event) => updateStep3({ outcallRadiusKm: event.target.value })}
+                                                    className="w-full accent-slate-900"
+                                                />
+                                                <div className="flex items-center justify-between text-sm">
+                                                    <span className="text-gray-500">{OUTCALL_RADIUS_MIN} км</span>
+                                                    <span className="rounded-full bg-slate-900 px-3 py-1 font-medium text-white">
+                                                        {wizard.step3.outcallRadiusKm} км
+                                                    </span>
+                                                    <span className="text-gray-500">{OUTCALL_RADIUS_MAX} км</span>
+                                                </div>
+                                            </div>
+
+                                            {!wizard.step3.providesInStudio ? (
+                                                <div className="space-y-3">
+                                                    <p className="text-sm font-medium text-gray-900">Ваш базовый город (для расчета радиуса)</p>
+                                                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                        <div>
+                                                            <label className="mb-2 block text-sm font-medium text-gray-700">Город</label>
+                                                            <CityCombobox
+                                                                name="outcall-base-city-salon"
+                                                                value={wizard.step3.city}
+                                                                onValueChange={(value) =>
+                                                                    updateStep3({
+                                                                        city: value,
+                                                                        cityLatitude: null,
+                                                                        cityLongitude: null,
+                                                                    })
+                                                                }
+                                                                onCitySelect={(city) =>
+                                                                    updateStep3({
+                                                                        city: city.germanName,
+                                                                        cityLatitude: city.lat,
+                                                                        cityLongitude: city.lng,
+                                                                    })
+                                                                }
+                                                                onZipCodeDetect={(zipCode) => updateStep3({ zipCode })}
+                                                                placeholder="Выберите город"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="mb-2 block text-sm font-medium text-gray-700">Почтовый индекс</label>
+                                                            <input
+                                                                type="text"
+                                                                value={wizard.step3.zipCode}
+                                                                onChange={(event) => updateStep3({ zipCode: event.target.value })}
+                                                                className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    ) : null}
                                 </>
                             )}
                         </section>
@@ -1363,12 +2055,22 @@ export function MasterOnboardingWizard({
                                                         key={option.value}
                                                         type="button"
                                                         onClick={() => selectServiceCategory(option.value)}
-                                                        className={`rounded-xl border px-3 py-3 text-left transition ${
+                                                        aria-pressed={selected}
+                                                        className={`relative rounded-2xl border-2 px-3 py-3 text-left transition ${
                                                             selected
-                                                                ? 'border-slate-900 bg-slate-900 text-white'
+                                                                ? 'border-slate-900 bg-slate-50 text-slate-900 ring-2 ring-slate-200 shadow-sm'
                                                                 : 'border-gray-300 bg-white text-gray-800 hover:border-gray-400'
                                                         }`}
                                                     >
+                                                        <span
+                                                            className={`absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-full border transition ${
+                                                                selected
+                                                                    ? 'border-slate-900 bg-slate-900 text-white'
+                                                                    : 'border-gray-200 bg-white text-transparent'
+                                                            }`}
+                                                        >
+                                                            <Check className="h-3.5 w-3.5" />
+                                                        </span>
                                                         <div className="text-base">{option.icon}</div>
                                                         <div className="mt-1 text-sm font-medium">{option.label}</div>
                                                     </button>
@@ -1376,6 +2078,21 @@ export function MasterOnboardingWizard({
                                             })}
                                         </div>
                                     </div>
+
+                                    {wizard.step4.serviceCategory === 'OTHER' ? (
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">
+                                                Уточните категорию
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={wizard.step4.otherCategoryDetail}
+                                                onChange={(event) => updateStep4({ otherCategoryDetail: event.target.value })}
+                                                placeholder="Например: Тату, Подология, Пирсинг..."
+                                                className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
+                                            />
+                                        </div>
+                                    ) : null}
 
                                     {wizard.step4.serviceCategory && wizard.step4.serviceCategory !== 'OTHER' ? (
                                         <div>
@@ -1455,10 +2172,22 @@ export function MasterOnboardingWizard({
                                     type="number"
                                     min="0"
                                     step="0.01"
+                                    inputMode="decimal"
                                     value={wizard.step4.price}
-                                    onChange={(event) => updateStep4({ price: event.target.value })}
+                                    onChange={(event) => updateStep4({ price: normalizePriceInput(event.target.value) })}
+                                    onWheel={(event) => event.currentTarget.blur()}
+                                    placeholder="Например: 20"
                                     className="h-11 w-full rounded-xl border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
                                 />
+                                <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+                                    <input
+                                        type="checkbox"
+                                        checked={wizard.step4.isStartingPrice}
+                                        onChange={(event) => updateStep4({ isStartingPrice: event.target.checked })}
+                                        className="h-4 w-4 rounded border-gray-300 text-slate-900 focus:ring-slate-300"
+                                    />
+                                    <span>Цена «от» (зависит от сложности)</span>
+                                </label>
                             </div>
 
                             <div>
@@ -1485,6 +2214,57 @@ export function MasterOnboardingWizard({
                                     className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-gray-900"
                                 />
                             </div>
+
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                                        Фото работы (необязательно)
+                                    </label>
+                                    <p className="text-xs text-gray-500">
+                                        До 5 МБ. Вы сможете добавить больше фото позже в кабинете.
+                                    </p>
+                                </div>
+
+                                {wizard.step4.imagePreviewUrl ? (
+                                    <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+                                        <img
+                                            src={wizard.step4.imagePreviewUrl}
+                                            alt="Предпросмотр фото услуги"
+                                            className="h-56 w-full object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={removeServiceImage}
+                                            className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white transition hover:bg-black/80"
+                                            aria-label="Удалить фото"
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ) : null}
+
+                                <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center transition hover:border-gray-400 hover:bg-gray-100/70">
+                                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-gray-700 shadow-sm">
+                                        <Upload className="h-5 w-5" />
+                                    </span>
+                                    <span className="mt-3 text-sm font-medium text-gray-900">
+                                        {wizard.step4.imagePreviewUrl ? 'Заменить фото' : 'Выбрать фото'}
+                                    </span>
+                                    <span className="mt-1 text-xs text-gray-500">
+                                        JPG, PNG или WebP
+                                    </span>
+                                    <input
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        className="hidden"
+                                        onChange={handleServiceImageChange}
+                                    />
+                                </label>
+
+                                {serviceImageError ? (
+                                    <p className="text-sm text-red-600">{serviceImageError}</p>
+                                ) : null}
+                            </div>
                         </section>
                     ) : null}
 
@@ -1502,6 +2282,7 @@ export function MasterOnboardingWizard({
 
                             {DAYS.map((day) => {
                                 const dayState = wizard.step5[day.id];
+                                const hasInvalidTimeRange = invalidActiveDayIds.includes(day.id);
                                 return (
                                     <div key={day.id} className="rounded-xl border border-gray-300 px-3 py-3">
                                         <label className="flex items-center gap-2 text-sm font-medium text-gray-800">
@@ -1516,25 +2297,37 @@ export function MasterOnboardingWizard({
                                         </label>
 
                                         {dayState.enabled ? (
-                                            <div className="mt-3 grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="mb-1 block text-xs uppercase text-gray-500">с</label>
-                                                    <input
-                                                        type="time"
-                                                        value={dayState.start}
-                                                        onChange={(event) => updateDay(day.id, { start: event.target.value })}
-                                                        className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
-                                                    />
+                                            <div className="mt-3">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="mb-1 block text-xs uppercase text-gray-500">с</label>
+                                                        <input
+                                                            type="time"
+                                                            value={dayState.start}
+                                                            onChange={(event) => updateDay(day.id, { start: event.target.value })}
+                                                            className={`h-10 w-full rounded-lg border px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900 ${
+                                                                hasInvalidTimeRange ? 'border-red-300' : 'border-gray-300'
+                                                            }`}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="mb-1 block text-xs uppercase text-gray-500">до</label>
+                                                        <input
+                                                            type="time"
+                                                            value={dayState.end}
+                                                            onChange={(event) => updateDay(day.id, { end: event.target.value })}
+                                                            className={`h-10 w-full rounded-lg border px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900 ${
+                                                                hasInvalidTimeRange ? 'border-red-300' : 'border-gray-300'
+                                                            }`}
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <label className="mb-1 block text-xs uppercase text-gray-500">до</label>
-                                                    <input
-                                                        type="time"
-                                                        value={dayState.end}
-                                                        onChange={(event) => updateDay(day.id, { end: event.target.value })}
-                                                        className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900 outline-none transition focus:border-gray-900"
-                                                    />
-                                                </div>
+
+                                                {hasInvalidTimeRange ? (
+                                                    <p className="mt-2 text-xs text-red-600">
+                                                        Время начала должно быть раньше времени окончания.
+                                                    </p>
+                                                ) : null}
                                             </div>
                                         ) : null}
                                     </div>
@@ -1553,6 +2346,9 @@ export function MasterOnboardingWizard({
 
                             <p className="text-xs text-gray-500">
                                 При сохранении используется единый рабочий диапазон времени для выбранных дней.
+                            </p>
+                            <p className="text-xs text-gray-500">
+                                Перерывы и точную настройку слотов можно будет добавить позже в личном кабинете.
                             </p>
                         </section>
                     ) : null}
@@ -1574,16 +2370,16 @@ export function MasterOnboardingWizard({
                         {currentStep < 5 ? (
                             <button
                                 type="button"
-                                onClick={goNext}
+                                onClick={() => void goNext()}
                                 disabled={!canGoNext || isSubmitting}
-                                className="h-11 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="h-11 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:hover:bg-slate-200"
                             >
                                 Далее →
                             </button>
                         ) : (
                             <button
                                 type="button"
-                                onClick={completeOnboarding}
+                                onClick={() => void completeOnboarding()}
                                 disabled={!isStep5Valid || isSubmitting}
                                 className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                             >

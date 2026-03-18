@@ -179,7 +179,7 @@ export function SearchInteractiveLayout({
 
     return (
         <div className="flex h-full flex-col lg:flex-row">
-            <div className="h-full w-full overflow-y-auto bg-[#FCFAF8] p-4 pb-24 md:p-6 lg:w-[48%] xl:w-[46%] shadow-[20px_0_30px_-15px_rgba(0,0,0,0.05)] relative z-10">
+            <div className="relative z-10 h-full w-full overflow-y-auto bg-transparent p-4 pb-24 shadow-[20px_0_30px_-15px_rgba(0,0,0,0.05)] md:p-6 lg:w-[48%] xl:w-[46%]">
                 {/* Header with dynamic result count */}
                 <div className="mb-3 flex items-center justify-between gap-3">
                     <h1 className="text-2xl font-bold text-stone-800 font-sans">

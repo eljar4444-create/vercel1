@@ -17,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     try {
         // 2. Dynamic profile pages (/salon/:slug)
         const profiles = await prisma.profile.findMany({
+            where: { status: 'PUBLISHED' },
             select: { slug: true, created_at: true },
         });
 
@@ -29,6 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
         // 3. Geo pages — unique cities (/city-slug)
         const citiesRaw = await prisma.profile.findMany({
+            where: { status: 'PUBLISHED' },
             select: { city: true },
             distinct: ['city'],
         });

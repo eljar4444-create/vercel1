@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -12,27 +11,49 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
-interface AvatarDropdownProps {
-    user?: {
-        name?: string | null;
-        email?: string | null;
-        image?: string | null;
-        role?: string | null;
-        profileId?: number | null;
-        profileSlug?: string | null;
-    } | null;
+export interface AvatarDropdownUser {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    role?: string | null;
+    profileId?: number | null;
+    profileSlug?: string | null;
+    profileStatus?: string | null;
+    onboardingCompleted?: boolean;
+    onboardingType?: string | null;
 }
 
-export function getRoleLabel(role?: string | null, profileId?: number | null) {
-    if (role === 'ADMIN') return 'Администратор';
-    if (profileId) return 'Мастер';
+interface AvatarDropdownProps {
+    user?: AvatarDropdownUser | null;
+}
+
+function normalizeOnboardingType(type?: string | null) {
+    return type === 'INDIVIDUAL' || type === 'SALON' ? type : null;
+}
+
+export function hasIncompleteProviderOnboarding(user?: AvatarDropdownUser | null) {
+    if (!user || user.role === 'ADMIN') return false;
+    if (user.profileStatus === 'DRAFT') return true;
+    return user.onboardingCompleted === false && Boolean(normalizeOnboardingType(user.onboardingType));
+}
+
+export function getContinueOnboardingHref(user?: AvatarDropdownUser | null) {
+    const type = normalizeOnboardingType(user?.onboardingType);
+    return type ? `/onboarding?type=${type}` : '/onboarding';
+}
+
+export function getRoleLabel(user?: AvatarDropdownUser | null) {
+    if (user?.role === 'ADMIN') return 'Администратор';
+    if (user?.profileStatus === 'DRAFT') return 'Черновик';
+    if (user?.onboardingCompleted === false && normalizeOnboardingType(user?.onboardingType)) return 'Регистрация...';
+    if (user?.profileId) return 'Мастер';
     return 'Клиент';
 }
 
 export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
-    const pathname = usePathname();
-    const isOnboarding = pathname?.startsWith('/onboarding');
     const [resolvedProfileId, setResolvedProfileId] = useState<number | null | undefined>(propUser?.profileId);
+    const [resolvedProfileSlug, setResolvedProfileSlug] = useState<string | null | undefined>(propUser?.profileSlug);
+    const [resolvedProfileStatus, setResolvedProfileStatus] = useState<string | null | undefined>(propUser?.profileStatus);
     const [isDashboardOpen, setIsDashboardOpen] = useState(false);
     const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -46,10 +67,24 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
 
     useEffect(() => {
         setResolvedProfileId(propUser?.profileId);
-    }, [propUser?.profileId]);
+        setResolvedProfileSlug(propUser?.profileSlug);
+        setResolvedProfileStatus(propUser?.profileStatus);
+    }, [propUser?.profileId, propUser?.profileSlug, propUser?.profileStatus]);
+
+    const resolvedUser: AvatarDropdownUser | null = propUser
+        ? {
+            ...propUser,
+            profileId: resolvedProfileId ?? null,
+            profileSlug: resolvedProfileSlug ?? null,
+            profileStatus: resolvedProfileStatus ?? null,
+        }
+        : null;
+
+    const hasIncompleteOnboarding = hasIncompleteProviderOnboarding(resolvedUser);
+    const continueOnboardingHref = getContinueOnboardingHref(resolvedUser);
 
     useEffect(() => {
-        if (!propUser || !resolvedProfileId) return;
+        if (!propUser || (!resolvedProfileId && !hasIncompleteOnboarding)) return;
 
         let active = true;
         fetch('/api/me/provider-profile', { cache: 'no-store' })
@@ -57,27 +92,29 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
             .then((data) => {
                 if (!active || !data) return;
                 setResolvedProfileId(data.profileId ?? null);
-                if (propUser && data.profileSlug) {
-                    propUser.profileSlug = data.profileSlug;
-                }
+                setResolvedProfileSlug(data.profileSlug ?? null);
+                setResolvedProfileStatus(data.profileStatus ?? null);
             })
-            .catch(() => {
-                if (active) setResolvedProfileId(null);
-            });
+            .catch(() => undefined);
 
         return () => {
             active = false;
         };
-    }, [propUser, resolvedProfileId]);
+    }, [
+        resolvedProfileId,
+        hasIncompleteOnboarding,
+        propUser?.profileStatus,
+        propUser?.onboardingCompleted,
+        propUser?.onboardingType,
+    ]);
 
     if (!propUser) return null;
 
-    const isMaster = Boolean(resolvedProfileId) || Boolean(isOnboarding);
-    const isProvider = !!resolvedProfileId;
+    const isProvider = Boolean(resolvedProfileId) && !hasIncompleteOnboarding;
     const isAdmin = propUser.role === 'ADMIN';
-    const dashboardBase = resolvedProfileId ? `/dashboard/${resolvedProfileId}` : '/dashboard';
+    const dashboardBase = '/dashboard';
 
-    const dashboardSubLinks = resolvedProfileId
+    const dashboardSubLinks = isProvider
         ? [
             { href: `${dashboardBase}?section=bookings`, label: 'Записи', icon: CalendarDays },
             { href: `${dashboardBase}?section=analytics`, label: 'Статистика', icon: BarChart2 },
@@ -114,7 +151,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                     <div className="flex items-center justify-between gap-2">
                         <p className="truncate text-sm font-semibold text-gray-900">{propUser.name || 'Пользователь'}</p>
                         <Badge variant="outline" className="border-gray-200 bg-white text-[10px] font-medium text-gray-600">
-                            {propUser.role === 'ADMIN' ? 'Администратор' : isMaster ? 'Мастер' : 'Клиент'}
+                            {getRoleLabel(resolvedUser)}
                         </Badge>
                     </div>
                     <p className="truncate text-xs text-gray-500">{propUser.email || 'Без email'}</p>
@@ -123,6 +160,17 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                 <div className="h-px bg-gray-100" />
 
                 <div className="p-2">
+                    {hasIncompleteOnboarding && (
+                        <Link
+                            href={continueOnboardingHref}
+                            onClick={closeAll}
+                            className="mb-1 flex items-center gap-2 rounded-lg bg-stone-50 px-3 py-2 text-sm font-medium text-stone-900 transition-colors hover:bg-stone-100"
+                        >
+                            <Settings className="h-4 w-4 text-stone-500" />
+                            Продолжить настройку профиля
+                        </Link>
+                    )}
+
                     {/* ADMIN links */}
                     {isAdmin && (
                         <>

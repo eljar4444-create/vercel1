@@ -3,7 +3,7 @@
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { put } from '@vercel/blob';
+import { savePublicUpload } from '@/lib/server/public-upload';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -35,38 +35,47 @@ export async function uploadProfilePhoto(formData: FormData) {
     const session = await auth();
 
     if (!session?.user?.id) {
-        throw new Error('Unauthorized');
+        return { success: false, error: 'Требуется авторизация.' };
     }
 
     const file = formData.get('photo') as File | null;
 
     if (!file || !file.size) {
-        throw new Error('No file uploaded');
+        return { success: false, error: 'Файл не выбран.' };
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-        throw new Error('Invalid file type');
+        return { success: false, error: 'Допустимы только JPEG, PNG и WebP.' };
     }
 
     if (file.size > 5 * 1024 * 1024) {
-        throw new Error('File size must be less than 5MB');
+        return { success: false, error: 'Файл слишком большой (макс. 5 МБ).' };
     }
 
-    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '');
-    const filename = `user-avatar-${session.user.id}-${Date.now()}-${safeName}`;
+    try {
+        const upload = await savePublicUpload(file, {
+            blobFolder: 'user-avatars',
+            localFolder: 'uploads/user-avatars',
+            filenamePrefix: session.user.id,
+            fallbackName: 'avatar.jpg',
+        });
 
-    const blob = await put(filename, file, {
-        access: 'public',
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-    });
+        await prisma.user.update({
+            where: { id: session.user.id },
+            data: { image: upload.url },
+        });
 
-    await prisma.user.update({
-        where: { id: session.user.id },
-        data: { image: blob.url },
-    });
+        revalidatePath('/dashboard');
+        revalidatePath('/account/settings');
 
-    revalidatePath('/dashboard');
-    revalidatePath('/account/settings');
+        return { success: true, imageUrl: upload.url };
+    } catch (error) {
+        console.error('uploadProfilePhoto error:', error);
 
-    return { success: true, imageUrl: blob.url };
+        if (!process.env.BLOB_READ_WRITE_TOKEN?.trim() && process.env.NODE_ENV === 'production') {
+            return { success: false, error: 'Хранилище изображений не настроено. Укажите BLOB_READ_WRITE_TOKEN.' };
+        }
+
+        return { success: false, error: 'Не удалось загрузить файл.' };
+    }
 }

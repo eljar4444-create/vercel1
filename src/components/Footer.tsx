@@ -26,10 +26,10 @@ export function Footer() {
     const pathname = usePathname();
 
     // Hide footer on chat page to maximise space for messages
-    if (pathname === '/chat') return null;
+    if (pathname === '/chat' || pathname === '/become-pro') return null;
 
     return (
-        <footer className="border-t border-gray-100 bg-white">
+        <footer className="border-t border-stone-200 bg-transparent">
             <div className="container mx-auto max-w-6xl px-4">
 
                 {/* ── Main columns ── */}
@@ -110,7 +110,7 @@ export function Footer() {
                 </div>
 
                 {/* ── Bottom bar ── */}
-                <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-100 py-5 text-xs text-gray-400 sm:flex-row">
+                <div className="flex flex-col items-center justify-between gap-3 border-t border-stone-200 py-5 text-xs text-gray-400 sm:flex-row">
                     <span>© {new Date().getFullYear()} Svoi.de — Все права защищены.</span>
                     <span>Германия 🇩🇪</span>
                 </div>

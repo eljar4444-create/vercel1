@@ -41,9 +41,9 @@ export function ProviderOnboardingForm({
             return;
         }
 
-        setSuccess('Профиль создан. Переходим в кабинет...');
+        setSuccess('Черновик профиля сохранён. Переходим в кабинет...');
         if (result.profileId) {
-            router.push(`/dashboard/${result.profileId}`);
+            router.push('/dashboard');
             router.refresh();
         }
     };

@@ -2,8 +2,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SalonLoading() {
     return (
-        <div className="min-h-screen bg-slate-50/60">
-            <nav className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
+        <div className="min-h-screen">
+            <nav className="sticky top-0 z-20 border-b border-stone-200 bg-[#F5F2EB]/90 backdrop-blur">
                 <div className="container mx-auto flex h-14 max-w-6xl items-center px-4">
                     <Skeleton className="h-5 w-28" />
                 </div>

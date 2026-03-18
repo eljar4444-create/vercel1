@@ -57,6 +57,7 @@ export default async function CityPage({
     const cityVariants = getCityFilterVariants(cityName);
 
     const andConditions: any[] = [
+        { status: 'PUBLISHED' },
         { is_verified: true },
         { category: { slug: { not: 'health' } } },
         { user: { isBanned: false } }
@@ -83,7 +84,7 @@ export default async function CityPage({
     }
 
     return (
-        <main className="min-h-screen bg-[#fbfbfb]">
+        <main className="min-h-screen">
             <div className="container mx-auto max-w-5xl px-4 py-8">
                 <nav aria-label="Навигация" className="mb-6">
                     <Link href="/" className="text-sm text-slate-500 transition hover:text-slate-800">

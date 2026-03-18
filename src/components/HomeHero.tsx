@@ -150,7 +150,7 @@ export default function HomeHero() {
     };
 
     return (
-        <section className="relative w-full h-screen overflow-hidden flex flex-col justify-center">
+        <section className="relative flex h-screen w-full flex-col justify-center overflow-hidden border-b border-stone-200/80">
             {/* Lazy-loaded video for desktop only - positioned behind the image */}
             {mounted && videoReady && window.innerWidth >= 768 && (
                 <video
@@ -180,7 +180,7 @@ export default function HomeHero() {
                 />
             </div>
 
-            <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/90 via-black/60 to-black/20" />
+            <div className="absolute inset-0 z-10 bg-black/55" />
 
             <div className="relative z-20 flex flex-col items-center text-center px-4 w-full max-w-4xl mx-auto -translate-y-8 md:-translate-y-12">
 

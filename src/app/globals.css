@@ -8,6 +8,7 @@
 
 @layer base {
   :root {
+    --app-shell-bg: #F5F2EB;
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     /* Pure Black */
@@ -118,7 +119,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: var(--app-shell-bg);
   }
   html {
     @apply font-sans;
@@ -135,7 +137,8 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: var(--app-shell-bg);
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 

@@ -19,6 +19,7 @@ export async function middleware(req: NextRequest) {
     const rawOnboardingType = typeof token?.onboardingType === 'string' ? token.onboardingType : null;
     const onboardingType = rawOnboardingType === 'SALON' ? 'SALON' : rawOnboardingType === 'INDIVIDUAL' ? 'INDIVIDUAL' : null;
     const isOnboardingRoute = pathname.startsWith('/onboarding');
+    const isDashboardRoute = pathname.startsWith('/dashboard');
     const isAuthRoute = pathname.startsWith('/auth');
     const isApiRoute = pathname.startsWith('/api');
     const isPublicRoute =
@@ -29,7 +30,7 @@ export async function middleware(req: NextRequest) {
         pathname.startsWith('/become-pro');
 
     if (!onboardingCompleted && onboardingType) {
-        if (!isOnboardingRoute && !isAuthRoute && !isApiRoute && !isPublicRoute && !isAdminRoute) {
+        if (!isOnboardingRoute && !isDashboardRoute && !isAuthRoute && !isApiRoute && !isPublicRoute && !isAdminRoute) {
             return NextResponse.redirect(new URL(`/onboarding?type=${onboardingType}`, req.url));
         }
     }

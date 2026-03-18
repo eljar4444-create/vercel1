@@ -77,7 +77,7 @@ export async function updateSchedule(formData: FormData): Promise<UpdateSchedule
             select: { slug: true },
         });
 
-        revalidatePath(`/dashboard/${profileId}`);
+        revalidatePath('/dashboard');
         if (updatedProfile?.slug) {
             revalidatePath(`/salon/${updatedProfile.slug}`);
         }

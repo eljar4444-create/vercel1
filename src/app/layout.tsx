@@ -35,9 +35,9 @@ export default function RootLayout({
 }) {
     return (
         <html lang="ru" className={cn("font-sans")}>
-            <body className={`${inter.variable} ${playfair.variable} font-sans antialiased bg-[#F5F2EB] text-gray-900 min-h-screen flex flex-col`}>
+            <body className={`${inter.variable} ${playfair.variable} font-sans antialiased text-gray-900 min-h-screen flex flex-col`}>
                 <Providers>
-                    <Suspense fallback={<div className="relative z-50 h-16 border-b border-slate-200 bg-[#F5F2EB]" />}>
+                    <Suspense fallback={<div className="relative z-50 h-16 border-b border-stone-200 bg-transparent" />}>
                         <Header />
                     </Suspense>
                     <main className="flex-1">

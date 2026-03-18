@@ -76,7 +76,7 @@ export function SearchQuickFilters() {
     return (
         <nav
             aria-label="Фильтры"
-            className="sticky top-0 z-10 -mx-4 mb-4 border-b border-[#E5E0D8]/50 bg-[#FCFAF8] px-4 py-2 md:-mx-6 md:px-6"
+            className="sticky top-0 z-10 -mx-4 mb-4 border-b border-[#E5E0D8]/50 bg-[var(--app-shell-bg)] px-4 py-2 md:-mx-6 md:px-6"
         >
             <div className="flex items-center">
                 <div className="relative shrink-0" ref={menuRef}>
