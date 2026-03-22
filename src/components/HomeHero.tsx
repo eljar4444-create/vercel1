@@ -109,21 +109,54 @@ export default function HomeHero() {
     };
 
     const handleGeo = async () => {
-        if (!navigator.geolocation || isGeoLoading) {
-            toast.error('Геолокация недоступна в вашем браузере');
-            return;
-        }
+        if (isGeoLoading) return;
         setIsGeoLoading(true);
+
         try {
-            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                navigator.geolocation.getCurrentPosition(resolve, reject, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 60000,
-                });
-            });
+            let lat: number | null = null;
+            let lon: number | null = null;
+
+            // Strategy 1: Try browser Geolocation API first (precise GPS)
+            if (navigator.geolocation) {
+                try {
+                    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: false,
+                            timeout: 60000,
+                            maximumAge: 60000,
+                        });
+                    });
+                    lat = position.coords.latitude;
+                    lon = position.coords.longitude;
+                } catch {
+                    // Browser geolocation failed — fall through to IP-based
+                }
+            }
+
+            // Strategy 2: Fallback to IP-based geolocation (no permissions needed)
+            if (lat === null || lon === null) {
+                const ipRes = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(8000) });
+                if (!ipRes.ok) throw new Error('ip-geo-failed');
+                const ipData = await ipRes.json();
+                if (ipData.city) {
+                    // Try to resolve the city name directly
+                    const directResolved = resolveGermanCity(String(ipData.city));
+                    if (directResolved) {
+                        setCity(directResolved);
+                        setCityOpen(false);
+                        toast.success(`Определен город: ${directResolved}`);
+                        return;
+                    }
+                }
+                // If direct city name didn't match, use coordinates for reverse geocoding
+                lat = ipData.latitude;
+                lon = ipData.longitude;
+                if (!lat || !lon) throw new Error('no-coords');
+            }
+
+            // Reverse geocode coordinates to get the city name
             const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}&zoom=10&addressdetails=1`,
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`,
                 { headers: { 'Accept-Language': 'de,en' } }
             );
             if (!response.ok) throw new Error('geo-failed');
@@ -138,12 +171,8 @@ export default function HomeHero() {
             setCity(resolved);
             setCityOpen(false);
             toast.success(`Определен город: ${resolved}`);
-        } catch (error) {
-            if ((error as GeolocationPositionError)?.code === 1) {
-                toast.error('Доступ к геолокации запрещен');
-            } else {
-                toast.error('Не удалось определить город автоматически');
-            }
+        } catch {
+            toast.error('Не удалось определить город. Введите вручную');
         } finally {
             setIsGeoLoading(false);
         }
@@ -273,7 +302,8 @@ export default function HomeHero() {
                                     title="Определить мой город"
                                     aria-label="Определить мой город"
                                     onClick={handleGeo}
-                                    className="absolute right-4 inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                                    disabled={isGeoLoading}
+                                    className={`absolute right-4 inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors ${isGeoLoading ? 'text-blue-500 cursor-wait' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'}`}
                                 >
                                     {isGeoLoading
                                         ? <Loader2 className="h-5 w-5 animate-spin" />

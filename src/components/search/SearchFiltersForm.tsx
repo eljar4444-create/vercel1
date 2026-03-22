@@ -202,19 +202,52 @@ export function SearchFiltersForm({
     };
 
     const handleGeo = async () => {
-        if (!navigator.geolocation || isGeoLoading) {
-            toast.error('Геолокация недоступна в вашем браузере');
-            return;
-        }
+        if (isGeoLoading) return;
         setIsGeoLoading(true);
+
         try {
-            const pos = await new Promise<GeolocationPosition>((res, rej) =>
-                navigator.geolocation.getCurrentPosition(res, rej, {
-                    enableHighAccuracy: true, timeout: 10000, maximumAge: 60000,
-                })
-            );
+            let lat: number | null = null;
+            let lon: number | null = null;
+
+            // Strategy 1: Try browser Geolocation API first (precise GPS)
+            if (navigator.geolocation) {
+                try {
+                    const pos = await new Promise<GeolocationPosition>((res, rej) => {
+                        navigator.geolocation.getCurrentPosition(res, rej, {
+                            enableHighAccuracy: false,
+                            timeout: 60000,
+                            maximumAge: 60000,
+                        });
+                    });
+                    lat = pos.coords.latitude;
+                    lon = pos.coords.longitude;
+                } catch {
+                    // Browser geolocation failed — fall through to IP-based
+                }
+            }
+
+            // Strategy 2: Fallback to IP-based geolocation (no permissions needed)
+            if (lat === null || lon === null) {
+                const ipRes = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(8000) });
+                if (!ipRes.ok) throw new Error('ip-geo-failed');
+                const ipData = await ipRes.json();
+                if (ipData.city) {
+                    const directResolved = resolveGermanCity(String(ipData.city));
+                    if (directResolved) {
+                        setCity(directResolved);
+                        setCityOpen(false);
+                        toast.success(`Определен город: ${directResolved}`);
+                        return;
+                    }
+                }
+                lat = ipData.latitude;
+                lon = ipData.longitude;
+                if (!lat || !lon) throw new Error('no-coords');
+            }
+
+            // Reverse geocode coordinates to get the city name
             const r = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&zoom=10&addressdetails=1`,
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`,
                 { headers: { 'Accept-Language': 'de,en' } }
             );
             if (!r.ok) throw new Error('geo-fail');
@@ -229,12 +262,8 @@ export function SearchFiltersForm({
             setCity(resolved);
             setCityOpen(false);
             toast.success(`Определен город: ${resolved}`);
-        } catch (err) {
-            if ((err as GeolocationPositionError)?.code === 1) {
-                toast.error('Доступ к геолокации запрещен');
-            } else {
-                toast.error('Не удалось определить город автоматически');
-            }
+        } catch {
+            toast.error('Не удалось определить город. Введите вручную');
         } finally {
             setIsGeoLoading(false);
         }
@@ -341,10 +370,12 @@ export function SearchFiltersForm({
                             type="button"
                             onClick={(e) => { e.stopPropagation(); handleGeo(); }}
                             tabIndex={isExpanded ? 0 : -1}
+                            disabled={isGeoLoading}
                             aria-label="Определить мой город"
                             className={cn(
-                                'absolute right-3 flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-all duration-200 hover:bg-gray-100 hover:text-gray-700',
-                                isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                                'absolute right-3 flex h-7 w-7 items-center justify-center rounded-md transition-all duration-200',
+                                isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none',
+                                isGeoLoading ? 'text-blue-500 cursor-wait' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-700'
                             )}
                         >
                             {isGeoLoading

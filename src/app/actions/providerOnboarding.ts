@@ -5,6 +5,7 @@ import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
 import { generateUniqueSlug } from '@/lib/generateUniqueSlug';
 import { geocodeAddress } from '@/lib/geocode';
+import { buildSchedulePayload, createUniformSchedule } from '@/lib/scheduling';
 import type { Prisma, ProviderType } from '@prisma/client';
 
 interface ProviderOnboardingResult {
@@ -529,11 +530,7 @@ export async function publishProviderProfile(formData: FormData): Promise<Provid
             const publishedProfile = await tx.profile.update({
                 where: { id: profileId },
                 data: {
-                    schedule: {
-                        workingDays,
-                        startTime,
-                        endTime,
-                    },
+                    schedule: buildSchedulePayload(createUniformSchedule(workingDays, startTime, endTime).days),
                     status: PENDING_PROVIDER_STATUS,
                     onboardingStep: 5,
                     attributes: stripDraftAttributes(profile.attributes),

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { Plus, Loader2, AlertCircle, Upload, X } from 'lucide-react';
+import { Plus, Loader2, AlertCircle, Upload, X, Save } from 'lucide-react';
 import { addService, createService, updateService } from '@/app/actions/services';
 import { uploadServicePhoto } from '@/app/actions/upload';
 import toast from 'react-hot-toast';
@@ -20,9 +20,25 @@ interface AddServiceFormProps {
     };
     serviceId?: string;
     returnHref?: string;
+    compact?: boolean;
+    onSaved?: (service: {
+        id: number;
+        title: string;
+        description?: string | null;
+        images?: string[];
+        price: string;
+        duration_min: number;
+    }) => void;
 }
 
-export function AddServiceForm({ profileId, initialData, serviceId, returnHref }: AddServiceFormProps) {
+export function AddServiceForm({
+    profileId,
+    initialData,
+    serviceId,
+    returnHref,
+    compact = false,
+    onSaved,
+}: AddServiceFormProps) {
     const isEditing = Boolean(serviceId);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -139,6 +155,7 @@ export function AddServiceForm({ profileId, initialData, serviceId, returnHref }
         formData.set('title', selectedService);
         formData.set('description', description.trim());
         formData.set('images', JSON.stringify(images));
+        formData.set('redirect_on_success', onSaved ? 'false' : 'true');
 
         if (profileId != null) {
             formData.set('profile_id', profileId.toString());
@@ -163,6 +180,10 @@ export function AddServiceForm({ profileId, initialData, serviceId, returnHref }
                     setIsSubmitting(false);
                     return;
                 }
+
+                if (result?.success && result.service) {
+                    onSaved?.(result.service);
+                }
             } else if (profileId != null) {
                 const result = await addService(formData);
                 if (!result.success) {
@@ -170,6 +191,10 @@ export function AddServiceForm({ profileId, initialData, serviceId, returnHref }
                     toast.error(result.error || 'Ошибка при добавлении услуги');
                     setIsSubmitting(false);
                     return;
+                }
+
+                if (result.service) {
+                    onSaved?.(result.service);
                 }
             } else {
                 const result = await createService(null, formData);
@@ -193,7 +218,7 @@ export function AddServiceForm({ profileId, initialData, serviceId, returnHref }
 
         setIsSubmitting(false);
 
-        if (profileId != null && !isEditing) {
+        if (profileId != null && !isEditing && !onSaved) {
             (e.target as HTMLFormElement).reset();
             setSelectedCategory('');
             setSelectedSubcategory('');
@@ -208,9 +233,9 @@ export function AddServiceForm({ profileId, initialData, serviceId, returnHref }
     };
 
     return (
-        <div className={profileId != null && !isEditing ? '' : 'min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8'}>
-            <div className={profileId != null && !isEditing ? '' : 'bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-gray-100'}>
-                {(profileId == null || isEditing) && (
+        <div className={compact || (profileId != null && !isEditing) ? '' : 'min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8'}>
+            <div className={compact || (profileId != null && !isEditing) ? '' : 'bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-gray-100'}>
+                {!compact && (profileId == null || isEditing) && (
                     <h1 className="text-2xl font-bold mb-2 text-center text-gray-900">
                         {isEditing ? 'Редактировать услугу' : 'Какую услугу вы хотите предложить?'}
                     </h1>
@@ -363,6 +388,8 @@ export function AddServiceForm({ profileId, initialData, serviceId, returnHref }
                     >
                         {isSubmitting ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : isEditing ? (
+                            <Save className="w-4 h-4" />
                         ) : (
                             <Plus className="w-4 h-4" />
                         )}
@@ -370,7 +397,7 @@ export function AddServiceForm({ profileId, initialData, serviceId, returnHref }
                     </button>
                 </form>
 
-                {returnHref && (
+                {returnHref && !compact && (
                     <div className="mt-6 text-center">
                         <Link href={returnHref} className="text-sm text-gray-500 hover:text-black transition-colors">
                             Вернуться в кабинет

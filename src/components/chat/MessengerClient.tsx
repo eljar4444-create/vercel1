@@ -191,33 +191,36 @@ export function MessengerClient({
     }, [bookingContext]);
 
     return (
-        <div className="flex min-h-[calc(100vh-80px)] items-start justify-center bg-slate-50 px-4 py-8">
-            <div className="flex h-[700px] w-full max-w-5xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
-                <aside className="flex h-full w-72 shrink-0 flex-col border-r border-slate-200 bg-slate-50 md:w-80 md:max-w-md">
-                    <div className="border-b border-gray-100 bg-white px-4 py-4">
-                        <h2 className="text-lg font-bold text-gray-900">Чаты</h2>
-                        <p className="text-xs text-gray-500">Личные сообщения с клиентами и мастерами</p>
+        <div className="min-h-[calc(100vh-80px)] bg-transparent px-4 py-6 md:px-6 md:py-8">
+            <div className="mx-auto flex min-h-[calc(100vh-128px)] w-full max-w-6xl flex-col gap-5 lg:max-h-[780px] lg:flex-row">
+                <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-[28px] border border-stone-200/80 bg-[rgba(245,242,235,0.78)] backdrop-blur-sm lg:min-h-0 lg:w-[320px] xl:w-[348px]">
+                    <div className="border-b border-stone-200 px-5 py-5">
+                        <h2 className="text-lg font-bold text-stone-900">Чаты</h2>
+                        <p className="text-xs text-stone-500">Личные сообщения с клиентами и мастерами</p>
                     </div>
 
                     <div className="min-h-0 flex-1 overflow-y-auto">
                         {conversations.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">
-                                <MessageSquare className="mx-auto mb-2 h-10 w-10 text-gray-300" />
+                            <div className="p-8 text-center text-stone-500">
+                                <MessageSquare className="mx-auto mb-2 h-10 w-10 text-stone-300" />
                                 <p className="text-sm">Диалогов пока нет</p>
                             </div>
                         ) : (
-                            <div className="space-y-1 p-2">
+                            <div>
                                 {conversations.map((conversation) => (
                                     <button
                                         key={conversation.id}
                                         onClick={() => setSelectedConversationId(conversation.id)}
                                         className={cn(
-                                            'w-full rounded-xl border px-3 py-3 text-left transition',
+                                            'relative w-full border-b border-stone-200 px-4 py-4 text-left transition last:border-b-0',
                                             selectedConversationId === conversation.id
-                                                ? 'border-gray-900 bg-white shadow-sm'
-                                                : 'border-transparent bg-transparent hover:bg-white'
+                                                ? 'bg-[#EEE6D8]'
+                                                : 'bg-transparent hover:bg-[#F1EBE0]'
                                         )}
                                     >
+                                        {selectedConversationId === conversation.id ? (
+                                            <span className="absolute left-0 top-3 bottom-3 w-1 rounded-r-full bg-stone-700/75" aria-hidden="true" />
+                                        ) : null}
                                         <div className="flex items-center gap-2">
                                             {conversation.interlocutor.image ? (
                                                 <img
@@ -226,13 +229,13 @@ export function MessengerClient({
                                                     className="h-9 w-9 rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <UserCircle className="h-9 w-9 text-gray-300" />
+                                                <UserCircle className="h-9 w-9 text-stone-300" />
                                             )}
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center justify-between gap-2">
                                                 <p
                                                     className={cn(
-                                                        'truncate text-sm text-gray-900',
+                                                        'truncate text-sm text-stone-900',
                                                         conversation.unreadCount > 0 ? 'font-semibold' : 'font-medium'
                                                     )}
                                                 >
@@ -240,16 +243,16 @@ export function MessengerClient({
                                                     </p>
                                                 <div className="flex items-center gap-2">
                                                     {conversation.unreadCount > 0 && (
-                                                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-sky-600 px-1 text-[10px] font-semibold text-white">
+                                                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-stone-800 px-1.5 text-[10px] font-semibold text-white">
                                                             {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
                                                         </span>
                                                     )}
-                                                    <span className="text-[10px] text-gray-400">
+                                                    <span className="text-[10px] text-stone-400">
                                                         {format(new Date(conversation.lastMessageAt), 'HH:mm', { locale: ru })}
                                                     </span>
                                                 </div>
                                                 </div>
-                                                <p className="truncate text-xs text-gray-500">{conversation.lastMessage}</p>
+                                                <p className="truncate text-xs text-stone-500">{conversation.lastMessage}</p>
                                             </div>
                                         </div>
                                     </button>
@@ -259,10 +262,10 @@ export function MessengerClient({
                     </div>
                 </aside>
 
-                <section className="flex h-full min-w-0 flex-1 flex-col">
+                <section className="flex min-h-[540px] min-w-0 flex-1 flex-col overflow-hidden rounded-[30px] border border-black/5 bg-white shadow-[0_26px_70px_rgba(15,23,42,0.08)]">
                     {selectedConversation ? (
                         <>
-                            <div className="flex h-16 items-center gap-3 border-b border-slate-200 bg-white px-4">
+                            <div className="flex h-16 items-center gap-3 border-b border-stone-200 bg-white px-5 md:px-6">
                                 <Avatar className="h-9 w-9">
                                     <AvatarImage
                                         src={selectedConversation.interlocutor.image || undefined}
@@ -271,19 +274,19 @@ export function MessengerClient({
                                     <AvatarFallback>{getInitials(selectedConversation.interlocutor.name)}</AvatarFallback>
                                 </Avatar>
                                 <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold text-gray-900">
+                                    <p className="truncate text-sm font-semibold text-stone-900">
                                         {selectedConversation.interlocutor.name || 'Собеседник'}
                                     </p>
-                                    <p className="truncate text-xs text-gray-500">{selectedConversation.interlocutor.subtitle || 'Диалог'}</p>
+                                    <p className="truncate text-xs text-stone-500">{selectedConversation.interlocutor.subtitle || 'Диалог'}</p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-3 text-sm md:px-6">
+                            <div className="flex items-center justify-between border-b border-stone-200 bg-white px-5 py-3 text-sm md:px-6">
                                 {bookingContext ? (
                                     <>
-                                        <div className="min-w-0 pr-2 text-slate-700">
-                                            <p className="flex items-center gap-2 truncate font-medium text-slate-800">
-                                                <CalendarDays className="h-4 w-4 shrink-0 text-slate-500" />
+                                        <div className="min-w-0 pr-2 text-stone-700">
+                                            <p className="flex items-center gap-2 truncate font-medium text-stone-800">
+                                                <CalendarDays className="h-4 w-4 shrink-0 text-stone-500" />
                                                 <span className="truncate">
                                                     {bookingContext.serviceTitle} • {format(new Date(bookingContext.date), 'd MMMM', { locale: ru })} в {bookingContext.time}
                                                 </span>
@@ -296,35 +299,35 @@ export function MessengerClient({
                                         ) : null}
                                     </>
                                 ) : (
-                                    <p className="text-xs text-slate-500">Нет связанной записи для этого диалога</p>
+                                    <p className="text-xs text-stone-500">Нет связанной записи для этого диалога</p>
                                 )}
                             </div>
 
-                            <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50/70 p-4 md:p-6">
+                            <div className="min-h-0 flex-1 overflow-y-auto bg-white p-4 md:p-6">
                                 {isLoadingMessages ? (
                                     <div className="flex h-full items-center justify-center">
-                                        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                                        <Loader2 className="h-6 w-6 animate-spin text-stone-400" />
                                     </div>
                                 ) : messages.length === 0 ? (
-                                    <div className="flex h-full items-center justify-center text-sm text-gray-500">
+                                    <div className="flex h-full items-center justify-center text-sm text-stone-500">
                                         Начните диалог первым сообщением
                                     </div>
                                 ) : (
-                                    <div className="space-y-3">
+                                    <div className="space-y-3.5">
                                         {messages.map((message) => {
                                             const isMine = message.senderId === currentUserId;
                                             return (
                                                 <div key={message.id} className={cn('flex', isMine ? 'justify-end' : 'justify-start')}>
                                                     <div
                                                         className={cn(
-                                                            'max-w-[78%] rounded-2xl px-3 py-2 text-sm shadow-sm',
+                                                            'max-w-[78%] rounded-2xl border px-3.5 py-2.5 text-sm shadow-sm',
                                                             isMine
-                                                                ? 'rounded-2xl rounded-tr-sm bg-slate-900 text-white'
-                                                                : 'rounded-2xl rounded-tl-sm bg-slate-100 text-slate-900'
+                                                                ? 'rounded-2xl rounded-tr-sm border-[#E2D5C0] bg-[#EDE3D2] text-stone-900'
+                                                                : 'rounded-2xl rounded-tl-sm border-stone-200 bg-stone-100 text-stone-900'
                                                         )}
                                                     >
                                                         <p className="whitespace-pre-wrap break-words">{message.content}</p>
-                                                        <p className={cn('mt-1 text-xs opacity-70', isMine ? 'text-slate-200' : 'text-slate-500')}>
+                                                        <p className="mt-1.5 text-xs text-stone-500/80">
                                                             {format(new Date(message.createdAt), 'dd.MM HH:mm', { locale: ru })}
                                                         </p>
                                                     </div>
@@ -335,18 +338,18 @@ export function MessengerClient({
                                 )}
                             </div>
 
-                            <form onSubmit={handleSend} className="border-t border-slate-200 bg-white p-4">
-                                <div className="flex items-center gap-2">
+                            <form onSubmit={handleSend} className="border-t border-stone-200 bg-white p-4 md:px-6">
+                                <div className="flex items-center gap-3">
                                     <input
                                         value={newMessage}
                                         onChange={(event) => setNewMessage(event.target.value)}
                                         placeholder="Введите сообщение..."
-                                        className="h-11 flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-slate-400"
+                                        className="h-11 flex-1 rounded-full border border-stone-200 bg-transparent px-4 text-sm text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-stone-400"
                                     />
                                     <Button
                                         type="submit"
                                         disabled={!newMessage.trim() || isSending}
-                                        className="h-11 rounded-full bg-slate-900 px-4 text-white hover:bg-slate-800"
+                                        className="h-11 w-11 rounded-full border border-stone-200 bg-[#F3ECE0] p-0 text-stone-700 shadow-none transition hover:bg-[#E8DEC9] disabled:border-stone-200 disabled:bg-transparent disabled:text-stone-300"
                                     >
                                         {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                     </Button>
@@ -354,7 +357,7 @@ export function MessengerClient({
                             </form>
                         </>
                     ) : (
-                        <div className="flex h-full items-center justify-center text-gray-500">
+                        <div className="flex h-full items-center justify-center px-6 text-center text-stone-500">
                             Выберите диалог слева
                         </div>
                     )}

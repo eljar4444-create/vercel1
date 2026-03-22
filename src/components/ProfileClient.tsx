@@ -442,7 +442,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         alt={`${profile.name} — фото ${idx + 1}`}
                                         fetchPriority={idx === 0 ? 'high' : 'auto'}
                                         loading={idx === 0 ? 'eager' : 'lazy'}
-                                        className="h-full w-full object-cover object-top"
+                                        className="absolute inset-0 h-full w-full object-cover object-top"
                                     />
                                 </div>
                             ))}
@@ -457,19 +457,19 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     return (
                                         <>
                                             <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[1]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[2]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[2]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[3]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[3]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(4)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[4]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[4]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                                 {imgs.length > 5 && (
                                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-semibold backdrop-blur-[2px] transition group-hover:bg-black/50">
                                                         Показать все {imgs.length} фото
@@ -484,16 +484,16 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     return (
                                         <>
                                             <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[1]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[2]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[2]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[3]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[3]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                         </>
                                     );
@@ -503,13 +503,13 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     return (
                                         <>
                                             <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[1]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(2)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[2]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[2]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                         </>
                                     );
@@ -519,10 +519,10 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     return (
                                         <>
                                             <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[1]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <img src={imgs[1]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                             </div>
                                         </>
                                     );
@@ -530,7 +530,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
                                 return (
                                     <div onClick={() => setSelectedImageIndex(0)} className="col-span-4 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group aspect-[21/9] md:aspect-auto md:h-full">
-                                        <img src={imgs[0]} className="h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                        <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
                                     </div>
                                 );
                             })()}

@@ -51,3 +51,5 @@ next-env.d.ts
 scripts/data_dump.json
 scripts/*.log
 *.log
+
+certificates

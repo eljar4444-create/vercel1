@@ -1,9 +1,9 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { parseSchedule, timeToMinutes, minutesToTime, WorkingSchedule, weekdayFromDateString } from '@/lib/scheduling';
-import { format, addDays, getDay, isBefore, isPast, parse } from 'date-fns';
-import { toZonedTime, format as formatTz } from 'date-fns-tz';
+import { getDayIntervals, parseSchedule, timeToMinutes, minutesToTime } from '@/lib/scheduling';
+import { format, addDays, getDay } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 export type QuickSlot = {
     date: string; // YYYY-MM-DD
@@ -83,58 +83,55 @@ export async function getQuickSlots(profileId: number, durationMin: number = 30)
             const checkDate = addDays(nowZoned, i);
             const checkDateStr = format(checkDate, 'yyyy-MM-dd');
             const dayOfWeek = getDay(checkDate); // 0 = Sunday, 1 = Monday
-
-            if (!schedule.workingDays.includes(dayOfWeek)) continue;
-
-            const workStartMin = timeToMinutes(schedule.startTime);
-            const workEndMin = timeToMinutes(schedule.endTime);
+            const workIntervals = getDayIntervals(schedule, dayOfWeek);
+            if (workIntervals.length === 0) continue;
             const dayBookings = bookingsByDate[checkDateStr] || [];
 
-            // Generate slots in 30min increments
-            for (let min = workStartMin; min <= workEndMin - Math.max(30, durationMin); min += 30) {
-                // If checking today, skip past times
-                if (i === 0) {
-                    const currentHour = nowZoned.getHours();
-                    const currentMinute = nowZoned.getMinutes();
-                    const currentMinOfDay = currentHour * 60 + currentMinute;
-                    if (min <= currentMinOfDay + 30) { // Add a 30 min buffer
-                        continue;
-                    }
-                }
+            for (const interval of workIntervals) {
+                const workStartMin = timeToMinutes(interval.start);
+                const workEndMin = timeToMinutes(interval.end);
 
-                // Check overlap with bookings
-                const isOverlapping = dayBookings.some(b => {
-                    const slotEnd = min + durationMin;
-                    // Strict overlap checking:
-                    // slot starts during booking OR slot ends during booking OR slot encompasses booking
-                    return (min >= b.startMin && min < b.endMin) ||
-                        (slotEnd > b.startMin && slotEnd <= b.endMin) ||
-                        (min <= b.startMin && slotEnd >= b.endMin);
-                });
-
-                if (!isOverlapping) {
-                    const timeStr = minutesToTime(min);
-                    // Determine Russian day label
-                    const dayLabel = getRussianDayShort(dayOfWeek) + ' ' + format(checkDate, 'd');
-
-                    const slot: QuickSlot = {
-                        date: checkDateStr,
-                        time: timeStr,
-                        label: i === 0 ? 'Сегодня' : dayLabel,
-                        period: min < 12 * 60 ? 'morning' : 'evening'
-                    };
-
-                    if (slot.period === 'morning' && morning.length < MAX_SLOTS_PER_PERIOD) {
-                        morning.push(slot);
-                    } else if (slot.period === 'evening' && evening.length < MAX_SLOTS_PER_PERIOD) {
-                        evening.push(slot);
+                // Generate slots in 30min increments
+                for (let min = workStartMin; min <= workEndMin - Math.max(30, durationMin); min += 30) {
+                    // If checking today, skip past times
+                    if (i === 0) {
+                        const currentHour = nowZoned.getHours();
+                        const currentMinute = nowZoned.getMinutes();
+                        const currentMinOfDay = currentHour * 60 + currentMinute;
+                        if (min <= currentMinOfDay + 30) {
+                            continue;
+                        }
                     }
 
-                    // Optimization: if we already have enough slots for both periods, break outer loop
-                    if (morning.length >= MAX_SLOTS_PER_PERIOD && evening.length >= MAX_SLOTS_PER_PERIOD) {
-                        return { hasSchedule: true, morning, evening };
+                    const isOverlapping = dayBookings.some((b) => {
+                        const slotEnd = min + durationMin;
+                        return (min >= b.startMin && min < b.endMin) ||
+                            (slotEnd > b.startMin && slotEnd <= b.endMin) ||
+                            (min <= b.startMin && slotEnd >= b.endMin);
+                    });
+
+                    if (!isOverlapping) {
+                        const timeStr = minutesToTime(min);
+                        const dayLabel = getRussianDayShort(dayOfWeek) + ' ' + format(checkDate, 'd');
+
+                        const slot: QuickSlot = {
+                            date: checkDateStr,
+                            time: timeStr,
+                            label: i === 0 ? 'Сегодня' : dayLabel,
+                            period: min < 12 * 60 ? 'morning' : 'evening',
+                        };
+
+                        if (slot.period === 'morning' && morning.length < MAX_SLOTS_PER_PERIOD) {
+                            morning.push(slot);
+                        } else if (slot.period === 'evening' && evening.length < MAX_SLOTS_PER_PERIOD) {
+                            evening.push(slot);
+                        }
+
+                        if (morning.length >= MAX_SLOTS_PER_PERIOD && evening.length >= MAX_SLOTS_PER_PERIOD) {
+                            return { hasSchedule: true, morning, evening };
+                        }
                     }
-                }
+                }   
             }
         }
 

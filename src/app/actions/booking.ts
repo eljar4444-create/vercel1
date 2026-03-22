@@ -3,9 +3,11 @@
 import prisma from '@/lib/prisma';
 import type { Prisma } from '@prisma/client';
 import {
+    getDayIntervals,
     parseSchedule,
     timeToMinutes,
     minutesToTime,
+    type TimeInterval,
     weekdayFromDateString,
 } from '@/lib/scheduling';
 import { auth } from '@/auth';
@@ -32,8 +34,7 @@ function normalizeDuration(duration: number | undefined) {
 }
 
 function calculateSlots(
-    workStartMin: number,
-    workEndMin: number,
+    workIntervals: TimeInterval[],
     serviceDuration: number,
     busyBookings: BusyBooking[]
 ) {
@@ -44,11 +45,16 @@ function calculateSlots(
     });
 
     const result: string[] = [];
-    for (let slotStart = workStartMin; slotStart + serviceDuration <= workEndMin; slotStart += serviceDuration) {
-        const slotEnd = slotStart + serviceDuration;
-        const overlaps = busyIntervals.some((busy) => slotStart < busy.end && slotEnd > busy.start);
-        if (!overlaps) {
-            result.push(minutesToTime(slotStart));
+    for (const interval of workIntervals) {
+        const workStartMin = timeToMinutes(interval.start);
+        const workEndMin = timeToMinutes(interval.end);
+
+        for (let slotStart = workStartMin; slotStart + serviceDuration <= workEndMin; slotStart += serviceDuration) {
+            const slotEnd = slotStart + serviceDuration;
+            const overlaps = busyIntervals.some((busy) => slotStart < busy.end && slotEnd > busy.start);
+            if (!overlaps) {
+                result.push(minutesToTime(slotStart));
+            }
         }
     }
 
@@ -70,14 +76,9 @@ async function fetchAvailableSlots(
 
     const schedule = parseSchedule(profile.schedule);
     const weekday = weekdayFromDateString(date);
+    const workIntervals = getDayIntervals(schedule, weekday);
 
-    if (!schedule.workingDays.includes(weekday)) {
-        return [];
-    }
-
-    const workStartMin = timeToMinutes(schedule.startTime);
-    const workEndMin = timeToMinutes(schedule.endTime);
-    if (workEndMin <= workStartMin) {
+    if (workIntervals.length === 0) {
         return [];
     }
 
@@ -95,7 +96,7 @@ async function fetchAvailableSlots(
         },
     });
 
-    return calculateSlots(workStartMin, workEndMin, normalizeDuration(serviceDuration), busyBookings);
+    return calculateSlots(workIntervals, normalizeDuration(serviceDuration), busyBookings);
 }
 
 export async function getAvailableSlots(input: {
@@ -173,15 +174,9 @@ export async function getWeekAvailableSlots(input: {
             currentDay.setDate(currentDay.getDate() + i);
             const dateStr = currentDay.toISOString().split('T')[0];
             const weekday = weekdayFromDateString(dateStr);
+            const workIntervals = getDayIntervals(schedule, weekday);
 
-            if (!schedule.workingDays.includes(weekday)) {
-                weekSlots[dateStr] = [];
-                continue;
-            }
-
-            const workStartMin = timeToMinutes(schedule.startTime);
-            const workEndMin = timeToMinutes(schedule.endTime);
-            if (workEndMin <= workStartMin) {
+            if (workIntervals.length === 0) {
                 weekSlots[dateStr] = [];
                 continue;
             }
@@ -189,7 +184,7 @@ export async function getWeekAvailableSlots(input: {
             // Filter the bulk bookings down to just this specific day
             const daysBookings = busyBookings.filter((b) => b.date.toISOString().split('T')[0] === dateStr);
 
-            weekSlots[dateStr] = calculateSlots(workStartMin, workEndMin, duration, daysBookings);
+            weekSlots[dateStr] = calculateSlots(workIntervals, duration, daysBookings);
         }
 
         return { success: true, weekSlots };

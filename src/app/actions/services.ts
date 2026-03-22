@@ -22,6 +22,24 @@ function parseImages(rawImages: FormDataEntryValue | null): string[] {
     }
 }
 
+function serializeService(service: {
+    id: number;
+    title: string;
+    description: string | null;
+    images: string[];
+    price: { toString(): string } | number | string;
+    duration_min: number;
+}) {
+    return {
+        id: service.id,
+        title: service.title,
+        description: service.description,
+        images: service.images,
+        price: service.price.toString(),
+        duration_min: service.duration_min,
+    };
+}
+
 export async function createService(prevState: any, formData: FormData) {
     void prevState;
 
@@ -112,7 +130,9 @@ export async function updateService(serviceId: string, prevState: any, formData:
             return { message: 'Unauthorized or Service not found' };
         }
 
-        await prisma.service.update({
+        const shouldRedirect = formData.get('redirect_on_success') !== 'false';
+
+        const updatedService = await prisma.service.update({
             where: { id: serviceIdInt },
             data: {
                 title,
@@ -126,7 +146,12 @@ export async function updateService(serviceId: string, prevState: any, formData:
         revalidatePath('/dashboard');
         revalidatePath(`/services/${serviceId}`);
         revalidatePath('/dashboard', 'layout');
-        redirect('/dashboard?section=services');
+
+        if (shouldRedirect) {
+            redirect('/dashboard?section=services');
+        }
+
+        return { success: true, service: serializeService(updatedService) };
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {
             return { message: 'Профиль не найден' };
@@ -196,7 +221,7 @@ export async function addService(formData: FormData) {
             }
         }
 
-        await prisma.service.create({
+        const createdService = await prisma.service.create({
             data: {
                 profile_id: profileId,
                 title,
@@ -207,8 +232,9 @@ export async function addService(formData: FormData) {
             },
         });
 
+        revalidatePath('/dashboard');
         revalidatePath('/dashboard', 'layout');
-        return { success: true };
+        return { success: true, service: serializeService(createdService) };
     } catch (error: any) {
         console.error('addService error:', error);
         return { success: false, error: 'Ошибка при добавлении услуги.' };

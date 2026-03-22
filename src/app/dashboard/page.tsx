@@ -600,9 +600,7 @@ async function renderProviderDashboard(
                                 <WorkingHoursForm
                                     profileId={profileId}
                                     initialSchedule={{
-                                        startTime: workingSchedule.startTime,
-                                        endTime: workingSchedule.endTime,
-                                        workingDays: workingSchedule.workingDays,
+                                        days: workingSchedule.days,
                                     }}
                                 />
                             </div>

@@ -2,7 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { isValidTime, normalizeWorkingDays, timeToMinutes } from '@/lib/scheduling';
+import { buildSchedulePayload, normalizeDaySchedules, validateIntervals } from '@/lib/scheduling';
 import { auth } from '@/auth';
 import { requireProviderProfile } from '@/lib/auth-helpers';
 
@@ -26,25 +26,30 @@ export async function updateSchedule(formData: FormData): Promise<UpdateSchedule
     }
 
     const profileId = Number(formData.get('profile_id'));
-    const startTime = String(formData.get('start_time') || '');
-    const endTime = String(formData.get('end_time') || '');
-    const workingDaysRaw = formData.getAll('working_days').map((value) => Number(value));
+    const rawSchedule = String(formData.get('schedule') || '');
 
     if (!Number.isInteger(profileId)) {
         return { success: false, error: 'Некорректный профиль.' };
     }
 
-    if (!isValidTime(startTime) || !isValidTime(endTime)) {
-        return { success: false, error: 'Введите корректное время работы.' };
+    let parsedSchedule: unknown;
+    try {
+        parsedSchedule = rawSchedule ? JSON.parse(rawSchedule) : [];
+    } catch {
+        return { success: false, error: 'Не удалось прочитать расписание.' };
     }
 
-    const startMin = timeToMinutes(startTime);
-    const endMin = timeToMinutes(endTime);
-    if (endMin <= startMin) {
-        return { success: false, error: 'Время окончания должно быть позже времени начала.' };
+    const days = normalizeDaySchedules(parsedSchedule);
+    if (days.length === 0) {
+        return { success: false, error: 'Выберите хотя бы один рабочий день и задайте интервал.' };
     }
 
-    const workingDays = normalizeWorkingDays(workingDaysRaw);
+    for (const day of days) {
+        const error = validateIntervals(day.intervals);
+        if (error) {
+            return { success: false, error };
+        }
+    }
 
     try {
         if (session.user.role !== 'ADMIN') {
@@ -64,11 +69,7 @@ export async function updateSchedule(formData: FormData): Promise<UpdateSchedule
         await prisma.profile.update({
             where: { id: profileId },
             data: {
-                schedule: {
-                    workingDays,
-                    startTime,
-                    endTime,
-                },
+                schedule: buildSchedulePayload(days),
             },
         });
 
