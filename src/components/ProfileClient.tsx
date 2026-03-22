@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {
     Clock,
@@ -158,13 +159,8 @@ function ServiceRow({
         <div className="flex items-center gap-4 py-4">
             {/* Thumbnail */}
             {thumb ? (
-                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[#F0EBE3]">
-                    <img
-                        src={thumb}
-                        alt={service.title}
-                        className="h-full w-full object-cover"
-                        onError={handleThumbError}
-                    />
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[#F0EBE3]">
+                    <Image src={thumb} alt={service.title} fill className="object-cover" onError={handleThumbError} />
                 </div>
             ) : (
                 <div className="h-12 w-12 shrink-0 rounded-xl bg-[#F5F2ED]" />
@@ -437,13 +433,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     onClick={() => setSelectedImageIndex(idx)}
                                     className={`relative shrink-0 snap-center overflow-hidden rounded-xl bg-stone-100 aspect-[4/3] sm:aspect-[16/7] cursor-pointer ${coverImages.length > 1 ? 'w-[92%] sm:w-[85%]' : 'w-full'}`}
                                 >
-                                    <img
-                                        src={src}
-                                        alt={`${profile.name} — фото ${idx + 1}`}
-                                        fetchPriority={idx === 0 ? 'high' : 'auto'}
-                                        loading={idx === 0 ? 'eager' : 'lazy'}
-                                        className="absolute inset-0 h-full w-full object-cover object-top"
-                                    />
+                                    <Image src={src} alt={`${profile.name} — фото ${idx + 1}`} priority={idx === 0} fill className="object-cover object-top" />
                                 </div>
                             ))}
                         </div>
@@ -457,19 +447,19 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     return (
                                         <>
                                             <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[0]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[1]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[1]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[2]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[2]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[3]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[3]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(4)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[4]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[4]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                                 {imgs.length > 5 && (
                                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-sm font-semibold backdrop-blur-[2px] transition group-hover:bg-black/50">
                                                         Показать все {imgs.length} фото
@@ -484,16 +474,16 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     return (
                                         <>
                                             <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[0]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(1)} className="col-span-1 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[1]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[1]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(2)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[2]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[2]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(3)} className="col-span-1 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[3]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[3]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                         </>
                                     );
@@ -503,13 +493,13 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     return (
                                         <>
                                             <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[0]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[1]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[1]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(2)} className="col-span-2 row-span-1 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[2]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[2]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                         </>
                                     );
@@ -519,10 +509,10 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     return (
                                         <>
                                             <div onClick={() => setSelectedImageIndex(0)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[0]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                             <div onClick={() => setSelectedImageIndex(1)} className="col-span-2 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group">
-                                                <img src={imgs[1]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                                <Image src={imgs[1]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                             </div>
                                         </>
                                     );
@@ -530,7 +520,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
                                 return (
                                     <div onClick={() => setSelectedImageIndex(0)} className="col-span-4 row-span-2 relative overflow-hidden rounded-xl bg-stone-100 cursor-pointer group aspect-[21/9] md:aspect-auto md:h-full">
-                                        <img src={imgs[0]} className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" />
+                                        <Image src={imgs[0]} fill className="object-cover object-top transition duration-500 group-hover:scale-105 group-hover:opacity-90" alt="" sizes="(min-width: 768px) 50vw, 100vw" />
                                     </div>
                                 );
                             })()}
@@ -541,11 +531,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                         {/* Header */}
                         <div className="flex flex-col md:flex-row gap-6 items-start md:items-center mb-10">
                             {headerAvatarSrc ? (
-                                <img
-                                    src={headerAvatarSrc}
-                                    alt={profile.name}
-                                    className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-sm shrink-0 object-top"
-                                    onError={() => {
+                                <Image src={headerAvatarSrc} alt={profile.name} width={128} height={128} className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-sm shrink-0 object-top" onError={() => {
                                         if (headerAvatarSrc !== FALLBACK_COVER) {
                                             setHeaderAvatarSrc(FALLBACK_COVER);
                                             return;
