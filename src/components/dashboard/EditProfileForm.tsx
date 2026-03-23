@@ -34,6 +34,7 @@ interface EditProfileFormProps {
         longitude: number | null;
         studioImages: string[];
         languages: string[];
+        taxId?: string;
     };
     connectTelegramLink: string | null;
 }
@@ -69,6 +70,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
     );
     const [isUploadingStudio, setIsUploadingStudio] = useState(false);
     const [isDisconnecting, setIsDisconnecting] = useState(false);
+    const [taxId, setTaxId] = useState(profile.taxId || '');
     const isSalon = providerType === 'SALON';
 
     useEffect(() => {
@@ -211,6 +213,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
         formData.set('provider_type', providerType);
         formData.set('name', name.trim());
         formData.set('bio', bio);
+        formData.set('taxId', taxId.trim());
         formData.delete('languages');
         languages.forEach((language) => formData.append('languages', language));
 
@@ -349,6 +352,21 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                                 );
                             })}
                         </div>
+                    </div>
+
+                    <div className="mt-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3">
+                        <label className={labelClass}>Steuernummer</label>
+                        <input
+                            name="taxId"
+                            type="text"
+                            value={taxId}
+                            onChange={(e) => setTaxId(e.target.value)}
+                            placeholder="z.B. 123/456/78901"
+                            className={inputClass}
+                        />
+                        <p className="mt-1.5 text-xs text-gray-500">
+                            Erforderlich, um Ihr Profil für Kunden sichtbar zu machen.
+                        </p>
                     </div>
                 </TabsContent>
 

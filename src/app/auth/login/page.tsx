@@ -86,6 +86,7 @@ function AuthContent() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [websiteUrl, setWebsiteUrl] = useState(''); // Honeypot field
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formError, setFormError] = useState<string | null>(null);
@@ -134,6 +135,7 @@ function AuthContent() {
                         password,
                         name,
                         role: 'USER',
+                        website_url: websiteUrl, // Bot honeypot
                     }),
                 });
 
@@ -373,6 +375,20 @@ function AuthContent() {
                                         />
                                     </div>
                                 )}
+
+                                {/* Honeypot - Visually hidden to humans, but bots will try to fill it */}
+                                <div className="absolute opacity-0 -z-50 h-0 w-0 overflow-hidden" aria-hidden="true">
+                                    <label htmlFor="website_url">Website URL</label>
+                                    <input
+                                        id="website_url"
+                                        name="website_url"
+                                        type="text"
+                                        value={websiteUrl}
+                                        onChange={(e) => setWebsiteUrl(e.target.value)}
+                                        tabIndex={-1}
+                                        autoComplete="off"
+                                    />
+                                </div>
 
                                 <div>
                                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">

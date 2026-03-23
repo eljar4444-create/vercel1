@@ -10,6 +10,10 @@ const RegisterSchema = z.object({
     name: z.string().min(2),
 });
 
+// In-memory rate limiting map
+// Keys are IP addresses, values are { count, resetTime }
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
 export async function POST(req: NextRequest) {
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret || jwtSecret.length < 16) {
@@ -27,6 +31,48 @@ export async function POST(req: NextRequest) {
         const onboardingType = typeParam === 'SALON' ? 'SALON' : 'INDIVIDUAL';
 
         const body = await req.json();
+
+        // 1. Honeypot check: if website_url is filled, fake 200 OK immediately
+        if (body.website_url && typeof body.website_url === 'string' && body.website_url.trim().length > 0) {
+            console.log('Bot detected via honeypot field. Returning fake success.');
+            // Return fake 200 to trick the bot without touching the DB
+            return NextResponse.json({
+                success: true,
+                token: 'honeypot-fake-token-do-not-use',
+                user: { id: 0, email: body.email || 'bot@example.com', role: 'USER', name: body.name || 'Bot User' },
+            });
+        }
+
+        // Extract client IP for rate limiting and AGB acceptance record
+        const clientIp =
+            req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+            req.headers.get('x-real-ip') ||
+            'unknown';
+
+        // 2. IP Rate Limiting (5 attempts per hour)
+        if (clientIp !== 'unknown') {
+            const NOW = Date.now();
+            const WINDOW_MS = 60 * 60 * 1000; // 1 hour
+            const MAX_ATTEMPTS = 5;
+
+            const record = rateLimitMap.get(clientIp);
+            if (record) {
+                if (NOW > record.resetTime) {
+                    rateLimitMap.set(clientIp, { count: 1, resetTime: NOW + WINDOW_MS });
+                } else {
+                    if (record.count >= MAX_ATTEMPTS) {
+                        return NextResponse.json(
+                            { error: 'Слишком много попыток регистрации с этого IP. Попробуйте снова через час.' },
+                            { status: 429 }
+                        );
+                    }
+                    record.count += 1;
+                    rateLimitMap.set(clientIp, record);
+                }
+            } else {
+                rateLimitMap.set(clientIp, { count: 1, resetTime: NOW + WINDOW_MS });
+            }
+        }
 
         const result = RegisterSchema.safeParse(body);
 
@@ -54,6 +100,8 @@ export async function POST(req: NextRequest) {
                 password: hashedPassword,
                 name,
                 role: 'USER',
+                agbAcceptedAt: new Date(),
+                agbAcceptedIp: clientIp,
                 ...(isProviderRegistration
                     ? {
                         onboardingCompleted: false,

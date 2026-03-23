@@ -139,6 +139,17 @@ model User {
   onboardingCompleted  Boolean      @default(false)
   onboardingType       String?
 
+  // --- Subscription & Billing (hidden, for future Stripe integration) ---
+  subscriptionPlan      String    @default("FREE")
+  stripeCustomerId      String?   @unique
+  stripeSubscriptionId  String?   @unique
+  isGrandfathered       Boolean   @default(false)
+
+  // --- Legal & DAC7 Compliance (hidden) ---
+  agbAcceptedAt         DateTime?
+  agbAcceptedIp         String?
+  legalAddress          String?
+
   profile       Profile?
   accounts      Account[]
   sessions      Session[]

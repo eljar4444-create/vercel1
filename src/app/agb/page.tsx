@@ -8,18 +8,11 @@ export default function AgbPage() {
             <h1 className="text-3xl font-bold mb-8">Allgemeine Nutzungsbedingungen (AGB)</h1>
             <p className="text-gray-600 mb-8">für die Webseite Svoi.de</p>
 
-            <section className="mb-8 bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-blue-900">
-                <p className="font-semibold mb-2">Wichtiger Hinweis zum Projektstatus</p>
-                <p className="leading-relaxed">
-                    Die Webseite <strong>Svoi.de</strong> ist ein rein privates, nicht-kommerzielles Portfolio-Projekt, das zu Demonstrationszwecken im Rahmen der Softwareentwicklung erstellt wurde. Es handelt sich um ein <strong>kostenloses Portfolio-Projekt ohne Gewinnerzielungsabsicht</strong>. Es werden keine Gebühren oder Zahlungen über diese Plattform abgewickelt.
-                </p>
-            </section>
-
             <ScrollReveal>
                 <section className="mb-8">
                     <h2 className="text-2xl font-bold mb-4 border-b pb-2">Präambel</h2>
                     <p className="text-gray-700 leading-relaxed">
-                        Diese Webseite (Svoi.de) ist ein rein privates, nicht-kommerzielles Internetangebot (nachfolgend „Portal“ oder „Plattform“). Der Betreiber verfolgt mit diesem Portal keine Gewinnerzielungsabsicht. Zweck des Portals ist die kostenlose Bereitstellung von Informationen über lokale Dienstleister zur Förderung der lokalen Gemeinschaft und zur Veranschaulichung technischer Möglichkeiten eines Software-Portfolios.
+                        Diese Webseite (Svoi.de) ist eine Plattform zur Vermittlung und Online-Terminbuchung von Beauty- und Wellness-Dienstleistungen (nachfolgend „Portal“). Das Portal befindet sich derzeit in einer kostenlosen Beta-Phase. Zweck des Portals ist die Bereitstellung einer technischen Infrastruktur (Software-as-a-Service), die es Dienstleistern ermöglicht, ihre Angebote zu präsentieren, und Nutzern (Kunden) erlaubt, diese Dienstleister zu finden und Termine anzufragen.
                     </p>
                 </section>
 
@@ -86,21 +79,24 @@ export default function AgbPage() {
                         <li>pornografisch, gewaltverherrlichend, rassistisch oder diskriminierend sind;</li>
                         <li>Viren, Trojaner oder andere schädliche Software enthalten.</li>
                     </ul>
-                    <p className="text-gray-700 leading-relaxed">
+                    <p className="text-gray-700 leading-relaxed mb-4">
                         <strong>Täuschungsverbot:</strong> Es ist untersagt, falsche Tatsachen zu behaupten oder irreführende Angaben über die Qualität oder Eigenschaften von Dienstleistungen zu machen.
+                    </p>
+                    <p className="text-gray-700 leading-relaxed">
+                        <strong>Steuern und Abgaben:</strong> Svoi.de ist an den Transaktionen zwischen Kunden und Dienstleistern in keiner Weise finanziell beteiligt. Sämtliche Zahlungen für gebuchte Dienstleistungen erfolgen direkt zwischen Kunde und Dienstleister (z.B. vor Ort). Der Dienstleister ist allein und vollumfänglich dafür verantwortlich, alle Einnahmen, die über das Portal generiert werden, ordnungsgemäß den zuständigen Steuerbehörden (Finanzamt) zu melden und abzuführen.
                     </p>
                 </section>
 
-                <section className="mb-8" id="widerrufsrecht">
-                    <h2 className="text-2xl font-bold mb-4 border-b pb-2">§ 5 Widerrufsrecht</h2>
+                <section className="mb-8" id="vertragsverhaeltnisse">
+                    <h2 className="text-2xl font-bold mb-4 border-b pb-2">§ 5 Vertragsverhältnisse und Stornierungen</h2>
                     <p className="text-gray-700 leading-relaxed mb-4">
-                        Verbrauchern steht grundsätzlich ein Widerrufsrecht zu. Dieses richtet sich nach den gesetzlichen Bestimmungen.
+                        <strong>1. Zwei-Parteien-Verhältnis:</strong> Über Svoi.de geschlossene Verträge über Beauty- oder Wellness-Dienstleistungen kommen ausschließlich zwischen dem Nutzer (Kunde) und dem jeweiligen Dienstleister (Anbieter) zustande. Svoi.de wird nicht Vertragspartei dieser Dienstleistungsverträge.
                     </p>
-                    <p className="text-gray-700 leading-relaxed font-semibold mb-2">
-                        Ausschluss des Widerrufsrechts für Dienstleistungen mit festem Termin (§ 312g Abs. 2 Nr. 9 BGB):
+                    <p className="text-gray-700 leading-relaxed mb-4">
+                        <strong>2. Haftung für Leistungen:</strong> Svoi.de haftet nicht für die Qualität, Sicherheit oder Rechtmäßigkeit der angebotenen Dienstleistungen. Ebenso haftet Svoi.de nicht für Zahlungsausfälle von Kunden oder nicht wahrgenommene Termine (No-Shows).
                     </p>
                     <p className="text-gray-700 leading-relaxed">
-                        Das Widerrufsrecht besteht, soweit die Parteien nichts anderes vereinbart haben, nicht bei Verträgen zur Erbringung von Dienstleistungen im Zusammenhang mit Freizeitbetätigungen, wenn der Vertrag für die Erbringung einen <strong>spezifischen Termin oder Zeitraum</strong> vorsieht (§ 312g Abs. 2 Nr. 9 BGB). Dementsprechend ist bei der Buchung von Termindienstleistungen (z. B. festgelegte Beauty- oder Wellness-Behandlungen) über die Profil-Links der Anbieter das Widerrufsrecht für diese spezifischen Terminbuchungen ausgeschlossen.
+                        <strong>3. Stornierungen:</strong> Die Bedingungen für die Stornierung von Terminen richten sich ausschließlich nach den individuellen AGB oder Stornierungsrichtlinien des jeweiligen Dienstleisters.
                     </p>
                 </section>
 

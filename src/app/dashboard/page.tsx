@@ -234,6 +234,7 @@ async function renderProviderDashboard(
             status: true,
             schedule: true,
             category: { select: { name: true, slug: true } },
+            user_id: true,
         },
     });
 
@@ -241,13 +242,24 @@ async function renderProviderDashboard(
         redirect('/onboarding');
     }
 
-    const languageRows = await prisma.$queryRaw<Array<{ languages: string[] | null }>>`
+    const languageRows = await prisma.$queryRaw<Array<{ languages: string[] | null }>>` 
         SELECT "languages"
         FROM "Profile"
         WHERE "id" = ${profile.id}
         LIMIT 1
     `;
     const profileLanguages = languageRows[0]?.languages ?? [];
+
+    // Fetch taxId for soft lock UI
+    const ownerUser = profile.user_id
+        ? await prisma.user.findUnique({
+            where: { id: profile.user_id },
+            select: { taxId: true },
+        })
+        : null;
+    const hasTaxId = Boolean(ownerUser?.taxId?.trim());
+    const currentTaxId = ownerUser?.taxId ?? '';
+    const isSalonProvider = profile.provider_type === 'SALON';
 
     const connectTelegramLink =
         process.env.TELEGRAM_BOT_USERNAME && !profile.telegramChatId
@@ -608,33 +620,72 @@ async function renderProviderDashboard(
                     )}
 
                     {currentSection === 'profile' && (
-                        <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
-                            <div className="border-b border-stone-100 px-5 py-4">
-                                <h2 className="text-base font-semibold text-slate-900">Профиль мастера</h2>
-                                <p className="mt-0.5 text-xs text-stone-400">
-                                    Обновите описание, контакты и данные витрины для клиентов.
-                                </p>
+                        <>
+                            {!hasTaxId && (
+                                <div className="overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50 to-white shadow-sm">
+                                    <div className="flex items-start gap-3 px-5 py-4">
+                                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                                            <AlertCircle className="h-4 w-4" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            {isSalonProvider ? (
+                                                <>
+                                                    <p className="text-sm font-semibold text-amber-900">
+                                                        Требуется налоговый номер (Steuernummer / USt-IdNr)
+                                                    </p>
+                                                    <p className="mt-1 text-sm leading-relaxed text-amber-800">
+                                                        Для активации профиля салона и публикации в каталоге, пожалуйста, укажите налоговый номер вашей компании в настройках.
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className="text-sm font-semibold text-amber-900">
+                                                        Требуется налоговый номер (Steuernummer)
+                                                    </p>
+                                                    <p className="mt-1 text-sm leading-relaxed text-amber-800">
+                                                        Чтобы клиенты могли находить вас в поиске и записываться, пожалуйста, укажите ваш налоговый номер в настройках профиля.
+                                                    </p>
+                                                    <Link
+                                                        href="/guide/kleingewerbe"
+                                                        className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-200"
+                                                    >
+                                                        У меня еще нет номера. Как его получить? 👉
+                                                    </Link>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
+                                <div className="border-b border-stone-100 px-5 py-4">
+                                    <h2 className="text-base font-semibold text-slate-900">Профиль мастера</h2>
+                                    <p className="mt-0.5 text-xs text-stone-400">
+                                        Обновите описание, контакты и данные витрины для клиентов.
+                                    </p>
+                                </div>
+                                <div className="p-5">
+                                    <EditProfileForm
+                                        profile={{
+                                            id: profileId,
+                                            name: profile.name,
+                                            providerType: profile.provider_type,
+                                            bio: profile.bio,
+                                            phone: profile.phone,
+                                            languages: profileLanguages,
+                                            telegramChatId: profile.telegramChatId ?? null,
+                                            city: profile.city,
+                                            address: profile.address,
+                                            latitude: profile.latitude,
+                                            longitude: profile.longitude,
+                                            studioImages: profile.studioImages,
+                                            taxId: currentTaxId,
+                                        }}
+                                        connectTelegramLink={connectTelegramLink}
+                                    />
+                                </div>
                             </div>
-                            <div className="p-5">
-                                <EditProfileForm
-                                    profile={{
-                                        id: profileId,
-                                        name: profile.name,
-                                        providerType: profile.provider_type,
-                                        bio: profile.bio,
-                                        phone: profile.phone,
-                                        languages: profileLanguages,
-                                        telegramChatId: profile.telegramChatId ?? null,
-                                        city: profile.city,
-                                        address: profile.address,
-                                        latitude: profile.latitude,
-                                        longitude: profile.longitude,
-                                        studioImages: profile.studioImages,
-                                    }}
-                                    connectTelegramLink={connectTelegramLink}
-                                />
-                            </div>
-                        </div>
+                        </>
                     )}
                     </main>
 

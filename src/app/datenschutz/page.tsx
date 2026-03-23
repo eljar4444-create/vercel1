@@ -40,6 +40,8 @@ export default function DatenschutzPage() {
                         <li><strong>Registrierung:</strong> Name, E-Mail-Adresse und Telefonnummer zur Erstellung von Test-Profilen.</li>
                         <li><strong>Dienstleister-Profile:</strong> Standortdaten (Stadt/Adresse) und Bilder von Dienstleistungen zur Veranschaulichung der Suchfunktion.</li>
                         <li><strong>Buchungen:</strong> Informationen über fiktive oder reale Terminanfragen werden ausschließlich zur Darstellung des Workflows im System gespeichert.</li>
+                        <li><strong>Schutz von Standortdaten (Dienstleister):</strong> Um die Privatsphäre von Dienstleistern (z.B. Home-Studios) zu schützen, wird die genaue Adresse im öffentlichen Profil standardmäßig ausgeblendet oder nur auf Stadt-/Stadtteilebene angezeigt. Die exakte Adresse wird Kunden erst nach einer verbindlichen Terminbestätigung durch den Dienstleister mitgeteilt.</li>
+                        <li><strong>Protokollierung der Nutzungsbedingungen:</strong> Bei der Registrierung speichern wir den Zeitpunkt (Timestamp) sowie die IP-Adresse des Nutzers, um die Zustimmung zu unseren Allgemeinen Geschäftsbedingungen (AGB) rechtlich dokumentieren zu können.</li>
                     </ul>
                 </section>
             </ScrollReveal>
@@ -68,6 +70,9 @@ export default function DatenschutzPage() {
                         <li><strong>Kartenmaterial:</strong> Tiles von CartoDB und Geocoding über Nominatim (OpenStreetMap). Hierbei werden IP-Adressen an die jeweiligen Server übertragen.</li>
                         <li><strong>Zahlungen:</strong> Es werden ausdrücklich <strong>keine Zahlungsdaten</strong> (Kreditkarten, Bankverbindungen) erfasst oder verarbeitet.</li>
                     </ul>
+                    <p className="text-gray-700 leading-relaxed mb-4">
+                        <strong>Datenweitergabe bei Terminbuchungen:</strong> Wenn ein Nutzer (Kunde) eine Terminanfrage über die Plattform stellt, werden die eingegebenen Kontaktdaten (Name, Telefonnummer, ggf. E-Mail) ausschließlich an den ausgewählten Dienstleister übermittelt, um die Terminvereinbarung und Vertragserfüllung zwischen Kunde und Dienstleister zu ermöglichen (Art. 6 Abs. 1 lit. b DSGVO).
+                    </p>
                 </section>
             </ScrollReveal>
 
@@ -85,6 +90,15 @@ export default function DatenschutzPage() {
                     <h2 className="text-2xl font-bold mb-4 border-b pb-2">7. Ihre Rechte (Auskunft, Löschung, Widerruf)</h2>
                     <p className="text-gray-700 leading-relaxed mb-4">
                         Sie können jederzeit die Löschung Ihres Test-Accounts verlangen oder der Speicherung Ihrer Daten widersprechen. Kontaktieren Sie uns hierzu einfach per E-Mail.
+                    </p>
+                </section>
+            </ScrollReveal>
+
+            <ScrollReveal>
+                <section className="mb-8">
+                    <h2 className="text-2xl font-bold mb-4 border-b pb-2">8. Verzicht auf Tracking-Cookies (Cookieless Architecture)</h2>
+                    <p className="text-gray-700 leading-relaxed mb-4">
+                        Wir respektieren Ihre Privatsphäre. Diese Webseite funktioniert grundsätzlich ohne den Einsatz von nicht-essenziellen Tracking- oder Werbe-Cookies. Es werden keine Daten an Werbenetzwerke weitergegeben und Ihr Surfverhalten wird nicht seitenübergreifend analysiert. Für die Authentifizierung (Login) nutzen wir sichere, serverseitige Tokens oder den lokalen Speicher des Browsers, die rein technisch für die Bereitstellung des Dienstes zwingend erforderlich sind (Art. 6 Abs. 1 lit. f DSGVO).
                     </p>
                 </section>
             </ScrollReveal>

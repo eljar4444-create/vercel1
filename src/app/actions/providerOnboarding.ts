@@ -478,6 +478,18 @@ export async function publishProviderProfile(formData: FormData): Promise<Provid
         return { success: false, error: 'Настройте расписание перед отправкой.' };
     }
 
+    // Soft lock: require taxId (Steuernummer) before publishing
+    const currentUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { taxId: true },
+    });
+    if (!currentUser?.taxId?.trim()) {
+        return {
+            success: false,
+            error: 'Für die Veröffentlichung Ihres Profils ist eine Steuernummer erforderlich. Bitte tragen Sie diese in Ihren Profileinstellungen ein.',
+        };
+    }
+
     const draftSaveResult = await saveProviderDraft(formData);
     if (!draftSaveResult.success || !draftSaveResult.profileId) {
         return draftSaveResult;

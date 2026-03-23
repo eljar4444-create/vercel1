@@ -187,7 +187,7 @@ export async function updateProfile(formData: FormData) {
                     latitude,
                     longitude,
                 },
-                select: { slug: true },
+                select: { slug: true, user_id: true },
             });
 
             await tx.$executeRaw`
@@ -195,6 +195,15 @@ export async function updateProfile(formData: FormData) {
                 SET "languages" = ${languages}
                 WHERE "id" = ${profileId}
             `;
+
+            // Persist taxId on the User record if provided
+            const taxIdValue = (formData.get('taxId') as string)?.trim() || null;
+            if (profile.user_id && formData.has('taxId')) {
+                await tx.user.update({
+                    where: { id: profile.user_id },
+                    data: { taxId: taxIdValue || null },
+                });
+            }
 
             return profile;
         });
