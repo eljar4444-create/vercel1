@@ -230,6 +230,8 @@ export async function createBooking(input: BookingInput) {
                 throw new Error('Выбранное время уже занято. Обновите слоты и выберите другое время.');
             }
 
+            const slotLock = `${profileId}:none:${input.date}:${input.time}`;
+
             return tx.booking.create({
                 data: {
                     profile_id: profileId,
@@ -240,6 +242,7 @@ export async function createBooking(input: BookingInput) {
                     user_name: input.userName,
                     user_phone: input.userPhone,
                     status: 'pending',
+                    slotLock,
                 },
             });
         }, {
@@ -281,6 +284,9 @@ export async function createBooking(input: BookingInput) {
         return { success: true, bookingId: booking.id };
     } catch (error: any) {
         console.error('Booking creation error:', error);
+        if (error.code === 'P2002') {
+            return { success: false, error: 'К сожалению, это время только что заняли. Пожалуйста, выберите другое.' };
+        }
         return { success: false, error: error.message || 'Ошибка при создании записи' };
     }
 }

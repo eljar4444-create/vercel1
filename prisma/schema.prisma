@@ -101,6 +101,7 @@ model Booking {
   user_name   String
   user_phone  String
   status      String   @default("pending")
+  slotLock    String?  @unique
   created_at  DateTime @default(now())
 
   user        User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
