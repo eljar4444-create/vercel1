@@ -30,4 +30,15 @@
 - [Custom Social Feeds] — Not a social network. Focus strictly on B2B SaaS scheduling mechanics.
 
 ## Traceability
-<!-- Filled automatically by roadmapper -->
+
+| ID | Phase | Title |
+|----|-------|-------|
+| CORE-01 | Phase 1 | DB-level slot locking |
+| CORE-02 | Phase 1 | Optimized Availability API |
+| CORE-03 | Phase 1 | UTC Data Normalization |
+| INFR-01 | Phase 2 | Background queue integration |
+| INFR-02 | Phase 2 | Async Email worker |
+| INFR-03 | Phase 2 | Async Telegram worker |
+| ONBD-01 | Phase 3 | Backend Onboarding State Machine |
+| ONBD-02 | Phase 3 | Publishing strict enforcement |
+| ONBD-03 | Phase 3 | Optimistic UI Onboarding Wizard |
