@@ -83,10 +83,14 @@ export default async function OnboardingPage({ searchParams }: OnboardingPagePro
             providesInStudio: true,
             providesOutcall: true,
             outcallRadiusKm: true,
+            onboardingCompleted: true,
         },
     });
 
     if (profile?.status && profile.status !== 'DRAFT') {
+        if (!profile.onboardingCompleted) {
+            redirect('/onboarding/legal-setup');
+        }
         redirect('/dashboard');
     }
 

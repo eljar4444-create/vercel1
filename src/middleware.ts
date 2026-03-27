@@ -29,9 +29,10 @@ export async function middleware(req: NextRequest) {
         pathname.startsWith('/_next') ||
         pathname.startsWith('/become-pro');
 
-    if (!onboardingCompleted && onboardingType) {
-        if (!isOnboardingRoute && !isDashboardRoute && !isAuthRoute && !isApiRoute && !isPublicRoute && !isAdminRoute) {
-            return NextResponse.redirect(new URL(`/onboarding?type=${onboardingType}`, req.url));
+    // Require explicit onboarding completion for providers trying to access protected routes
+    if (token && token.role !== 'USER' && !onboardingCompleted) {
+        if (isDashboardRoute || pathname.startsWith('/provider') || pathname.startsWith('/account') || pathname.startsWith('/chat')) {
+            return NextResponse.redirect(new URL(`/onboarding?step=1`, req.url));
         }
     }
     // /admin has its own strict server-side guard via auth() in src/app/admin/page.tsx.

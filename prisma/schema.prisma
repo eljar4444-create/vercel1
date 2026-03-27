@@ -61,6 +61,14 @@ model Profile {
   providesOutcall  Boolean  @default(false)
   outcallRadiusKm  Int?
   is_verified Boolean   @default(false)
+
+  // DAC7 Compliance & Onboarding
+  onboardingCompleted Boolean @default(false)
+  legalName        String?
+  legalEntityType  String?
+  taxId            String?
+  vatId            String?
+
   created_at  DateTime  @default(now())
   
   user        User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
