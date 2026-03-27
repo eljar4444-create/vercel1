@@ -33,7 +33,7 @@ export async function submitLegalSetup(formData: FormData) {
                 taxId,
                 vatId,
                 onboardingCompleted: true, // Officially unblocks the dashboard
-                status: 'PUBLISHED' // Puts their profile online
+                status: 'PENDING_REVIEW' // Hides profile from global search until manual verification
             }
         });
 
