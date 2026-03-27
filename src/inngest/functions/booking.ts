@@ -3,8 +3,7 @@ import prisma from "@/lib/prisma";
 import { sendTelegramMessage } from "@/lib/telegram";
 
 export const sendBookingNotifications = inngest.createFunction(
-  { id: "send-booking-notifications" },
-  { event: "booking/created" },
+  { id: "send-booking-notifications", triggers: [{ event: "booking/created" }] },
   async ({ event, step }: any) => {
     const { bookingId } = event.data;
 
