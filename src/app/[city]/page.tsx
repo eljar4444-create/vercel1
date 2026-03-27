@@ -8,6 +8,12 @@ import { SearchResultListItem } from '@/components/search/SearchResultListItem';
 import { deslugify } from '@/lib/slugify';
 import type { Metadata } from 'next';
 import ScrollReveal from '@/components/ScrollReveal';
+import { notFound } from 'next/navigation';
+
+const RESERVED_SLUGS = [
+    'login', 'register', 'auth', 'api', 'admin', 'dashboard', 
+    'onboarding', 'search', 'account', 'provider', 'salon', 'become-pro'
+];
 
 /**
  * Resolve slug back to a pretty German city name from GERMAN_CITIES.
@@ -40,6 +46,10 @@ export async function generateMetadata({
 }: {
     params: { city: string };
 }): Promise<Metadata> {
+    if (RESERVED_SLUGS.includes(params.city.toLowerCase())) {
+        notFound();
+    }
+
     const cityName = resolveCityName(params.city);
 
     return {
@@ -53,6 +63,10 @@ export default async function CityPage({
 }: {
     params: { city: string };
 }) {
+    if (RESERVED_SLUGS.includes(params.city.toLowerCase())) {
+        notFound();
+    }
+
     const cityName = resolveCityName(params.city);
     const cityVariants = getCityFilterVariants(cityName);
 

@@ -15,6 +15,20 @@ const nextConfig = {
             },
         ],
     },
+    async redirects() {
+        return [
+            {
+                source: '/login',
+                destination: '/auth/login',
+                permanent: true,
+            },
+            {
+                source: '/register',
+                destination: '/auth/login',
+                permanent: true,
+            },
+        ];
+    },
 };
 
 const analyzer = withBundleAnalyzer({
