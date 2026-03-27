@@ -11,7 +11,7 @@ import {
     weekdayFromDateString,
 } from '@/lib/scheduling';
 import { auth } from '@/auth';
-import { sendTelegramMessage } from '@/lib/telegram';
+import { inngest } from '@/inngest/client';
 
 interface BookingInput {
     profileId: number;
@@ -249,37 +249,11 @@ export async function createBooking(input: BookingInput) {
             isolationLevel: 'Serializable',
         });
 
-        // Уведомление мастеру в Telegram (не блокируем ответ клиенту)
-        const masterProfile = await prisma.profile.findUnique({
-            where: { id: profileId },
-            select: { telegramChatId: true },
+        // Асинхронное уведомление мастеру через Inngest
+        await inngest.send({
+            name: 'booking/created',
+            data: { bookingId: booking.id }
         });
-        if (masterProfile?.telegramChatId) {
-            let serviceTitle = 'Услуга уточняется';
-            if (booking.service_id) {
-                const svc = await prisma.service.findUnique({
-                    where: { id: booking.service_id },
-                    select: { title: true },
-                });
-                if (svc) serviceTitle = svc.title;
-            }
-            const dateStr = new Date(input.date).toLocaleDateString('ru-RU', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-            });
-            const escapeHtml = (s: string) =>
-                String(s)
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;');
-            const message =
-                '🎉 <b>Новая запись!</b>\n' +
-                `👤 Клиент: ${escapeHtml(input.userName)}\n` +
-                `✂️ Услуга: ${escapeHtml(serviceTitle)}\n` +
-                `🗓 Время: ${dateStr}, ${escapeHtml(input.time)}`;
-            sendTelegramMessage(masterProfile.telegramChatId, message).catch(() => { });
-        }
 
         return { success: true, bookingId: booking.id };
     } catch (error: any) {
