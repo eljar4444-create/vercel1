@@ -11,6 +11,7 @@ const config: Config = {
         extend: {
             fontFamily: {
                 sans: ['var(--font-inter)', 'sans-serif'],
+                serif: ['var(--font-playfair)', 'serif'],
                 display: ['var(--font-inter)', 'sans-serif'],
             },
             colors: {
@@ -19,6 +20,15 @@ const config: Config = {
                 ring: "hsl(var(--ring))",
                 background: "hsl(var(--background))",
                 foreground: "hsl(var(--foreground))",
+                booking: {
+                    bg: "#EBE6DF",
+                    card: "#F4F1EC",
+                    primary: "#2F4B3A",
+                    primaryHover: "#243A2C",
+                    textMain: "#312F2D",
+                    textMuted: "#8A837A",
+                    border: "#D9D2C7",
+                },
                 primary: {
                     DEFAULT: "#fc0", // Yandex Yellow
                     foreground: "#000000",
@@ -52,6 +62,11 @@ const config: Config = {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
+            },
+            boxShadow: {
+                'soft-out': '8px 8px 16px rgba(200, 193, 183, 0.6), -8px -8px 16px rgba(255, 255, 255, 0.8)',
+                'soft-in': 'inset 4px 4px 8px rgba(200, 193, 183, 0.6), inset -4px -4px 8px rgba(255, 255, 255, 0.8)',
+                'glass': '0 8px 32px 0 rgba(47, 75, 58, 0.1)',
             },
             keyframes: {
                 "accordion-down": {

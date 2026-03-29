@@ -1,0 +1,526 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Booking UI Components - Snapshots > matches snapshot for DateScroll 1`] = `
+<div>
+  <section
+    class="mb-10"
+  >
+    <h2
+      class="font-serif text-2xl text-booking-textMain flex items-center gap-2 mb-4"
+    >
+      <span
+        class="text-booking-textMuted tracking-tight text-xl translate-y-[2px]"
+      >
+        📅
+      </span>
+      Выберите дату
+    </h2>
+    <div
+      class="bg-booking-card rounded-[2rem] p-6 sm:p-8 shadow-soft-out border border-white/50"
+    >
+      <div
+        class="flex items-center justify-between mb-8"
+      >
+        <span
+          class="font-medium text-booking-textMain text-lg"
+        >
+          Октябрь 2024 г.
+        </span>
+        <div
+          class="flex gap-4 text-booking-textMain"
+        >
+          <button
+            class="active:scale-95 transition-transform disabled:opacity-30"
+          >
+            <svg
+              class="lucide lucide-chevron-left w-5 h-5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m15 18-6-6 6-6"
+              />
+            </svg>
+          </button>
+          <button
+            class="active:scale-95 transition-transform"
+          >
+            <svg
+              class="lucide lucide-chevron-right w-5 h-5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div
+        class="grid grid-cols-7 gap-y-6 sm:gap-x-4"
+      >
+        <div
+          class="text-center text-xs font-semibold text-booking-textMuted uppercase tracking-wider"
+        >
+          вс
+        </div>
+        <div
+          class="text-center text-xs font-semibold text-booking-textMuted uppercase tracking-wider"
+        >
+          пн
+        </div>
+        <div
+          class="text-center text-xs font-semibold text-booking-textMuted uppercase tracking-wider"
+        >
+          вт
+        </div>
+        <div
+          class="text-center text-xs font-semibold text-booking-textMuted uppercase tracking-wider"
+        >
+          ср
+        </div>
+        <div
+          class="text-center text-xs font-semibold text-booking-textMuted uppercase tracking-wider"
+        >
+          чт
+        </div>
+        <div
+          class="text-center text-xs font-semibold text-booking-textMuted uppercase tracking-wider"
+        >
+          пт
+        </div>
+        <div
+          class="text-center text-xs font-semibold text-booking-textMuted uppercase tracking-wider"
+        >
+          сб
+        </div>
+        <div
+          class="flex justify-center"
+        >
+          <button
+            class="
+                                        w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg transition-all duration-300
+                                        bg-booking-primary text-white shadow-[0_6px_16px_rgba(47,75,58,0.3)] shadow-soft-in scale-110
+                                    "
+            type="button"
+          >
+            6
+          </button>
+        </div>
+        <div
+          class="flex justify-center"
+        >
+          <button
+            class="
+                                        w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg transition-all duration-300
+                                        opacity-30 cursor-not-allowed bg-booking-bg shadow-none
+                                    "
+            disabled=""
+            type="button"
+          >
+            7
+          </button>
+        </div>
+        <div
+          class="flex justify-center"
+        >
+          <button
+            class="
+                                        w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg transition-all duration-300
+                                        opacity-30 cursor-not-allowed bg-booking-bg shadow-none
+                                    "
+            disabled=""
+            type="button"
+          >
+            8
+          </button>
+        </div>
+        <div
+          class="flex justify-center"
+        >
+          <button
+            class="
+                                        w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg transition-all duration-300
+                                        opacity-30 cursor-not-allowed bg-booking-bg shadow-none
+                                    "
+            disabled=""
+            type="button"
+          >
+            9
+          </button>
+        </div>
+        <div
+          class="flex justify-center"
+        >
+          <button
+            class="
+                                        w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg transition-all duration-300
+                                        opacity-30 cursor-not-allowed bg-booking-bg shadow-none
+                                    "
+            disabled=""
+            type="button"
+          >
+            10
+          </button>
+        </div>
+        <div
+          class="flex justify-center"
+        >
+          <button
+            class="
+                                        w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg transition-all duration-300
+                                        opacity-30 cursor-not-allowed bg-booking-bg shadow-none
+                                    "
+            disabled=""
+            type="button"
+          >
+            11
+          </button>
+        </div>
+        <div
+          class="flex justify-center"
+        >
+          <button
+            class="
+                                        w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-base sm:text-lg transition-all duration-300
+                                        opacity-30 cursor-not-allowed bg-booking-bg shadow-none
+                                    "
+            disabled=""
+            type="button"
+          >
+            12
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+`;
+
+exports[`Booking UI Components - Snapshots > matches snapshot for OrderSummary (Glassmorphism) 1`] = `
+<div>
+  <aside
+    class="sticky top-[100px]"
+  >
+    <div
+      class="bg-white/40 backdrop-blur-md rounded-[2rem] p-6 sm:p-8 border border-white/60 shadow-glass flex flex-col gap-6"
+    >
+      <h3
+        class="font-serif text-2xl text-booking-textMain"
+      >
+        Ваш заказ
+      </h3>
+      <div
+        class="flex gap-4 items-center bg-white/50 rounded-2xl p-3 border border-white/40"
+      >
+        <div
+          class="relative h-16 w-16 shrink-0 bg-[#EBE6DF] rounded-xl overflow-hidden border border-white/60 shadow-sm"
+        >
+          <div
+            class="w-full h-full flex items-center justify-center text-booking-textMuted font-serif text-2xl"
+          >
+            Г
+          </div>
+        </div>
+        <div
+          class="flex flex-col gap-1 min-w-0"
+        >
+          <span
+            class="text-[11px] font-bold text-booking-textMuted uppercase tracking-wider"
+          >
+            ПРОЦЕДУРА
+          </span>
+          <span
+            class="text-booking-textMain font-semibold leading-tight line-clamp-2"
+          >
+            Глубокое увлажнение
+          </span>
+        </div>
+      </div>
+      <div
+        class="flex flex-col gap-4 text-[15px]"
+      >
+        <div
+          class="flex justify-between items-center"
+        >
+          <span
+            class="flex items-center gap-2 text-booking-textMuted"
+          >
+            <svg
+              class="lucide lucide-user w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+              />
+              <circle
+                cx="12"
+                cy="7"
+                r="4"
+              />
+            </svg>
+             Мастер
+          </span>
+          <span
+            class="text-booking-textMain font-medium text-right line-clamp-1 break-all bg-white/50 px-2 py-0.5 rounded-md w-full max-w-[140px] truncate block ml-2"
+          >
+            Елена Волкова
+          </span>
+        </div>
+        <div
+          class="flex justify-between border-t border-booking-border/30 pt-4"
+        >
+          <span
+            class="flex items-center gap-2 text-booking-textMuted"
+          >
+            <svg
+              class="lucide lucide-calendar w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M8 2v4"
+              />
+              <path
+                d="M16 2v4"
+              />
+              <rect
+                height="18"
+                rx="2"
+                width="18"
+                x="3"
+                y="4"
+              />
+              <path
+                d="M3 10h18"
+              />
+            </svg>
+             Дата
+          </span>
+          <span
+            class="text-booking-textMain font-medium"
+          >
+            6 октября 2024 г.
+          </span>
+        </div>
+        <div
+          class="flex justify-between border-t border-booking-border/30 pt-4"
+        >
+          <span
+            class="flex items-center gap-2 text-booking-textMuted"
+          >
+            <svg
+              class="lucide lucide-clock w-4 h-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="10"
+              />
+              <polyline
+                points="12 6 12 12 16 14"
+              />
+            </svg>
+             Время
+          </span>
+          <span
+            class="text-booking-textMain font-medium"
+          >
+            12:00
+             (
+            60
+             мин)
+          </span>
+        </div>
+      </div>
+      <div
+        class="flex justify-between items-end border-t border-booking-border pt-6 mt-2"
+      >
+        <span
+          class="text-lg font-semibold text-booking-textMain"
+        >
+          Итого
+        </span>
+        <span
+          class="font-serif text-[28px] font-bold text-booking-textMain text-right tracking-tight text-[#47433B]"
+        >
+          € 
+          5 500
+        </span>
+      </div>
+      <div
+        class="flex flex-col gap-3 mt-4"
+      >
+        <button
+          class="w-full h-14 bg-booking-primary hover:bg-booking-primaryHover disabled:bg-opacity-50 disabled:cursor-not-allowed text-white rounded-full font-medium text-lg flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(47,75,58,0.4)] transition-all active:scale-95"
+          type="button"
+        >
+          Подтвердить и записаться
+          <svg
+            class="lucide lucide-arrow-right w-5 h-5"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12h14"
+            />
+            <path
+              d="m12 5 7 7-7 7"
+            />
+          </svg>
+        </button>
+        <p
+          class="text-[10px] text-booking-textMuted text-center uppercase tracking-wider leading-relaxed px-2"
+        >
+          НАЖИМАЯ КНОПКУ, ВЫ СОГЛАШАЕТЕСЬ С ПРАВИЛАМИ
+          <br />
+          УСЛОВИЯМИ И ОБРАБОТКОЙ ПЕРСОНАЛЬНЫХ ДАННЫХ
+        </p>
+      </div>
+    </div>
+    <div
+      class="bg-white/30 backdrop-blur-md rounded-3xl p-5 border border-white/60 shadow-sm flex gap-3 mt-6"
+    >
+      <div
+        class="shrink-0 w-6 h-6 rounded-full bg-booking-textMuted flex items-center justify-center text-white mt-0.5"
+      >
+        <svg
+          class="lucide lucide-info w-4 h-4"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          />
+          <path
+            d="M12 16v-4"
+          />
+          <path
+            d="M12 8h.01"
+          />
+        </svg>
+      </div>
+      <div
+        class="flex flex-col gap-1"
+      >
+        <span
+          class="font-semibold text-booking-textMain text-sm"
+        >
+          Правила отмены
+        </span>
+        <p
+          class="text-xs text-booking-textMuted leading-relaxed"
+        >
+          Бесплатная отмена возможна за 24 часа до
+          <br />
+          начала процедуры. При отмене менее чем за
+          <br />
+          сутки удерживается 30% стоимости.
+        </p>
+      </div>
+    </div>
+  </aside>
+</div>
+`;
+
+exports[`Booking UI Components - Snapshots > matches snapshot for TimeGrid 1`] = `
+<div>
+  <section
+    class="mb-10 animate-in fade-in slide-in-from-bottom-2 duration-500"
+  >
+    <h2
+      class="font-serif text-2xl text-booking-textMain flex items-center gap-2 mb-6"
+    >
+      <span
+        class="text-booking-textMuted tracking-tight text-xl translate-y-[2px]"
+      >
+        🕒
+      </span>
+      Доступное время
+    </h2>
+    <div
+      class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4"
+    >
+      <button
+        class="
+                                h-12 rounded-[1rem] flex items-center justify-center text-[15px] font-medium transition-all duration-300
+                                bg-[#F2EFE8] text-booking-textMain shadow-[4px_4px_8px_rgba(200,193,183,0.5),-4px_-4px_8px_rgba(255,255,255,0.9)] hover:shadow-[2px_2px_4px_rgba(200,193,183,0.5),-2px_-2px_4px_rgba(255,255,255,0.9)]
+                            "
+      >
+        10:00
+      </button>
+      <button
+        class="
+                                h-12 rounded-[1rem] flex items-center justify-center text-[15px] font-medium transition-all duration-300
+                                bg-booking-primary text-white shadow-[0_6px_16px_rgba(47,75,58,0.3)] shadow-soft-in
+                            "
+      >
+        12:00
+      </button>
+      <button
+        class="
+                                h-12 rounded-[1rem] flex items-center justify-center text-[15px] font-medium transition-all duration-300
+                                bg-[#F2EFE8] text-booking-textMain shadow-[4px_4px_8px_rgba(200,193,183,0.5),-4px_-4px_8px_rgba(255,255,255,0.9)] hover:shadow-[2px_2px_4px_rgba(200,193,183,0.5),-2px_-2px_4px_rgba(255,255,255,0.9)]
+                            "
+      >
+        15:30
+      </button>
+    </div>
+  </section>
+</div>
+`;
