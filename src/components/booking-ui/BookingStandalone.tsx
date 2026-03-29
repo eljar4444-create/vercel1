@@ -62,17 +62,18 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
         duration_min: 60,
     };
 
-    const fetchWeekSlots = useCallback(async ([, pId, sDate, dur, sStaffId]: [string, number, string, number, string | null]) => {
+    const fetchWeekSlots = useCallback(async (key: any): Promise<Record<string, string[]>> => {
+        const [, pId, sDate, dur, sStaffId] = key;
         const result = await getWeekAvailableSlots({
             profileId: pId,
             staffId: sStaffId,
             startDate: sDate,
             serviceDuration: dur,
         });
-        if (result.success && result.weeklySlots) {
-            return result.weeklySlots;
+        if ('weeklySlots' in result && result.weeklySlots) {
+            return result.weeklySlots as Record<string, string[]>;
         }
-        return {};
+        return {} as Record<string, string[]>;
     }, []);
 
     const toDateKey = (d: Date) => {
@@ -82,7 +83,7 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
         return `${y}-${m}-${day}`;
     };
 
-    const { data: weekSlotsMap = {} } = useSWR(
+    const { data } = useSWR<{ [date: string]: string[] }>(
         ['weekSlots', profile.id, toDateKey(weekStart), effectiveService.duration_min, selectedStaffId],
         fetchWeekSlots,
         {
@@ -90,6 +91,7 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
             keepPreviousData: true,
         }
     );
+    const weekSlotsMap = data || {};
 
     const handlePrevWeek = () => {
         const prev = new Date(weekStart);
@@ -130,10 +132,8 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
                 serviceDuration: effectiveService.duration_min,
                 date: selectedDate,
                 time: selectedTime,
-                clientName: name,
-                clientPhone: phone,
-                clientEmail: email,
-                comments: comment,
+                userName: name,
+                userPhone: phone,
             });
 
             if (result.success) {
