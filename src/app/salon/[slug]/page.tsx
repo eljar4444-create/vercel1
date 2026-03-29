@@ -117,6 +117,13 @@ async function getProfileBySlug(slug: string, includeDraft: boolean = false) {
                     },
                 },
             },
+            staff: {
+                select: {
+                    id: true,
+                    name: true,
+                    avatarUrl: true,
+                }
+            }
         },
     });
 }
@@ -270,6 +277,7 @@ export default async function SalonProfilePage({
                 : String(r.createdAt),
             clientName: r.client?.name ?? 'Клиент',
         })) ?? [],
+        staff: profile.staff ?? [],
     };
 
     return (

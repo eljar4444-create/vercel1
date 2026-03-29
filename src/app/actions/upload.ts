@@ -10,6 +10,9 @@ export async function uploadServicePhoto(formData: FormData) {
     if (!session?.user?.id) {
         return { success: false, error: 'Требуется авторизация.' };
     }
+    if (session.user.isBanned) {
+        return { success: false, error: 'Ваш аккаунт заблокирован.' };
+    }
 
     const file = formData.get('photo') as File | null;
     if (!file || !file.size) {

@@ -25,6 +25,7 @@ interface BookingModalProps {
     masterAddress?: string;
     rating?: number;
     accentColor?: string;
+    staffList?: { id: string; name: string; avatarUrl: string | null }[];
 }
 
 const DAY_LABEL_FORMATTER = new Intl.DateTimeFormat('ru-RU', { weekday: 'short' });
@@ -94,6 +95,7 @@ export function BookingModal({
     masterAddress,
     rating = 5,
     accentColor = 'rose',
+    staffList = [],
 }: BookingModalProps) {
     const { data: session, status } = useSession();
     const today = useMemo(() => startOfDay(new Date()), []);
@@ -108,6 +110,7 @@ export function BookingModal({
     const [error, setError] = useState<string | null>(null);
     const [isFindingNearest, setIsFindingNearest] = useState(false);
     const [slotsError, setSlotsError] = useState<string | null>(null);
+    const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
 
     const selectedDuration = selectedService?.duration_min || 60;
     const weekDates = useMemo(
@@ -116,9 +119,10 @@ export function BookingModal({
     );
 
     // Fetcher for SWR
-    const fetchWeekSlots = useCallback(async ([, pId, sDate, dur]: [string, number, string, number]) => {
+    const fetchWeekSlots = useCallback(async ([, pId, sDate, dur, staffId]: [string, number, string, number, string | null]) => {
         const result = await getWeekAvailableSlots({
             profileId: pId,
+            staffId: staffId,
             startDate: sDate,
             serviceDuration: dur
         });
@@ -134,7 +138,7 @@ export function BookingModal({
 
     // Fetch schedule for the current week via SWR
     const { data: fetchedWeekSlots, error: swrError, isValidating: isLoadingWeek } = useSWR(
-        isOpen ? ['weekSlots', profileId, toDateKey(weekStart), selectedDuration] : null,
+        isOpen ? ['weekSlots', profileId, toDateKey(weekStart), selectedDuration, selectedStaffId] : null,
         fetchWeekSlots,
         {
             revalidateOnFocus: false,
@@ -244,6 +248,7 @@ export function BookingModal({
 
                 const result = await getWeekAvailableSlots({
                     profileId,
+                    staffId: selectedStaffId,
                     startDate: startKey,
                     serviceDuration: selectedDuration
                 });
@@ -286,6 +291,7 @@ export function BookingModal({
 
         const result = await createBooking({
             profileId,
+            staffId: selectedStaffId,
             serviceId: selectedService?.id || null,
             serviceDuration: selectedDuration,
             date,
@@ -420,9 +426,57 @@ export function BookingModal({
                                 </button>
                             </section>
 
+                            {staffList && staffList.length > 0 && (
+                                <section className="mt-8">
+                                    <h3 className="text-xl font-semibold text-stone-800 mb-4">2. Выберите мастера</h3>
+                                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setSelectedStaffId(null); setDate(''); setTime(''); }}
+                                            className={`shrink-0 rounded-2xl border p-3 flex flex-col items-center gap-2 min-w-[100px] transition-all ${
+                                                selectedStaffId === null 
+                                                    ? 'border-stone-800 bg-stone-50' 
+                                                    : 'border-[#E5E0D8] bg-white hover:border-stone-300'
+                                            }`}
+                                        >
+                                            <div className="h-12 w-12 rounded-full border border-stone-200 bg-stone-100 flex items-center justify-center text-stone-500">
+                                                <Zap className="h-5 w-5" />
+                                            </div>
+                                            <span className="text-xs font-semibold text-stone-800 text-center leading-tight">
+                                                Любой<br/>мастер
+                                            </span>
+                                        </button>
+                                        
+                                        {staffList.map((staff) => (
+                                            <button
+                                                key={staff.id}
+                                                type="button"
+                                                onClick={() => { setSelectedStaffId(staff.id); setDate(''); setTime(''); }}
+                                                className={`shrink-0 rounded-2xl border p-3 flex flex-col items-center gap-2 min-w-[100px] transition-all ${
+                                                    selectedStaffId === staff.id
+                                                        ? 'border-stone-800 bg-stone-50' 
+                                                        : 'border-[#E5E0D8] bg-white hover:border-stone-300'
+                                                }`}
+                                            >
+                                                {staff.avatarUrl ? (
+                                                    <img src={staff.avatarUrl} alt={staff.name} className="h-12 w-12 rounded-full border border-stone-200 object-cover" />
+                                                ) : (
+                                                    <div className="h-12 w-12 rounded-full border border-stone-200 bg-stone-100 flex items-center justify-center text-stone-500 font-bold">
+                                                        {staff.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <span className="text-xs font-semibold text-stone-800 text-center leading-tight truncate w-full px-1">
+                                                    {staff.name}
+                                                </span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
                             <section className="mt-8">
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <h3 className="text-xl font-semibold text-stone-800">2. Выберите дату и время</h3>
+                                    <h3 className="text-xl font-semibold text-stone-800">{staffList && staffList.length > 0 ? '3.' : '2.'} Выберите дату и время</h3>
                                     <button
                                         type="button"
                                         onClick={findNearestSlot}

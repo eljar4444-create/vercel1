@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache';
 export async function verifyAndPublishProfile() {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Не авторизован' };
+    if (session.user.isBanned) return { success: false, error: 'Ваш аккаунт заблокирован.' };
 
     try {
         const profile = await prisma.profile.findFirst({
@@ -31,7 +32,7 @@ export async function verifyAndPublishProfile() {
 
         await prisma.profile.update({
             where: { id: profile.id },
-            data: { status: 'PUBLISHED' }
+            data: { status: 'PENDING_REVIEW' }
         });
 
         revalidatePath('/dashboard');
@@ -47,6 +48,7 @@ export async function verifyAndPublishProfile() {
 export async function unpublishProfile() {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Не авторизован' };
+    if (session.user.isBanned) return { success: false, error: 'Ваш аккаунт заблокирован.' };
 
     try {
         const profile = await prisma.profile.findFirst({

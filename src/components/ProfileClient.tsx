@@ -61,6 +61,7 @@ interface ProfileData {
     }[];
     averageRating: number;
     reviewCount: number;
+    staff?: { id: string; name: string; avatarUrl: string | null }[];
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -745,6 +746,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                 initialDate={initialDate}
                 initialTime={initialTime}
                 accentColor="rose"
+                staffList={profile.staff}
             />
             {/* ── Photo Lightbox Modal ────────────────────────────────────── */}
             {selectedImageIndex !== null && (

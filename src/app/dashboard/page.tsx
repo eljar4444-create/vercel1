@@ -18,6 +18,7 @@ import {
     UserCircle2,
     TrendingUp,
     BarChart2,
+    Users,
 } from 'lucide-react';
 import { DashboardView } from '@/components/client/DashboardView';
 import { BookingListClient } from '@/components/dashboard/BookingListClient';
@@ -27,6 +28,7 @@ import { ServicesSection } from '@/components/dashboard/ServicesSection';
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
 import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
+import { StaffSection } from '@/components/dashboard/StaffSection';
 import { parseSchedule } from '@/lib/scheduling';
 import { Button } from '@/components/ui/button';
 import { createTelegramConnectLink } from '@/lib/telegram-link';
@@ -53,7 +55,7 @@ function normalizeOnboardingType(type?: string | null) {
 
 function parseSection(
     searchParams?: DashboardPageProps['searchParams'],
-): 'bookings' | 'analytics' | 'services' | 'schedule' | 'profile' {
+): 'bookings' | 'analytics' | 'services' | 'schedule' | 'profile' | 'staff' {
     const sectionRaw = searchParams?.section;
     const section = Array.isArray(sectionRaw) ? sectionRaw[0] : sectionRaw;
 
@@ -61,7 +63,8 @@ function parseSection(
         section === 'services' ||
         section === 'schedule' ||
         section === 'profile' ||
-        section === 'analytics'
+        section === 'analytics' ||
+        section === 'staff'
     ) {
         return section;
     }
@@ -277,6 +280,11 @@ async function renderProviderDashboard(
         orderBy: { title: 'asc' },
     });
 
+    const staff = isSalonProvider ? await prisma.staff.findMany({
+        where: { profileId },
+        orderBy: { createdAt: 'desc' }
+    }) : [];
+
     const workingSchedule = parseSchedule(profile.schedule);
     const hasServices = services.length > 0;
     const hasScheduleConfigured = Boolean(profile.schedule);
@@ -321,13 +329,14 @@ async function renderProviderDashboard(
         { key: 'analytics', label: 'Статистика', icon: BarChart2 },
         { key: 'services', label: 'Услуги', icon: Briefcase },
         { key: 'schedule', label: 'Расписание', icon: Clock },
+        ...(isSalonProvider ? [{ key: 'staff', label: 'Сотрудники', icon: Users }] as const : []),
         { key: 'profile', label: 'Профиль', icon: UserCircle2 },
     ] as const;
 
     const mobileNavItems = [
         { key: 'bookings', label: 'Записи', icon: CalendarDays },
         { key: 'analytics', label: 'Статистика', icon: BarChart2 },
-        { key: 'services', label: 'Услуги', icon: Briefcase },
+        ...(isSalonProvider ? [{ key: 'staff', label: 'Команда', icon: Users }] as const : []),
         { key: 'profile', label: 'Профиль', icon: UserCircle2 },
     ] as const;
 
@@ -603,9 +612,9 @@ async function renderProviderDashboard(
                     {currentSection === 'schedule' && (
                         <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
                             <div className="border-b border-stone-100 px-5 py-4">
-                                <h2 className="text-base font-semibold text-slate-900">Расписание</h2>
+                                <h2 className="text-base font-semibold text-slate-900">Расписание салона</h2>
                                 <p className="mt-0.5 text-xs text-stone-400">
-                                    Эти настройки используются для автоматического расчёта свободных слотов.
+                                    Общие рабочие часы. Если для мастера не задано личное расписание, будет применяться это.
                                 </p>
                             </div>
                             <div className="p-5">
@@ -616,6 +625,23 @@ async function renderProviderDashboard(
                                     }}
                                 />
                             </div>
+                        </div>
+                    )}
+
+                    {currentSection === 'staff' && isSalonProvider && (
+                        <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
+                            <div className="flex items-center gap-3 border-b border-stone-100 px-5 py-4">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 to-orange-100">
+                                    <Users className="h-[18px] w-[18px] text-orange-600" />
+                                </div>
+                                <div>
+                                    <h2 className="text-base font-semibold text-slate-900">Команда мастеров</h2>
+                                    <p className="text-xs text-stone-400">
+                                        Добавьте сотрудников, чтобы создать общий календарь записей.
+                                    </p>
+                                </div>
+                            </div>
+                            <StaffSection staff={staff} />
                         </div>
                     )}
 

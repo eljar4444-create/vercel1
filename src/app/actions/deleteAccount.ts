@@ -13,6 +13,9 @@ export async function deleteUserAccount(): Promise<{ success: boolean; error?: s
     if (!session?.user?.id) {
         return { success: false, error: 'Не авторизован' };
     }
+    if (session.user.isBanned) {
+        return { success: false, error: 'Ваш аккаунт заблокирован.' };
+    }
 
     const userId = session.user.id;
 
@@ -25,6 +28,12 @@ export async function deleteUserAccount(): Promise<{ success: boolean; error?: s
             });
 
             if (profile) {
+                // Delete favorites pointing to this provider
+                await tx.favorite.deleteMany({ where: { providerProfileId: profile.id } });
+
+                // Delete telegram tokens associated with profile
+                await tx.telegramToken.deleteMany({ where: { profileId: profile.id } });
+
                 // 2. Delete services linked to profile
                 await tx.service.deleteMany({ where: { profile_id: profile.id } });
 

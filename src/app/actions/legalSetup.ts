@@ -6,6 +6,7 @@ import { auth } from '@/auth';
 export async function submitLegalSetup(formData: FormData) {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Необходима авторизация' };
+    if (session.user.isBanned) return { success: false, error: 'Ваш аккаунт заблокирован.' };
 
     const profileId = formData.get('profileId') as string;
     const legalEntityType = formData.get('legalEntityType') as string;

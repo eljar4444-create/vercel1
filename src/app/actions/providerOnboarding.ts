@@ -403,6 +403,9 @@ export async function saveProviderDraft(formData: FormData): Promise<ProviderOnb
     if (!session?.user?.id || !session.user.email) {
         return { success: false, error: 'Требуется авторизация.' };
     }
+    if (session.user.isBanned) {
+        return { success: false, error: 'Ваш аккаунт заблокирован.' };
+    }
 
     const payload = parseDraftPayload(formData);
 
@@ -453,6 +456,9 @@ export async function publishProviderProfile(formData: FormData): Promise<Provid
     const session = await auth();
     if (!session?.user?.id || !session.user.email) {
         return { success: false, error: 'Требуется авторизация.' };
+    }
+    if (session.user.isBanned) {
+        return { success: false, error: 'Ваш аккаунт заблокирован.' };
     }
 
     const requestedProfileId = Number(formData.get('profile_id'));

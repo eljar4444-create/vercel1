@@ -23,6 +23,9 @@ export async function toggleFavorite(providerProfileId: number): Promise<{ succe
     if (!session?.user?.id) {
         return { success: false, isFavorited: false, error: 'Войдите в аккаунт' };
     }
+    if (session.user.isBanned) {
+        return { success: false, isFavorited: false, error: 'Ваш аккаунт заблокирован.' };
+    }
     const profileId = Number(providerProfileId);
     if (!Number.isInteger(profileId)) {
         return { success: false, isFavorited: false, error: 'Некорректный профиль' };

@@ -10,6 +10,9 @@ export async function uploadAvatar(formData: FormData) {
     if (!session?.user?.id) {
         throw new Error('Unauthorized');
     }
+    if (session.user.isBanned) {
+        return { success: false, error: 'Ваш аккаунт заблокирован.' };
+    }
 
     const file = formData.get('file') as File;
     const profileId = parseInt(formData.get('profile_id') as string, 10);
@@ -32,14 +35,15 @@ export async function uploadAvatar(formData: FormData) {
     try {
         const profile = await prisma.profile.findUnique({
             where: { id: profileId },
-            select: { id: true, user_id: true, slug: true },
+            select: { id: true, user_id: true, user_email: true, slug: true },
         });
 
         if (!profile) {
             return { success: false, error: 'Профиль не найден.' };
         }
 
-        if (session.user.role !== 'ADMIN' && profile.user_id !== session.user.id) {
+        const isOwner = profile.user_id === session.user.id || (session.user.email && profile.user_email === session.user.email);
+        if (session.user.role !== 'ADMIN' && !isOwner) {
             throw new Error('Forbidden');
         }
 

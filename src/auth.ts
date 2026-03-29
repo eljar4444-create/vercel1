@@ -153,6 +153,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                             role: true,
                             id: true,
                             email: true,
+                            isBanned: true,
                             onboardingCompleted: true,
                             onboardingType: true,
                         },
@@ -163,6 +164,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                         token.role = freshUser.role;
                         token.id = freshUser.id;
                         token.email = freshUser.email;
+                        token.isBanned = freshUser.isBanned;
                         token.onboardingCompleted = freshUser.onboardingCompleted;
                         token.onboardingType = freshUser.onboardingType;
                     }
@@ -226,6 +228,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 session.user.role = token.role
                 session.user.id = token.id
                 session.user.image = token.picture
+                session.user.isBanned = token.isBanned ?? false
                 session.user.profileId = token.profileId
                 session.user.profileSlug = token.profileSlug ?? null
                 session.user.profileStatus = token.profileStatus ?? null

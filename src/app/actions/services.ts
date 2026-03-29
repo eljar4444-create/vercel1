@@ -47,6 +47,9 @@ export async function createService(prevState: any, formData: FormData) {
     if (!session?.user?.id) {
         return { message: 'Unauthorized' };
     }
+    if (session.user.isBanned) {
+        return { message: 'Ваш аккаунт заблокирован.' };
+    }
 
     try {
         const profile = await requireProviderProfile(session.user.id, session.user.email);
@@ -98,6 +101,9 @@ export async function updateService(serviceId: string, prevState: any, formData:
     const session = await auth();
     if (!session?.user?.id) {
         return { message: 'Unauthorized' };
+    }
+    if (session.user.isBanned) {
+        return { message: 'Ваш аккаунт заблокирован.' };
     }
 
     try {
@@ -169,6 +175,9 @@ export async function addService(formData: FormData) {
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: 'Unauthorized' };
+    }
+    if (session.user.isBanned) {
+        return { success: false, error: 'Ваш аккаунт заблокирован.' };
     }
 
     if (session.user.role !== 'ADMIN') {
@@ -245,6 +254,9 @@ export async function deleteService(serviceId: number) {
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, error: 'Unauthorized' };
+    }
+    if (session.user.isBanned) {
+        return { success: false, error: 'Ваш аккаунт заблокирован.' };
     }
 
     if (session.user.role !== 'ADMIN') {

@@ -7,6 +7,7 @@
         "build": "npx prisma generate && next build",
         "start": "next start",
         "lint": "next lint",
+        "test": "vitest",
         "studio": "prisma generate && prisma studio",
         "seed": "prisma db seed",
         "sync:categories": "ts-node scripts/sync-categories.ts"
@@ -62,20 +63,26 @@
     },
     "devDependencies": {
         "@next/bundle-analyzer": "^16.1.6",
+        "@testing-library/dom": "^10.4.1",
+        "@testing-library/react": "^16.3.2",
         "@types/bcryptjs": "^2.4.6",
         "@types/jsonwebtoken": "^9.0.10",
         "@types/node": "^20",
         "@types/react": "^18",
         "@types/react-dom": "^18",
+        "@vitejs/plugin-react": "^6.0.1",
         "autoprefixer": "^10.4.23",
         "cross-env": "^10.1.0",
         "eslint": "^8",
         "eslint-config-next": "14.2.5",
+        "jsdom": "^29.0.1",
         "postcss": "^8",
         "prisma": "^5.22.0",
         "tailwindcss": "^3.4.1",
         "ts-node": "^10.9.2",
-        "typescript": "^5"
+        "typescript": "^5",
+        "vite-tsconfig-paths": "^6.1.1",
+        "vitest": "^4.1.2"
     },
     "prisma": {
         "seed": "ts-node prisma/seed.ts"

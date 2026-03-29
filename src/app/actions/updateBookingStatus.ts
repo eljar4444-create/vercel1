@@ -12,6 +12,9 @@ export async function updateBookingStatus(bookingId: number, newStatus: string) 
     if (!session?.user) {
         return { success: false, error: 'Unauthorized' };
     }
+    if (session.user.isBanned) {
+        return { success: false, error: 'Ваш аккаунт заблокирован.' };
+    }
 
     try {
         const validStatus = StatusSchema.parse(newStatus);

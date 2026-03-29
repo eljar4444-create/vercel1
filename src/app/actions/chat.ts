@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
+import { checkBanned } from '@/lib/requireNotBanned';
 
 type ChatRole = 'USER' | 'ADMIN';
 
@@ -64,6 +65,10 @@ export async function startConversationWithProvider(providerProfileId: number) {
     const user = await getAuthorizedUser();
     if (!user) return { success: false, error: 'Требуется вход в аккаунт' };
 
+    const session = await auth();
+    const banned = checkBanned(session);
+    if (banned) return banned;
+
     if (user.role !== 'USER' && user.role !== 'ADMIN') {
         return { success: false, error: 'Чат с мастером доступен клиентам' };
     }
@@ -96,6 +101,10 @@ export async function startConversationWithProvider(providerProfileId: number) {
 export async function getOrCreateConversationForProvider(providerProfileId: number, clientUserId: string) {
     const user = await getAuthorizedUser();
     if (!user) return { success: false, error: 'Требуется вход в аккаунт' };
+
+    const session = await auth();
+    const banned = checkBanned(session);
+    if (banned) return banned;
 
     if (user.role !== 'USER' && user.role !== 'ADMIN') {
         return { success: false, error: 'Доступно только мастерам' };
@@ -252,9 +261,15 @@ export async function sendMessage(formData: FormData): Promise<void> {
     const user = await getAuthorizedUser();
     if (!user) return;
 
+    const session = await auth();
+    if (session?.user?.isBanned) return;
+
     const conversationId = String(formData.get('conversationId') || '');
-    const content = String(formData.get('content') || '').trim();
+    let content = String(formData.get('content') || '').trim();
     if (!conversationId || !content) return;
+
+    // Enforce message length limit (M-1 finding)
+    content = content.slice(0, 5000);
 
     const allowed = await hasConversationAccess(conversationId, user.userId, user.role, user.email);
     if (!allowed) return;

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
+import { checkBanned } from '@/lib/requireNotBanned';
 
 const APPROVED_PROVIDER_STATUS = 'PUBLISHED' as const;
 const REJECTED_PROVIDER_STATUS = 'SUSPENDED' as const;
@@ -21,8 +22,14 @@ export async function approveMaster(formData: FormData) {
     if (!session?.user || session.user.role !== 'ADMIN') {
         throw new Error('Доступ запрещен');
     }
+    const banned = checkBanned(session);
+    if (banned) throw new Error(banned.error);
 
     const profileId = parseProfileId(formData);
+
+    const profile = await prisma.profile.findUnique({ where: { id: profileId }, select: { status: true } });
+    if (!profile) throw new Error('Профиль не найден');
+    if (profile.status !== 'PENDING_REVIEW') throw new Error('Профиль не находится в статусе ожидания проверки');
 
     const updated = await prisma.profile.update({
         where: { id: profileId },
@@ -46,8 +53,14 @@ export async function rejectMaster(formData: FormData) {
     if (!session?.user || session.user.role !== 'ADMIN') {
         throw new Error('Доступ запрещен');
     }
+    const banned = checkBanned(session);
+    if (banned) throw new Error(banned.error);
 
     const profileId = parseProfileId(formData);
+
+    const profile = await prisma.profile.findUnique({ where: { id: profileId }, select: { status: true } });
+    if (!profile) throw new Error('Профиль не найден');
+    if (profile.status !== 'PENDING_REVIEW') throw new Error('Профиль не находится в статусе ожидания проверки');
 
     const updated = await prisma.profile.update({
         where: { id: profileId },
@@ -70,6 +83,10 @@ export async function rejectMaster(formData: FormData) {
 export async function checkAdmin() {
     const session = await auth();
     if (!session?.user || session.user.role !== 'ADMIN') {
+        redirect('/');
+    }
+    const banned = checkBanned(session);
+    if (banned) {
         redirect('/');
     }
     return session.user;
@@ -101,6 +118,7 @@ export async function getAdminData() {
             prisma.booking.count({ where: { status: "completed" } }),
             prisma.booking.count({ where: { status: "canceled" } }),
             prisma.user.findMany({
+                take: 100, // Hard cap to prevent memory exhaustion
                 orderBy: { createdAt: "desc" },
                 select: {
                     id: true,
@@ -132,6 +150,7 @@ export async function getAdminData() {
                 }
             }),
             prisma.service.findMany({
+                take: 100, // Hard cap to prevent memory exhaustion
                 include: {
                     profile: {
                         include: {
@@ -150,6 +169,7 @@ export async function getAdminData() {
                 orderBy: { id: "desc" },
             }),
             prisma.booking.findMany({
+                take: 100, // Hard cap to prevent memory exhaustion
                 include: {
                     service: true,
                     user: {
@@ -200,9 +220,15 @@ export async function toggleUserBan(userId: string, currentStatus: boolean) {
     await checkAdmin();
 
     try {
+        const user = await prisma.user.findUnique({
+             where: { id: userId }, 
+             select: { isBanned: true } 
+        });
+        if (!user) return { success: false, error: 'User not found' };
+
         await prisma.user.update({
             where: { id: userId },
-            data: { isBanned: !currentStatus },
+            data: { isBanned: !user.isBanned },
         });
 
         revalidatePath("/admin");

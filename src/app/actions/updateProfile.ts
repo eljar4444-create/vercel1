@@ -25,6 +25,9 @@ export async function updateProfile(formData: FormData) {
     if (!session?.user?.id) {
         return { success: false, error: 'Unauthorized' };
     }
+    if (session.user.isBanned) {
+        return { success: false, error: 'Ваш аккаунт заблокирован.' };
+    }
 
     if (session.user.role !== 'ADMIN') {
         try {

@@ -9,6 +9,7 @@ declare module "next-auth" {
         user: {
             id: string
             role: string
+            isBanned?: boolean
             profileId?: number | null
             profileSlug?: string | null
             profileStatus?: string | null
@@ -19,6 +20,7 @@ declare module "next-auth" {
 
     interface User {
         role: string
+        isBanned?: boolean
         onboardingCompleted?: boolean
         onboardingType?: string | null
     }
@@ -29,6 +31,7 @@ declare module "next-auth/jwt" {
     interface JWT {
         role: string
         id: string
+        isBanned?: boolean
         picture?: string | null
         profileId?: number | null
         profileSlug?: string | null

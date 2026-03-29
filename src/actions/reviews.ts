@@ -10,6 +10,9 @@ export async function createReview(bookingId: number, rating: number, comment?: 
         if (!session?.user?.id) {
             return { success: false, error: 'Вы не авторизованы' };
         }
+        if (session.user.isBanned) {
+            return { success: false, error: 'Ваш аккаунт заблокирован.' };
+        }
 
         if (rating < 1 || rating > 5) {
             return { success: false, error: 'Рейтинг должен быть от 1 до 5' };

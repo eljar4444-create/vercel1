@@ -20,7 +20,6 @@ export const authConfig = {
                         response_type: "code"
                     }
                 },
-                allowDangerousEmailAccountLinking: true,
             })
         ] : []),
         ...(process.env.APPLE_ID ? [

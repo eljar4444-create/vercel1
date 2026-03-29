@@ -15,6 +15,7 @@ export async function middleware(req: NextRequest) {
         secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
     });
     const isAuthenticated = Boolean(token);
+    const isBanned = Boolean(token?.isBanned);
     const onboardingCompleted = token?.onboardingCompleted;
     const rawOnboardingType = typeof token?.onboardingType === 'string' ? token.onboardingType : null;
     const onboardingType = rawOnboardingType === 'SALON' ? 'SALON' : rawOnboardingType === 'INDIVIDUAL' ? 'INDIVIDUAL' : null;
@@ -28,6 +29,11 @@ export async function middleware(req: NextRequest) {
         pathname.startsWith('/search') ||
         pathname.startsWith('/_next') ||
         pathname.startsWith('/become-pro');
+
+    // Banned users are blocked from all protected routes
+    if (isBanned && !isPublicRoute && !isAuthRoute && !isApiRoute) {
+        return NextResponse.redirect(new URL('/', req.url));
+    }
 
     // Require explicit onboarding completion for providers trying to access protected routes
     if (token && token.role !== 'USER' && !onboardingCompleted) {
