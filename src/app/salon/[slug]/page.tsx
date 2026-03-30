@@ -239,6 +239,7 @@ export default async function SalonProfilePage({
     const serialized = {
         id: profile.id,
         name: profile.name,
+        slug: profile.slug,
         provider_type: profile.provider_type,
         city: profile.city,
         address: profile.address,

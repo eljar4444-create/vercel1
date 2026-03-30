@@ -53,6 +53,7 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
     const [email, setEmail] = useState(sessionUser?.email || '');
     const [comment, setComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [autoAdvanced, setAutoAdvanced] = useState(0);
 
     // Provide a fallback service if one isn't passed (e.g. they came without search params)
     const effectiveService = service || {
@@ -70,8 +71,8 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
             startDate: sDate,
             serviceDuration: dur,
         });
-        if ('weeklySlots' in result && result.weeklySlots) {
-            return result.weeklySlots as Record<string, string[]>;
+        if ('weekSlots' in result && result.weekSlots) {
+            return result.weekSlots as Record<string, string[]>;
         }
         return {} as Record<string, string[]>;
     }, []);
@@ -92,6 +93,44 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
         }
     );
     const weekSlotsMap = data || {};
+
+    useEffect(() => {
+        if (!data) return;
+
+        // Ensure we are looking at the data for the CURRENT weekStart, to avoid loops with keepPreviousData
+        if (data[toDateKey(weekStart)] === undefined) return;
+
+        // Find available slots in current fetched data
+        const availableDates = Object.entries(data)
+            .filter(([dateStr, slots]) => {
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return false;
+                const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+                d.setHours(0, 0, 0, 0);
+                return d >= today && slots.length > 0;
+            })
+            .sort((a, b) => a[0].localeCompare(b[0]));
+
+        if (availableDates.length > 0) {
+            // If data is loaded and we have no selected date across the board, auto-select the earliest available
+            if (!selectedDate && autoAdvanced < 4) {
+                setSelectedDate(availableDates[0][0]);
+                setSelectedTime('');
+                setAutoAdvanced(4); // Stop any further auto-advance
+            } else if (autoAdvanced < 4) {
+               setAutoAdvanced(4);
+            }
+        } else {
+            // No slots available this week from 'today' onwards
+            if (autoAdvanced < 4) {
+                // Auto advance to next week (up to 4 weeks)
+                setAutoAdvanced(prev => prev + 1);
+                const next = new Date(weekStart);
+                next.setDate(next.getDate() + 7);
+                setWeekStart(next);
+            }
+        }
+    }, [data, today, weekStart, selectedDate, autoAdvanced]);
 
     const handlePrevWeek = () => {
         const prev = new Date(weekStart);

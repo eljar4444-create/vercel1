@@ -47,5 +47,26 @@
 
 ---
 
+### Phase 3.2: Homepage V1 — PLG Engine (HOME)
+**Goal:** Rebuild the homepage as a premium, dual-audience PLG conversion engine following the WIREFRAME.md specification. The homepage must convert B2C clients to book AND B2B providers to onboard — through a single unified experience.
+
+**Requirements:**
+- HOME-01: Extend Tailwind design tokens with glassmorphism variables, shimmer/manifesto keyframes, and neumorphic utility classes.
+- HOME-02: Build Hero section with cultural H1 ("Свои мастера. Тот самый уровень качества."), German SEO subtitle, and neumorphic city pills.
+- HOME-03: Build horizontal-scroll category navigation with macro-photography service cards.
+- HOME-04: Build Resident Artists gallery with neumorphic master cards showing verified badges, macro work photos, transparent pricing (exact price + duration), and Book CTAs.
+- HOME-05: Build Glassmorphism Jealousy Card (PLG Trojan Horse) inserted after row 2 of gallery with provider conversion copy and shimmer animation.
+- HOME-06: Build 3-column "Manifesto as How-It-Works" section with neumorphic cards.
+- HOME-07: Build full-width forest green Manifesto Band with entrance animation, cultural manifesto line, and dual CTAs (Find Master / Become Master).
+
+**Success Criteria:**
+1. Homepage renders the complete 5-Act scroll story from WIREFRAME.md with zero old sections remaining.
+2. Mobile-first: single-column gallery, thumb-swipeable category scroll, responsive manifesto.
+3. All neumorphic buttons use shadow-soft-out → shadow-soft-in press interaction.
+4. JealousyCard uses glassmorphism visual distinction and shimmer fires once on viewport entry.
+5. Build passes with zero errors and page loads under 3s on mobile.
+
+---
+
 ## Future / Unplanned
 - (None yet)

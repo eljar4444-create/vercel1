@@ -7,20 +7,13 @@ import { Footer } from '@/components/Footer';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
-import { Inter, Playfair_Display } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
     subsets: ['latin', 'cyrillic'],
     variable: '--font-inter',
     display: 'swap',
-});
-
-const playfair = Playfair_Display({
-    subsets: ['latin', 'cyrillic'],
-    variable: '--font-playfair',
-    display: 'swap',
-    weight: ['400', '500', '600', '700'],
 });
 
 export const metadata: Metadata = {
@@ -35,7 +28,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="ru" className={cn("font-sans")}>
-            <body className={`${inter.variable} ${playfair.variable} font-sans antialiased text-gray-900 min-h-screen flex flex-col`}>
+            <body className={`${inter.variable} font-sans antialiased text-gray-900 min-h-screen flex flex-col`}>
                 <Providers>
                     <Suspense fallback={<div className="relative z-50 h-16 border-b border-stone-200 bg-transparent" />}>
                         <Header />

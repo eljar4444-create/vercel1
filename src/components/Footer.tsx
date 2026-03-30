@@ -26,7 +26,7 @@ export function Footer() {
     const pathname = usePathname();
 
     // Hide footer on chat page to maximise space for messages
-    if (pathname === '/chat' || pathname === '/become-pro') return null;
+    if (pathname === '/' || pathname === '/chat' || pathname === '/become-pro') return null;
 
     return (
         <footer className="border-t border-stone-200 bg-transparent">

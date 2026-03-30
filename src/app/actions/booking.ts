@@ -295,15 +295,20 @@ export async function createBooking(input: BookingInput) {
         });
 
         // Async Inngest Notifications
-        await inngest.send({
-            name: 'booking/created',
-            data: { bookingId: booking.id }
-        });
-
-        await inngest.send({
-            name: 'booking.completed.review_request',
-            data: { bookingId: booking.id }
-        });
+        try {
+            await Promise.allSettled([
+                inngest.send({
+                    name: 'booking/created',
+                    data: { bookingId: booking.id }
+                }),
+                inngest.send({
+                    name: 'booking.completed.review_request',
+                    data: { bookingId: booking.id }
+                })
+            ]);
+        } catch (inngestError) {
+            console.error('Inngest Background Job Failed (Non-Fatal):', inngestError);
+        }
 
         return { success: true, bookingId: booking.id };
     } catch (error: any) {

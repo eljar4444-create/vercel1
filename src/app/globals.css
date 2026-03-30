@@ -197,6 +197,27 @@
     scrollbar-width: none;
     /* Firefox */
   }
+
+  .btn-neu {
+    @apply shadow-soft-out transition-all duration-100;
+  }
+  .btn-neu:active, .btn-neu.pressed {
+    @apply shadow-soft-in scale-[0.98];
+  }
+
+  .glass-card {
+    @apply bg-white/40 backdrop-blur-[12px] border border-white/60 shadow-glass rounded-[2rem];
+  }
+
+  .glass-shimmer-overlay {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+  }
 }
 
 @keyframes fadeIn {

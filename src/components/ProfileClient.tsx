@@ -17,7 +17,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import toast from 'react-hot-toast';
 
-import { BookingModal } from '@/components/BookingModal';
 import { startConversationWithProvider } from '@/app/actions/chat';
 import { Button } from '@/components/ui/button';
 import { ProfileLocationMap } from '@/components/ProfileLocationMap';
@@ -29,6 +28,7 @@ import { LANGUAGES, normalizeProviderLanguage } from '@/lib/provider-languages';
 interface ProfileData {
     id: number;
     name: string;
+    slug: string;
     provider_type: 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
     city: string;
     address?: string | null;
@@ -242,15 +242,8 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
     const searchParams = useSearchParams();
     const { data: session, status } = useSession();
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
     const [isStartingChat, setIsStartingChat] = useState(false);
-    const [selectedService, setSelectedService] = useState<{
-        id?: number;
-        title: string;
-        price: string;
-        duration_min?: number;
-    } | null>(null);
 
     // ── Derived values ──────────────────────────────────────────────────────
     const services = useMemo(() => profile.services || [], [profile.services]);
@@ -304,19 +297,15 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
     const openStreetMapUrl = `https://www.openstreetmap.org/?mlat=${profile.latitude}&mlon=${profile.longitude}#map=15/${profile.latitude}/${profile.longitude}`;
 
-    const initialDate = searchParams.get('date') || undefined;
-    const initialTime = searchParams.get('time') || undefined;
-
     // ── Booking helpers ─────────────────────────────────────────────────────
     const openBooking = (service?: { id?: number; title: string; price: string; duration_min?: number }) => {
-        if (service) {
-            setSelectedService(service);
-            setIsModalOpen(true);
+        if (service && service.id) {
+            router.push(`/book/${profile.slug}?serviceId=${service.id}`);
             return;
         }
         const el = document.getElementById('services');
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        else { setSelectedService(null); setIsModalOpen(true); }
+        else { router.push(`/book/${profile.slug}`); }
     };
 
     const startChat = useCallback(async () => {
@@ -342,16 +331,19 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
     useEffect(() => {
         if (searchParams.get('book') !== '1') return;
         const serviceIdParam = Number(searchParams.get('service'));
-        if (Number.isInteger(serviceIdParam)) {
-            const svc = services.find((s) => s.id === serviceIdParam);
-            if (svc) setSelectedService({ id: svc.id, title: svc.title, price: formatPrice(svc.price), duration_min: svc.duration_min });
-        }
-        setIsModalOpen(true);
         const next = new URLSearchParams(searchParams.toString());
         next.delete('book'); next.delete('service'); next.delete('date'); next.delete('time');
         const q = next.toString();
-        router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
-    }, [pathname, router, searchParams, services]);
+        
+        let targetServiceId = '';
+        if (Number.isInteger(serviceIdParam)) {
+            const svc = services.find((s) => s.id === serviceIdParam);
+            if (svc) targetServiceId = `?serviceId=${svc.id}`;
+        }
+        
+        // Redirect completely out of profile to the new book wizard route
+        router.replace(`/book/${profile.slug}${targetServiceId}`);
+    }, [router, searchParams, services, profile.slug]);
 
     useEffect(() => {
         if (searchParams.get('startChat') !== '1') return;
@@ -734,20 +726,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
             </div>
 
-            {/* ── Booking modal ────────────────────────────────────────── */}
-            <BookingModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                masterName={profile.name}
-                masterAddress={visibleAddress}
-                rating={5}
-                profileId={profile.id}
-                selectedService={selectedService}
-                initialDate={initialDate}
-                initialTime={initialTime}
-                accentColor="rose"
-                staffList={profile.staff}
-            />
+            {/* ── Booking route redirect handles booking context internally ── */}
             {/* ── Photo Lightbox Modal ────────────────────────────────────── */}
             {selectedImageIndex !== null && (
                 <div
