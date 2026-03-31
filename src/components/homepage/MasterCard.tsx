@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShieldCheck, Star } from 'lucide-react';
+import { Star, ShieldCheck } from 'lucide-react';
 
 interface MasterCardProps {
     slug: string;
@@ -30,68 +30,64 @@ export default function MasterCard({
     workPhotoUrl,
     services,
 }: MasterCardProps) {
+    const minPrice = services.length > 0
+        ? Math.min(...services.map(s => s.price))
+        : null;
+
     return (
         <Link
             href={`/salon/${slug}`}
-            className="block bg-booking-card rounded-[2rem] shadow-soft-out border border-white/50 overflow-hidden transition-transform duration-200 hover:-translate-y-1"
+            className="block bg-white p-6 rounded-xl group hover:shadow-2xl transition-all duration-500"
         >
-            <div className="w-full h-48 md:h-56 relative">
+            {/* Photo */}
+            <div className="relative aspect-square mb-6 overflow-hidden rounded-lg">
                 {workPhotoUrl ? (
                     <Image
                         src={workPhotoUrl}
                         alt={name}
                         fill
-                        className="object-cover"
+                        className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     />
                 ) : (
-                    <div className="w-full h-full bg-booking-border flex items-center justify-center">
-                        <span className="text-3xl font-bold text-booking-textMuted">
+                    <div className="w-full h-full bg-stone-100 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all duration-700">
+                        <span className="text-4xl font-bold text-stone-400">
                             {getInitials(name)}
                         </span>
                     </div>
                 )}
-            </div>
-
-            <div className="p-5 md:p-6">
-                <div className="flex justify-between items-center">
-                    {isVerified ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-booking-primary">
-                            <ShieldCheck className="h-4 w-4" />
-                            Подтверждён
-                        </span>
-                    ) : (
-                        <span />
-                    )}
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-booking-textMain">
-                        <Star className="h-3.5 w-3.5 fill-current text-amber-500" />
-                        {avgRating}
-                    </span>
-                </div>
-
-                <h3 className="font-didot text-xl font-bold tracking-wide text-booking-textMain mt-3 leading-tight">
-                    {name}
-                </h3>
-                <p className="text-sm text-booking-textMuted mt-1">
-                    {category} · {city}
-                </p>
-
-                {services.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                        {services.slice(0, 2).map((s) => (
-                            <div key={s.title} className="flex justify-between text-sm">
-                                <span className="text-booking-textMain font-medium">{s.title}</span>
-                                <span className="text-booking-textMuted">
-                                    от €{s.price} · {s.durationMin} мин
-                                </span>
-                            </div>
-                        ))}
+                {isVerified && (
+                    <div className="absolute top-4 right-4 bg-booking-primary/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-white">
+                        Рекомендуем
                     </div>
                 )}
+            </div>
 
-                <div className="mt-5 text-center rounded-full bg-booking-primary text-white py-3 text-sm font-bold btn-neu">
-                    Записаться
+            {/* Name & Rating */}
+            <div className="flex justify-between items-start mb-2">
+                <h3 className="text-xl font-bold tracking-tight text-booking-textMain">{name}</h3>
+                <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 fill-current text-booking-primary" />
+                    <span className="text-sm font-bold text-booking-textMain">{avgRating}</span>
                 </div>
+            </div>
+
+            {/* Category */}
+            <p className="text-booking-textMuted text-sm mb-6 font-medium uppercase tracking-wider">
+                {category}
+            </p>
+
+            {/* Price & CTA */}
+            <div className="flex items-center justify-between pt-6 border-t border-stone-100">
+                <div>
+                    <span className="text-xs text-booking-textMuted font-medium block">От</span>
+                    <span className="text-lg font-bold text-booking-textMain">
+                        {minPrice !== null ? `€${minPrice.toFixed(2)}` : '—'}
+                    </span>
+                </div>
+                <span className="bg-booking-primary text-white px-6 py-3 rounded-lg text-xs font-bold uppercase tracking-widest group-active:scale-95 transition-all">
+                    Записаться
+                </span>
             </div>
         </Link>
     );

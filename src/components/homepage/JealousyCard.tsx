@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRef, useEffect, useState } from 'react';
 
 export default function JealousyCard() {
@@ -26,28 +27,36 @@ export default function JealousyCard() {
     }, []);
 
     return (
-        <div ref={ref} className="bg-white/40 backdrop-blur-md border border-white/50 shadow-glass rounded-[2rem] p-8 md:p-10 col-span-2 lg:col-span-3 relative overflow-hidden">
-            {isVisible && (
-                <div className="absolute inset-0 glass-shimmer-overlay animate-glass-shimmer pointer-events-none" />
-            )}
+        <section className="py-24 px-8 overflow-hidden">
+            <div ref={ref} className="max-w-screen-2xl mx-auto relative rounded-[2rem] bg-booking-primary text-white p-12 md:p-24 overflow-hidden">
+                {/* Background image overlay */}
+                <div className="absolute inset-0 opacity-40">
+                    <Image
+                        src="/categories/hair.png"
+                        alt="Artist working"
+                        fill
+                        className="object-cover"
+                    />
+                </div>
 
-            <div className="relative z-10">
-                <h3 className="font-didot tracking-wide text-2xl md:text-3xl font-bold text-booking-textMain">
-                    Хотите такой же профиль?
-                </h3>
-                <p className="font-sans text-base md:text-lg text-booking-textMain mt-3">
-                    Мы — ваш невидимый менеджер.
-                </p>
-                <p className="font-sans text-base md:text-lg font-bold text-booking-primary mt-1">
-                    0% комиссии. Навсегда.
-                </p>
-                <Link
-                    href="/become-pro"
-                    className="mt-6 inline-block rounded-full bg-booking-primary text-white px-8 py-3.5 text-sm font-bold btn-neu"
-                >
-                    Создать свою галерею
-                </Link>
+                <div className={`relative z-10 max-w-2xl transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/60 mb-6 block">
+                        Для профессионалов
+                    </span>
+                    <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-8 leading-tight">
+                        Хотите такой же профиль?
+                    </h2>
+                    <p className="text-white/70 text-lg mb-12 leading-relaxed">
+                        Присоединяйтесь к элитному сообществу мастеров SVOI. Представьте свои работы в цифровом ателье для премиальной аудитории.
+                    </p>
+                    <Link
+                        href="/become-pro"
+                        className="inline-block bg-white text-booking-primary px-10 py-5 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-stone-100 transition-all"
+                    >
+                        Создать свою галерею
+                    </Link>
+                </div>
             </div>
-        </div>
+        </section>
     );
 }

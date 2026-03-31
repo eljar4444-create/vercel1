@@ -1,46 +1,56 @@
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
-const CITIES = ['Berlin', 'München', 'Hamburg', 'Frankfurt', 'Köln', 'Düsseldorf'];
+const CITIES = [
+    { label: 'Берлин', query: 'Berlin' },
+    { label: 'Мюнхен', query: 'München' },
+    { label: 'Гамбург', query: 'Hamburg' },
+    { label: 'Франкфурт', query: 'Frankfurt' },
+    { label: 'Дюссельдорф', query: 'Düsseldorf' },
+];
 
 export default function HomeHeroV2({ children }: { children?: ReactNode }) {
     return (
-        <section className="relative overflow-hidden pt-36 pb-24 md:pt-48 md:pb-32 bg-black flex flex-col items-center justify-center px-4 md:px-8 z-0">
-            {/* Ambient Background Video */}
-            <div className="absolute inset-0 w-full h-full -z-10 bg-black">
+        <header className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+            {/* Background image/video with overlay */}
+            <div className="absolute inset-0 z-0">
                 <video
                     src="/hero-bg.mp4"
                     autoPlay
                     muted
                     loop
                     playsInline
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-cover scale-105"
                 />
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#EBE6DF]" />
             </div>
 
-            <h1 className="font-didot text-4xl md:text-6xl font-bold text-white tracking-normal md:tracking-wide text-center relative z-10">
-                <span className="block">Свои мастера.</span>
-                <span className="block">Тот самый уровень качества.</span>
-            </h1>
+            {/* Content */}
+            <div className="relative z-10 max-w-5xl px-8 text-center mt-12">
+                <h1 className="text-white text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 leading-[0.9]" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+                    Свои мастера.<br />Тот самый уровень качества.
+                </h1>
 
-            <p className="font-sans text-base md:text-lg text-white/90 text-center mt-5 relative z-10 font-medium">
-                Finde und buche die besten Beauty-Meister in Deutschland
-            </p>
+                <p className="text-white/80 text-lg md:text-xl font-light mb-12 tracking-wide max-w-2xl mx-auto">
+                    Найдите и забронируйте лучших бьюти-мастеров
+                </p>
 
-            <div className="mt-10 flex flex-wrap justify-center gap-3 relative z-10">
-                {CITIES.map((city) => (
-                    <Link
-                        key={city}
-                        href={`/search?city=${city}`}
-                        className="rounded-full px-5 py-2.5 bg-white/10 backdrop-blur-md shadow-soft-out hover:shadow-soft-in hover:bg-white/20 transition-all text-sm font-semibold text-white border border-white/20"
-                    >
-                        {city}
-                    </Link>
-                ))}
+                {/* Search Bar slot */}
+                {children}
+
+                {/* City Tags */}
+                <div className="flex flex-wrap justify-center gap-3 mt-8">
+                    {CITIES.map((city) => (
+                        <Link
+                            key={city.query}
+                            href={`/search?city=${city.query}`}
+                            className="px-5 py-2 rounded-full border border-white/20 text-white/70 text-xs font-semibold tracking-widest uppercase cursor-pointer hover:bg-white/10 transition-all"
+                        >
+                            {city.label}
+                        </Link>
+                    ))}
+                </div>
             </div>
-
-            {children}
-        </section>
+        </header>
     );
 }

@@ -19,11 +19,10 @@ import { Badge } from '@/components/ui/badge';
 import { SearchFiltersForm } from '@/components/search/SearchFiltersForm';
 
 const QUICK_BEAUTY_LINKS = [
-    { label: 'Стрижка', href: '/search?q=Стрижка' },
-    { label: 'Маникюр', href: '/search?q=Маникюр' },
-    { label: 'Брови и ресницы', href: '/search?q=Брови и ресницы' },
-    { label: 'Косметология', href: '/search?q=Косметология' },
-    { label: 'Массаж', href: '/search?q=Массаж' },
+    { label: 'Услуги', href: '/search' },
+    { label: 'Мастера', href: '/search' },
+    { label: 'Как это работает', href: '/guide' },
+    { label: 'Журнал', href: '#' },
 ];
 
 type HeaderProps = {
@@ -67,28 +66,35 @@ export function Header({ variant = 'default' }: HeaderProps) {
     // ... (Avatar render logic can stay, but need to check if AvatarDropdown uses legacy stuff)
     // Actually, AvatarDropdown is imported, let's keep using it if it's safe.
 
+    const isHomepage = pathname === '/';
+
     return (
         <header className={cn(
-            "relative z-50 transition-all duration-300",
+            "z-50 transition-all duration-300",
+            isHomepage ? "fixed top-0 w-full" : "relative",
             isMinimal
                 ? "bg-[#F5F2EB]/95 backdrop-blur-md border-b border-stone-200"
-                : pathname === '/'
-                ? scrolled
-                    ? "bg-slate-950/90 backdrop-blur-md shadow-sm border-b border-white/10"
-                    : "bg-transparent border-b border-transparent"
+                : isHomepage
+                ? "bg-black/80 backdrop-blur-md"
                 : "bg-[#F5F2EB]/90 backdrop-blur-md border-b border-stone-200"
         )}>
             <div
                 className={cn(
                     isMinimal
                         ? "mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6"
+                        : isHomepage
+                        ? "flex justify-between items-center px-8 py-6 max-w-screen-2xl mx-auto"
                         : "container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl lg:grid lg:grid-cols-[1fr_minmax(0,560px)_1fr]"
                 )}
             >
                 {/* Left Area (Logo) */}
                 <div className={cn("flex items-center justify-start", isMinimal ? "shrink-0" : "flex-1")}>
                     <Link href="/" className="relative z-10 m-0 flex shrink-0 items-center p-0 leading-none">
-                        <img src="/logo.svg" alt="Svoi.de" className="block h-16 w-auto object-contain" />
+                        {isHomepage ? (
+                            <span className="text-2xl font-black tracking-tighter text-white">SVOI</span>
+                        ) : (
+                            <img src="/logo.svg" alt="Svoi.de" className="block h-16 w-auto object-contain" />
+                        )}
                     </Link>
                 </div>
 
@@ -104,14 +110,21 @@ export function Header({ variant = 'default' }: HeaderProps) {
                 ) : null}
 
                 {!isSearchPage && !isMinimal && !isOnboardingPage ? (
-                    <nav className="hidden lg:flex flex-1 items-center justify-center shrink-0 gap-6 lg:gap-8">
-                        {QUICK_BEAUTY_LINKS.map((item) => (
+                    <nav className={cn(
+                        "hidden lg:flex items-center shrink-0",
+                        isHomepage ? "gap-10" : "flex-1 justify-center gap-6 lg:gap-8"
+                    )}>
+                        {QUICK_BEAUTY_LINKS.map((item, idx) => (
                             <Link
                                 key={item.label}
                                 href={item.href}
                                 className={cn(
-                                    "text-sm font-medium transition-colors whitespace-nowrap",
-                                    "text-slate-900 hover:text-slate-600"
+                                    "text-xs uppercase tracking-widest font-semibold transition-colors duration-300 whitespace-nowrap",
+                                    isHomepage
+                                        ? idx === 0
+                                            ? "text-white border-b border-white pb-1"
+                                            : "text-gray-400 hover:text-white"
+                                        : "text-slate-900 hover:text-slate-600 text-sm font-medium"
                                 )}
                             >
                                 {item.label}
@@ -145,18 +158,26 @@ export function Header({ variant = 'default' }: HeaderProps) {
                             <AvatarDropdown user={user} />
                         </div>
                     ) : (
-                        <div className="hidden items-center gap-3 lg:flex">
-                            <Link
-                                href="/become-pro"
-                                className="hidden xl:inline-block text-sm font-semibold transition-opacity hover:opacity-80 whitespace-nowrap text-slate-900"
-                            >
-                                Для мастеров
-                            </Link>
+                        <div className="hidden items-center gap-6 lg:flex">
                             <Link
                                 href="/auth/login"
-                                className="inline-flex h-9 items-center rounded-xl bg-slate-900 px-5 text-sm font-medium text-white transition-colors hover:bg-slate-800 whitespace-nowrap"
+                                className={cn(
+                                    "text-xs uppercase tracking-widest font-semibold transition-all whitespace-nowrap",
+                                    isHomepage ? "text-gray-400 hover:text-white" : "text-slate-600 hover:text-slate-900"
+                                )}
                             >
-                                Для клиента
+                                Войти
+                            </Link>
+                            <Link
+                                href="/become-pro"
+                                className={cn(
+                                    "px-6 py-2.5 rounded-md text-xs uppercase tracking-widest font-bold transition-all whitespace-nowrap",
+                                    isHomepage
+                                        ? "bg-booking-primary text-white hover:brightness-110"
+                                        : "bg-slate-900 text-white hover:bg-slate-800"
+                                )}
+                            >
+                                Стать мастером
                             </Link>
                         </div>
                     )}

@@ -2,17 +2,15 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 import { SUB_CATEGORIES } from '@/constants/categories';
 import toast from 'react-hot-toast';
+import { ChevronRight } from 'lucide-react';
 
 const LocationAutocomplete = dynamic(
     () => import('@/components/LocationAutocomplete').then(mod => mod.LocationAutocomplete),
-    { ssr: false, loading: () => <div className="h-14 w-full bg-booking-card animate-pulse rounded-lg md:rounded-l-none" /> },
+    { ssr: false, loading: () => <div className="h-14 w-full animate-pulse rounded-lg bg-white/5" /> },
 );
 
 interface Category {
@@ -155,26 +153,28 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
     };
 
     return (
-        <div className="w-full max-w-4xl mx-auto px-4 md:px-8 py-6">
+        <div className="w-full max-w-4xl mx-auto mb-8">
             <form
                 onSubmit={handleSearch}
-                className="bg-white rounded-xl p-2 shadow-2xl flex flex-col md:flex-row items-center gap-2 md:gap-0 relative"
+                className="bg-white/10 backdrop-blur-xl p-2 rounded-xl border border-white/10 shadow-2xl flex flex-col md:flex-row items-stretch gap-2"
             >
                 {/* Service Input */}
-                <div ref={wrapperRef} className="relative flex-1 w-full md:border-r border-gray-100">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs uppercase tracking-wider pointer-events-none">
-                        Что
+                <div ref={wrapperRef} className="relative flex-1">
+                    <div className="flex items-center px-4 bg-white/5 rounded-lg border border-transparent focus-within:border-booking-primary transition-all">
+                        <svg className="w-5 h-5 text-white/50 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.121 14.121A3 3 0 1 0 9.879 9.879a3 3 0 0 0 4.242 4.242zm0 0L21 21" />
+                        </svg>
+                        <input
+                            value={serviceQuery}
+                            onChange={(e) => { setServiceQuery(e.target.value); if (validationError.service) setValidationError(prev => ({ ...prev, service: false })); }}
+                            onFocus={() => setIsServiceFocused(true)}
+                            className={cn(
+                                'w-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-white/40 py-4 text-base',
+                                validationError.service && 'text-red-300 placeholder-red-300/50',
+                            )}
+                            placeholder="Название услуги"
+                        />
                     </div>
-                    <Input
-                        value={serviceQuery}
-                        onChange={(e) => { setServiceQuery(e.target.value); if (validationError.service) setValidationError(prev => ({ ...prev, service: false })); }}
-                        onFocus={() => setIsServiceFocused(true)}
-                        className={cn(
-                            'w-full h-14 pl-16 pt-1 pb-1 border-none bg-transparent shadow-none focus-visible:ring-0 text-base font-semibold placeholder:font-normal placeholder:text-gray-300 rounded-lg md:rounded-r-none transition-all duration-300',
-                            validationError.service && 'ring-2 ring-red-400 bg-red-50/50',
-                        )}
-                        placeholder="Название услуги, салона..."
-                    />
 
                     {/* Dropdown Menu */}
                     {isServiceFocused && (
@@ -196,12 +196,12 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                                                 className={cn(
                                                     'px-4 py-3 cursor-pointer transition-colors flex items-center justify-between text-sm font-medium',
                                                     hoveredCategory === cat.slug
-                                                        ? 'bg-white text-blue-600 shadow-sm'
+                                                        ? 'bg-white text-booking-primary shadow-sm'
                                                         : 'text-gray-700 hover:bg-gray-100',
                                                 )}
                                             >
                                                 {cat.name}
-                                                <ChevronRight className={cn('w-4 h-4', hoveredCategory === cat.slug ? 'text-blue-500' : 'text-gray-300')} />
+                                                <ChevronRight className={cn('w-4 h-4', hoveredCategory === cat.slug ? 'text-booking-primary' : 'text-gray-300')} />
                                             </div>
                                         ))}
                                     </div>
@@ -229,7 +229,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                                                                 });
                                                             }
                                                         }}
-                                                        className="px-3 py-2 cursor-pointer hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors text-sm text-gray-600 mb-1"
+                                                        className="px-3 py-2 cursor-pointer hover:bg-green-50 hover:text-booking-primary rounded-lg transition-colors text-sm text-gray-600 mb-1"
                                                     >
                                                         {sub}
                                                     </div>
@@ -261,7 +261,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                                                         </span>
                                                     )}
                                                 </div>
-                                                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                                                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-booking-primary transition-colors" />
                                             </div>
                                         ))
                                     ) : (
@@ -276,32 +276,35 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                 </div>
 
                 {/* Location Input */}
-                <div className="relative flex-1 w-full">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs uppercase tracking-wider pointer-events-none z-10">
-                        Где
+                <div className="relative flex-1">
+                    <div className="flex items-center px-4 bg-white/5 rounded-lg border border-transparent focus-within:border-booking-primary transition-all">
+                        <svg className="w-5 h-5 text-white/50 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                        </svg>
+                        <LocationAutocomplete
+                            focusRef={locationInputRef}
+                            defaultValue={locationQuery}
+                            onSelect={(addr, lat, lng) => {
+                                setLocationQuery(addr);
+                                setCoordinates({ lat, lng });
+                                if (validationError.location) setValidationError(prev => ({ ...prev, location: false }));
+                            }}
+                            className={cn(
+                                'w-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-white/40 py-4 text-base',
+                                validationError.location && 'text-red-300 placeholder-red-300/50',
+                            )}
+                        />
                     </div>
-                    <LocationAutocomplete
-                        focusRef={locationInputRef}
-                        defaultValue={locationQuery}
-                        onSelect={(addr, lat, lng) => {
-                            setLocationQuery(addr);
-                            setCoordinates({ lat, lng });
-                            if (validationError.location) setValidationError(prev => ({ ...prev, location: false }));
-                        }}
-                        className={cn(
-                            'w-full h-14 pl-16 pt-1 pb-1 border-none bg-transparent shadow-none focus-visible:ring-0 text-base font-semibold placeholder:font-normal placeholder:text-gray-300 rounded-lg md:rounded-l-none transition-all duration-300',
-                            validationError.location && 'ring-2 ring-red-400 bg-red-50/50',
-                        )}
-                    />
                 </div>
 
                 {/* Search Button */}
-                <Button
+                <button
                     type="submit"
-                    className="w-full md:w-auto h-12 md:h-12 px-8 bg-black hover:bg-gray-800 text-white font-bold rounded-lg transition-all"
+                    className="bg-booking-primary text-white px-10 py-4 rounded-lg font-bold uppercase tracking-widest text-xs hover:brightness-110 active:scale-95 transition-all"
                 >
-                    Найти
-                </Button>
+                    Поиск
+                </button>
             </form>
         </div>
     );
