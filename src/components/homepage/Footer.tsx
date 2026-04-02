@@ -28,7 +28,7 @@ const LEGAL_LINKS = [
 
 export default function HomepageFooter() {
     return (
-        <footer className="bg-neutral-950 text-white pt-20 pb-10 px-8">
+        <footer className="bg-[#160e0a] text-white pt-20 pb-10 px-8">
             <div className="max-w-screen-2xl mx-auto">
                 {/* Logo */}
                 <Link href="/" className="inline-block mb-8">

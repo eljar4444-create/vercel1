@@ -19,10 +19,8 @@ import { Badge } from '@/components/ui/badge';
 import { SearchFiltersForm } from '@/components/search/SearchFiltersForm';
 
 const QUICK_BEAUTY_LINKS = [
-    { label: 'Услуги', href: '/search' },
-    { label: 'Мастера', href: '/search' },
-    { label: 'Как это работает', href: '/guide' },
-    { label: 'Журнал', href: '#' },
+    { label: 'Услуги', href: '/#services' },
+    { label: 'Мастера', href: '/#masters' },
 ];
 
 type HeaderProps = {
@@ -75,7 +73,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
             isMinimal
                 ? "bg-[#F5F2EB]/95 backdrop-blur-md border-b border-stone-200"
                 : isHomepage
-                ? "bg-black/80 backdrop-blur-md"
+                ? cn(scrolled ? "bg-[#160e0a]/90 backdrop-blur-md shadow-sm" : "bg-transparent")
                 : "bg-[#F5F2EB]/90 backdrop-blur-md border-b border-stone-200"
         )}>
             <div
@@ -83,7 +81,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                     isMinimal
                         ? "mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6"
                         : isHomepage
-                        ? "flex justify-between items-center px-8 py-6 max-w-screen-2xl mx-auto"
+                        ? cn("flex justify-between items-center px-8 max-w-screen-2xl mx-auto transition-all duration-300", scrolled ? "py-4" : "py-6")
                         : "container mx-auto flex h-16 w-full items-center gap-4 px-4 max-w-7xl lg:grid lg:grid-cols-[1fr_minmax(0,560px)_1fr]"
                 )}
             >
@@ -114,16 +112,14 @@ export function Header({ variant = 'default' }: HeaderProps) {
                         "hidden lg:flex items-center shrink-0",
                         isHomepage ? "gap-10" : "flex-1 justify-center gap-6 lg:gap-8"
                     )}>
-                        {QUICK_BEAUTY_LINKS.map((item, idx) => (
+                        {QUICK_BEAUTY_LINKS.map((item) => (
                             <Link
                                 key={item.label}
                                 href={item.href}
                                 className={cn(
                                     "text-xs uppercase tracking-widest font-semibold transition-colors duration-300 whitespace-nowrap",
                                     isHomepage
-                                        ? idx === 0
-                                            ? "text-white border-b border-white pb-1"
-                                            : "text-gray-400 hover:text-white"
+                                        ? "text-white/80 hover:text-white"
                                         : "text-slate-900 hover:text-slate-600 text-sm font-medium"
                                 )}
                             >

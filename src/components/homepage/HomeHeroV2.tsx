@@ -13,16 +13,13 @@ export default function HomeHeroV2({ children }: { children?: ReactNode }) {
     return (
         <header className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
             {/* Background image/video with overlay */}
-            <div className="absolute inset-0 z-0">
-                <video
-                    src="/hero-bg.mp4"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover scale-105"
+            <div className="absolute inset-0 z-0 bg-[#1A1A1A]">
+                <img
+                    src="/hero-bg.jpg"
+                    alt="Beauty salon interior"
+                    className="absolute inset-0 w-full h-full object-cover object-center"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#EBE6DF]" />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/60" />
             </div>
 
             {/* Content */}
@@ -43,7 +40,7 @@ export default function HomeHeroV2({ children }: { children?: ReactNode }) {
                     {CITIES.map((city) => (
                         <Link
                             key={city.query}
-                            href={`/search?city=${city.query}`}
+                            href={`/?city=${city.query}#masters-section`}
                             className="px-5 py-2 rounded-full border border-white/20 text-white/70 text-xs font-semibold tracking-widest uppercase cursor-pointer hover:bg-white/10 transition-all"
                         >
                             {city.label}

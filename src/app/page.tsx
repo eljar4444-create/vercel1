@@ -31,11 +31,15 @@ export default async function HomePage() {
                 </div>
             </HomeHeroV2>
 
-            <CategoryNav />
+            <div id="services" className="scroll-mt-24">
+                <CategoryNav />
+            </div>
 
-            <Suspense fallback={<div className="h-96 w-full animate-pulse bg-[#f0ebe4]" />}>
-                <MasterGallery />
-            </Suspense>
+            <div id="masters" className="scroll-mt-24">
+                <Suspense fallback={<div className="h-96 w-full animate-pulse bg-[#f0ebe4]" />}>
+                    <MasterGallery />
+                </Suspense>
+            </div>
 
             <HowItWorks />
 
