@@ -105,6 +105,27 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [wrapperRef]);
 
+    useEffect(() => {
+        const handleSmartTrigger = ((e: CustomEvent<{ service: string }>) => {
+            setServiceQuery(e.detail.service);
+            
+            // Focus and add pulse effect to location input container
+            if (locationInputRef.current) {
+                locationInputRef.current.focus();
+                const parent = locationInputRef.current.closest('div.flex.items-center');
+                if (parent) {
+                    parent.classList.add('ring-2', 'ring-booking-primary', 'ring-offset-2', 'ring-offset-[#2f4b3a]', 'animate-pulse');
+                    setTimeout(() => {
+                        parent.classList.remove('ring-2', 'ring-booking-primary', 'ring-offset-2', 'ring-offset-[#2f4b3a]', 'animate-pulse');
+                    }, 2000);
+                }
+            }
+        }) as EventListener;
+
+        window.addEventListener('smart-search-trigger', handleSmartTrigger);
+        return () => window.removeEventListener('smart-search-trigger', handleSmartTrigger);
+    }, []);
+
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
 

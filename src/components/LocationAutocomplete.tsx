@@ -1,16 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import usePlacesAutocomplete, {
-    getGeocode,
-    getLatLng,
-} from 'use-places-autocomplete';
-import { useLoadScript } from '@react-google-maps/api';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const libraries: ("places")[] = ["places"];
+import toast from 'react-hot-toast';
+import { resolveGermanCity, getGermanCitySuggestions } from '@/constants/searchSuggestions';
+import { GERMAN_CITIES } from '@/constants/germanCities';
 
 interface LocationAutocompleteProps {
     onSelect: (address: string, lat: number | null, lng: number | null) => void;
@@ -19,59 +15,68 @@ interface LocationAutocompleteProps {
     focusRef?: React.Ref<HTMLInputElement>;
 }
 
-export function LocationAutocomplete({ onSelect, defaultValue = '', className, focusRef }: LocationAutocompleteProps) {
-    const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-        libraries,
-    });
-
-    useEffect(() => {
-        if (loadError) {
-            console.error('Google Maps Load Error:', loadError);
-        }
-    }, [loadError]);
-
-    if (!isLoaded) {
-        return (
-            <div className="relative w-full">
-                <Input
-                    disabled
-                    placeholder="Загрузка карт..."
-                    className={className}
-                />
-                <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 animate-spin text-gray-400" />
-            </div>
-        );
-    }
-
-    return <LocationInput onSelect={onSelect} defaultValue={defaultValue} className={className} focusRef={focusRef} />;
+// ─── Haversine distance (km) between two lat/lng points ───
+function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function LocationInput({ onSelect, defaultValue, className, focusRef }: LocationAutocompleteProps) {
-    const {
-        ready,
-        value,
-        suggestions: { status, data },
-        setValue,
-        clearSuggestions,
-    } = usePlacesAutocomplete({
-        requestOptions: {
-            language: 'ru', // Force Russian results
-            componentRestrictions: { country: ['de'] },
-        },
-        debounce: 300,
-        defaultValue,
-    });
+// ─── Find nearest city from our 600-city DB by coordinates ───
+function findNearestCity(lat: number, lng: number): { name: string; lat: number; lng: number; distance: number } | null {
+    let best: { name: string; lat: number; lng: number; distance: number } | null = null;
 
+    for (const entry of GERMAN_CITIES) {
+        if (!entry.data?.lat || !entry.data?.lon) continue;
+        const cityLat = parseFloat(entry.data.lat);
+        const cityLng = parseFloat(entry.data.lon);
+        const dist = haversineKm(lat, lng, cityLat, cityLng);
+
+        if (!best || dist < best.distance) {
+            // Get the Russian (Cyrillic) name, fallback to first name
+            const names: string[] = Array.isArray(entry.names) ? entry.names : [];
+            const cyrillicName = names.find((n: string) => /[а-яё]/i.test(n));
+            const displayName = cyrillicName || names[0] || '';
+            // Capitalize first letter
+            const name = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+            best = { name, lat: cityLat, lng: cityLng, distance: dist };
+        }
+    }
+
+    return best;
+}
+
+/** Find lat/lng for a resolved city name from our DB */
+function getCoordsForCity(cityName: string): { lat: number; lng: number } | null {
+    const normalizedInput = cityName.toLowerCase();
+    for (const entry of GERMAN_CITIES) {
+        const names: string[] = Array.isArray(entry.names) ? entry.names : [];
+        if (names.some((n: string) => n.toLowerCase() === normalizedInput)) {
+            if (entry.data?.lat && entry.data?.lon) {
+                return { lat: parseFloat(entry.data.lat), lng: parseFloat(entry.data.lon) };
+            }
+        }
+    }
+    return null;
+}
+
+export function LocationAutocomplete({ onSelect, defaultValue = '', className, focusRef }: LocationAutocompleteProps) {
+    const [value, setValue] = useState(defaultValue);
+    const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isFocused, setIsFocused] = useState(false);
+    const [isLocating, setIsLocating] = useState(false);
+    const locatingLockRef = useRef(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Keep value in sync if default changes (optional)
     useEffect(() => {
-        if (defaultValue) setValue(defaultValue, false);
-    }, [defaultValue, setValue]);
+        if (defaultValue) setValue(defaultValue);
+    }, [defaultValue]);
 
-    // Click outside to close
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
@@ -79,57 +84,154 @@ function LocationInput({ onSelect, defaultValue, className, focusRef }: Location
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [wrapperRef]);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
-    const handleSelect = async (address: string) => {
-        setValue(address, false);
-        clearSuggestions();
+    const updateSuggestions = useCallback((query: string) => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(() => {
+            setSuggestions(getGermanCitySuggestions(query, 8));
+        }, 150);
+    }, []);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        setValue(newValue);
+        updateSuggestions(newValue);
+        if (newValue) onSelect(newValue, null, null);
+    };
+
+    const handleSelect = (cityName: string) => {
+        setValue(cityName);
+        setSuggestions([]);
         setIsFocused(false);
 
-        try {
-            const results = await getGeocode({ address });
-            const { lat, lng } = await getLatLng(results[0]);
-            onSelect(address, lat, lng);
-        } catch (error) {
-            console.error("Error: ", error);
-            // Even if geocoding fails, we can at least return the address
-            onSelect(address, null, null);
+        const coords = getCoordsForCity(cityName);
+        if (coords) {
+            onSelect(cityName, coords.lat, coords.lng);
+        } else {
+            const resolved = resolveGermanCity(cityName);
+            if (resolved) {
+                const resolvedCoords = getCoordsForCity(resolved);
+                setValue(resolved);
+                onSelect(resolved, resolvedCoords?.lat ?? null, resolvedCoords?.lng ?? null);
+            } else {
+                onSelect(cityName, null, null);
+            }
         }
     };
 
-    const handleGeolocation = () => {
-        if (!navigator.geolocation) return;
-
-        navigator.geolocation.getCurrentPosition(
-            ({ coords }) => {
-                const { latitude, longitude } = coords;
-
-                getGeocode({ location: { lat: latitude, lng: longitude } })
-                    .then((results) => {
-                        if (results[0]) {
-                            const address = results[0].formatted_address;
-                            setValue(address, false);
-                            onSelect(address, latitude, longitude);
-                        } else {
-                            const fallback = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                            setValue(fallback, false);
-                            onSelect(fallback, latitude, longitude);
-                        }
-                        setIsFocused(true);
-                    })
-                    .catch((err) => {
-                        console.error("Geocoding failed:", err);
-                        setValue("Не удалось определить город", false);
-                        setIsFocused(true);
-                    });
-            },
-            (error) => {
-                console.error("Geolocation error:", error);
+    /** Reverse geocode coords via OSM Nominatim */
+    const getCityFromCoords = async (lat: number, lng: number): Promise<string | null> => {
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=de`,
+                { headers: { 'User-Agent': 'SvoiDE/1.0' }, signal: AbortSignal.timeout(5000) }
+            );
+            if (res.ok) {
+                const data = await res.json();
+                if (data?.address) {
+                    return data.address.city || data.address.town || data.address.village || data.address.municipality || null;
+                }
             }
-        );
+            return null;
+        } catch {
+            return null;
+        }
+    };
+
+    const handleGeolocation = async () => {
+        if (locatingLockRef.current) return;
+        locatingLockRef.current = true;
+
+        toast.dismiss();
+        setIsFocused(false);
+        setIsLocating(true);
+
+        try {
+            let lat: number | null = null;
+            let lng: number | null = null;
+
+            // ── Step 1: Try browser GPS ──
+            if (navigator.geolocation) {
+                try {
+                    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 60000,
+                        });
+                    });
+                    lat = position.coords.latitude;
+                    lng = position.coords.longitude;
+                } catch { /* GPS unavailable */ }
+            }
+
+            // ── Step 2: If no GPS, get coords from IP services ──
+            if (lat === null || lng === null) {
+                // Try ipinfo.io first
+                try {
+                    const res = await fetch('https://ipinfo.io/json', { signal: AbortSignal.timeout(5000) });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.loc) {
+                            const [la, ln] = data.loc.split(',').map(Number);
+                            if (!isNaN(la) && !isNaN(ln)) { lat = la; lng = ln; }
+                        }
+                    }
+                } catch { /* try next */ }
+
+                // Fallback: ipapi.co
+                if (lat === null || lng === null) {
+                    try {
+                        const res = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data.latitude && data.longitude) {
+                                lat = data.latitude;
+                                lng = data.longitude;
+                            }
+                        }
+                    } catch { /* nothing */ }
+                }
+            }
+
+            if (lat === null || lng === null) {
+                toast.error('Не удалось определить местоположение.');
+                return;
+            }
+
+            // ── Step 3: Try OSM reverse geocode → resolveGermanCity ──
+            let resolvedCity: string | null = null;
+            const osmCity = await getCityFromCoords(lat, lng);
+            if (osmCity) {
+                resolvedCity = resolveGermanCity(osmCity);
+            }
+
+            // ── Step 4: If OSM didn't match, find NEAREST city from our DB ──
+            if (!resolvedCity) {
+                const nearest = findNearestCity(lat, lng);
+                if (nearest && nearest.distance < 150) {
+                    resolvedCity = nearest.name;
+                    lat = nearest.lat;
+                    lng = nearest.lng;
+                }
+            }
+
+            if (resolvedCity) {
+                const coords = getCoordsForCity(resolvedCity);
+                setValue(resolvedCity);
+                onSelect(resolvedCity, coords?.lat ?? lat, coords?.lng ?? lng);
+                toast.success(`Ваше местоположение: ${resolvedCity}`);
+            } else {
+                toast.error('Не удалось определить город.');
+            }
+        } catch {
+            toast.error('Не удалось определить город.');
+        } finally {
+            setIsLocating(false);
+            locatingLockRef.current = false;
+        }
     };
 
     return (
@@ -137,22 +239,23 @@ function LocationInput({ onSelect, defaultValue, className, focusRef }: Location
             <Input
                 ref={focusRef}
                 value={value}
-                onChange={(e) => {
-                    setValue(e.target.value);
-                    if (e.target.value) onSelect(e.target.value, null, null);
+                onChange={handleInputChange}
+                disabled={isLocating}
+                onFocus={() => {
+                    setIsFocused(true);
+                    updateSuggestions(value);
                 }}
-                disabled={!ready}
-                onFocus={() => setIsFocused(true)}
-                className={cn("pr-10", className)}
-                placeholder="Адрес, город..."
+                className={cn("pr-10", className, isLocating && "opacity-70")}
+                placeholder={isLocating ? "Определяем..." : "Город..."}
             />
             <button
                 type="button"
                 onClick={handleGeolocation}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                disabled={isLocating}
+                className={cn("absolute right-3 top-1/2 -translate-y-1/2 transition-colors", isLocating ? "text-booking-primary" : "text-gray-400 hover:text-primary")}
                 title="Мое местоположение"
             >
-                <MapPin className="w-5 h-5" />
+                {isLocating ? <Loader2 className="w-5 h-5 animate-spin" /> : <MapPin className="w-5 h-5" />}
             </button>
 
             {isFocused && (
@@ -170,16 +273,22 @@ function LocationInput({ onSelect, defaultValue, className, focusRef }: Location
                         </div>
                     </div>
 
-                    {status === "OK" && data.map(({ place_id, description }) => (
+                    {suggestions.map((city) => (
                         <div
-                            key={place_id}
-                            onClick={() => handleSelect(description)}
+                            key={city}
+                            onClick={() => handleSelect(city)}
                             className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors flex items-center gap-3 text-sm text-gray-700"
                         >
                             <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
-                            <span>{description}</span>
+                            <span>{city}</span>
                         </div>
                     ))}
+
+                    {suggestions.length === 0 && value.length > 0 && (
+                        <div className="px-4 py-3 text-sm text-gray-400 text-center">
+                            Город не найден
+                        </div>
+                    )}
                 </div>
             )}
         </div>
