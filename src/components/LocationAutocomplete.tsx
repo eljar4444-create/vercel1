@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
+import { createPortal } from 'react-dom';
 import { MapPin, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -13,6 +13,7 @@ interface LocationAutocompleteProps {
     defaultValue?: string;
     className?: string;
     focusRef?: React.Ref<HTMLInputElement>;
+    onFocus?: () => void;
 }
 
 // ─── Haversine distance (km) between two lat/lng points ───
@@ -64,7 +65,7 @@ function getCoordsForCity(cityName: string): { lat: number; lng: number } | null
     return null;
 }
 
-export function LocationAutocomplete({ onSelect, defaultValue = '', className, focusRef }: LocationAutocompleteProps) {
+export function LocationAutocomplete({ onSelect, defaultValue = '', className, focusRef, onFocus }: LocationAutocompleteProps) {
     const [value, setValue] = useState(defaultValue);
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isFocused, setIsFocused] = useState(false);
@@ -76,6 +77,8 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
     useEffect(() => {
         if (defaultValue) setValue(defaultValue);
     }, [defaultValue]);
+
+    const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -139,6 +142,20 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
             return null;
         }
     };
+
+    useEffect(() => {
+        if (isFocused && wrapperRef.current) {
+            const form = wrapperRef.current.closest('form');
+            if (form) {
+                const formRect = form.getBoundingClientRect();
+                const wrapperRect = wrapperRef.current.getBoundingClientRect();
+                setMenuStyle({
+                    width: formRect.width,
+                    left: -(wrapperRect.left - formRect.left)
+                });
+            }
+        }
+    }, [isFocused]);
 
     const handleGeolocation = async () => {
         if (locatingLockRef.current) return;
@@ -235,60 +252,104 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
     };
 
     return (
-        <div ref={wrapperRef} className="relative w-full">
-            <Input
-                ref={focusRef}
-                value={value}
-                onChange={handleInputChange}
-                disabled={isLocating}
-                onFocus={() => {
-                    setIsFocused(true);
-                    updateSuggestions(value);
-                }}
-                className={cn("pr-10", className, isLocating && "opacity-70")}
-                placeholder={isLocating ? "Определяем..." : "Город..."}
-            />
-            <button
-                type="button"
-                onClick={handleGeolocation}
-                disabled={isLocating}
-                className={cn("absolute right-3 top-1/2 -translate-y-1/2 transition-colors", isLocating ? "text-booking-primary" : "text-gray-400 hover:text-primary")}
-                title="Мое местоположение"
-            >
-                {isLocating ? <Loader2 className="w-5 h-5 animate-spin" /> : <MapPin className="w-5 h-5" />}
-            </button>
+        <div ref={wrapperRef} className="w-full h-full relative">
+            <div className="relative w-full h-full">
+                <input
+                    ref={focusRef}
+                    value={value}
+                    onChange={handleInputChange}
+                    disabled={isLocating}
+                    onFocus={() => {
+                        setIsFocused(true);
+                        updateSuggestions(value);
+                        onFocus?.();
+                    }}
+                    className={cn("pr-10", className, isLocating && "opacity-70")}
+                    placeholder={isLocating ? "Определяем..." : "Город..."}
+                />
+                <button
+                    type="button"
+                    onClick={handleGeolocation}
+                    disabled={isLocating}
+                    className={cn("absolute right-3 top-1/2 -translate-y-1/2 transition-colors", isLocating ? "text-booking-primary" : "text-gray-400 hover:text-primary")}
+                    title="Мое местоположение"
+                >
+                    {isLocating ? <Loader2 className="w-5 h-5 animate-spin" /> : <MapPin className="w-5 h-5" />}
+                </button>
+            </div>
 
             {isFocused && (
-                <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50 text-left animate-fade-in max-h-80 overflow-y-auto">
-                    <div
-                        onClick={handleGeolocation}
-                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors flex items-center gap-3 text-sm text-primary font-medium border-b border-gray-50"
-                    >
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                            <MapPin className="w-4 h-4 text-primary" />
+                <div className="absolute top-[calc(100%+16px)] bg-white rounded-3xl shadow-2xl overflow-hidden z-50 text-center animate-fade-in p-6 md:p-8 border border-gray-100" style={menuStyle}>
+                    {/* Bottom Section: Categories Grid or Suggestions */}
+                    {!value.trim() ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-6 pt-2">
+                            {[
+                                ['Берлин', 'Гамбург', 'Мюнхен', 'Кёльн'],
+                                ['Франкфурт', 'Штутгарт', 'Дюссельдорф', 'Лейпциг'],
+                                ['Дортмунд', 'Эссен', 'Бремен', 'Дрезден'],
+                                ['Ганновер', 'Нюрнберг', 'Дуйсбург', 'Бонн']
+                            ].map((column, idx) => (
+                                <div key={idx}>
+                                    <ul className="space-y-4">
+                                        {column.map((city) => (
+                                            <li
+                                                key={city}
+                                                onClick={() => handleSelect(city)}
+                                                className="text-[15px] text-gray-500 hover:text-green-800 hover:font-medium cursor-pointer transition-all duration-200"
+                                            >
+                                                {city}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ))}
                         </div>
-                        <div className="flex flex-col">
-                            <span>Мое местоположение</span>
-                            <span className="text-xs text-gray-400 font-normal">Найти услуги рядом со мной</span>
-                        </div>
-                    </div>
-
-                    {suggestions.map((city) => (
-                        <div
-                            key={city}
-                            onClick={() => handleSelect(city)}
-                            className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors flex items-center gap-3 text-sm text-gray-700"
-                        >
-                            <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
-                            <span>{city}</span>
-                        </div>
-                    ))}
-
-                    {suggestions.length === 0 && value.length > 0 && (
-                        <div className="px-4 py-3 text-sm text-gray-400 text-center">
-                            Город не найден
+                    ) : (
+                        <div className="max-h-60 overflow-y-auto pr-2 space-y-1">
+                            {suggestions.length > 0 ? (
+                                suggestions.map((city) => (
+                                    <div
+                                        key={city}
+                                        onClick={() => handleSelect(city)}
+                                        className="px-4 py-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors flex items-center justify-center gap-3 text-[15px] text-gray-700 font-medium group"
+                                    >
+                                        <MapPin className="w-4 h-4 text-gray-300 group-hover:text-booking-primary transition-colors shrink-0" />
+                                        <span className="group-hover:text-green-800 transition-colors">{city}</span>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center text-gray-500 text-sm py-4">
+                                    Город не найден
+                                </div>
+                            )}
                         </div>
                     )}
+
+                    {/* Mega Menu Footer Action */}
+                    <div className="mt-8 pt-5 border-t border-gray-100 w-full flex flex-row items-center justify-between px-2">
+                        {/* Reduced height by putting Geolocation here */}
+                        <div
+                            onClick={handleGeolocation}
+                            className="flex items-center gap-2 hover:opacity-70 transition cursor-pointer"
+                        >
+                            <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                                {isLocating ? <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-800" /> : <MapPin className="w-3.5 h-3.5 text-gray-800" />}
+                            </div>
+                            <span className="text-[14px] font-medium text-gray-800">Моя геолокация</span>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setValue('');
+                                setIsFocused(false);
+                            }}
+                            className="text-[14px] font-medium text-gray-500 hover:text-green-800 transition-colors duration-200"
+                        >
+                            Посмотреть все города ➔
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

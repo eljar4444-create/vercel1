@@ -11,9 +11,9 @@ const CITIES = [
 
 export default function HomeHeroV2({ children }: { children?: ReactNode }) {
     return (
-        <header className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        <header className="relative min-h-screen flex items-center justify-center pt-20">
             {/* Background image/video with overlay */}
-            <div className="absolute inset-0 z-0 bg-[#1A1A1A]">
+            <div className="absolute inset-0 z-0 bg-[#1A1A1A] overflow-hidden">
                 <img
                     src="/hero-bg.jpg"
                     alt="Beauty salon interior"
@@ -23,9 +23,9 @@ export default function HomeHeroV2({ children }: { children?: ReactNode }) {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 max-w-5xl px-8 text-center mt-12">
+            <div className="relative z-10 max-w-5xl px-8 text-center -mt-20">
                 <h1 className="text-white text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-6 leading-[0.9]" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
-                    Свои мастера.<br />Тот самый уровень качества.
+                    Свои мастера<br />Свой сервис
                 </h1>
 
                 <p className="text-white/80 text-lg md:text-xl font-light mb-12 tracking-wide max-w-2xl mx-auto">
@@ -35,18 +35,7 @@ export default function HomeHeroV2({ children }: { children?: ReactNode }) {
                 {/* Search Bar slot */}
                 {children}
 
-                {/* City Tags */}
-                <div className="flex flex-wrap justify-center gap-3 mt-8">
-                    {CITIES.map((city) => (
-                        <Link
-                            key={city.query}
-                            href={`/?city=${city.query}#masters-section`}
-                            className="px-5 py-2 rounded-full border border-white/20 text-white/70 text-xs font-semibold tracking-widest uppercase cursor-pointer hover:bg-white/10 transition-all"
-                        >
-                            {city.label}
-                        </Link>
-                    ))}
-                </div>
+
             </div>
         </header>
     );

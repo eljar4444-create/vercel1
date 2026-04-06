@@ -21,6 +21,7 @@ import { SearchFiltersForm } from '@/components/search/SearchFiltersForm';
 const QUICK_BEAUTY_LINKS = [
     { label: 'Услуги', href: '/#services' },
     { label: 'Мастера', href: '/#masters' },
+    { label: 'О сайте', href: '/#about' },
 ];
 
 type HeaderProps = {
