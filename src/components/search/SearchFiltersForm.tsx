@@ -122,37 +122,41 @@ export function SearchFiltersForm({
     const hasAttemptedRestore = useRef(false);
 
     useEffect(() => {
-        if (hasAttemptedRestore.current) {
-            // Once restored (or skipped), we only update localStorage, never force the URL back.
-            setStored(
-                cityFilter ? (resolveGermanCity(cityFilter) || cityFilter) : '',
-                queryFilter ? queryFilter.trim() : ''
-            );
-            return;
+        try {
+            if (hasAttemptedRestore.current) {
+                // Once restored (or skipped), we only update localStorage, never force the URL back.
+                setStored(
+                    cityFilter ? (resolveGermanCity(cityFilter) || cityFilter) : '',
+                    queryFilter ? queryFilter.trim() : ''
+                );
+                return;
+            }
+
+            hasAttemptedRestore.current = true;
+
+            const hasUrlParams = Boolean(queryFilter?.trim() || (cityFilter && resolveGermanCity(cityFilter)));
+            if (hasUrlParams) {
+                setStored(
+                    resolveGermanCity(cityFilter) || cityFilter,
+                    queryFilter ? queryFilter.trim() : ''
+                );
+                return;
+            }
+
+            const stored = getStored();
+            if (!stored.city && !stored.query.trim()) return;
+
+            const params = new URLSearchParams();
+            if (categoryFilter) params.set('category', categoryFilter);
+            if (stored.query.trim()) params.set('q', stored.query.trim());
+            if (stored.city) params.set('city', stored.city);
+            if (radiusFilter) params.set('radius', radiusFilter);
+
+            // Use router.replace to avoid clogging the history stack on first load
+            router.replace(`/search${params.toString() ? `?${params.toString()}` : ''}`);
+        } catch (e) {
+            console.error('[SearchFiltersForm] localStorage restore error:', e);
         }
-
-        hasAttemptedRestore.current = true;
-
-        const hasUrlParams = Boolean(queryFilter?.trim() || (cityFilter && resolveGermanCity(cityFilter)));
-        if (hasUrlParams) {
-            setStored(
-                resolveGermanCity(cityFilter) || cityFilter,
-                queryFilter ? queryFilter.trim() : ''
-            );
-            return;
-        }
-
-        const stored = getStored();
-        if (!stored.city && !stored.query.trim()) return;
-
-        const params = new URLSearchParams();
-        if (categoryFilter) params.set('category', categoryFilter);
-        if (stored.query.trim()) params.set('q', stored.query.trim());
-        if (stored.city) params.set('city', stored.city);
-        if (radiusFilter) params.set('radius', radiusFilter);
-
-        // Use router.replace to avoid clogging the history stack on first load
-        router.replace(`/search${params.toString() ? `?${params.toString()}` : ''}`);
     }, [categoryFilter, queryFilter, cityFilter, radiusFilter, router, getStored, setStored]);
 
     // (Removed aggressive auto-search on debounced change)

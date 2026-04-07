@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useId } from 'react';
 
 import { divIcon } from 'leaflet';
 import { Circle, MapContainer, Marker, TileLayer, useMap, FeatureGroup, useMapEvents } from 'react-leaflet';
@@ -38,34 +38,37 @@ function MapUpdater({ initialCenter, initialZoom, radiusKm }: { initialCenter?: 
     // We only ever fly if the city (initialCenter) or the radius explicitly changed in the URL params.
     // We NEVER fly just because the map moved, or because markers changed. The map is "dumb" and listens only to explicit filter changes.
     useEffect(() => {
-        if (!initialCenter) return;
+        try {
+            if (!initialCenter) return;
 
-        const currentCenterStr = initialCenter.join(',');
-        const radiusChanged = prevRadius.current !== urlRadius;
-        const centerChanged = prevCenter.current !== currentCenterStr;
+            const currentCenterStr = initialCenter.join(',');
+            const radiusChanged = prevRadius.current !== urlRadius;
+            const centerChanged = prevCenter.current !== currentCenterStr;
 
-        if (radiusChanged || centerChanged || !didFly.current) {
-            didFly.current = true;
-            prevRadius.current = urlRadius;
-            prevCenter.current = currentCenterStr;
+            if (radiusChanged || centerChanged || !didFly.current) {
+                didFly.current = true;
+                prevRadius.current = urlRadius;
+                prevCenter.current = currentCenterStr;
 
-            (map as any)._isProgrammaticMove = true;
+                (map as any)._isProgrammaticMove = true;
 
-            if (urlRadius) {
-                // Best practice: use fitBounds for pixel-perfect fit
-                const { southWest, northEast } = radiusToBounds(initialCenter, urlRadius);
-                map.flyToBounds([southWest, northEast], {
-                    padding: [20, 20],
-                    duration: 1.5,
-                    maxZoom: 16,
+                if (urlRadius) {
+                    const { southWest, northEast } = radiusToBounds(initialCenter, urlRadius);
+                    map.flyToBounds([southWest, northEast], {
+                        padding: [20, 20],
+                        duration: 1.5,
+                        maxZoom: 16,
+                    });
+                } else {
+                    map.flyTo(initialCenter, initialZoom, { duration: 1.5 });
+                }
+
+                map.once('moveend', () => {
+                    setTimeout(() => { (map as any)._isProgrammaticMove = false; }, 100);
                 });
-            } else {
-                map.flyTo(initialCenter, initialZoom, { duration: 1.5 });
             }
-
-            map.once('moveend', () => {
-                setTimeout(() => { (map as any)._isProgrammaticMove = false; }, 100);
-            });
+        } catch (e) {
+            console.error('[MapUpdater] flyTo error:', e);
         }
     }, [map, initialCenter, initialZoom, urlRadius]);
 
@@ -79,24 +82,43 @@ function MapBoundsEmitter({ onBoundsChange }: { onBoundsChange?: (bounds: MapBou
 
     useMapEvents({
         moveend: () => {
-            if (!onBoundsChange) return;
-            
-            if (!isMapMounted.current) {
-                isMapMounted.current = true;
-                return; // Ignore the very first spurious event triggered by map initialization
-            }
+            try {
+                if (!onBoundsChange) return;
 
-            const b = map.getBounds();
-            onBoundsChange({
-                minLat: b.getSouthWest().lat,
-                maxLat: b.getNorthEast().lat,
-                minLng: b.getSouthWest().lng,
-                maxLng: b.getNorthEast().lng,
-                source: (map as any)._isProgrammaticMove ? 'programmatic' : 'user',
-            });
+                if (!isMapMounted.current) {
+                    isMapMounted.current = true;
+                    return; // Ignore the very first spurious event triggered by map initialization
+                }
+
+                const b = map.getBounds();
+                onBoundsChange({
+                    minLat: b.getSouthWest().lat,
+                    maxLat: b.getNorthEast().lat,
+                    minLng: b.getSouthWest().lng,
+                    maxLng: b.getNorthEast().lng,
+                    source: (map as any)._isProgrammaticMove ? 'programmatic' : 'user',
+                });
+            } catch (e) {
+                console.error('[MapBoundsEmitter] getBounds error:', e);
+            }
         },
     });
 
+    return null;
+}
+
+/** Captures the Leaflet map instance and destroys it on unmount (React 18 Strict Mode safe). */
+function MapCleanup() {
+    const map = useMap();
+    useEffect(() => {
+        return () => {
+            try {
+                map.remove();
+            } catch {
+                // Already removed or not initialized — safe to ignore
+            }
+        };
+    }, [map]);
     return null;
 }
 
@@ -109,6 +131,9 @@ export function SearchResultsMapClient({
 }: SearchResultsMapClientProps) {
     const router = useRouter();
     const zoom = initialZoom ?? 11;
+    // Unique key per component instance — forces a fresh DOM container on Strict Mode remount
+    const mapKey = useId();
+    const [mapError, setMapError] = useState(false);
 
     // Filter out markers with invalid coordinates and add jitter to exact duplicates
     const seenCoords = new Set<string>();
@@ -138,11 +163,21 @@ export function SearchResultsMapClient({
             ? [validMarkers[0].lat, validMarkers[0].lng]
             : DEFAULT_CENTER;
 
-    return (
-        <MapContainer center={center} zoom={zoom} className="h-full w-full z-0">
-            <MapUpdater initialCenter={initialCenter} initialZoom={zoom} />
-            <MapBoundsEmitter onBoundsChange={onBoundsChange} />
-            <TileLayer
+    if (mapError) {
+        return (
+            <div className="flex h-full w-full items-center justify-center bg-stone-50 text-stone-400 text-sm">
+                Карта временно недоступна
+            </div>
+        );
+    }
+
+    try {
+        return (
+            <MapContainer key={mapKey} center={center} zoom={zoom} className="h-full w-full z-0">
+                <MapCleanup />
+                <MapUpdater initialCenter={initialCenter} initialZoom={zoom} />
+                <MapBoundsEmitter onBoundsChange={onBoundsChange} />
+                <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
             />
@@ -222,5 +257,14 @@ export function SearchResultsMapClient({
                 );
             })}
         </MapContainer>
-    );
+        );
+    } catch (e) {
+        console.error('[SearchResultsMapClient] Render error:', e);
+        if (!mapError) setMapError(true);
+        return (
+            <div className="flex h-full w-full items-center justify-center bg-stone-50 text-stone-400 text-sm">
+                Карта временно недоступна
+            </div>
+        );
+    }
 }

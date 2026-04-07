@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, ReactNode, Suspense, useTransition } from 'react';
+import React, { useState, useEffect, useCallback, useRef, ReactNode, Suspense, useTransition } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -17,6 +17,33 @@ const SearchResultsMap = dynamic(
         loading: () => <Skeleton className="h-full min-h-[300px] w-full rounded-3xl" />,
     }
 );
+
+/** Catches React rendering errors inside the map without crashing the entire page. */
+class MapErrorBoundary extends React.Component<
+    { children: React.ReactNode },
+    { hasError: boolean }
+> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+    componentDidCatch(error: Error) {
+        console.error('[MapErrorBoundary]', error);
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="flex h-full w-full items-center justify-center rounded-3xl bg-stone-50 text-sm text-stone-400">
+                    Карта временно недоступна
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
 
 interface SearchInteractiveLayoutProps {
     initialProfiles: any[];
@@ -202,7 +229,9 @@ export function SearchInteractiveLayout({
                     </Link>
                 </div>
 
-                {headerContent}
+                <Suspense fallback={<div className="h-10" />}>
+                    {headerContent}
+                </Suspense>
 
                 {isLoading && profiles.length === 0 ? (
                     <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 items-start">
@@ -251,14 +280,16 @@ export function SearchInteractiveLayout({
 
             <aside className="relative hidden h-full p-4 lg:flex lg:w-[52%] xl:w-[54%] lg:items-stretch">
                 <div className="h-full w-full overflow-hidden rounded-3xl border border-stone-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.08)] filter grayscale-[0.3] sepia-[0.1] contrast-[0.9] opacity-90">
-                    <SearchResultsMap
-                        markers={mapMarkers}
-                        hoveredMarkerId={hoveredMasterId}
-                        onBoundsChange={handleBoundsChange}
-                        initialCenter={initialCenter}
-                        initialZoom={initialZoom}
-                        radiusKm={radiusKm}
-                    />
+                    <MapErrorBoundary>
+                        <SearchResultsMap
+                            markers={mapMarkers}
+                            hoveredMarkerId={hoveredMasterId}
+                            onBoundsChange={handleBoundsChange}
+                            initialCenter={initialCenter}
+                            initialZoom={initialZoom}
+                            radiusKm={radiusKm}
+                        />
+                    </MapErrorBoundary>
                 </div>
             </aside>
         </div>
