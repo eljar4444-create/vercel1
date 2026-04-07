@@ -105,8 +105,14 @@ function AuthContent() {
 
     const persistProviderIntent = () => {
         if (!isProvider) return;
-        document.cookie = `onboarding_role=${role}; path=/; max-age=3600`;
-        document.cookie = `onboarding_type=${providerType}; path=/; max-age=3600`;
+        // SameSite=Lax + Secure ensures Safari ITP doesn't block these during OAuth redirect
+        document.cookie = `onboarding_role=${role}; path=/; max-age=3600; SameSite=Lax; Secure`;
+        document.cookie = `onboarding_type=${providerType}; path=/; max-age=3600; SameSite=Lax; Secure`;
+        // Mirror in sessionStorage as fallback for credential-based (non-redirect) auth
+        try {
+            sessionStorage.setItem('onboarding_role', role || '');
+            sessionStorage.setItem('onboarding_type', providerType);
+        } catch {}
     };
 
     const handleAuth = (provider: 'google' | 'apple') => {

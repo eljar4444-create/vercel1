@@ -290,7 +290,7 @@ export default async function SearchPage({
     }));
 
     return (
-        <main className="h-[calc(100vh-64px)] overflow-hidden bg-transparent">
+        <main className="h-[calc(100dvh-64px)] overflow-hidden bg-transparent">
             <Suspense fallback={<div className="flex h-full items-center justify-center"><p className="text-slate-500">Загрузка...</p></div>}>
                 <SearchInteractiveLayout
                     initialProfiles={mappedProfiles}

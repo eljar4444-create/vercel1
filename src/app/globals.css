@@ -153,6 +153,22 @@
     transition-duration: 150ms;
   }
 
+  /* Remove iOS tap highlight on interactive elements */
+  a,
+  button,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent Safari auto-zoom on input focus (requires >= 16px) */
+  @media screen and (max-width: 767px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
+
   /* Keyboard focus indicators */
   :focus-visible {
     outline: 2px solid hsl(var(--ring));

@@ -29,7 +29,7 @@ export function Footer() {
     if (pathname === '/' || pathname === '/chat' || pathname === '/become-pro') return null;
 
     return (
-        <footer className="border-t border-stone-200 bg-transparent">
+        <footer className="border-t border-stone-200 bg-transparent pb-[env(safe-area-inset-bottom)]">
             <div className="container mx-auto max-w-6xl px-4">
 
                 {/* ── Main columns ── */}

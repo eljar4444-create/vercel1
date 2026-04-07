@@ -191,8 +191,8 @@ export function MessengerClient({
     }, [bookingContext]);
 
     return (
-        <div className="min-h-[calc(100vh-80px)] bg-transparent px-4 py-6 md:px-6 md:py-8">
-            <div className="mx-auto flex min-h-[calc(100vh-128px)] w-full max-w-6xl flex-col gap-5 lg:max-h-[780px] lg:flex-row">
+        <div className="min-h-[calc(100dvh-80px)] bg-transparent px-4 py-6 md:px-6 md:py-8">
+            <div className="mx-auto flex min-h-[calc(100dvh-128px)] w-full max-w-6xl flex-col gap-5 lg:max-h-[780px] lg:flex-row">
                 <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-[28px] border border-stone-200/80 bg-[rgba(245,242,235,0.78)] backdrop-blur-sm lg:min-h-0 lg:w-[320px] xl:w-[348px]">
                     <div className="border-b border-stone-200 px-5 py-5">
                         <h2 className="text-lg font-bold text-stone-900">Чаты</h2>

@@ -69,7 +69,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
 
     return (
         <header className={cn(
-            "z-50 transition-all duration-300",
+            "z-50 transition-all duration-300 pt-[env(safe-area-inset-top)]",
             isHomepage ? "fixed top-0 w-full" : "relative",
             isMinimal
                 ? "bg-[#F5F2EB]/95 backdrop-blur-md border-b border-stone-200"
@@ -193,7 +193,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
             </div>
 
             {mobileMenuOpen && !isMinimal && (
-                <div className="border-t border-gray-100 bg-[#F5F2EB] px-4 pb-4 pt-3 shadow-sm lg:hidden">
+                <div className="border-t border-gray-100 bg-[#F5F2EB] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-sm lg:hidden">
                     <div className="mx-auto max-w-7xl space-y-2">
                         <Link
                             href="/search"

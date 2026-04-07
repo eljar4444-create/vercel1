@@ -150,7 +150,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                             onChange={(e) => { setServiceQuery(e.target.value); if (validationError.service) setValidationError(prev => ({ ...prev, service: false })); }}
                             onFocus={() => setIsServiceFocused(true)}
                             className={cn(
-                                'w-full h-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-white/40 text-base',
+                                'w-full h-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-white/40 text-[16px] md:text-base',
                                 validationError.service && 'text-red-300 placeholder-red-300/50',
                             )}
                             placeholder="Название услуги"
@@ -171,7 +171,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                                 if (validationError.location) setValidationError(prev => ({ ...prev, location: false }));
                             }}
                             className={cn(
-                                'w-full h-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-white/40 text-base',
+                                'w-full h-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-white/40 text-[16px] md:text-base',
                                 validationError.location && 'text-red-300 placeholder-red-300/50',
                             )}
                         />

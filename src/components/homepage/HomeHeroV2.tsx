@@ -11,7 +11,7 @@ const CITIES = [
 
 export default function HomeHeroV2({ children }: { children?: ReactNode }) {
     return (
-        <header className="relative min-h-screen flex items-center justify-center pt-20">
+        <header className="relative min-h-[100dvh] flex items-center justify-center pt-20">
             {/* Background image/video with overlay */}
             <div className="absolute inset-0 z-0 bg-[#1A1A1A] overflow-hidden">
                 <img

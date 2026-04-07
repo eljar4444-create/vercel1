@@ -320,7 +320,7 @@ export function SearchFiltersForm({
                             placeholder="Маникюр, стрижка, массаж..."
                             tabIndex={isExpanded ? 0 : -1}
                             className={cn(
-                                'mx-2 h-full w-full bg-transparent text-sm font-medium text-gray-900 placeholder:text-gray-400 outline-none transition-opacity duration-200',
+                                'mx-2 h-full w-full bg-transparent text-[16px] md:text-sm font-medium text-gray-900 placeholder:text-gray-400 outline-none transition-opacity duration-200',
                                 isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'
                             )}
                         />
@@ -360,7 +360,7 @@ export function SearchFiltersForm({
                             placeholder="Ваш город"
                             tabIndex={isExpanded ? 0 : -1}
                             className={cn(
-                                'ml-2 h-full w-full bg-transparent pr-8 text-sm font-medium text-gray-900 placeholder:text-gray-400 outline-none transition-opacity duration-200',
+                                'ml-2 h-full w-full bg-transparent pr-8 text-[16px] md:text-sm font-medium text-gray-900 placeholder:text-gray-400 outline-none transition-opacity duration-200',
                                 isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none'
                             )}
                         />

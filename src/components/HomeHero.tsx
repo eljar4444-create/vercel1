@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { POPULAR_SERVICES, getGermanCitySuggestions, resolveGermanCity } from '@/constants/searchSuggestions';
 import { getHomeStats } from '@/app/actions/getHomeStats';
 import { useLocalStorageSearch } from '@/hooks/useLocalStorageSearch';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 export default function HomeHero() {
     const formRef = useRef<HTMLFormElement>(null);
@@ -37,6 +38,7 @@ export default function HomeHero() {
     const [liveStats, setLiveStats] = useState({ masters: 0, services: 0 });
     const router = useRouter();
     const { getStored, setStored } = useLocalStorageSearch();
+    const isDesktop = useMediaQuery('(min-width: 768px)');
 
     useEffect(() => {
         setMounted(true);
@@ -179,9 +181,9 @@ export default function HomeHero() {
     };
 
     return (
-        <section className="relative flex h-screen w-full flex-col justify-center overflow-hidden border-b border-stone-200/80">
+        <section className="relative flex h-[100dvh] w-full flex-col justify-center overflow-hidden border-b border-stone-200/80">
             {/* Lazy-loaded video for desktop only - positioned behind the image */}
-            {mounted && videoReady && window.innerWidth >= 768 && (
+            {mounted && videoReady && isDesktop && (
                 <video
                     src="/hero-bg.mp4"
                     autoPlay
@@ -245,7 +247,7 @@ export default function HomeHero() {
                                     onChange={(e) => { const v = e.target.value; setQuery(v); setQueryOpen(v.trim().length > 0); if (validationError.query) setValidationError(prev => ({ ...prev, query: false })); }}
                                     placeholder="Все процедуры и специалисты"
                                     aria-label="Услуга или специалист"
-                                    className={`w-full bg-transparent text-base text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 ${validationError.query ? 'ring-2 ring-red-400 rounded-lg bg-red-50/60 px-2' : ''}`}
+                                    className={`w-full bg-transparent text-[16px] md:text-base text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 ${validationError.query ? 'ring-2 ring-red-400 rounded-lg bg-red-50/60 px-2' : ''}`}
                                 />
                                 {queryOpen && query.trim().length > 0 && filteredServices.length > 0 && (
                                     <div className="absolute left-0 top-full z-[100] mt-2 w-full overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl antialiased transform-gpu">
@@ -295,7 +297,7 @@ export default function HomeHero() {
                                     onChange={(e) => { const v = e.target.value; setCity(v); setCityOpen(v.trim().length > 0); if (validationError.city) setValidationError(prev => ({ ...prev, city: false })); }}
                                     placeholder="Текущее местоположение"
                                     aria-label="Город"
-                                    className={`w-full bg-transparent pr-9 text-base text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 ${validationError.city ? 'ring-2 ring-red-400 rounded-lg bg-red-50/60 px-2' : ''}`}
+                                    className={`w-full bg-transparent pr-9 text-[16px] md:text-base text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 ${validationError.city ? 'ring-2 ring-red-400 rounded-lg bg-red-50/60 px-2' : ''}`}
                                 />
                                 <button
                                     type="button"

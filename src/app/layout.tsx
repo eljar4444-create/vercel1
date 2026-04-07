@@ -4,7 +4,7 @@ import localFont from 'next/font/local';
 import { Providers } from '@/components/Providers';
 import './globals.css';
 import { Footer } from '@/components/Footer';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 
 import { Inter } from 'next/font/google';
@@ -21,6 +21,12 @@ export const metadata: Metadata = {
     description: "Найдите идеального специалиста для любой задачи на Svoi.de",
 };
 
+export const viewport: Viewport = {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
+};
+
 export default function RootLayout({
     children,
 }: {
@@ -28,7 +34,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="ru" className={cn("font-sans")}>
-            <body className={`${inter.variable} font-sans antialiased text-gray-900 min-h-screen flex flex-col`}>
+            <body className={`${inter.variable} font-sans antialiased text-gray-900 min-h-[100dvh] flex flex-col pb-[env(safe-area-inset-bottom)]`}>
                 <Providers>
                     <Suspense fallback={<div className="relative z-50 h-16 border-b border-stone-200 bg-transparent" />}>
                         <Header />

@@ -593,7 +593,7 @@ export function BookingModal({
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder="Ваше имя"
-                                        className="h-12 w-full rounded-2xl border border-[#E5E0D8] bg-stone-50 px-4 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#E5D5C5]"
+                                        className="h-12 w-full rounded-2xl border border-[#E5E0D8] bg-stone-50 px-4 text-[16px] md:text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#E5D5C5]"
                                     />
                                 </div>
                                 <div>
@@ -607,7 +607,7 @@ export function BookingModal({
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         placeholder="+49 ..."
-                                        className="h-12 w-full rounded-2xl border border-[#E5E0D8] bg-stone-50 px-4 text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#E5D5C5]"
+                                        className="h-12 w-full rounded-2xl border border-[#E5E0D8] bg-stone-50 px-4 text-[16px] md:text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#E5D5C5]"
                                     />
                                 </div>
                             </section>
