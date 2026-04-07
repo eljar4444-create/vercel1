@@ -4,7 +4,6 @@ import { PrismaAdapter } from "@auth/prisma-adapter"
 import prisma from "@/lib/prisma"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
-import { cookies } from "next/headers"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig,
@@ -55,40 +54,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     ],
     events: {
         /**
-         * Срабатывает один раз при создании нового пользователя через OAuth.
-         * Читает технически необходимые куки (DSGVO compliant), чтобы
-         * понять, регистрируется ли пользователь как мастер/салон.
+         * Fires once when a new user is created via OAuth.
+         * Provider type is determined later by the /onboarding page via URL params
+         * and sessionStorage — no cookies involved.
          */
         async createUser({ user }) {
             try {
-                const cookieStore = await cookies();
-
-                // New cookie names (from /auth/login page)
-                const onboardingRole = cookieStore.get('onboarding_role')?.value;
-                const onboardingType = cookieStore.get('onboarding_type')?.value;
-
-                // Legacy cookie name (backward compat)
-                const legacyRole = cookieStore.get('new-user-role')?.value;
-
-                const role = legacyRole === 'ADMIN' ? 'ADMIN' : 'USER';
-
-                const providerTypeMap: Record<string, 'SALON' | 'INDIVIDUAL'> = {
-                    SALON: 'SALON',
-                    INDIVIDUAL: 'INDIVIDUAL',
-                };
-
                 await prisma.user.update({
                     where: { id: user.id },
-                    data: {
-                        role,
-                        ...(onboardingRole === 'provider' && onboardingType && providerTypeMap[onboardingType]
-                            ? {
-                                providerType: providerTypeMap[onboardingType],
-                                onboardingCompleted: false,
-                                onboardingType,
-                            }
-                            : {}),
-                    },
+                    data: { role: 'USER' },
                 });
             } catch (error) {
                 console.error('createUser role sync error:', error);

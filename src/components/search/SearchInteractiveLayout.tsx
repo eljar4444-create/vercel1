@@ -2,13 +2,21 @@
 
 import { useState, useEffect, useCallback, useRef, ReactNode, Suspense, useTransition } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { SearchResultListItem } from '@/components/search/SearchResultListItem';
-import { SearchResultsMap } from '@/components/search/SearchResultsMap';
 import type { MapBounds } from '@/components/search/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
+
+const SearchResultsMap = dynamic(
+    () => import('@/components/search/SearchResultsMap').then((mod) => mod.SearchResultsMap),
+    {
+        ssr: false,
+        loading: () => <Skeleton className="h-full min-h-[300px] w-full rounded-3xl" />,
+    }
+);
 
 interface SearchInteractiveLayoutProps {
     initialProfiles: any[];

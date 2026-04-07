@@ -89,162 +89,160 @@ export default async function SearchPage({
     const cardPaymentFilter = searchParams.cardPayment === 'true';
     const instantBookingFilter = searchParams.instantBooking === 'true';
 
-    const andConditions: any[] = [
-        { status: 'PUBLISHED' },
-        { is_verified: true },
-        { category: { slug: { not: 'health' } } },
-        { user: { isBanned: false } },
-    ];
-
-    if (categoryFilter && categoryFilter !== 'health') {
-        andConditions.push({ category: { slug: categoryFilter } });
-    }
-
-    // --- Bounding Box geo filter ---
+    let profiles: any[] = [];
     let initialCenter: [number, number] | undefined = undefined;
-    let hasBboxFilter = false;
+    let favoriteProfileIds: number[] = [];
 
-    // 1. Explicit bounding box from URL (from map user drag)
-    if (
-        urlMinLat !== undefined && urlMaxLat !== undefined &&
-        urlMinLng !== undefined && urlMaxLng !== undefined &&
-        !isNaN(urlMinLat) && !isNaN(urlMaxLat) && !isNaN(urlMinLng) && !isNaN(urlMaxLng)
-    ) {
-        andConditions.push({
-            latitude: { not: null, gte: urlMinLat, lte: urlMaxLat },
-        });
-        andConditions.push({
-            longitude: { not: null, gte: urlMinLng, lte: urlMaxLng },
-        });
-        // CRITICAL: Do NOT set initialCenter here! 
-        // This coordinates block comes from the user panning the map. 
-        // If we compute the center of the viewport and pass it down as initialCenter, 
-        // the MapUpdater will see a "new" initialCenter and fly to it, causing jumps.
-        hasBboxFilter = true;
-    }
-    // 2. Legacy lat/lng → computed bounding box and explicit center
-    else if (urlLat !== undefined && urlLng !== undefined && !isNaN(urlLat) && !isNaN(urlLng)) {
-        andConditions.push({
-            latitude: { not: null, gte: urlLat - DEFAULT_BBOX_OFFSET_LAT, lte: urlLat + DEFAULT_BBOX_OFFSET_LAT },
-        });
-        andConditions.push({
-            longitude: { not: null, gte: urlLng - DEFAULT_BBOX_OFFSET_LNG, lte: urlLng + DEFAULT_BBOX_OFFSET_LNG },
-        });
-        initialCenter = [urlLat, urlLng];
-        hasBboxFilter = true;
-    }
-    // 3. City string → geocode and compute bounding box
-    else if (cityFilter) {
-        let coords = await geocodeCity(cityFilter);
-        if (!coords) {
-            coords = resolveCityCoordinates(cityFilter);
+    try {
+        const andConditions: any[] = [
+            { status: 'PUBLISHED' },
+            { is_verified: true },
+            { category: { slug: { not: 'health' } } },
+            { user: { isBanned: false } },
+        ];
+
+        if (categoryFilter && categoryFilter !== 'health') {
+            andConditions.push({ category: { slug: categoryFilter } });
         }
-        if (coords) {
+
+        // --- Bounding Box geo filter ---
+        let hasBboxFilter = false;
+
+        // 1. Explicit bounding box from URL (from map user drag)
+        if (
+            urlMinLat !== undefined && urlMaxLat !== undefined &&
+            urlMinLng !== undefined && urlMaxLng !== undefined &&
+            !isNaN(urlMinLat) && !isNaN(urlMaxLat) && !isNaN(urlMinLng) && !isNaN(urlMaxLng)
+        ) {
             andConditions.push({
-                latitude: { not: null, gte: coords.lat - DEFAULT_BBOX_OFFSET_LAT, lte: coords.lat + DEFAULT_BBOX_OFFSET_LAT },
+                latitude: { not: null, gte: urlMinLat, lte: urlMaxLat },
             });
             andConditions.push({
-                longitude: { not: null, gte: coords.lng - DEFAULT_BBOX_OFFSET_LNG, lte: coords.lng + DEFAULT_BBOX_OFFSET_LNG },
+                longitude: { not: null, gte: urlMinLng, lte: urlMaxLng },
             });
-            initialCenter = [coords.lat, coords.lng];
             hasBboxFilter = true;
         }
-    }
+        // 2. Legacy lat/lng → computed bounding box and explicit center
+        else if (urlLat !== undefined && urlLng !== undefined && !isNaN(urlLat) && !isNaN(urlLng)) {
+            andConditions.push({
+                latitude: { not: null, gte: urlLat - DEFAULT_BBOX_OFFSET_LAT, lte: urlLat + DEFAULT_BBOX_OFFSET_LAT },
+            });
+            andConditions.push({
+                longitude: { not: null, gte: urlLng - DEFAULT_BBOX_OFFSET_LNG, lte: urlLng + DEFAULT_BBOX_OFFSET_LNG },
+            });
+            initialCenter = [urlLat, urlLng];
+            hasBboxFilter = true;
+        }
+        // 3. City string → geocode and compute bounding box
+        else if (cityFilter) {
+            let coords = await geocodeCity(cityFilter);
+            if (!coords) {
+                coords = resolveCityCoordinates(cityFilter);
+            }
+            if (coords) {
+                andConditions.push({
+                    latitude: { not: null, gte: coords.lat - DEFAULT_BBOX_OFFSET_LAT, lte: coords.lat + DEFAULT_BBOX_OFFSET_LAT },
+                });
+                andConditions.push({
+                    longitude: { not: null, gte: coords.lng - DEFAULT_BBOX_OFFSET_LNG, lte: coords.lng + DEFAULT_BBOX_OFFSET_LNG },
+                });
+                initialCenter = [coords.lat, coords.lng];
+                hasBboxFilter = true;
+            }
+        }
 
-    // Fallback: no geo filter → string-based city matching
-    if (!hasBboxFilter && cityFilter) {
-        const cityVariants = getCityFilterVariants(cityFilter);
-        andConditions.push({
-            OR: cityVariants.map((variant) => ({
-                city: { contains: variant, mode: 'insensitive' },
-            })),
-        });
-    }
+        // Fallback: no geo filter → string-based city matching
+        if (!hasBboxFilter && cityFilter) {
+            const cityVariants = getCityFilterVariants(cityFilter);
+            andConditions.push({
+                OR: cityVariants.map((variant) => ({
+                    city: { contains: variant, mode: 'insensitive' },
+                })),
+            });
+        }
 
-    if (queryFilter) {
-        andConditions.push({
-            OR: [
-                { name: { contains: queryFilter, mode: 'insensitive' } },
-                { city: { contains: queryFilter, mode: 'insensitive' } },
-                { category: { name: { contains: queryFilter, mode: 'insensitive' } } },
-                {
-                    services: {
-                        some: {
-                            title: { contains: queryFilter, mode: 'insensitive' },
+        if (queryFilter) {
+            andConditions.push({
+                OR: [
+                    { name: { contains: queryFilter, mode: 'insensitive' } },
+                    { city: { contains: queryFilter, mode: 'insensitive' } },
+                    { category: { name: { contains: queryFilter, mode: 'insensitive' } } },
+                    {
+                        services: {
+                            some: {
+                                title: { contains: queryFilter, mode: 'insensitive' },
+                            },
                         },
                     },
+                ],
+            });
+        }
+
+        if (languageFilter) {
+            andConditions.push({ languages: { has: languageFilter } });
+        }
+
+        if (homeVisitFilter) {
+            andConditions.push({
+                attributes: {
+                    path: ['homeVisit'],
+                    equals: true,
                 },
-            ],
-        });
-    }
+            });
+        }
 
-    if (languageFilter) {
-        andConditions.push({ languages: { has: languageFilter } });
-    }
+        if (promoFilter) {
+            andConditions.push({
+                attributes: {
+                    path: ['hasPromo'],
+                    equals: true,
+                },
+            });
+        }
 
-    if (homeVisitFilter) {
-        andConditions.push({
-            attributes: {
-                path: ['homeVisit'],
-                equals: true,
-            },
-        });
-    }
+        if (todayFilter) {
+            andConditions.push({
+                attributes: {
+                    path: ['availableToday'],
+                    equals: true,
+                },
+            });
+        }
 
-    if (promoFilter) {
-        andConditions.push({
-            attributes: {
-                path: ['hasPromo'],
-                equals: true,
-            },
-        });
-    }
+        if (inSalonFilter) {
+            andConditions.push({
+                OR: [
+                    { provider_type: 'SALON' },
+                    { attributes: { path: ['inSalon'], equals: true } },
+                ],
+            });
+        }
 
-    if (todayFilter) {
-        andConditions.push({
-            attributes: {
-                path: ['availableToday'],
-                equals: true,
-            },
-        });
-    }
+        if (cardPaymentFilter) {
+            andConditions.push({
+                attributes: {
+                    path: ['cardPayment'],
+                    equals: true,
+                },
+            });
+        }
 
-    if (inSalonFilter) {
-        andConditions.push({
-            OR: [
-                { provider_type: 'SALON' },
-                { attributes: { path: ['inSalon'], equals: true } },
-            ],
-        });
-    }
+        if (instantBookingFilter) {
+            andConditions.push({
+                attributes: {
+                    path: ['instantBooking'],
+                    equals: true,
+                },
+            });
+        }
 
-    if (cardPaymentFilter) {
-        andConditions.push({
-            attributes: {
-                path: ['cardPayment'],
-                equals: true,
-            },
-        });
-    }
+        const where: any = { AND: andConditions };
 
-    if (instantBookingFilter) {
-        andConditions.push({
-            attributes: {
-                path: ['instantBooking'],
-                equals: true,
-            },
-        });
-    }
+        let orderBy: any = { created_at: 'desc' };
+        if (sortParam === 'rating') {
+            orderBy = { reviews: { _avg: { rating: 'desc' } } };
+        }
 
-    const where: any = { AND: andConditions };
-
-    let orderBy: any = { created_at: 'desc' };
-    if (sortParam === 'rating') {
-        orderBy = { reviews: { _avg: { rating: 'desc' } } };
-    }
-
-    let profiles: any[] = [];
-    try {
         profiles = await prisma.profile.findMany({
             where,
             include: {
@@ -255,8 +253,13 @@ export default async function SearchPage({
             orderBy,
             take: 50,
         });
+
+        favoriteProfileIds = await getFavoriteProfileIds();
     } catch (e: any) {
-        console.error("DB Error:", e);
+        console.error("Search page data fetch error:", e);
+        // Graceful fallback: render empty results instead of crashing
+        profiles = [];
+        favoriteProfileIds = [];
     }
 
     const mapMarkers = profiles.map((profile) => ({
@@ -270,8 +273,6 @@ export default async function SearchPage({
         image: profile.image_url,
         slug: profile.slug,
     }));
-
-    const favoriteProfileIds = await getFavoriteProfileIds();
 
     const mappedProfiles = profiles.map((profile: any) => ({
         id: profile.id,

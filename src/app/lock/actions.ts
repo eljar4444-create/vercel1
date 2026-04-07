@@ -1,6 +1,5 @@
 'use server';
 
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 export async function verifyPassword(formData: FormData) {
@@ -12,12 +11,7 @@ export async function verifyPassword(formData: FormData) {
     }
 
     if (password === correctPassword) {
-        cookies().set('site_access', 'true', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 60 * 60 * 24 * 30, // 30 days
-            path: '/',
-        });
+        // Redirect to home — the client lock page stores access state in localStorage
         redirect('/');
     } else {
         return { error: 'Неверный пароль' };
