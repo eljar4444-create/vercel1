@@ -77,14 +77,10 @@ export default function MasterGallery() {
                     try {
                         const { latitude, longitude } = pos.coords;
                         const res = await fetch(
-                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`,
-                            { headers: { 'Accept-Language': 'ru' } }
+                            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
                         );
                         const data = await res.json();
-                        const city =
-                            data?.address?.city ||
-                            data?.address?.town ||
-                            data?.address?.village;
+                        const city = data?.city || data?.locality;
                         if (city) {
                             resolve(city);
                         } else {
