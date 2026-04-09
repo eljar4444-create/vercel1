@@ -35,10 +35,8 @@ export default async function HomePage() {
                 <CategoryNav />
             </div>
 
-            <div id="masters" className="scroll-mt-24">
-                <Suspense fallback={<div className="h-96 w-full animate-pulse bg-[#f0ebe4]" />}>
-                    <MasterGallery />
-                </Suspense>
+            <div id="masters" className="scroll-mt-46">
+                <MasterGallery />
             </div>
 
             <HowItWorks />
@@ -48,6 +46,7 @@ export default async function HomePage() {
             <ManifestoBand />
 
             <HomepageFooter />
+
         </div>
     );
 }

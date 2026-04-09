@@ -2,117 +2,119 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Globe, AtSign } from 'lucide-react';
 
 const SERVICES_LINKS = [
-    { label: 'Маникюр', href: '/search?q=Маникюр' },
-    { label: 'Стрижка', href: '/search?q=Стрижка' },
-    { label: 'Массаж', href: '/search?q=Массаж' },
-    { label: 'Брови и ресницы', href: '/search?q=Брови' },
-    { label: 'Косметология', href: '/search?q=Косметология' },
+    { label: 'Дизайн волос', href: '/search?q=Стрижка' },
+    { label: 'Макияж', href: '/search?q=Макияж' },
+    { label: 'Уход за кожей', href: '/search?q=Косметология' },
+    { label: 'Велнес', href: '/search?q=Массаж' },
 ];
 
-const MASTERS_LINKS = [
-    { label: 'Стать партнёром', href: '/become-pro' },
-    { label: 'Кабинет мастера', href: '/dashboard' },
+const PLATFORM_LINKS = [
+    { label: 'Как это работает', href: '/guide' },
+    { label: 'Для мастеров', href: '/become-pro' },
+    { label: 'Журнал', href: '#' },
+    { label: 'Локации', href: '/search' },
 ];
 
 const COMPANY_LINKS = [
-    { label: 'Impressum', href: '/impressum' },
-    { label: 'AGB', href: '/agb' },
-    { label: 'Datenschutz', href: '/datenschutz' },
+    { label: 'О нас', href: '#' },
+    { label: 'Вакансии', href: '#' },
+    { label: 'Пресса', href: '#' },
+];
+
+const LEGAL_LINKS = [
+    { label: 'Политика конфиденциальности', href: '/datenschutz' },
+    { label: 'Условия использования', href: '/agb' },
 ];
 
 export function Footer() {
     const pathname = usePathname();
 
     // Hide footer on chat page to maximise space for messages
-    if (pathname === '/' || pathname === '/chat' || pathname === '/become-pro') return null;
+    if (pathname === '/' || pathname === '/chat') return null;
 
     return (
-        <footer className="border-t border-stone-200 bg-transparent pb-[env(safe-area-inset-bottom)]">
-            <div className="container mx-auto max-w-6xl px-4">
+        <footer className="bg-[#1A1514] text-white pt-20 pb-0 px-8">
+            <div className="max-w-screen-2xl mx-auto">
+                {/* Logo */}
+                <Link href="/" className="inline-block mb-10">
+                    <span className="text-4xl font-black tracking-tight text-white">SVOI</span>
+                </Link>
 
-                {/* ── Main columns ── */}
-                <div className="grid grid-cols-2 gap-8 py-12 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
-
-                    {/* Brand */}
-                    <div className="col-span-2 md:col-span-1">
-                        <Link href="/" className="mb-4 inline-block">
-                            <img
-                                src="/logo.svg"
-                                alt="Svoi.de"
-                                className="h-9 w-auto object-contain"
-                            />
-                        </Link>
-                        <p className="max-w-xs text-sm leading-relaxed text-gray-400">
-                            Маркетплейс бьюти-услуг для русскоязычного сообщества в Германии.
-                        </p>
+                {/* 4-Column Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-12 mb-20">
+                    {/* Column 1: УСЛУГИ */}
+                    <div className="flex flex-col gap-3.5">
+                        <span className="text-xs uppercase tracking-[0.2em] text-white font-bold mb-1">Услуги</span>
+                        {SERVICES_LINKS.map((link) => (
+                            <Link
+                                key={link.href + link.label}
+                                href={link.href}
+                                className="text-sm text-gray-500 hover:text-white transition-colors duration-200"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
                     </div>
 
-                    {/* Services */}
-                    <div>
-                        <h4 className="mb-4 text-sm font-semibold text-gray-900">Услуги</h4>
-                        <ul className="space-y-2.5">
-                            {SERVICES_LINKS.map((link) => (
-                                <li key={link.href}>
-                                    <Link
-                                        href={link.href}
-                                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
-                                    >
-                                        {link.label}
-                                    </Link>
-                                </li>
-                            ))}
-                            <li>
-                                <Link
-                                    href="/search"
-                                    className="text-sm font-medium text-yellow-600 transition-colors hover:text-yellow-700"
-                                >
-                                    Все категории →
-                                </Link>
-                            </li>
-                        </ul>
+                    {/* Column 2: ПЛАТФОРМА */}
+                    <div className="flex flex-col gap-3.5">
+                        <span className="text-xs uppercase tracking-[0.2em] text-white font-bold mb-1">Платформа</span>
+                        {PLATFORM_LINKS.map((link) => (
+                            <Link
+                                key={link.href + link.label}
+                                href={link.href}
+                                className="text-sm text-gray-500 hover:text-white transition-colors duration-200"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
                     </div>
 
-                    {/* Masters */}
-                    <div>
-                        <h4 className="mb-4 text-sm font-semibold text-gray-900">Мастерам</h4>
-                        <ul className="space-y-2.5">
-                            {MASTERS_LINKS.map((link) => (
-                                <li key={link.href}>
-                                    <Link
-                                        href={link.href}
-                                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
-                                    >
-                                        {link.label}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
+                    {/* Column 3: КОМПАНИЯ */}
+                    <div className="flex flex-col gap-3.5">
+                        <span className="text-xs uppercase tracking-[0.2em] text-white font-bold mb-1">Компания</span>
+                        {COMPANY_LINKS.map((link) => (
+                            <Link
+                                key={link.href + link.label}
+                                href={link.href}
+                                className="text-sm text-gray-500 hover:text-white transition-colors duration-200"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
                     </div>
 
-                    {/* Company */}
-                    <div>
-                        <h4 className="mb-4 text-sm font-semibold text-gray-900">Компания</h4>
-                        <ul className="space-y-2.5">
-                            {COMPANY_LINKS.map((link) => (
-                                <li key={link.href}>
-                                    <Link
-                                        href={link.href}
-                                        className="text-sm text-gray-500 transition-colors hover:text-gray-900"
-                                    >
-                                        {link.label}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
+                    {/* Column 4: ЮРИДИЧЕСКАЯ ИНФОРМАЦИЯ */}
+                    <div className="flex flex-col gap-3.5">
+                        <span className="text-xs uppercase tracking-[0.2em] text-white font-bold mb-1">Юридическая информация</span>
+                        {LEGAL_LINKS.map((link) => (
+                            <Link
+                                key={link.href + link.label}
+                                href={link.href}
+                                className="text-sm text-gray-500 hover:text-white transition-colors duration-200"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
                     </div>
                 </div>
 
-                {/* ── Bottom bar ── */}
-                <div className="flex flex-col items-center justify-between gap-3 border-t border-stone-200 py-5 text-xs text-gray-400 sm:flex-row">
-                    <span>© {new Date().getFullYear()} Svoi.de — Все права защищены.</span>
-                    <span>Германия 🇩🇪</span>
+                {/* Bottom Bar */}
+                <div className="border-t border-gray-800 py-6 flex flex-col md:flex-row justify-between items-center gap-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+                    <p className="text-sm text-gray-600">
+                        © 2026 SVOI Curated Atelier. Все права защищены.
+                    </p>
+                    <div className="flex items-center gap-6">
+                        <Link href="#" className="text-gray-600 hover:text-white transition-colors duration-200" aria-label="Язык">
+                            <Globe className="w-5 h-5" />
+                        </Link>
+                        <Link href="#" className="text-gray-600 hover:text-white transition-colors duration-200" aria-label="Контакт">
+                            <AtSign className="w-5 h-5" />
+                        </Link>
+                    </div>
                 </div>
             </div>
         </footer>

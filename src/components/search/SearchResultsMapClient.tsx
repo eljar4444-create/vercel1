@@ -107,15 +107,18 @@ function MapBoundsEmitter({ onBoundsChange }: { onBoundsChange?: (bounds: MapBou
     return null;
 }
 
-/** Captures the Leaflet map instance and destroys it on unmount (React 18 Strict Mode safe). */
+/** Unbinds custom event listeners on unmount (React 18 Strict Mode safe).
+ *  We intentionally do NOT call map.remove() here — react-leaflet handles
+ *  DOM cleanup itself, and calling remove() causes "Map container is being
+ *  reused by another instance" errors on Strict Mode remounts. */
 function MapCleanup() {
     const map = useMap();
     useEffect(() => {
         return () => {
             try {
-                map.remove();
+                map.off();
             } catch {
-                // Already removed or not initialized — safe to ignore
+                // Already cleaned up — safe to ignore
             }
         };
     }, [map]);

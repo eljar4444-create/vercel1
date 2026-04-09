@@ -36,10 +36,10 @@ export default function RootLayout({
         <html lang="ru" className={cn("font-sans")}>
             <body className={`${inter.variable} font-sans antialiased text-gray-900 min-h-[100dvh] flex flex-col pb-[env(safe-area-inset-bottom)]`}>
                 <Providers>
-                    <Suspense fallback={<div className="relative z-50 h-16 border-b border-stone-200 bg-transparent" />}>
+                    <Suspense fallback={<div className="relative z-50 h-16 bg-[#1A1514]" />}>
                         <Header />
                     </Suspense>
-                    <main className="flex-1">
+                    <main className="flex-grow">
                         {children}
                     </main>
                     <Footer />

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, ShieldCheck } from 'lucide-react';
+import { Star, ShieldCheck, MapPin } from 'lucide-react';
 
 interface MasterCardProps {
     slug: string;
@@ -40,17 +40,17 @@ export default function MasterCard({
             className="block bg-white p-6 rounded-xl group hover:shadow-2xl transition-all duration-500"
         >
             {/* Photo */}
-            <div className="relative aspect-square mb-6 overflow-hidden rounded-lg">
+            <div className="relative aspect-[4/5] mb-6 overflow-hidden rounded-lg">
                 {workPhotoUrl ? (
                     <Image
                         src={workPhotoUrl}
                         alt={name}
                         fill
-                        className="object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
                 ) : (
-                    <div className="w-full h-full bg-stone-100 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all duration-700">
+                    <div className="w-full h-full bg-stone-100 flex items-center justify-center">
                         <span className="text-4xl font-bold text-stone-400">
                             {getInitials(name)}
                         </span>
@@ -71,6 +71,14 @@ export default function MasterCard({
                     <span className="text-sm font-bold text-booking-textMain">{avgRating}</span>
                 </div>
             </div>
+
+            {/* City */}
+            {city && (
+                <div className="flex items-center gap-1 mb-1">
+                    <MapPin className="h-3.5 w-3.5 text-booking-textMuted" />
+                    <span className="text-sm text-booking-textMuted">{city}</span>
+                </div>
+            )}
 
             {/* Category */}
             <p className="text-booking-textMuted text-sm mb-6 font-medium uppercase tracking-wider">
