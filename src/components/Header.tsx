@@ -21,7 +21,7 @@ import { SearchFiltersForm } from '@/components/search/SearchFiltersForm';
 const QUICK_BEAUTY_LINKS = [
     { label: 'Услуги', href: '/#services' },
     { label: 'Мастера', href: '/#masters' },
-    { label: 'О сайте', href: '/#about' },
+    { label: 'О нас', href: '/about' },
 ];
 
 type HeaderProps = {
@@ -99,7 +99,10 @@ export function Header({ variant = 'default' }: HeaderProps) {
                         <SearchFiltersForm
                             categoryFilter={typeof searchParams.get('category') === 'string' ? searchParams.get('category') || undefined : undefined}
                             queryFilter={typeof searchParams.get('q') === 'string' ? searchParams.get('q') || undefined : undefined}
-                            cityFilter={typeof searchParams.get('city') === 'string' ? searchParams.get('city') || undefined : undefined}
+                            cityFilter={
+                                (typeof searchParams.get('city') === 'string' ? searchParams.get('city') || undefined : undefined)
+                                ?? (typeof searchParams.get('location') === 'string' ? searchParams.get('location') || undefined : undefined)
+                            }
                             radiusFilter={typeof searchParams.get('radius') === 'string' ? searchParams.get('radius') || undefined : undefined}
                         />
                     </div>

@@ -15,14 +15,22 @@ export function ActiveFilters({ cityFilter, queryFilter, languageFilter }: Activ
     const searchParams = useSearchParams();
     const activeLanguage = PROVIDER_LANGUAGE_OPTIONS.find((option) => option.value === languageFilter);
 
-    if (!cityFilter && !queryFilter && !activeLanguage) return null;
+    // Resolve the location: prefer the prop, fall back to the `location` URL param
+    const locationParam = searchParams.get('location');
+    const resolvedCity = cityFilter || locationParam || undefined;
+    // Track which URL key to delete when the user removes the chip
+    const cityParamKey = searchParams.has('city') ? 'city' : 'location';
+
+    if (!resolvedCity && !queryFilter && !activeLanguage) return null;
 
     const removeFilter = (key: string) => {
         const params = new URLSearchParams(searchParams.toString());
 
         params.delete(key);
 
-        if (key === 'city') {
+        if (key === 'city' || key === 'location') {
+            params.delete('city');
+            params.delete('location');
             params.delete('lat');
             params.delete('lng');
             params.delete('minLat');
@@ -36,13 +44,13 @@ export function ActiveFilters({ cityFilter, queryFilter, languageFilter }: Activ
 
     return (
         <div className="mb-4 flex flex-wrap items-center gap-2">
-            {cityFilter && (
+            {resolvedCity && (
             <button
-                    onClick={() => removeFilter('city')}
-                    aria-label={`Удалить фильтр: ${cityFilter}`}
+                    onClick={() => removeFilter(cityParamKey)}
+                    aria-label={`Удалить фильтр: ${resolvedCity}`}
                     className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[#E5D5C5] px-3 py-1.5 text-xs font-medium text-[#4A3B32] transition hover:bg-[#d9c8b5]"
                 >
-                    {cityFilter}
+                    {resolvedCity}
                     <X className="h-3 w-3" />
                 </button>
             )}

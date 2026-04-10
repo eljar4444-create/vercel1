@@ -1,45 +1,47 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useEffect, useState } from 'react';
+import { motion, Variants } from 'framer-motion';
+
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.15
+        }
+    }
+};
+
+const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.8, ease: "easeOut" }
+    }
+};
 
 export default function ManifestoBand() {
-    const ref = useRef<HTMLElement>(null);
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    observer.disconnect();
-                }
-            },
-            { threshold: 0.3 },
-        );
-
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, []);
-
     return (
-        <section ref={ref} className="py-32 px-8 bg-white text-center">
-            <div className="max-w-4xl mx-auto">
-                <h2
-                    className={`text-5xl md:text-7xl font-bold tracking-tighter text-booking-textMain mb-12 leading-tight transition-all duration-700 ${
-                        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
-                    }`}
+        <section className="py-32 px-8 bg-white text-center">
+            <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                className="max-w-4xl mx-auto"
+            >
+                <motion.h2
+                    variants={itemVariants}
+                    className="text-5xl md:text-7xl font-bold tracking-tighter text-booking-textMain mb-12 leading-tight"
                 >
                     Мы не идём на компромиссы.<br />И вы не должны.
-                </h2>
+                </motion.h2>
 
-                <div
-                    className={`flex flex-col sm:flex-row justify-center gap-6 transition-all duration-700 delay-300 ${
-                        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'
-                    }`}
+                <motion.div
+                    variants={itemVariants}
+                    className="flex flex-col sm:flex-row justify-center gap-6"
                 >
                     <Link
                         href="/search"
@@ -53,8 +55,8 @@ export default function ManifestoBand() {
                     >
                         Стать мастером
                     </Link>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
         </section>
     );
 }

@@ -8,22 +8,15 @@ const SERVICES_LINKS = [
 ];
 
 const PLATFORM_LINKS = [
+    { label: 'О нас', href: '/about' },
     { label: 'Как это работает', href: '/guide' },
     { label: 'Для мастеров', href: '/become-pro' },
-    { label: 'Журнал', href: '#' },
-    { label: 'Локации', href: '/search' },
-];
-
-const COMPANY_LINKS = [
-    { label: 'О нас', href: '#' },
-    { label: 'Вакансии', href: '#' },
-    { label: 'Пресса', href: '#' },
 ];
 
 const LEGAL_LINKS = [
+    { label: 'Impressum', href: '/impressum' },
     { label: 'Политика конфиденциальности', href: '/datenschutz' },
     { label: 'Условия использования', href: '/agb' },
-    { label: 'Политика cookie', href: '/datenschutz' },
 ];
 
 export default function HomepageFooter() {
@@ -36,7 +29,7 @@ export default function HomepageFooter() {
                 </Link>
 
                 {/* Columns */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-12 mb-20">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-12 mb-20">
                     <div className="flex flex-col gap-4">
                         <span className="text-xs uppercase tracking-widest text-white font-bold mb-2">Услуги</span>
                         {SERVICES_LINKS.map((link) => (
@@ -48,14 +41,6 @@ export default function HomepageFooter() {
                     <div className="flex flex-col gap-4">
                         <span className="text-xs uppercase tracking-widest text-white font-bold mb-2">Платформа</span>
                         {PLATFORM_LINKS.map((link) => (
-                            <Link key={link.href + link.label} href={link.href} className="text-sm text-gray-500 hover:text-white transition-all">
-                                {link.label}
-                            </Link>
-                        ))}
-                    </div>
-                    <div className="flex flex-col gap-4">
-                        <span className="text-xs uppercase tracking-widest text-white font-bold mb-2">Компания</span>
-                        {COMPANY_LINKS.map((link) => (
                             <Link key={link.href + link.label} href={link.href} className="text-sm text-gray-500 hover:text-white transition-all">
                                 {link.label}
                             </Link>

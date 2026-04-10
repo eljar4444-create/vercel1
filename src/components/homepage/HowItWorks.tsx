@@ -1,3 +1,26 @@
+'use client';
+
+import { motion, Variants } from 'framer-motion';
+
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.15
+        }
+    }
+};
+
+const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.8, ease: "easeOut" }
+    }
+};
+
 const COLUMNS = [
     {
         icon: (
@@ -32,9 +55,16 @@ export default function HowItWorks() {
     return (
         <section className="py-24 px-8 bg-[#F5F2ED] border-t border-stone-200/30">
             <div className="max-w-screen-2xl mx-auto">
-                <div className="grid md:grid-cols-3 gap-16">
+                <motion.div 
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                    className="grid md:grid-cols-3 gap-16"
+                >
                     {COLUMNS.map((col) => (
-                        <div
+                        <motion.div
+                            variants={itemVariants}
                             key={col.title}
                             className="flex flex-col items-center text-center"
                         >
@@ -47,9 +77,9 @@ export default function HowItWorks() {
                             <p className="text-booking-textMuted leading-relaxed">
                                 {col.description}
                             </p>
-                        </div>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             </div>
         </section>
     );

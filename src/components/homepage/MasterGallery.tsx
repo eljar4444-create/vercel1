@@ -1,8 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { motion, Variants } from 'framer-motion';
 import MasterCard from './MasterCard';
 import { ArrowRight, Loader2 } from 'lucide-react';
+
+const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.15
+        }
+    }
+};
+
+const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.8, ease: "easeOut" }
+    }
+};
 
 interface MasterData {
     id: number;
@@ -144,73 +164,73 @@ export default function MasterGallery() {
         <section className="py-24 px-8 bg-[#f0ebe4]">
             <div className="max-w-screen-2xl mx-auto">
                 {/* Section Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-                    <div className="max-w-xl">
-                        <span className="text-xs font-bold uppercase tracking-[0.2em] text-booking-primary mb-3 block">
-                            Выбор SVOI
-                        </span>
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="flex flex-col items-center justify-center text-center mb-16 relative"
+                >
+                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-booking-primary mb-3 block">
+                        Выбор SVOI
+                    </span>
+                    
+                    <div className="flex flex-col items-center gap-4 max-w-xl mx-auto">
+                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-booking-textMain">
+                            {heading}
+                        </h2>
 
-                        <div className="flex flex-col gap-4">
-                            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-booking-textMain">
-                                {heading}
-                            </h2>
+                        <p className="text-booking-textMuted text-lg leading-relaxed mt-2 mb-2">
+                            Мы проверяем каждого мастера на соответствие золотому стандарту качества SVOI.
+                        </p>
 
-                            {localModeStatus !== 'active' ? (
-                                <div>
-                                    <button
-                                        onClick={fetchLocalMasters}
-                                        disabled={localLoading}
-                                        className="inline-flex items-center gap-1.5 text-sm font-bold text-booking-primary hover:text-emerald-800 transition-colors group"
-                                    >
-                                        {localLoading ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                Ищем...
-                                            </>
-                                        ) : (
-                                            <>
-                                                Показать мастеров рядом?
-                                                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 duration-300 transition-transform" />
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            ) : (
-                                <div>
-                                    <button
-                                        onClick={fetchGlobalMasters}
-                                        disabled={localLoading}
-                                        className="inline-flex items-center gap-1.5 text-sm font-bold text-booking-primary hover:text-emerald-800 transition-colors group"
-                                    >
-                                        {localLoading ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                Загрузка...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <ArrowRight className="h-4 w-4 rotate-180 group-hover:-translate-x-1 duration-300 transition-transform" />
-                                                Показать всех мастеров платформы
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            )}
+                        {localModeStatus !== 'active' ? (
+                            <button
+                                onClick={fetchLocalMasters}
+                                disabled={localLoading}
+                                className="inline-flex items-center gap-1.5 text-sm font-bold text-booking-primary hover:text-emerald-800 transition-colors group"
+                            >
+                                {localLoading ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Ищем...
+                                    </>
+                                ) : (
+                                    <>
+                                        Показать мастеров рядом?
+                                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 duration-300 transition-transform" />
+                                    </>
+                                )}
+                            </button>
+                        ) : (
+                            <button
+                                onClick={fetchGlobalMasters}
+                                disabled={localLoading}
+                                className="inline-flex items-center gap-1.5 text-sm font-bold text-booking-primary hover:text-emerald-800 transition-colors group"
+                            >
+                                {localLoading ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Загрузка...
+                                    </>
+                                ) : (
+                                    <>
+                                        <ArrowRight className="h-4 w-4 rotate-180 group-hover:-translate-x-1 duration-300 transition-transform" />
+                                        Показать всех мастеров платформы
+                                    </>
+                                )}
+                            </button>
+                        )}
 
-                            {localModeStatus === 'empty' && (
-                                <p className="text-sm font-medium text-amber-700 bg-amber-50 py-2 px-3 rounded-lg w-fit">
-                                    В вашем регионе пока нет мастеров, посмотрите лучших специалистов платформы.
-                                </p>
-                            )}
-
-                            <p className="text-booking-textMuted text-lg leading-relaxed mt-2">
-                                Мы проверяем каждого мастера на соответствие золотому стандарту качества SVOI.
+                        {localModeStatus === 'empty' && (
+                            <p className="text-sm font-medium text-amber-700 bg-amber-50 py-2 px-3 rounded-lg w-fit mt-2">
+                                В вашем регионе пока нет мастеров, посмотрите лучших специалистов платформы.
                             </p>
-                        </div>
+                        )}
                     </div>
 
                     {showArrows && (
-                        <div className="flex gap-4">
+                        <div className="hidden md:flex gap-4 absolute right-0 bottom-0">
                             <button className="w-12 h-12 rounded-full border border-stone-300 flex items-center justify-center hover:bg-white transition-all">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -223,11 +243,17 @@ export default function MasterGallery() {
                             </button>
                         </div>
                     )}
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full items-start justify-start">
+                <motion.div 
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                    className="flex flex-wrap justify-center gap-6 w-full items-start"
+                >
                     {masters.map((master) => (
-                        <div key={master.id} className="w-full">
+                        <motion.div key={master.id} variants={itemVariants} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] flex-none">
                             <MasterCard
                                 slug={master.slug}
                                 name={master.name}
@@ -238,9 +264,9 @@ export default function MasterGallery() {
                                 workPhotoUrl={master.workPhotoUrl}
                                 services={master.services}
                             />
-                        </div>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             </div>
         </section>
     );

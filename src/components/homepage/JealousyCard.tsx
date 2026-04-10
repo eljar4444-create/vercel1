@@ -2,33 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRef, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 
 export default function JealousyCard() {
-    const ref = useRef<HTMLDivElement>(null);
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    observer.disconnect();
-                }
-            },
-            { threshold: 0.3 },
-        );
-
-        observer.observe(el);
-        return () => observer.disconnect();
-    }, []);
-
     return (
         <section className="py-24 px-8 overflow-hidden">
-            <div ref={ref} className="max-w-screen-2xl mx-auto relative rounded-[2rem] bg-booking-primary text-white p-12 md:p-24 overflow-hidden">
+            <div className="max-w-screen-2xl mx-auto relative rounded-[2rem] bg-booking-primary text-white p-12 md:p-24 overflow-hidden">
                 {/* Background image overlay */}
                 <div className="absolute inset-0 opacity-40">
                     <Image
@@ -39,7 +18,13 @@ export default function JealousyCard() {
                     />
                 </div>
 
-                <div className={`relative z-10 max-w-2xl transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, amount: 0.2 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="relative z-10 max-w-2xl mx-auto flex flex-col items-center text-center"
+                >
                     <span className="text-xs font-bold uppercase tracking-[0.2em] text-white/60 mb-6 block">
                         Для профессионалов
                     </span>
@@ -55,7 +40,7 @@ export default function JealousyCard() {
                     >
                         Создать свою галерею
                     </Link>
-                </div>
+                </motion.div>
             </div>
         </section>
     );

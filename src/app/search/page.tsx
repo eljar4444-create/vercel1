@@ -66,7 +66,9 @@ export default async function SearchPage({
     searchParams: { [key: string]: string | string[] | undefined };
 }) {
     const categoryFilter = typeof searchParams.category === 'string' ? searchParams.category : undefined;
-    const cityFilter = typeof searchParams.city === 'string' ? searchParams.city : undefined;
+    const cityFilter = typeof searchParams.city === 'string' ? searchParams.city
+        : typeof searchParams.location === 'string' ? searchParams.location
+        : undefined;
     const queryFilter = typeof searchParams.q === 'string' ? searchParams.q : undefined;
     const languageFilter = typeof searchParams.language === 'string' ? searchParams.language : undefined;
 

@@ -12,19 +12,13 @@ const SERVICES_LINKS = [
 ];
 
 const PLATFORM_LINKS = [
+    { label: 'О нас', href: '/about' },
     { label: 'Как это работает', href: '/guide' },
     { label: 'Для мастеров', href: '/become-pro' },
-    { label: 'Журнал', href: '#' },
-    { label: 'Локации', href: '/search' },
-];
-
-const COMPANY_LINKS = [
-    { label: 'О нас', href: '#' },
-    { label: 'Вакансии', href: '#' },
-    { label: 'Пресса', href: '#' },
 ];
 
 const LEGAL_LINKS = [
+    { label: 'Impressum', href: '/impressum' },
     { label: 'Политика конфиденциальности', href: '/datenschutz' },
     { label: 'Условия использования', href: '/agb' },
 ];
@@ -43,8 +37,8 @@ export function Footer() {
                     <span className="text-4xl font-black tracking-tight text-white">SVOI</span>
                 </Link>
 
-                {/* 4-Column Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-12 mb-20">
+                {/* 3-Column Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-10 md:gap-12 mb-20">
                     {/* Column 1: УСЛУГИ */}
                     <div className="flex flex-col gap-3.5">
                         <span className="text-xs uppercase tracking-[0.2em] text-white font-bold mb-1">Услуги</span>
@@ -73,21 +67,7 @@ export function Footer() {
                         ))}
                     </div>
 
-                    {/* Column 3: КОМПАНИЯ */}
-                    <div className="flex flex-col gap-3.5">
-                        <span className="text-xs uppercase tracking-[0.2em] text-white font-bold mb-1">Компания</span>
-                        {COMPANY_LINKS.map((link) => (
-                            <Link
-                                key={link.href + link.label}
-                                href={link.href}
-                                className="text-sm text-gray-500 hover:text-white transition-colors duration-200"
-                            >
-                                {link.label}
-                            </Link>
-                        ))}
-                    </div>
-
-                    {/* Column 4: ЮРИДИЧЕСКАЯ ИНФОРМАЦИЯ */}
+                    {/* Column 3: ЮРИДИЧЕСКАЯ ИНФОРМАЦИЯ */}
                     <div className="flex flex-col gap-3.5">
                         <span className="text-xs uppercase tracking-[0.2em] text-white font-bold mb-1">Юридическая информация</span>
                         {LEGAL_LINKS.map((link) => (

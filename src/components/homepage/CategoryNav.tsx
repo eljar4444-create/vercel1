@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -43,28 +44,32 @@ const CATEGORIES = [
 ];
 
 export default function CategoryNav() {
+    const [flippedCategory, setFlippedCategory] = useState<string | null>(null);
+
     const handleFastTravel = (text: string) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         const event = new CustomEvent('smart-search-trigger', { detail: { service: text } });
         window.dispatchEvent(event);
     };
 
+    const handleCardClick = (name: string) => {
+        setFlippedCategory(prev => prev === name ? null : name);
+    };
+
     return (
         <section className="py-24 px-8 bg-[#F5F2ED]">
             <div className="max-w-screen-2xl mx-auto">
                 {/* Section Header */}
-                <div className="flex justify-between items-end mb-16">
-                    <div>
-                        <span className="text-xs font-bold uppercase tracking-[0.2em] text-booking-primary mb-3 block">
-                            Откройте для себя
-                        </span>
-                        <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-booking-textMain">
-                            Популярные услуги
-                        </h2>
-                    </div>
+                <div className="flex flex-col items-center text-center mb-16 relative">
+                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-booking-primary mb-3 block">
+                        Откройте для себя
+                    </span>
+                    <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-booking-textMain">
+                        Популярные услуги
+                    </h2>
                     <a
                         href="/search"
-                        className="hidden md:block border-b-2 border-booking-primary pb-1 text-xs font-bold uppercase tracking-widest text-booking-textMain hover:text-booking-primary transition-colors"
+                        className="hidden md:block absolute right-0 bottom-2 border-b-2 border-booking-primary pb-1 text-xs font-bold uppercase tracking-widest text-booking-textMain hover:text-booking-primary transition-colors"
                     >
                         Все категории
                     </a>
@@ -75,13 +80,16 @@ export default function CategoryNav() {
                     {CATEGORIES.map((cat) => (
                         <div
                             key={cat.name}
-                            className="group relative aspect-[3/4] cursor-pointer [perspective:1000px]"
+                            className="relative aspect-[3/4] cursor-pointer [perspective:1000px]"
+                            onClick={() => handleCardClick(cat.name)}
                         >
-                            <div className="relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
+                            <div className={cn(
+                                "relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d]",
+                                flippedCategory === cat.name ? "[transform:rotateY(180deg)]" : ""
+                            )}>
                                 {/* Front Face */}
                                 <div 
                                     className="absolute inset-0 w-full h-full [backface-visibility:hidden] overflow-hidden rounded-xl bg-stone-200"
-                                    onClick={() => handleFastTravel(cat.name)}
                                 >
                                     <Image
                                         src={cat.imageSrc}
