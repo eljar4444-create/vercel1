@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { SUB_CATEGORIES } from '@/constants/categories';
 import toast from 'react-hot-toast';
 import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 
 const LocationAutocomplete = dynamic(
     () => import('@/components/LocationAutocomplete').then(mod => mod.LocationAutocomplete),
@@ -50,10 +51,10 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
     const [selectedParams, setSelectedParams] = useState<{ category?: string; subcategory?: string } | null>(null);
 
     const PREMIUM_SERVICES = [
-        { title: 'ВОЛОСЫ', items: ['Окрашивание', 'Стрижка', 'Укладка'] },
-        { title: 'НОГТИ', items: ['Маникюр', 'Педикюр', 'Наращивание'] },
-        { title: 'ЛИЦО', items: ['Брови', 'Ресницы', 'Уход за кожей'] },
-        { title: 'ТЕЛО И ОБРАЗ', items: ['Макияж', 'Массаж', 'Депиляция'] }
+        { id: 'hair', title: 'ВОЛОСЫ', items: ['Окрашивание', 'Стрижка', 'Укладка'] },
+        { id: 'nails', title: 'НОГТИ', items: ['Маникюр', 'Педикюр', 'Наращивание'] },
+        { id: 'face', title: 'ЛИЦО', items: ['Брови', 'Ресницы', 'Уход за кожей'] },
+        { id: 'body', title: 'ТЕЛО И ОБРАЗ', items: ['Макияж', 'Массаж', 'Депиляция'] }
     ];
 
     const filteredMegaMenu = useMemo(() => {
@@ -160,7 +161,17 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
 
                 {/* Location Input */}
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center px-4 bg-white/5 rounded-lg border border-transparent focus-within:border-booking-primary transition-all h-[56px]">
+                    <div
+                        className="flex items-center px-4 bg-white/5 rounded-lg border border-transparent focus-within:border-booking-primary focus-within:ring-1 focus-within:ring-[#1B2A23] transition-all duration-200 h-[56px] cursor-text"
+                        onMouseDown={(e) => {
+                            // Focus the input when clicking the padding area of the chrome,
+                            // but leave clicks on inner elements (input, geolocation button) alone.
+                            if (e.target === e.currentTarget) {
+                                e.preventDefault();
+                                locationInputRef.current?.focus();
+                            }
+                        }}
+                    >
                         <LocationAutocomplete
                             focusRef={locationInputRef}
                             defaultValue={locationQuery}
@@ -171,7 +182,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                                 if (validationError.location) setValidationError(prev => ({ ...prev, location: false }));
                             }}
                             className={cn(
-                                'w-full h-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-white/40 text-[16px] md:text-base',
+                                'w-full h-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-white/40 text-[16px] md:text-base cursor-text',
                                 validationError.location && 'text-red-300 placeholder-red-300/50',
                             )}
                         />
@@ -199,9 +210,11 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-y-4 gap-x-6">
                                 {filteredMegaMenu.map((cat) => (
                                     <div key={cat.title}>
-                                        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-4 border-b border-gray-100 pb-2 flex flex-col items-center">
-                                            {cat.title}
-                                        </h3>
+                                        <Link href={`/services?category=${cat.id}`} className="block w-full">
+                                            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest mb-4 border-b border-gray-100 pb-2 flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity">
+                                                {cat.title}
+                                            </h3>
+                                        </Link>
                                         <ul className="space-y-3">
                                             {cat.items.map((srv) => (
                                                 <li
@@ -223,9 +236,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                                     type="button"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        setServiceQuery('');
-                                        setIsServiceFocused(false);
-                                        setTimeout(() => locationInputRef.current?.focus(), 0);
+                                        router.push('/services');
                                     }}
                                     className="text-sm font-medium text-gray-500 hover:text-green-800 transition-colors duration-200"
                                 >

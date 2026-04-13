@@ -10,9 +10,10 @@ import toast from 'react-hot-toast';
 interface ServicesSectionProps {
     profileId: number;
     services: ServiceData[];
+    isSalonProvider?: boolean;
 }
 
-export function ServicesSection({ profileId, services }: ServicesSectionProps) {
+export function ServicesSection({ profileId, services, isSalonProvider = false }: ServicesSectionProps) {
     const [serviceItems, setServiceItems] = useState(services);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editingService, setEditingService] = useState<ServiceData | null>(null);
@@ -117,6 +118,7 @@ export function ServicesSection({ profileId, services }: ServicesSectionProps) {
                         deletingId={deletingId}
                         onDelete={handleDelete}
                         onEdit={setEditingService}
+                        showPhotoUpload={!isSalonProvider}
                     />
                 </div>
             </div>

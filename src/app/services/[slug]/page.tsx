@@ -6,13 +6,26 @@ import { Metadata } from 'next';
 import { MapPin, Calendar, Clock, Euro } from 'lucide-react';
 import Link from 'next/link';
 import ScrollReveal from '@/components/ScrollReveal';
+import ServiceLandingClient from './ServiceLandingClient';
 
 interface Props {
-    params: { id: string };
+    params: { slug: string };
+}
+
+function isNumericSlug(slug: string): boolean {
+    return /^\d+$/.test(slug);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-    const id = parseInt(params.id);
+    if (!isNumericSlug(params.slug)) {
+        const serviceName = decodeURIComponent(params.slug);
+        return {
+            title: `${serviceName} — SVOI Premium Network`,
+            description: `Бронирование премиальных бьюти-специалистов: ${serviceName}. Гарантия качества и строгий аудит каждого мастера SVOI.`
+        };
+    }
+
+    const id = parseInt(params.slug);
     if (isNaN(id)) return { title: 'Service Not Found' };
 
     const service = await prisma.service.findUnique({
@@ -29,7 +42,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ServicePage({ params }: Props) {
-    const id = parseInt(params.id);
+    // Non-numeric slug → SEO landing page
+    if (!isNumericSlug(params.slug)) {
+        const serviceName = decodeURIComponent(params.slug);
+        return <ServiceLandingClient serviceName={serviceName} />;
+    }
+
+    // Numeric slug → individual service listing from DB
+    const id = parseInt(params.slug);
     if (isNaN(id)) notFound();
 
     const service = await prisma.service.findUnique({

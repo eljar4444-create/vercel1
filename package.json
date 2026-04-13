@@ -11,7 +11,8 @@
         "test": "vitest",
         "studio": "prisma generate && prisma studio",
         "seed": "prisma db seed",
-        "sync:categories": "ts-node scripts/sync-categories.ts"
+        "sync:categories": "ts-node scripts/sync-categories.ts",
+        "migrate:photos": "ts-node scripts/migrate-photos-to-portfolio.ts"
     },
     "dependencies": {
         "@auth/prisma-adapter": "^2.11.1",

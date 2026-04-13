@@ -278,6 +278,12 @@ async function renderProviderDashboard(
     const services = await prisma.service.findMany({
         where: { profile_id: profileId },
         orderBy: { title: 'asc' },
+        include: {
+            photos: {
+                orderBy: { position: 'asc' },
+                select: { id: true, url: true, position: true },
+            },
+        },
     });
 
     const staff = isSalonProvider ? await prisma.staff.findMany({
@@ -322,6 +328,11 @@ async function renderProviderDashboard(
         images: s.images,
         price: s.price.toString(),
         duration_min: s.duration_min,
+        portfolioPhotos: s.photos.map((p) => ({
+            id: p.id,
+            url: p.url,
+            position: p.position,
+        })),
     }));
 
     const navItems = [
@@ -605,7 +616,7 @@ async function renderProviderDashboard(
                                     </p>
                                 </div>
                             </div>
-                            <ServicesSection profileId={profileId} services={serializedServices} />
+                            <ServicesSection profileId={profileId} services={serializedServices} isSalonProvider={isSalonProvider} />
                         </div>
                     )}
 

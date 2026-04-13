@@ -1,6 +1,7 @@
 'use client';
 
 import { Camera, Clock, Euro, Loader2, Pencil, Trash2 } from 'lucide-react';
+import { ServicePhotoUpload, type ServicePhoto } from '@/components/dashboard/ServicePhotoUpload';
 
 export interface ServiceData {
     id: number;
@@ -9,6 +10,7 @@ export interface ServiceData {
     images?: string[];
     price: string;
     duration_min: number;
+    portfolioPhotos?: ServicePhoto[];
 }
 
 interface ServiceListProps {
@@ -16,9 +18,10 @@ interface ServiceListProps {
     deletingId: number | null;
     onDelete: (serviceId: number) => void;
     onEdit: (service: ServiceData) => void;
+    showPhotoUpload?: boolean;
 }
 
-export function ServiceList({ services, deletingId, onDelete, onEdit }: ServiceListProps) {
+export function ServiceList({ services, deletingId, onDelete, onEdit, showPhotoUpload = false }: ServiceListProps) {
     if (services.length === 0) {
         return (
             <div className="text-center py-8">
@@ -88,6 +91,13 @@ export function ServiceList({ services, deletingId, onDelete, onEdit }: ServiceL
                                 {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
                             </span>
                         </div>
+
+                        {showPhotoUpload && (
+                            <ServicePhotoUpload
+                                serviceId={service.id}
+                                initialPhotos={service.portfolioPhotos ?? []}
+                            />
+                        )}
                     </div>
                 </div>
             ))}

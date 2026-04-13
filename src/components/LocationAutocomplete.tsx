@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { MapPin, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { resolveGermanCity, getGermanCitySuggestions } from '@/constants/searchSuggestions';
@@ -66,6 +67,7 @@ function getCoordsForCity(cityName: string): { lat: number; lng: number } | null
 }
 
 export function LocationAutocomplete({ onSelect, defaultValue = '', className, focusRef, onFocus }: LocationAutocompleteProps) {
+    const router = useRouter();
     const [value, setValue] = useState(defaultValue);
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isFocused, setIsFocused] = useState(false);
@@ -265,7 +267,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
                         onFocus?.();
                     }}
                     className={cn("pr-10", className, isLocating && "opacity-70")}
-                    placeholder={isLocating ? "Определяем..." : "Город..."}
+                    placeholder={isLocating ? "Определяем..." : "Введите ваш город..."}
                 />
                 <button
                     type="button"
@@ -280,6 +282,11 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
 
             {isFocused && (
                 <div className="absolute top-[calc(100%+16px)] bg-white rounded-3xl shadow-2xl overflow-hidden z-50 text-center animate-fade-in p-6 md:p-8 border border-gray-100" style={menuStyle}>
+                    {/* Instructional hint */}
+                    <div className="text-xs text-gray-400 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100">
+                        Начните вводить название для поиска...
+                    </div>
+
                     {/* Bottom Section: Categories Grid or Suggestions */}
                     {!value.trim() ? (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-6 pt-2">
@@ -342,8 +349,8 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
                             type="button"
                             onClick={(e) => {
                                 e.preventDefault();
-                                setValue('');
                                 setIsFocused(false);
+                                router.push('/locations');
                             }}
                             className="text-[14px] font-medium text-gray-500 hover:text-green-800 transition-colors duration-200"
                         >

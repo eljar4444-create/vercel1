@@ -1,0 +1,53 @@
+# Sprint Status — /salon/[slug] Redesign
+# Source: _bmad-output/planning-artifacts/epics.md
+# Blueprint: _bmad-output/BLUEPRINT-salon-slug-redesign.md
+# Created: 2026-04-12
+# Last Updated: 2026-04-13 (Story 2.1 done — pending user browser smoke)
+
+# STATUS DEFINITIONS:
+# backlog        — Story exists in epics but not yet prepared for dev
+# ready-for-dev  — Story file created with full dev context
+# in-progress    — Developer actively working on story
+# in-review      — Code complete, under review
+# done           — Story complete, merged, verified
+
+sprint:
+  name: "salon-slug-redesign"
+  goal: "Redesign /salon/[slug] from digital business card to high-converting portfolio page"
+  started: 2026-04-12
+
+development_status:
+  # Epic 1: Data Model — PortfolioPhoto + Schema Enhancements
+  epic-1: done
+  1-1-create-portfoliophoto-model: done
+  1-2-staff-specialty-arrival-info: done
+  1-3-data-migration-script: done
+  1-4-api-endpoints-portfoliophoto: done
+  1-5-backend-completeness: done
+
+  # Epic 2: Dashboard — Photo Upload Flow
+  epic-2: in-progress
+  2-1-private-master-per-service-upload: done
+  2-2-cover-photo-management: backlog
+  2-3-salon-admin-specialist-upload: backlog
+  2-4-arrival-info-input: backlog
+
+  # Epic 3: Profile Page — Shared Components
+  epic-3: backlog
+  3-1-craft-wall-grid-component: backlog
+  3-2-service-menu-components: backlog
+  3-3-deep-dive-modal-component: backlog
+  3-4-booking-cta-component: backlog
+  3-5-specialist-selector-modal: backlog
+
+  # Epic 4: Profile Page — Layout Assembly
+  epic-4: backlog
+  4-1-private-master-page-layout: backlog
+  4-2-salon-page-layout: backlog
+  4-3-arrival-ritual-card: backlog
+
+  # Epic 5: Onboarding Enhancements
+  epic-5: backlog
+  5-1-first-person-bio-placeholder: backlog
+  5-2-arrival-info-onboarding-prompt: backlog
+  5-3-photo-upload-prompt: backlog
