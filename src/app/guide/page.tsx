@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, cubicBezier, type Variants } from "framer-motion";
 import { Search, Calendar, CreditCard, MessageSquareHeart, ChevronDown } from "lucide-react";
 import Link from "next/link";
+
+const easeOutExpo = cubicBezier(0.22, 1, 0.36, 1);
 
 const faqs = [
     {
@@ -46,7 +48,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ duration: 0.3, ease: easeOutExpo }}
                         className="overflow-hidden"
                     >
                         <p className="text-[#6B6B6B] font-light leading-relaxed pb-6 pr-8">
@@ -60,7 +62,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function GuidePage() {
-    const containerVariants = {
+    const containerVariants: Variants = {
         hidden: { opacity: 0 },
         visible: {
             opacity: 1,
@@ -70,9 +72,9 @@ export default function GuidePage() {
         },
     };
 
-    const itemVariants = {
+    const itemVariants: Variants = {
         hidden: { opacity: 0, y: 30 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: easeOutExpo } },
     };
 
     return (
@@ -82,7 +84,7 @@ export default function GuidePage() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.7, ease: easeOutExpo }}
                 >
                     <h1 className="text-4xl md:text-5xl lg:text-5xl font-medium tracking-tight text-[#1A1514] mb-6">
                         Ваш идеальный визит начинается здесь
@@ -162,7 +164,7 @@ export default function GuidePage() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-100px" }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.6, ease: easeOutExpo }}
                 >
                     <h2 className="text-3xl font-bold text-[#1A1514] text-center mb-10">
                         Частые вопросы
@@ -182,7 +184,7 @@ export default function GuidePage() {
                     initial={{ opacity: 0, y: 15 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: "-50px" }}
-                    transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+                    transition={{ duration: 0.6, ease: easeOutExpo, delay: 0.2 }}
                 >
                     <Link
                         href="/"
