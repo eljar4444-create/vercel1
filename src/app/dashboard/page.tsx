@@ -29,6 +29,7 @@ import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
 import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
 import { StaffSection } from '@/components/dashboard/StaffSection';
+import { ArrivalInfoSection } from '@/components/dashboard/ArrivalInfoSection';
 import { parseSchedule } from '@/lib/scheduling';
 import { Button } from '@/components/ui/button';
 import { createTelegramConnectLink } from '@/lib/telegram-link';
@@ -236,6 +237,7 @@ async function renderProviderDashboard(
             is_verified: true,
             status: true,
             schedule: true,
+            arrivalInfo: true,
             category: { select: { name: true, slug: true } },
             user_id: true,
         },
@@ -723,6 +725,30 @@ async function renderProviderDashboard(
                                     />
                                 </div>
                             </div>
+
+                            {!isSalonProvider && (
+                                <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
+                                    <div className="border-b border-stone-100 px-5 py-4">
+                                        <h2 className="text-base font-semibold text-slate-900">Информация о прибытии</h2>
+                                        <p className="mt-0.5 text-xs text-stone-400">
+                                            Эти данные будут видны клиенту только после подтверждения записи.
+                                        </p>
+                                    </div>
+                                    <div className="p-5">
+                                        <ArrivalInfoSection
+                                            initialData={
+                                                profile.arrivalInfo &&
+                                                typeof profile.arrivalInfo === 'object' &&
+                                                !Array.isArray(profile.arrivalInfo) &&
+                                                'address' in profile.arrivalInfo &&
+                                                typeof (profile.arrivalInfo as Record<string, unknown>).address === 'string'
+                                                    ? (profile.arrivalInfo as { address: string; doorCode?: string; bellNote?: string; waitingSpot?: string })
+                                                    : null
+                                            }
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
                     </main>
