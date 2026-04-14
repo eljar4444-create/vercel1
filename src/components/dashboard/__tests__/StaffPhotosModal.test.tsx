@@ -62,11 +62,22 @@ describe('StaffPhotosModal', () => {
         expect(counts.map((n) => n.textContent)).toEqual(['2 фото', '0 фото']);
     });
 
-    it('renders empty state when there are no services', () => {
+    it('renders empty state with Add-service CTA when there are no services', () => {
         render(<StaffPhotosModal staff={staff} services={[]} onClose={() => undefined} />);
         expect(
-            screen.getByText('Добавьте услуги, чтобы прикрепить к ним фотографии мастера.')
+            screen.getByText(
+                'Сначала добавьте услугу — фотографии мастера прикрепляются к конкретной услуге.'
+            )
         ).toBeTruthy();
+        const cta = screen.getByRole('link', { name: /добавить услугу/i });
+        expect(cta.getAttribute('href')).toBe('/dashboard?section=services');
+    });
+
+    it('closes the modal when the Add-service CTA is clicked', () => {
+        const onClose = vi.fn();
+        render(<StaffPhotosModal staff={staff} services={[]} onClose={onClose} />);
+        fireEvent.click(screen.getByRole('link', { name: /добавить услугу/i }));
+        expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('expands a service row and mounts ServicePhotoUpload with scoped props', () => {

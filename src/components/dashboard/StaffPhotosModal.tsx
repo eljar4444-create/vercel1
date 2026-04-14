@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, X } from 'lucide-react';
 import { ServicePhotoUpload, type ServicePhoto } from '@/components/dashboard/ServicePhotoUpload';
 
 export interface StaffPhotoService {
@@ -38,9 +39,19 @@ export function StaffPhotosModal({ staff, services, onClose }: StaffPhotosModalP
 
                 <div className="max-h-[80vh] overflow-y-auto p-4">
                     {services.length === 0 ? (
-                        <p className="py-8 text-center text-sm text-gray-400">
-                            Добавьте услуги, чтобы прикрепить к ним фотографии мастера.
-                        </p>
+                        <div className="py-8 text-center">
+                            <p className="text-sm text-gray-500">
+                                Сначала добавьте услугу — фотографии мастера прикрепляются к конкретной услуге.
+                            </p>
+                            <Link
+                                href="/dashboard?section=services"
+                                onClick={onClose}
+                                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Добавить услугу
+                            </Link>
+                        </div>
                     ) : (
                         <div className="space-y-2">
                             {services.map((s) => {

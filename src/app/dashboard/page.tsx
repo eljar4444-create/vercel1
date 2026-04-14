@@ -617,7 +617,7 @@ async function renderProviderDashboard(
                                     </p>
                                 </div>
                             </div>
-                            <ServicesSection profileId={profileId} services={serializedServices} isSalonProvider={isSalonProvider} />
+                            <ServicesSection profileId={profileId} services={serializedServices} />
                         </div>
                     )}
 

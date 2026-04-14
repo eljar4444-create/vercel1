@@ -24,6 +24,13 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
         null
     );
 
+    const photoCountByStaffId = services.reduce<Record<string, number>>((acc, s) => {
+        for (const p of s.portfolioPhotos) {
+            if (p.staffId) acc[p.staffId] = (acc[p.staffId] ?? 0) + 1;
+        }
+        return acc;
+    }, {});
+
     async function handleAdd(e: React.FormEvent) {
         e.preventDefault();
         setLoading(true);
@@ -111,6 +118,10 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
                         <div className="flex-1 min-w-0">
                             <h4 className="truncate text-sm font-bold text-slate-900">{s.name}</h4>
                             {s.bio && <p className="truncate text-xs text-stone-500">{s.bio}</p>}
+                            <p className="mt-1 inline-flex items-center gap-1 text-[10px] text-stone-500">
+                                <Camera className="h-3 w-3" />
+                                {photoCountByStaffId[s.id] ?? 0} фото
+                            </p>
                             {!s.schedule && <p className="mt-1 text-[10px] text-amber-600 font-semibold">Общее расписание</p>}
                         </div>
                         <div className="absolute right-3 top-3 flex items-center gap-1">
