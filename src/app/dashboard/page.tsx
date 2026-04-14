@@ -281,7 +281,7 @@ async function renderProviderDashboard(
         include: {
             photos: {
                 orderBy: { position: 'asc' },
-                select: { id: true, url: true, position: true },
+                select: { id: true, url: true, position: true, staffId: true },
             },
         },
     });
@@ -332,6 +332,7 @@ async function renderProviderDashboard(
             id: p.id,
             url: p.url,
             position: p.position,
+            staffId: p.staffId,
         })),
     }));
 
@@ -652,7 +653,7 @@ async function renderProviderDashboard(
                                     </p>
                                 </div>
                             </div>
-                            <StaffSection staff={staff} />
+                            <StaffSection staff={staff} services={serializedServices} />
                         </div>
                     )}
 

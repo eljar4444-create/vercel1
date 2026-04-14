@@ -2,7 +2,7 @@
 # Source: _bmad-output/planning-artifacts/epics.md
 # Blueprint: _bmad-output/BLUEPRINT-salon-slug-redesign.md
 # Created: 2026-04-12
-# Last Updated: 2026-04-14 (Story 2.2 code-reviewed — AC-008 touch overlay + drag-hijack patched; 15/15 tests pass; pending user browser smoke)
+# Last Updated: 2026-04-14 (Story 2.3 implemented — StaffPhotosModal + dual-mode ServicePhotoUpload; +8 tests, 209 total; pending user browser smoke)
 
 # STATUS DEFINITIONS:
 # backlog        — Story exists in epics but not yet prepared for dev
@@ -28,9 +28,11 @@ development_status:
   # Epic 2: Dashboard — Photo Upload Flow
   epic-2: in-progress
   2-1-private-master-per-service-upload: done
-  2-2-cover-photo-management: review
-  2-3-salon-admin-specialist-upload: backlog
+  2-2-cover-photo-management: done
+  2-3-salon-admin-specialist-upload: review
   2-4-arrival-info-input: backlog
+  2-5-salon-interior-photo-management: backlog   # split from epic 2.3 AC-004
+  2-6-staff-scoped-photo-reorder: backlog        # deferred from 2.3 AC-006
 
   # Epic 3: Profile Page — Shared Components
   epic-3: backlog

@@ -283,3 +283,55 @@ describe('ServicePhotoUpload — cover photo management', () => {
         confirmSpy.mockRestore();
     });
 });
+
+describe('ServicePhotoUpload — staff-scoped mode', () => {
+    const threePhotos = () => [
+        { id: 'p1', url: 'http://x/p1.jpg', position: 0, staffId: 'staff-a' },
+        { id: 'p2', url: 'http://x/p2.jpg', position: 1, staffId: 'staff-a' },
+        { id: 'p3', url: 'http://x/p3.jpg', position: 2, staffId: 'staff-a' },
+    ];
+
+    beforeEach(() => vi.clearAllMocks());
+
+    it('forwards staffId in the upload FormData when the prop is provided', async () => {
+        mockUpload.mockResolvedValue({
+            success: true,
+            photos: [{ id: 'p1', url: 'http://x/p1.jpg', position: 0 }],
+        });
+        render(
+            <ServicePhotoUpload serviceId={42} staffId="staff-a" initialPhotos={[]} />
+        );
+
+        const input = screen.getByTestId('service-photo-input') as HTMLInputElement;
+        changeFiles(input, [makeFile()]);
+
+        await waitFor(() => expect(mockUpload).toHaveBeenCalledTimes(1));
+        const fd = mockUpload.mock.calls[0][0];
+        expect(fd.get('serviceId')).toBe('42');
+        expect(fd.get('staffId')).toBe('staff-a');
+    });
+
+    it('hides "Сделать обложкой" buttons when staffId prop is present', () => {
+        render(
+            <ServicePhotoUpload
+                serviceId={10}
+                staffId="staff-a"
+                initialPhotos={threePhotos()}
+            />
+        );
+        expect(screen.queryAllByLabelText('Сделать обложкой')).toHaveLength(0);
+        // Delete buttons still render — one per photo
+        expect(screen.getAllByLabelText('Удалить фото')).toHaveLength(3);
+    });
+
+    it('still renders the cover badge on position 0 in staff-scoped mode', () => {
+        render(
+            <ServicePhotoUpload
+                serviceId={10}
+                staffId="staff-a"
+                initialPhotos={threePhotos()}
+            />
+        );
+        expect(screen.getAllByText('Обложка')).toHaveLength(1);
+    });
+});

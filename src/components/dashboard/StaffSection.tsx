@@ -1,16 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2, Edit, Save, X, User as UserIcon } from 'lucide-react';
+import { Camera, Plus, Trash2, X, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createStaff, deleteStaff } from '@/app/actions/staff';
+import {
+    StaffPhotosModal,
+    type StaffPhotoService,
+} from '@/components/dashboard/StaffPhotosModal';
 
-export function StaffSection({ staff }: { staff: any[] }) {
+interface StaffSectionProps {
+    staff: any[];
+    services?: StaffPhotoService[];
+}
+
+export function StaffSection({ staff, services = [] }: StaffSectionProps) {
     const [isAdding, setIsAdding] = useState(false);
     const [name, setName] = useState('');
     const [bio, setBio] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [photosStaff, setPhotosStaff] = useState<{ id: string; name: string } | null>(
+        null
+    );
 
     async function handleAdd(e: React.FormEvent) {
         e.preventDefault();
@@ -101,13 +113,26 @@ export function StaffSection({ staff }: { staff: any[] }) {
                             {s.bio && <p className="truncate text-xs text-stone-500">{s.bio}</p>}
                             {!s.schedule && <p className="mt-1 text-[10px] text-amber-600 font-semibold">Общее расписание</p>}
                         </div>
-                        <button
-                            onClick={() => handleDelete(s.id)}
-                            disabled={loading}
-                            className="absolute right-3 top-3 text-stone-300 hover:text-red-500"
-                        >
-                            <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="absolute right-3 top-3 flex items-center gap-1">
+                            <button
+                                type="button"
+                                onClick={() => setPhotosStaff({ id: s.id, name: s.name })}
+                                className="text-stone-300 transition hover:text-amber-600"
+                                aria-label="Фотографии работ"
+                                title="Фотографии работ"
+                            >
+                                <Camera className="h-4 w-4" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleDelete(s.id)}
+                                disabled={loading}
+                                className="text-stone-300 transition hover:text-red-500"
+                                aria-label="Удалить мастера"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </button>
+                        </div>
                     </div>
                 ))}
                 
@@ -117,6 +142,14 @@ export function StaffSection({ staff }: { staff: any[] }) {
                     </div>
                 )}
             </div>
+
+            {photosStaff && (
+                <StaffPhotosModal
+                    staff={photosStaff}
+                    services={services}
+                    onClose={() => setPhotosStaff(null)}
+                />
+            )}
         </div>
     );
 }

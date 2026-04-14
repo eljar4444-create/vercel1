@@ -17,19 +17,22 @@ export interface ServicePhoto {
     id: string;
     url: string;
     position: number;
+    staffId?: string | null;
 }
 
 interface ServicePhotoUploadProps {
     serviceId: number;
+    staffId?: string;
     initialPhotos: ServicePhoto[];
 }
 
-export function ServicePhotoUpload({ serviceId, initialPhotos }: ServicePhotoUploadProps) {
+export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: ServicePhotoUploadProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [photos, setPhotos] = useState<ServicePhoto[]>(initialPhotos);
     const [isUploading, setIsUploading] = useState(false);
     const [isMutating, setIsMutating] = useState(false);
 
+    const staffScoped = Boolean(staffId);
     const busy = isUploading || isMutating;
 
     const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,6 +55,7 @@ export function ServicePhotoUpload({ serviceId, initialPhotos }: ServicePhotoUpl
         setIsUploading(true);
         const fd = new FormData();
         fd.set('serviceId', String(serviceId));
+        if (staffId) fd.append('staffId', staffId);
         for (const f of files) fd.append('photos', f);
 
         const result = await uploadServicePhotos(fd);
@@ -128,69 +132,89 @@ export function ServicePhotoUpload({ serviceId, initialPhotos }: ServicePhotoUpl
         }
     };
 
+    const renderThumb = (p: ServicePhoto, idx: number) => (
+        <>
+            <img
+                src={p.url}
+                alt=""
+                draggable={false}
+                className="h-full w-full object-cover"
+            />
+
+            {idx === 0 && (
+                <span className="absolute left-0 top-0 inline-flex items-center gap-0.5 rounded-br-md bg-amber-500 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
+                    <Star className="h-2.5 w-2.5" />
+                    Обложка
+                </span>
+            )}
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center gap-1 pb-1">
+                {!staffScoped && idx !== 0 && (
+                    <button
+                        type="button"
+                        onPointerDown={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleSetCover(p.id);
+                        }}
+                        disabled={busy}
+                        aria-label="Сделать обложкой"
+                        className="pointer-events-auto rounded-full bg-white/90 p-1 text-amber-600 shadow-sm transition hover:bg-white disabled:opacity-60"
+                    >
+                        <Star className="h-3 w-3" />
+                    </button>
+                )}
+                <button
+                    type="button"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(p.id);
+                    }}
+                    disabled={busy}
+                    aria-label="Удалить фото"
+                    className="pointer-events-auto rounded-full bg-white/90 p-1 text-red-600 shadow-sm transition hover:bg-white disabled:opacity-60"
+                >
+                    <Trash2 className="h-3 w-3" />
+                </button>
+            </div>
+        </>
+    );
+
     return (
         <div className="mt-3 space-y-2">
             {photos.length > 0 && (
-                <Reorder.Group
-                    axis="x"
-                    values={photos}
-                    onReorder={handleReorder}
-                    className="flex gap-2 overflow-x-auto pb-1"
-                >
-                    {photos.map((p, idx) => (
-                        <Reorder.Item
-                            key={p.id}
-                            value={p}
-                            whileDrag={{ scale: 1.05, zIndex: 10 }}
-                            className="group relative h-14 w-14 flex-shrink-0 cursor-grab overflow-hidden rounded-lg border border-gray-100 bg-gray-50 active:cursor-grabbing"
-                        >
-                            <img
-                                src={p.url}
-                                alt=""
-                                draggable={false}
-                                className="h-full w-full object-cover"
-                            />
-
-                            {idx === 0 && (
-                                <span className="absolute left-0 top-0 inline-flex items-center gap-0.5 rounded-br-md bg-amber-500 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
-                                    <Star className="h-2.5 w-2.5" />
-                                    Обложка
-                                </span>
-                            )}
-
-                            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center gap-1 pb-1">
-                                {idx !== 0 && (
-                                    <button
-                                        type="button"
-                                        onPointerDown={(e) => e.stopPropagation()}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleSetCover(p.id);
-                                        }}
-                                        disabled={busy}
-                                        aria-label="Сделать обложкой"
-                                        className="pointer-events-auto rounded-full bg-white/90 p-1 text-amber-600 shadow-sm transition hover:bg-white disabled:opacity-60"
-                                    >
-                                        <Star className="h-3 w-3" />
-                                    </button>
-                                )}
-                                <button
-                                    type="button"
-                                    onPointerDown={(e) => e.stopPropagation()}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDelete(p.id);
-                                    }}
-                                    disabled={busy}
-                                    aria-label="Удалить фото"
-                                    className="pointer-events-auto rounded-full bg-white/90 p-1 text-red-600 shadow-sm transition hover:bg-white disabled:opacity-60"
-                                >
-                                    <Trash2 className="h-3 w-3" />
-                                </button>
+                staffScoped ? (
+                    // TODO(2.6): staff-scoped reorder requires new backend action.
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                        {photos.map((p, idx) => (
+                            <div
+                                key={p.id}
+                                className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-gray-50"
+                            >
+                                {renderThumb(p, idx)}
                             </div>
-                        </Reorder.Item>
-                    ))}
-                </Reorder.Group>
+                        ))}
+                    </div>
+                ) : (
+                    <Reorder.Group
+                        axis="x"
+                        values={photos}
+                        onReorder={handleReorder}
+                        className="flex gap-2 overflow-x-auto pb-1"
+                    >
+                        {photos.map((p, idx) => (
+                            <Reorder.Item
+                                key={p.id}
+                                value={p}
+                                whileDrag={{ scale: 1.05, zIndex: 10 }}
+                                className="group relative h-14 w-14 flex-shrink-0 cursor-grab overflow-hidden rounded-lg border border-gray-100 bg-gray-50 active:cursor-grabbing"
+                            >
+                                {renderThumb(p, idx)}
+                            </Reorder.Item>
+                        ))}
+                    </Reorder.Group>
+                )
             )}
 
             <button
