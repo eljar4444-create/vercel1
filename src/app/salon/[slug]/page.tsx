@@ -102,6 +102,10 @@ async function getProfileBySlug(slug: string, includeDraft: boolean = false) {
                     images: true,
                     price: true,
                     duration_min: true,
+                    photos: {
+                        orderBy: { position: 'asc' },
+                        select: { url: true },
+                    },
                 },
             },
             reviews: {
@@ -264,6 +268,7 @@ export default async function SalonProfilePage({
             title: s.title,
             description: s.description,
             images: s.images,
+            portfolioPhotos: s.photos.map((p) => p.url),
             price: s.price.toString(),
             duration_min: s.duration_min,
         })),

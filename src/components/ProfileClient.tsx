@@ -49,6 +49,7 @@ interface ProfileData {
         title: string;
         description?: string | null;
         images?: string[];
+        portfolioPhotos?: string[];
         price: string;
         duration_min: number;
     }[];
@@ -136,7 +137,9 @@ function ServiceRow({
     onBook: () => void;
     fallbackThumb?: string | null;
 }) {
-    const primaryThumb = service.images?.find((image) => typeof image === 'string' && image.trim().length > 0) || null;
+    const portfolioThumb = service.portfolioPhotos?.find((url) => typeof url === 'string' && url.trim().length > 0) || null;
+    const legacyThumb = service.images?.find((image) => typeof image === 'string' && image.trim().length > 0) || null;
+    const primaryThumb = portfolioThumb || legacyThumb;
     const resolvedFallbackThumb = fallbackThumb || FALLBACK_COVER;
     const [thumb, setThumb] = useState<string | null>(primaryThumb || resolvedFallbackThumb);
 
