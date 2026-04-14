@@ -179,6 +179,72 @@ export async function reorderServicePhotos(
     }
 }
 
+export async function reorderStaffServicePhotos(
+    serviceId: number,
+    staffId: string,
+    photoIdOrder: string[]
+): Promise<MutationResult> {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Требуется авторизация.' };
+    if (session.user.isBanned) return { success: false, error: 'Ваш аккаунт заблокирован.' };
+
+    if (!Array.isArray(photoIdOrder) || photoIdOrder.length === 0) {
+        return { success: false, error: 'Пустой список фото.' };
+    }
+    if (new Set(photoIdOrder).size !== photoIdOrder.length) {
+        return { success: false, error: 'Дубликаты в порядке фото.' };
+    }
+    if (Number.isNaN(serviceId)) return { success: false, error: 'Некорректный id услуги.' };
+    if (!staffId) return { success: false, error: 'staffId обязателен.' };
+
+    try {
+        const profile =
+            session.user.role === 'ADMIN'
+                ? null
+                : await requireProviderProfile(session.user.id, session.user.email);
+
+        const service = await prisma.service.findUnique({
+            where: { id: serviceId },
+            select: { id: true, profile_id: true },
+        });
+        if (!service) return { success: false, error: 'Услуга не найдена.' };
+        if (profile && service.profile_id !== profile.id) {
+            return { success: false, error: 'Недостаточно прав.' };
+        }
+
+        // Only consider photos belonging to this staff member
+        const staffPhotos = await prisma.portfolioPhoto.findMany({
+            where: { serviceId: service.id, profileId: service.profile_id, staffId },
+            select: { id: true },
+        });
+        const validIds = new Set(staffPhotos.map((p) => p.id));
+        if (photoIdOrder.length !== validIds.size) {
+            return { success: false, error: 'Неполный список фото.' };
+        }
+        if (photoIdOrder.some((id) => !validIds.has(id))) {
+            return { success: false, error: 'Недопустимый id фото.' };
+        }
+
+        await prisma.$transaction(
+            photoIdOrder.map((id, position) =>
+                prisma.portfolioPhoto.update({
+                    where: { id },
+                    data: { position },
+                })
+            )
+        );
+
+        revalidatePath('/dashboard', 'layout');
+        return { success: true };
+    } catch (error: any) {
+        if (error?.message === 'PROFILE_NOT_FOUND') {
+            return { success: false, error: 'Профиль не найден.' };
+        }
+        console.error('reorderStaffServicePhotos error:', error);
+        return { success: false, error: 'Ошибка изменения порядка.' };
+    }
+}
+
 type ArrivalInfoInput = {
     address: string;
     doorCode?: string;

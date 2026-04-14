@@ -43,7 +43,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
     const router = useRouter();
     const initialProviderType: 'SALON' | 'PRIVATE' | 'INDIVIDUAL' =
         profile.providerType === 'SALON' ? 'SALON' : profile.providerType === 'INDIVIDUAL' ? 'INDIVIDUAL' : 'PRIVATE';
-    const [activeTab, setActiveTab] = useState<'main' | 'location' | 'notifications' | 'photos'>('main');
+    const [activeTab, setActiveTab] = useState<'main' | 'location' | 'notifications'>('main');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -73,11 +73,6 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
     const [taxId, setTaxId] = useState(profile.taxId || '');
     const isSalon = providerType === 'SALON';
 
-    useEffect(() => {
-        if (!isSalon && activeTab === 'photos') {
-            setActiveTab('main');
-        }
-    }, [activeTab, isSalon]);
 
     useEffect(() => {
         if (!isSalon) {
@@ -249,8 +244,8 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                 </div>
             )}
 
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'main' | 'location' | 'notifications' | 'photos')} className="w-full">
-                <TabsList className={`grid h-auto w-full rounded-2xl bg-slate-100 p-1 ${isSalon ? 'grid-cols-4' : 'grid-cols-3'}`}>
+            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'main' | 'location' | 'notifications')} className="w-full">
+                <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-slate-100 p-1">
                     <TabsTrigger value="main" className="rounded-xl text-xs sm:text-sm">
                         Основное
                     </TabsTrigger>
@@ -260,11 +255,6 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                     <TabsTrigger value="notifications" className="rounded-xl text-xs sm:text-sm">
                         Уведомления
                     </TabsTrigger>
-                    {isSalon ? (
-                        <TabsTrigger value="photos" className="rounded-xl text-xs sm:text-sm">
-                            Фото студии
-                        </TabsTrigger>
-                    ) : null}
                 </TabsList>
 
                 <TabsContent value="main" className="mt-3 space-y-3 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
@@ -474,39 +464,6 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                     </div>
                 </TabsContent>
 
-                {isSalon ? (
-                    <TabsContent value="photos" className="mt-3 space-y-2 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
-                        <label className={labelClass}>Фотографии студии / Интерьер</label>
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                            {studioImages.map((url, idx) => (
-                                <div key={`${url}-${idx}`} className="group relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-                                    <img src={url} alt={`studio-${idx + 1}`} className="h-full w-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => setStudioImages((prev) => prev.filter((_, i) => i !== idx))}
-                                        className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/65 text-white opacity-0 transition group-hover:opacity-100"
-                                        aria-label="Удалить фото"
-                                    >
-                                        <X className="h-3.5 w-3.5" />
-                                    </button>
-                                </div>
-                            ))}
-                            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:border-gray-400">
-                                {isUploadingStudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                                <span className="mt-1 text-[11px]">Добавить</span>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    className="hidden"
-                                    onChange={handleUploadStudioImages}
-                                    disabled={isUploadingStudio || studioImages.length >= 8}
-                                />
-                            </label>
-                        </div>
-                        <p className="text-xs text-gray-500">До 8 фото ({studioImages.length}/8)</p>
-                    </TabsContent>
-                ) : null}
             </Tabs>
 
             {/* Submit */}

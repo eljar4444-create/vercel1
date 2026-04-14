@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 vi.mock('@/app/actions/portfolio-photos', () => ({
     uploadServicePhotos: vi.fn(),
     reorderServicePhotos: vi.fn(),
+    reorderStaffServicePhotos: vi.fn(),
     deletePortfolioPhoto: vi.fn(),
 }));
 vi.mock('react-hot-toast', () => ({
@@ -16,6 +17,7 @@ vi.mock('react-hot-toast', () => ({
 import {
     uploadServicePhotos,
     reorderServicePhotos,
+    reorderStaffServicePhotos,
     deletePortfolioPhoto,
 } from '@/app/actions/portfolio-photos';
 import toast from 'react-hot-toast';
@@ -23,6 +25,7 @@ import { ServicePhotoUpload } from '@/components/dashboard/ServicePhotoUpload';
 
 const mockUpload = vi.mocked(uploadServicePhotos);
 const mockReorder = vi.mocked(reorderServicePhotos);
+const mockStaffReorder = vi.mocked(reorderStaffServicePhotos);
 const mockDelete = vi.mocked(deletePortfolioPhoto);
 const mockToast = vi.mocked(toast);
 
@@ -311,7 +314,7 @@ describe('ServicePhotoUpload — staff-scoped mode', () => {
         expect(fd.get('staffId')).toBe('staff-a');
     });
 
-    it('hides "Сделать обложкой" buttons when staffId prop is present', () => {
+    it('renders "Сделать обложкой" buttons in staff-scoped mode', () => {
         render(
             <ServicePhotoUpload
                 serviceId={10}
@@ -319,7 +322,8 @@ describe('ServicePhotoUpload — staff-scoped mode', () => {
                 initialPhotos={threePhotos()}
             />
         );
-        expect(screen.queryAllByLabelText('Сделать обложкой')).toHaveLength(0);
+        // Set-as-cover buttons render for non-cover photos (p2, p3)
+        expect(screen.queryAllByLabelText('Сделать обложкой')).toHaveLength(2);
         // Delete buttons still render — one per photo
         expect(screen.getAllByLabelText('Удалить фото')).toHaveLength(3);
     });
@@ -333,5 +337,26 @@ describe('ServicePhotoUpload — staff-scoped mode', () => {
             />
         );
         expect(screen.getAllByText('Обложка')).toHaveLength(1);
+    });
+
+    it('calls reorderStaffServicePhotos (not reorderServicePhotos) on set-as-cover', async () => {
+        mockStaffReorder.mockResolvedValue({ success: true });
+        render(
+            <ServicePhotoUpload
+                serviceId={10}
+                staffId="staff-a"
+                initialPhotos={threePhotos()}
+            />
+        );
+
+        const setCoverButtons = screen.getAllByLabelText('Сделать обложкой');
+        fireEvent.click(setCoverButtons[0]);
+
+        await waitFor(() => expect(mockStaffReorder).toHaveBeenCalledTimes(1));
+        const [svcId, stfId, orderArg] = mockStaffReorder.mock.calls[0];
+        expect(svcId).toBe(10);
+        expect(stfId).toBe('staff-a');
+        expect(orderArg).toEqual(['p2', 'p1', 'p3']);
+        expect(mockReorder).not.toHaveBeenCalled();
     });
 });

@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import {
     uploadServicePhotos,
     reorderServicePhotos,
+    reorderStaffServicePhotos,
     deletePortfolioPhoto,
 } from '@/app/actions/portfolio-photos';
 
@@ -32,7 +33,6 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
     const [isUploading, setIsUploading] = useState(false);
     const [isMutating, setIsMutating] = useState(false);
 
-    const staffScoped = Boolean(staffId);
     const busy = isUploading || isMutating;
 
     const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,10 +83,9 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
     const commitReorder = async (nextOrder: ServicePhoto[], snapshot: ServicePhoto[]) => {
         setPhotos(nextOrder);
         setIsMutating(true);
-        const result = await reorderServicePhotos(
-            serviceId,
-            nextOrder.map((p) => p.id)
-        );
+        const result = staffId
+            ? await reorderStaffServicePhotos(serviceId, staffId, nextOrder.map((p) => p.id))
+            : await reorderServicePhotos(serviceId, nextOrder.map((p) => p.id));
         setIsMutating(false);
         if (!result.success) {
             setPhotos(snapshot);
@@ -149,7 +148,7 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
             )}
 
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-center gap-1 pb-1">
-                {!staffScoped && idx !== 0 && (
+                {idx !== 0 && (
                     <button
                         type="button"
                         onPointerDown={(e) => e.stopPropagation()}
@@ -184,37 +183,23 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
     return (
         <div className="mt-3 space-y-2">
             {photos.length > 0 && (
-                staffScoped ? (
-                    // TODO(2.6): staff-scoped reorder requires new backend action.
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                        {photos.map((p, idx) => (
-                            <div
-                                key={p.id}
-                                className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-gray-100 bg-gray-50"
-                            >
-                                {renderThumb(p, idx)}
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <Reorder.Group
-                        axis="x"
-                        values={photos}
-                        onReorder={handleReorder}
-                        className="flex gap-2 overflow-x-auto pb-1"
-                    >
-                        {photos.map((p, idx) => (
-                            <Reorder.Item
-                                key={p.id}
-                                value={p}
-                                whileDrag={{ scale: 1.05, zIndex: 10 }}
-                                className="group relative h-14 w-14 flex-shrink-0 cursor-grab overflow-hidden rounded-lg border border-gray-100 bg-gray-50 active:cursor-grabbing"
-                            >
-                                {renderThumb(p, idx)}
-                            </Reorder.Item>
-                        ))}
-                    </Reorder.Group>
-                )
+                <Reorder.Group
+                    axis="x"
+                    values={photos}
+                    onReorder={handleReorder}
+                    className="flex gap-2 overflow-x-auto pb-1"
+                >
+                    {photos.map((p, idx) => (
+                        <Reorder.Item
+                            key={p.id}
+                            value={p}
+                            whileDrag={{ scale: 1.05, zIndex: 10 }}
+                            className="group relative h-14 w-14 flex-shrink-0 cursor-grab overflow-hidden rounded-lg border border-gray-100 bg-gray-50 active:cursor-grabbing"
+                        >
+                            {renderThumb(p, idx)}
+                        </Reorder.Item>
+                    ))}
+                </Reorder.Group>
             )}
 
             <button
