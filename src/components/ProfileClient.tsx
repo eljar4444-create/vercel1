@@ -137,9 +137,15 @@ function ServiceRow({
     onBook: () => void;
     fallbackThumb?: string | null;
 }) {
-    const portfolioThumb = service.portfolioPhotos?.find((url) => typeof url === 'string' && url.trim().length > 0) || null;
-    const legacyThumb = service.images?.find((image) => typeof image === 'string' && image.trim().length > 0) || null;
-    const primaryThumb = portfolioThumb || legacyThumb;
+    const portfolioPhotoList = (service.portfolioPhotos ?? []).filter(
+        (url): url is string => typeof url === 'string' && url.trim().length > 0
+    );
+    const legacyImageList = (service.images ?? []).filter(
+        (img): img is string => typeof img === 'string' && img.trim().length > 0
+    );
+    const allPhotos = [...portfolioPhotoList, ...legacyImageList];
+    const primaryThumb = allPhotos[0] || null;
+    const additionalPhotos = allPhotos.slice(1);
     const resolvedFallbackThumb = fallbackThumb || FALLBACK_COVER;
     const [thumb, setThumb] = useState<string | null>(primaryThumb || resolvedFallbackThumb);
 
@@ -160,40 +166,58 @@ function ServiceRow({
     };
 
     return (
-        <div className="flex items-center gap-4 py-4">
-            {/* Thumbnail */}
-            {thumb ? (
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[#F0EBE3]">
-                    <Image src={thumb} alt={service.title} fill className="object-cover" onError={handleThumbError} />
+        <div className="py-4">
+            <div className="flex items-center gap-4">
+                {thumb ? (
+                    <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-[#F0EBE3]">
+                        <Image src={thumb} alt={service.title} fill className="object-cover" onError={handleThumbError} />
+                    </div>
+                ) : (
+                    <div className="h-12 w-12 shrink-0 rounded-xl bg-[#F5F2ED]" />
+                )}
+
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-stone-800 truncate">{service.title}</p>
+                    {service.description ? (
+                        <p className="mt-0.5 text-xs text-stone-400 truncate">{service.description}</p>
+                    ) : null}
+                    <p className="mt-1 inline-flex items-center gap-1 text-xs text-stone-400">
+                        <Clock className="h-3.5 w-3.5" />
+                        {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
+                    </p>
                 </div>
-            ) : (
-                <div className="h-12 w-12 shrink-0 rounded-xl bg-[#F5F2ED]" />
+
+                <div className="flex shrink-0 items-center gap-3">
+                    <span className="text-base font-semibold text-stone-800 tabular-nums">
+                        {formatPrice(service.price)}
+                    </span>
+                    <button
+                        onClick={onBook}
+                        className="h-9 rounded-full bg-[#F5F2ED] px-4 text-xs font-medium text-stone-600 transition-all hover:bg-[#E5D5C5] active:scale-95"
+                    >
+                        Выбрать
+                    </button>
+                </div>
+            </div>
+
+            {additionalPhotos.length > 0 && (
+                <div className="mt-3 flex gap-2 overflow-x-auto pl-16 pb-1">
+                    {additionalPhotos.map((url, idx) => (
+                        <div
+                            key={`${url}-${idx}`}
+                            className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-[#F0EBE3]"
+                        >
+                            <Image
+                                src={url}
+                                alt={`${service.title} ${idx + 2}`}
+                                fill
+                                className="object-cover"
+                                sizes="64px"
+                            />
+                        </div>
+                    ))}
+                </div>
             )}
-
-            {/* Info */}
-            <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-stone-800 truncate">{service.title}</p>
-                {service.description ? (
-                    <p className="mt-0.5 text-xs text-stone-400 truncate">{service.description}</p>
-                ) : null}
-                <p className="mt-1 inline-flex items-center gap-1 text-xs text-stone-400">
-                    <Clock className="h-3.5 w-3.5" />
-                    {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
-                </p>
-            </div>
-
-            {/* Price + CTA */}
-            <div className="flex shrink-0 items-center gap-3">
-                <span className="text-base font-semibold text-stone-800 tabular-nums">
-                    {formatPrice(service.price)}
-                </span>
-                <button
-                    onClick={onBook}
-                    className="h-9 rounded-full bg-[#F5F2ED] px-4 text-xs font-medium text-stone-600 transition-all hover:bg-[#E5D5C5] active:scale-95"
-                >
-                    Выбрать
-                </button>
-            </div>
         </div>
     );
 }
