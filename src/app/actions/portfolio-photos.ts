@@ -287,3 +287,152 @@ export async function deletePortfolioPhoto(photoId: string): Promise<MutationRes
         return { success: false, error: 'Ошибка удаления фото.' };
     }
 }
+
+const MAX_INTERIOR_PHOTOS = 12;
+
+export async function uploadInteriorPhotos(formData: FormData): Promise<UploadResult> {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Требуется авторизация.' };
+    if (session.user.isBanned) return { success: false, error: 'Ваш аккаунт заблокирован.' };
+
+    const files = formData.getAll('photos').filter((v): v is File => v instanceof File && v.size > 0);
+    if (files.length === 0) return { success: false, error: 'Файлы не выбраны.' };
+
+    for (const file of files) {
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            return { success: false, error: 'Допустимы только JPEG, PNG и WebP.' };
+        }
+        if (file.size > MAX_FILE_SIZE) {
+            return { success: false, error: 'Файл слишком большой (макс. 5 МБ).' };
+        }
+    }
+
+    try {
+        const profile =
+            session.user.role === 'ADMIN'
+                ? null
+                : await requireProviderProfile(session.user.id, session.user.email);
+
+        if (profile && profile.provider_type !== 'SALON') {
+            return { success: false, error: 'Фото интерьера доступны только для салонов.' };
+        }
+
+        const profileId = profile
+            ? profile.id
+            : (() => {
+                  const rawId = formData.get('profileId');
+                  return typeof rawId === 'string' ? parseInt(rawId, 10) : NaN;
+              })();
+        if (Number.isNaN(profileId)) return { success: false, error: 'Профиль не найден.' };
+
+        const existing = await prisma.portfolioPhoto.count({
+            where: { profileId, serviceId: null, staffId: null },
+        });
+        if (existing + files.length > MAX_INTERIOR_PHOTOS) {
+            return {
+                success: false,
+                error: `Максимум ${MAX_INTERIOR_PHOTOS} фото интерьера. Сейчас: ${existing}.`,
+            };
+        }
+
+        const maxPosResult = await prisma.portfolioPhoto.findMany({
+            where: { profileId, serviceId: null, staffId: null },
+            select: { position: true },
+        });
+        const maxPos =
+            maxPosResult.length === 0 ? -1 : Math.max(...maxPosResult.map((p) => p.position));
+
+        const uploaded: Array<{ url: string }> = [];
+        for (const file of files) {
+            const { url } = await savePublicUpload(file, {
+                blobFolder: 'interior',
+                localFolder: 'uploads/interior',
+                filenamePrefix: session.user.id,
+                fallbackName: 'interior-photo.jpg',
+            });
+            uploaded.push({ url });
+        }
+
+        const created = await prisma.$transaction(
+            uploaded.map(({ url }, i) =>
+                prisma.portfolioPhoto.create({
+                    data: {
+                        profileId,
+                        serviceId: null,
+                        staffId: null,
+                        url,
+                        position: maxPos + 1 + i,
+                    },
+                    select: { id: true, url: true, position: true },
+                })
+            )
+        );
+
+        revalidatePath('/dashboard', 'layout');
+        return { success: true, photos: created };
+    } catch (error: any) {
+        if (error?.message === 'PROFILE_NOT_FOUND') {
+            return { success: false, error: 'Профиль не найден.' };
+        }
+        console.error('uploadInteriorPhotos error:', error);
+        if (!process.env.BLOB_READ_WRITE_TOKEN?.trim() && process.env.NODE_ENV === 'production') {
+            return { success: false, error: 'Хранилище изображений не настроено.' };
+        }
+        return { success: false, error: 'Ошибка загрузки фото.' };
+    }
+}
+
+export async function reorderInteriorPhotos(
+    photoIdOrder: string[]
+): Promise<MutationResult> {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Требуется авторизация.' };
+    if (session.user.isBanned) return { success: false, error: 'Ваш аккаунт заблокирован.' };
+
+    if (!Array.isArray(photoIdOrder) || photoIdOrder.length === 0) {
+        return { success: false, error: 'Пустой список фото.' };
+    }
+    if (new Set(photoIdOrder).size !== photoIdOrder.length) {
+        return { success: false, error: 'Дубликаты в порядке фото.' };
+    }
+
+    try {
+        const profile =
+            session.user.role === 'ADMIN'
+                ? null
+                : await requireProviderProfile(session.user.id, session.user.email);
+
+        const profileId = profile?.id;
+        if (!profileId) return { success: false, error: 'Профиль не найден.' };
+
+        const photos = await prisma.portfolioPhoto.findMany({
+            where: { profileId, serviceId: null, staffId: null },
+            select: { id: true },
+        });
+        const validIds = new Set(photos.map((p) => p.id));
+        if (photoIdOrder.length !== validIds.size) {
+            return { success: false, error: 'Неполный список фото.' };
+        }
+        if (photoIdOrder.some((id) => !validIds.has(id))) {
+            return { success: false, error: 'Недопустимый id фото.' };
+        }
+
+        await prisma.$transaction(
+            photoIdOrder.map((id, position) =>
+                prisma.portfolioPhoto.update({
+                    where: { id },
+                    data: { position },
+                })
+            )
+        );
+
+        revalidatePath('/dashboard', 'layout');
+        return { success: true };
+    } catch (error: any) {
+        if (error?.message === 'PROFILE_NOT_FOUND') {
+            return { success: false, error: 'Профиль не найден.' };
+        }
+        console.error('reorderInteriorPhotos error:', error);
+        return { success: false, error: 'Ошибка изменения порядка.' };
+    }
+}

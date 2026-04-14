@@ -30,8 +30,8 @@ development_status:
   2-1-private-master-per-service-upload: done
   2-2-cover-photo-management: done
   2-3-salon-admin-specialist-upload: done
-  2-4-arrival-info-input: review
-  2-5-salon-interior-photo-management: backlog   # split from epic 2.3 AC-004
+  2-4-arrival-info-input: done
+  2-5-salon-interior-photo-management: review
   2-6-staff-scoped-photo-reorder: backlog        # deferred from 2.3 AC-006
 
   # Epic 3: Profile Page — Shared Components

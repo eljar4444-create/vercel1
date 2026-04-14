@@ -30,6 +30,7 @@ import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
 import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
 import { StaffSection } from '@/components/dashboard/StaffSection';
 import { ArrivalInfoSection } from '@/components/dashboard/ArrivalInfoSection';
+import { InteriorPhotosSection } from '@/components/dashboard/InteriorPhotosSection';
 import { parseSchedule } from '@/lib/scheduling';
 import { Button } from '@/components/ui/button';
 import { createTelegramConnectLink } from '@/lib/telegram-link';
@@ -291,6 +292,12 @@ async function renderProviderDashboard(
     const staff = isSalonProvider ? await prisma.staff.findMany({
         where: { profileId },
         orderBy: { createdAt: 'desc' }
+    }) : [];
+
+    const interiorPhotos = isSalonProvider ? await prisma.portfolioPhoto.findMany({
+        where: { profileId, serviceId: null, staffId: null },
+        orderBy: { position: 'asc' },
+        select: { id: true, url: true, position: true },
     }) : [];
 
     const workingSchedule = parseSchedule(profile.schedule);
@@ -725,6 +732,20 @@ async function renderProviderDashboard(
                                     />
                                 </div>
                             </div>
+
+                            {isSalonProvider && (
+                                <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
+                                    <div className="border-b border-stone-100 px-5 py-4">
+                                        <h2 className="text-base font-semibold text-slate-900">Фото интерьера</h2>
+                                        <p className="mt-0.5 text-xs text-stone-400">
+                                            Покажите атмосферу вашего салона — эти фото будут отображаться на вашем публичном профиле.
+                                        </p>
+                                    </div>
+                                    <div className="p-5">
+                                        <InteriorPhotosSection initialPhotos={interiorPhotos} />
+                                    </div>
+                                </div>
+                            )}
 
                             {!isSalonProvider && (
                                 <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
