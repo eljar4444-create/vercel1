@@ -1,9 +1,8 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { Plus, Loader2, AlertCircle, Upload, X, Save } from 'lucide-react';
+import { Plus, Loader2, AlertCircle, Save } from 'lucide-react';
 import { addService, createService, updateService } from '@/app/actions/services';
-import { uploadServicePhoto } from '@/app/actions/upload';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { BEAUTY_SERVICES, getBeautyServicePath } from '@/lib/constants/services-taxonomy';
@@ -41,7 +40,6 @@ export function AddServiceForm({
 }: AddServiceFormProps) {
     const isEditing = Boolean(serviceId);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const taxonomyPath = useMemo(
         () => (initialData?.title ? getBeautyServicePath(initialData.title) : null),
@@ -91,37 +89,6 @@ export function AddServiceForm({
             setDuration('');
         }
     }, [byAgreement]);
-
-    const handleUploadImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (!files || files.length === 0) return;
-
-        setIsUploading(true);
-        try {
-            let currentCount = images.length;
-            for (const file of Array.from(files)) {
-                if (currentCount >= 10) {
-                    toast.error('Можно загрузить максимум 10 фото.');
-                    break;
-                }
-                const payload = new FormData();
-                payload.append('photo', file);
-                const result = await uploadServicePhoto(payload);
-                if (result.success && result.imageUrl) {
-                    currentCount += 1;
-                    setImages((prev) => [...prev, result.imageUrl]);
-                } else if (!result.success) {
-                    toast.error(result.error || 'Не удалось загрузить фото');
-                    break;
-                }
-            }
-        } catch (uploadError: any) {
-            toast.error(uploadError?.message || 'Не удалось загрузить фото');
-        } finally {
-            setIsUploading(false);
-            event.target.value = '';
-        }
-    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -356,34 +323,9 @@ export function AddServiceForm({
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all"
                     />
 
-                    <div className="space-y-2">
-                        <label className="text-xs font-semibold uppercase tracking-wide text-gray-500">Фотографии работ по услуге</label>
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                            {images.map((url, idx) => (
-                                <div key={`${url}-${idx}`} className="group relative aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
-                                    <img src={url} alt={`service-work-${idx + 1}`} className="h-full w-full object-cover" />
-                                    <button
-                                        type="button"
-                                        onClick={() => setImages((prev) => prev.filter((_, i) => i !== idx))}
-                                        className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/65 text-white opacity-0 transition group-hover:opacity-100"
-                                        aria-label="Удалить фото"
-                                    >
-                                        <X className="h-3.5 w-3.5" />
-                                    </button>
-                                </div>
-                            ))}
-                            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-gray-500 hover:border-gray-400">
-                                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                                <span className="mt-1 text-[11px]">Добавить</span>
-                                <input type="file" accept="image/*" multiple className="hidden" onChange={handleUploadImages} disabled={isUploading || images.length >= 10} />
-                            </label>
-                        </div>
-                        <p className="text-xs text-gray-500">До 10 фото ({images.length}/10)</p>
-                    </div>
-
                     <button
                         type="submit"
-                        disabled={isSubmitting || isUploading}
+                        disabled={isSubmitting}
                         className="w-full h-10 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {isSubmitting ? (
