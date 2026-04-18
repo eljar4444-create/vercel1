@@ -22,6 +22,28 @@ function parseImages(rawImages: FormDataEntryValue | null): string[] {
     }
 }
 
+function parseStaffIds(raw: FormDataEntryValue | null): string[] {
+    if (!raw || typeof raw !== 'string') return [];
+    try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+            .filter((v): v is string => typeof v === 'string' && v.trim().length > 0)
+            .slice(0, 50);
+    } catch {
+        return [];
+    }
+}
+
+async function filterOwnedStaffIds(profileId: number, staffIds: string[]): Promise<string[]> {
+    if (staffIds.length === 0) return [];
+    const rows = await prisma.staff.findMany({
+        where: { profileId, id: { in: staffIds } },
+        select: { id: true },
+    });
+    return rows.map((r) => r.id);
+}
+
 function serializeService(service: {
     id: number;
     title: string;
@@ -29,6 +51,7 @@ function serializeService(service: {
     images: string[];
     price: { toString(): string } | number | string;
     duration_min: number;
+    staff?: { id: string }[];
 }) {
     return {
         id: service.id,
@@ -37,6 +60,7 @@ function serializeService(service: {
         images: service.images,
         price: service.price.toString(),
         duration_min: service.duration_min,
+        staffIds: service.staff?.map((s) => s.id) ?? [],
     };
 }
 
@@ -60,6 +84,7 @@ export async function createService(prevState: any, formData: FormData) {
         const durationMin = durationMinRaw ? parseInt(durationMinRaw as string, 10) : 60;
         const description = (formData.get('description') as string | null)?.trim() || null;
         const images = parseImages(formData.get('images') ?? formData.get('uploadedPhotoUrls'));
+        const staffIds = parseStaffIds(formData.get('staff_ids'));
 
         if (!title || !isBeautyServiceTitle(title)) {
             return { message: 'Выберите услугу из справочника.' };
@@ -68,7 +93,15 @@ export async function createService(prevState: any, formData: FormData) {
             return { message: 'Цена и длительность заполнены некорректно.' };
         }
 
-        await prisma.service.create({
+        // Enforce staff assignment if the profile has staff
+        const profileStaffCount = await prisma.staff.count({ where: { profileId: profile.id } });
+        if (profileStaffCount > 0 && staffIds.length === 0) {
+            return { message: 'Выберите хотя бы одного мастера для этой услуги.' };
+        }
+
+        const ownedStaffIds = await filterOwnedStaffIds(profile.id, staffIds);
+
+        const createdService = await prisma.service.create({
             data: {
                 title,
                 description,
@@ -76,8 +109,41 @@ export async function createService(prevState: any, formData: FormData) {
                 price,
                 duration_min: durationMin,
                 profile_id: profile.id,
+                ...(ownedStaffIds.length
+                    ? { staff: { connect: ownedStaffIds.map((id) => ({ id })) } }
+                    : {}),
             },
         });
+
+        // Create portfolio photos if provided
+        const rawPortfolioPhotos = formData.get('portfolio_photos');
+        if (typeof rawPortfolioPhotos === 'string' && rawPortfolioPhotos.trim().length > 0) {
+            try {
+                const portfolioPhotos: Array<{ url: string; staffId: string | null }> =
+                    JSON.parse(rawPortfolioPhotos);
+
+                if (Array.isArray(portfolioPhotos) && portfolioPhotos.length > 0) {
+                    const validStaffIdSet = new Set(ownedStaffIds);
+                    await prisma.$transaction(
+                        portfolioPhotos.map((photo, i) =>
+                            prisma.portfolioPhoto.create({
+                                data: {
+                                    profileId: profile.id,
+                                    serviceId: createdService.id,
+                                    staffId: photo.staffId && validStaffIdSet.has(photo.staffId)
+                                        ? photo.staffId
+                                        : null,
+                                    url: photo.url,
+                                    position: i,
+                                },
+                            })
+                        )
+                    );
+                }
+            } catch (parseError) {
+                console.warn('Failed to parse portfolio_photos, skipping:', parseError);
+            }
+        }
 
         revalidatePath('/dashboard');
         revalidatePath('/dashboard', 'layout');
@@ -116,6 +182,9 @@ export async function updateService(serviceId: string, prevState: any, formData:
         const durationMin = durationMinRaw ? parseInt(durationMinRaw as string, 10) : 60;
         const description = (formData.get('description') as string | null)?.trim() || null;
         const images = parseImages(formData.get('images') ?? formData.get('uploadedPhotoUrls'));
+        const staffIdsRaw = formData.get('staff_ids');
+        const staffIdsProvided = staffIdsRaw !== null;
+        const staffIds = parseStaffIds(staffIdsRaw);
 
         if (!title || !isBeautyServiceTitle(title)) {
             return { message: 'Выберите услугу из справочника.' };
@@ -136,7 +205,19 @@ export async function updateService(serviceId: string, prevState: any, formData:
             return { message: 'Unauthorized or Service not found' };
         }
 
+        // Enforce staff assignment if the profile has staff
+        if (staffIdsProvided) {
+            const profileStaffCount = await prisma.staff.count({ where: { profileId: profile.id } });
+            if (profileStaffCount > 0 && staffIds.length === 0) {
+                return { message: 'Выберите хотя бы одного мастера для этой услуги.' };
+            }
+        }
+
         const shouldRedirect = formData.get('redirect_on_success') !== 'false';
+
+        const ownedStaffIds = staffIdsProvided
+            ? await filterOwnedStaffIds(profile.id, staffIds)
+            : [];
 
         const updatedService = await prisma.service.update({
             where: { id: serviceIdInt },
@@ -146,7 +227,11 @@ export async function updateService(serviceId: string, prevState: any, formData:
                 images,
                 price,
                 duration_min: durationMin,
+                ...(staffIdsProvided
+                    ? { staff: { set: ownedStaffIds.map((id) => ({ id })) } }
+                    : {}),
             },
+            include: { staff: { select: { id: true } } },
         });
 
         revalidatePath('/dashboard');
@@ -196,6 +281,7 @@ export async function addService(formData: FormData) {
     const duration = durationRaw !== '' && durationRaw != null ? parseInt(durationRaw, 10) : 0;
     const description = (formData.get('description') as string | null)?.trim() || null;
     const rawImages = formData.get('images') as string | null;
+    const staffIds = parseStaffIds(formData.get('staff_ids'));
     let images: string[] = [];
 
     if (!title || isNaN(profileId)) {
@@ -230,6 +316,14 @@ export async function addService(formData: FormData) {
             }
         }
 
+        // Enforce staff assignment if the profile has staff
+        const profileStaffCount = await prisma.staff.count({ where: { profileId } });
+        if (profileStaffCount > 0 && staffIds.length === 0) {
+            return { success: false, error: 'Выберите хотя бы одного мастера для этой услуги.' };
+        }
+
+        const ownedStaffIds = await filterOwnedStaffIds(profileId, staffIds);
+
         const createdService = await prisma.service.create({
             data: {
                 profile_id: profileId,
@@ -238,8 +332,44 @@ export async function addService(formData: FormData) {
                 images,
                 price,
                 duration_min: duration,
+                ...(ownedStaffIds.length
+                    ? { staff: { connect: ownedStaffIds.map((id) => ({ id })) } }
+                    : {}),
             },
+            include: { staff: { select: { id: true } } },
         });
+
+        // Create portfolio photos if provided (from inline uploader during creation)
+        const rawPortfolioPhotos = formData.get('portfolio_photos');
+        if (typeof rawPortfolioPhotos === 'string' && rawPortfolioPhotos.trim().length > 0) {
+            try {
+                const portfolioPhotos: Array<{ url: string; staffId: string | null }> =
+                    JSON.parse(rawPortfolioPhotos);
+
+                if (Array.isArray(portfolioPhotos) && portfolioPhotos.length > 0) {
+                    // Validate staffIds belong to this profile
+                    const validStaffIdSet = new Set(ownedStaffIds);
+
+                    await prisma.$transaction(
+                        portfolioPhotos.map((photo, i) =>
+                            prisma.portfolioPhoto.create({
+                                data: {
+                                    profileId,
+                                    serviceId: createdService.id,
+                                    staffId: photo.staffId && validStaffIdSet.has(photo.staffId)
+                                        ? photo.staffId
+                                        : null,
+                                    url: photo.url,
+                                    position: i,
+                                },
+                            })
+                        )
+                    );
+                }
+            } catch (parseError) {
+                console.warn('Failed to parse portfolio_photos, skipping:', parseError);
+            }
+        }
 
         revalidatePath('/dashboard');
         revalidatePath('/dashboard', 'layout');

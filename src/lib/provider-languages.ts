@@ -2,7 +2,7 @@ export const LANGUAGES = {
   'Русский': { code: 'ru', flag: '🇷🇺', label: 'Русский' },
   'Украинский': { code: 'uk', flag: '🇺🇦', label: 'Украинский' },
   'Немецкий': { code: 'de', flag: '🇩🇪', label: 'Немецкий' },
-  'Английский': { code: 'en', flag: 'EN', label: 'Английский' },
+  'Английский': { code: 'en', flag: '🇬🇧', label: 'Английский' },
 } as const;
 
 export type ProviderLanguage = keyof typeof LANGUAGES;

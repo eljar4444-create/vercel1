@@ -16,6 +16,44 @@ type UploadResult =
 
 type MutationResult = { success: true } | { success: false; error: string };
 
+type FileUploadResult =
+    | { success: true; url: string }
+    | { success: false; error: string };
+
+/**
+ * Upload a single portfolio photo to storage without creating a DB record.
+ * Used during new service creation when no serviceId exists yet.
+ */
+export async function uploadPortfolioFile(formData: FormData): Promise<FileUploadResult> {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, error: 'Требуется авторизация.' };
+    if (session.user.isBanned) return { success: false, error: 'Ваш аккаунт заблокирован.' };
+
+    const file = formData.get('photo');
+    if (!(file instanceof File) || file.size === 0) {
+        return { success: false, error: 'Файл не выбран.' };
+    }
+    if (!ALLOWED_TYPES.includes(file.type)) {
+        return { success: false, error: 'Допустимы только JPEG, PNG и WebP.' };
+    }
+    if (file.size > MAX_FILE_SIZE) {
+        return { success: false, error: 'Файл слишком большой (макс. 5 МБ).' };
+    }
+
+    try {
+        const { url } = await savePublicUpload(file, {
+            blobFolder: 'portfolio',
+            localFolder: 'uploads/portfolio',
+            filenamePrefix: session.user.id,
+            fallbackName: 'portfolio-photo.jpg',
+        });
+        return { success: true, url };
+    } catch (error: any) {
+        console.error('uploadPortfolioFile error:', error);
+        return { success: false, error: 'Ошибка загрузки файла.' };
+    }
+}
+
 export async function uploadServicePhotos(formData: FormData): Promise<UploadResult> {
     const session = await auth();
     if (!session?.user?.id) return { success: false, error: 'Требуется авторизация.' };
@@ -447,6 +485,7 @@ export async function uploadInteriorPhotos(formData: FormData): Promise<UploadRe
         return { success: false, error: 'Ошибка загрузки фото.' };
     }
 }
+
 
 export async function reorderInteriorPhotos(
     photoIdOrder: string[]

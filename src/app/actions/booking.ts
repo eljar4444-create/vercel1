@@ -6,11 +6,55 @@ import {
     getDayIntervals,
     parseSchedule,
     weekdayFromDateString,
+    type TimeInterval,
 } from '@/lib/scheduling';
 import { calculateSlots, normalizeDuration } from '@/lib/booking/slots';
 import { auth } from '@/auth';
 import { inngest } from '@/inngest/client';
 import { checkBanned } from '@/lib/requireNotBanned';
+
+type StaffAvailMap = Map<string, { isWorking: boolean; startTime: string; endTime: string }>;
+
+const availKey = (staffId: string, dayOfWeek: number) => `${staffId}:${dayOfWeek}`;
+
+async function loadStaffAvailability(
+    db: Prisma.TransactionClient | typeof prisma,
+    staffIds: string[]
+): Promise<StaffAvailMap> {
+    const map: StaffAvailMap = new Map();
+    if (staffIds.length === 0) return map;
+    const rows = await db.staffAvailability.findMany({
+        where: { staffId: { in: staffIds } },
+        select: { staffId: true, dayOfWeek: true, isWorking: true, startTime: true, endTime: true },
+    });
+    for (const r of rows) {
+        map.set(availKey(r.staffId, r.dayOfWeek), {
+            isWorking: r.isWorking,
+            startTime: r.startTime,
+            endTime: r.endTime,
+        });
+    }
+    return map;
+}
+
+// StaffAvailability (relational) > staff.schedule (legacy JSON) > profile.schedule (salon).
+function resolveWorkIntervals(
+    staffId: string | null,
+    weekday: number,
+    availMap: StaffAvailMap,
+    legacyStaffSchedule: Prisma.JsonValue | null | undefined,
+    salonSchedule: Prisma.JsonValue | null | undefined
+): TimeInterval[] {
+    if (staffId) {
+        const override = availMap.get(availKey(staffId, weekday));
+        if (override) {
+            if (!override.isWorking) return [];
+            if (override.startTime >= override.endTime) return [];
+            return [{ start: override.startTime, end: override.endTime }];
+        }
+    }
+    return getDayIntervals(parseSchedule(legacyStaffSchedule ?? salonSchedule ?? null), weekday);
+}
 
 interface BookingInput {
     profileId: number;
@@ -23,19 +67,15 @@ interface BookingInput {
     serviceDuration?: number;
 }
 
-// Helper to calculate slots for ONE specific schedule/staff context
+// Calculate slots for ONE specific staff (or solo) context given pre-resolved intervals.
 async function fetchSingleEntitySlots(
     db: Prisma.TransactionClient | typeof prisma,
     profileId: number,
     date: string,
     serviceDuration: number,
-    scheduleRaw: Prisma.JsonValue | null,
+    workIntervals: TimeInterval[],
     staffId: string | null
 ) {
-    const schedule = parseSchedule(scheduleRaw);
-    const weekday = weekdayFromDateString(date);
-    const workIntervals = getDayIntervals(schedule, weekday);
-
     if (workIntervals.length === 0) return [];
 
     const busyWhere: any = {
@@ -75,22 +115,31 @@ async function fetchAvailableSlots(
 
     if (!profile) return [];
 
+    const weekday = weekdayFromDateString(date);
+    const availMap = await loadStaffAvailability(db, profile.staff.map(s => s.id));
+
     if (requestedStaffId) {
         const staff = profile.staff.find(s => s.id === requestedStaffId);
         if (!staff) return [];
-        return fetchSingleEntitySlots(db, profileId, date, serviceDuration, staff.schedule || profile.schedule, staff.id);
-    } 
+        const intervals = resolveWorkIntervals(staff.id, weekday, availMap, staff.schedule, profile.schedule);
+        return fetchSingleEntitySlots(db, profileId, date, serviceDuration, intervals, staff.id);
+    }
+
+    const allSlots = new Set<string>();
 
     if (profile.staff && profile.staff.length > 0) {
-        const allSlots = new Set<string>();
         for (const staff of profile.staff) {
-            const slots = await fetchSingleEntitySlots(db, profileId, date, serviceDuration, staff.schedule || profile.schedule, staff.id);
+            const intervals = resolveWorkIntervals(staff.id, weekday, availMap, staff.schedule, profile.schedule);
+            const slots = await fetchSingleEntitySlots(db, profileId, date, serviceDuration, intervals, staff.id);
             slots.forEach(s => allSlots.add(s));
         }
-        return Array.from(allSlots).sort();
-    } else {
-        return fetchSingleEntitySlots(db, profileId, date, serviceDuration, profile.schedule, null);
     }
+
+    const intervals = resolveWorkIntervals(null, weekday, availMap, null, profile.schedule);
+    const soloSlots = await fetchSingleEntitySlots(db, profileId, date, serviceDuration, intervals, null);
+    soloSlots.forEach(s => allSlots.add(s));
+
+    return Array.from(allSlots).sort();
 }
 
 export async function getAvailableSlots(input: {
@@ -159,6 +208,7 @@ export async function getWeekAvailableSlots(input: {
             },
         });
 
+        const availMap = await loadStaffAvailability(prisma, profile.staff.map(s => s.id));
         const weekSlots: Record<string, string[]> = {};
 
         for (let i = 0; i < 7; i++) {
@@ -166,32 +216,39 @@ export async function getWeekAvailableSlots(input: {
             currentDay.setDate(currentDay.getDate() + i);
             const dateStr = currentDay.toISOString().split('T')[0];
             const weekday = weekdayFromDateString(dateStr);
-            
+
             const daysBookings = busyBookings.filter((b) => b.date.toISOString().split('T')[0] === dateStr);
 
             if (input.staffId) {
                 const staff = profile.staff.find(s => s.id === input.staffId);
                 if (!staff) {
-                     weekSlots[dateStr] = [];
-                     continue;
+                    weekSlots[dateStr] = [];
+                    continue;
                 }
-                const workIntervals = getDayIntervals(parseSchedule(staff.schedule || profile.schedule), weekday);
+                const workIntervals = resolveWorkIntervals(staff.id, weekday, availMap, staff.schedule, profile.schedule);
                 const staffBookings = daysBookings.filter(b => b.staff_id === staff.id);
                 weekSlots[dateStr] = workIntervals.length > 0 ? calculateSlots(workIntervals, duration, staffBookings) : [];
-            } else if (profile.staff && profile.staff.length > 0) {
-                const dayUnionSlots = new Set<string>();
-                for (const staff of profile.staff) {
-                     const workIntervals = getDayIntervals(parseSchedule(staff.schedule || profile.schedule), weekday);
-                     if (workIntervals.length === 0) continue;
-                     const staffBookings = daysBookings.filter(b => b.staff_id === staff.id);
-                     const slots = calculateSlots(workIntervals, duration, staffBookings);
-                     slots.forEach(s => dayUnionSlots.add(s));
-                }
-                weekSlots[dateStr] = Array.from(dayUnionSlots).sort();
             } else {
-                const workIntervals = getDayIntervals(parseSchedule(profile.schedule), weekday);
-                const soloBookings = daysBookings.filter(b => b.staff_id === null);
-                weekSlots[dateStr] = workIntervals.length > 0 ? calculateSlots(workIntervals, duration, soloBookings) : [];
+                const dayUnionSlots = new Set<string>();
+
+                if (profile.staff && profile.staff.length > 0) {
+                    for (const staff of profile.staff) {
+                        const workIntervals = resolveWorkIntervals(staff.id, weekday, availMap, staff.schedule, profile.schedule);
+                        if (workIntervals.length === 0) continue;
+                        const staffBookings = daysBookings.filter(b => b.staff_id === staff.id);
+                        const slots = calculateSlots(workIntervals, duration, staffBookings);
+                        slots.forEach(s => dayUnionSlots.add(s));
+                    }
+                }
+
+                const soloWorkIntervals = resolveWorkIntervals(null, weekday, availMap, null, profile.schedule);
+                if (soloWorkIntervals.length > 0) {
+                    const soloBookings = daysBookings.filter(b => b.staff_id === null);
+                    const soloSlots = calculateSlots(soloWorkIntervals, duration, soloBookings);
+                    soloSlots.forEach(s => dayUnionSlots.add(s));
+                }
+
+                weekSlots[dateStr] = Array.from(dayUnionSlots).sort();
             }
         }
 
@@ -237,41 +294,52 @@ export async function createBooking(input: BookingInput) {
 
             let assignedStaffId = input.staffId || null;
 
+            const profile = await tx.profile.findUnique({
+                where: { id: profileId },
+                select: { schedule: true, staff: { select: { id: true, schedule: true } } },
+            });
+
+            const staffIds = profile?.staff?.map(s => s.id) ?? [];
+            const availMap = await loadStaffAvailability(tx, staffIds);
+            const weekday = weekdayFromDateString(input.date);
+
             if (!assignedStaffId) {
-                const profile = await tx.profile.findUnique({
-                    where: { id: profileId },
-                    select: { schedule: true, staff: { select: { id: true, schedule: true } } },
-                });
+                let foundStaff: string | null = null;
                 
                 if (profile && profile.staff && profile.staff.length > 0) {
-                     let foundStaff = null;
-                     for (const st of profile.staff) {
-                         const slots = await fetchSingleEntitySlots(tx, profileId, input.date, duration, st.schedule || profile.schedule, st.id);
-                         if (slots.includes(input.time)) {
-                             foundStaff = st.id;
-                             break;
-                         }
-                     }
-                     if (!foundStaff) {
-                         throw new Error('Выбранное время уже занято у всех мастеров.');
-                     }
-                     assignedStaffId = foundStaff;
+                    for (const st of profile.staff) {
+                        const intervals = resolveWorkIntervals(st.id, weekday, availMap, st.schedule, profile.schedule);
+                        const slots = await fetchSingleEntitySlots(tx, profileId, input.date, duration, intervals, st.id);
+                        if (slots.includes(input.time)) {
+                            foundStaff = st.id;
+                            break;
+                        }
+                    }
+                }
+
+                if (!foundStaff) {
+                    const intervals = resolveWorkIntervals(null, weekday, availMap, null, profile?.schedule ?? null);
+                    const slots = await fetchSingleEntitySlots(tx, profileId, input.date, duration, intervals, null);
+                    if (!slots.includes(input.time)) {
+                        throw new Error('Выбранное время уже занято у всех мастеров и салона. Обновите слоты и выберите другое время.');
+                    }
+                    assignedStaffId = null;
                 } else {
-                     const slots = await fetchSingleEntitySlots(tx, profileId, input.date, duration, profile?.schedule || null, null);
-                     if (!slots.includes(input.time)) {
-                         throw new Error('Выбранное время уже занято. Обновите слоты и выберите другое время.');
-                     }
+                    assignedStaffId = foundStaff;
                 }
             } else {
-                 const profile = await tx.profile.findUnique({
-                    where: { id: profileId },
-                    select: { schedule: true, staff: { select: { id: true, schedule: true } } },
-                 });
-                 const staff = profile?.staff.find(s => s.id === assignedStaffId);
-                 const slots = await fetchSingleEntitySlots(tx, profileId, input.date, duration, staff?.schedule || profile?.schedule || null, assignedStaffId);
-                 if (!slots.includes(input.time)) {
-                     throw new Error('Выбранное время уже занято.');
-                 }
+                const staff = profile?.staff.find(s => s.id === assignedStaffId);
+                if (!staff) {
+                    throw new Error('Мастер не найден.');
+                }
+                const intervals = resolveWorkIntervals(staff.id, weekday, availMap, staff.schedule, profile?.schedule ?? null);
+                if (intervals.length === 0) {
+                    throw new Error('Мастер не работает в выбранный день.');
+                }
+                const slots = await fetchSingleEntitySlots(tx, profileId, input.date, duration, intervals, assignedStaffId);
+                if (!slots.includes(input.time)) {
+                    throw new Error('Выбранное время недоступно у этого мастера.');
+                }
             }
 
             const slotLock = `${profileId}:${assignedStaffId || 'none'}:${input.date}:${input.time}`;

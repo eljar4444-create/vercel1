@@ -2,6 +2,9 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    serverActions: {
+        bodySizeLimit: '6mb',
+    },
     images: {
         formats: ['image/avif', 'image/webp'],
         remotePatterns: [

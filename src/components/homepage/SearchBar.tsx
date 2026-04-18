@@ -84,17 +84,20 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
     useEffect(() => {
         const handleSmartTrigger = ((e: CustomEvent<{ service: string }>) => {
             setServiceQuery(e.detail.service);
-            
-            if (locationInputRef.current) {
-                locationInputRef.current.focus();
+
+            // Wait for the smooth scroll to finish before focusing — otherwise the
+            // autocomplete dropdown opens mid-scroll and visually flickers.
+            window.setTimeout(() => {
+                if (!locationInputRef.current) return;
+                locationInputRef.current.focus({ preventScroll: true });
                 const parent = locationInputRef.current.closest('div.flex.items-center');
                 if (parent) {
-                    parent.classList.add('ring-2', 'ring-booking-primary', 'ring-offset-2', 'ring-offset-[#2f4b3a]', 'animate-pulse');
+                    parent.classList.add('ring-2', 'ring-booking-primary', 'ring-offset-2', 'ring-offset-[#2f4b3a]');
                     setTimeout(() => {
-                        parent.classList.remove('ring-2', 'ring-booking-primary', 'ring-offset-2', 'ring-offset-[#2f4b3a]', 'animate-pulse');
-                    }, 2000);
+                        parent.classList.remove('ring-2', 'ring-booking-primary', 'ring-offset-2', 'ring-offset-[#2f4b3a]');
+                    }, 1600);
                 }
-            }
+            }, 700);
         }) as EventListener;
 
         window.addEventListener('smart-search-trigger', handleSmartTrigger);

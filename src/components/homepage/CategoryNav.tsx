@@ -1,59 +1,43 @@
 'use client';
 
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
 const CATEGORIES = [
     {
-        name: 'Волосы',
+        id: 'hair',
+        title: 'ВОЛОСЫ',
         href: '/search?q=Стрижка',
-        imageSrc: '/categories/hair_texture.png',
-        subServices: ['Стрижка и укладка', 'Сложное окрашивание', 'Уход и восстановление'],
+        imageSrc: '/categories/cat_hair.png',
+        subServices: ['Окрашивание', 'Стрижка', 'Укладка'],
     },
     {
-        name: 'Ногти',
+        id: 'nails',
+        title: 'НОГТИ',
         href: '/search?q=Маникюр',
-        imageSrc: '/categories/manicure.png',
-        subServices: ['Гелевое наращивание', 'Аппаратный маникюр', 'Дизайн ногтей'],
+        imageSrc: '/categories/cat_nails.png',
+        subServices: ['Маникюр', 'Педикюр', 'Наращивание'],
     },
     {
-        name: 'Брови',
+        id: 'face',
+        title: 'ЛИЦО',
         href: '/search?q=Брови',
-        imageSrc: '/categories/eyebrow_macro.png',
-        subServices: ['Коррекция формы', 'Окрашивание', 'Долговременная укладка'],
+        imageSrc: '/categories/cat_face.png',
+        subServices: ['Брови', 'Ресницы', 'Уход за кожей'],
     },
     {
-        name: 'Педикюр',
-        href: '/search?q=Педикюр',
-        imageSrc: '/categories/spa_pedicure.png',
-        subServices: ['Spa-педикюр', 'Смарт-педикюр', 'Покрытие гель-лаком'],
-    },
-    {
-        name: 'Массаж',
+        id: 'body',
+        title: 'ТЕЛО И ОБРАЗ',
         href: '/search?q=Массаж',
-        imageSrc: '/categories/massage.png',
-        subServices: ['Классический', 'Лимфодренажный', 'Стоун-терапия'],
-    },
-    {
-        name: 'Косметология',
-        href: '/search?q=Косметология',
-        imageSrc: '/categories/cosmetology.png',
-        subServices: ['Чистка лица', 'Пилинги', 'Увлажняющие уходы'],
+        imageSrc: '/categories/cat_body.png',
+        subServices: ['Макияж', 'Массаж', 'Депиляция'],
     },
 ];
 
 export default function CategoryNav() {
-    const [flippedCategory, setFlippedCategory] = useState<string | null>(null);
-
     const handleFastTravel = (text: string) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         const event = new CustomEvent('smart-search-trigger', { detail: { service: text } });
         window.dispatchEvent(event);
-    };
-
-    const handleCardClick = (name: string) => {
-        setFlippedCategory(prev => prev === name ? null : name);
     };
 
     return (
@@ -75,61 +59,51 @@ export default function CategoryNav() {
                     </a>
                 </div>
 
-                {/* Bento Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                {/* 4-Column Category Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                     {CATEGORIES.map((cat) => (
                         <div
-                            key={cat.name}
-                            className="relative aspect-[3/4] cursor-pointer [perspective:1000px]"
-                            onClick={() => handleCardClick(cat.name)}
+                            key={cat.id}
+                            className="flex flex-col rounded-2xl overflow-hidden shadow-md hover:shadow-lg border border-gray-100 bg-white h-[420px] sm:h-[450px] group cursor-pointer transition-all duration-300"
+                            onClick={() => handleFastTravel(cat.subServices[0])}
                         >
-                            <div className={cn(
-                                "relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d]",
-                                flippedCategory === cat.name ? "[transform:rotateY(180deg)]" : ""
-                            )}>
-                                {/* Front Face */}
-                                <div 
-                                    className="absolute inset-0 w-full h-full [backface-visibility:hidden] overflow-hidden rounded-xl bg-stone-200"
-                                >
-                                    <Image
-                                        src={cat.imageSrc}
-                                        alt={cat.name}
-                                        fill
-                                        className="object-cover"
-                                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 25vw, 16vw"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                                    <div className="absolute bottom-6 left-6">
-                                        <p className="text-white text-xs font-bold uppercase tracking-[0.2em]">{cat.name}</p>
-                                    </div>
-                                </div>
+                            {/* Top 75% Image Area */}
+                            <div className="relative h-[72%] w-full overflow-hidden shrink-0">
+                                <Image
+                                    src={cat.imageSrc}
+                                    alt={cat.title}
+                                    fill
+                                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                />
+                            </div>
 
-                                {/* Back Face */}
-                                <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] overflow-hidden rounded-xl bg-[#2F4B3A] flex flex-col items-center justify-center p-6 text-center shadow-inner">
-                                    <p className="text-white text-xs font-bold uppercase tracking-[0.2em] mb-4 opacity-70">{cat.name}</p>
-                                    <ul className="space-y-3">
-                                        {cat.subServices.map((sub, idx) => (
-                                            <li 
-                                                key={idx} 
+                            {/* Bottom Info Area */}
+                            <div className="p-5 mt-auto flex flex-col items-center text-center bg-white flex-1 justify-center">
+                                {/* Category Title */}
+                                <h3 className="text-gray-950 font-bold text-lg">
+                                    {cat.title}
+                                </h3>
+
+                                {/* Sub-Services List */}
+                                <div className="text-gray-600 text-sm mt-1.5 flex flex-wrap justify-center gap-x-2 gap-y-1">
+                                    {cat.subServices.map((sub, idx) => (
+                                        <span key={sub} className="flex items-center">
+                                            <button
+                                                type="button"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     handleFastTravel(sub);
                                                 }}
-                                                className="text-[#F5F2ED]/90 hover:text-white text-[13px] md:text-sm font-sans font-medium tracking-wide cursor-pointer transition-colors"
+                                                className="hover:text-booking-primary hover:underline underline-offset-2 transition-colors duration-200 cursor-pointer"
                                             >
                                                 {sub}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                    <div 
-                                        className="mt-8 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[#F5F2ED]/60 hover:text-white cursor-pointer transition-colors group/cta flex items-center"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleFastTravel(cat.name);
-                                        }}
-                                    >
-                                        Смотреть все <span className="ml-1 group-hover/cta:translate-x-1 transition-transform duration-300">➔</span>
-                                    </div>
+                                            </button>
+                                            {idx < cat.subServices.length - 1 && (
+                                                <span className="mx-1.5 text-gray-300">•</span>
+                                            )}
+                                        </span>
+                                    ))}
                                 </div>
                             </div>
                         </div>

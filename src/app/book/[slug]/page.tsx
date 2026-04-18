@@ -25,7 +25,7 @@ export default async function BookingPage({
     searchParams
 }: {
     params: { slug: string };
-    searchParams: { serviceId?: string };
+    searchParams: { serviceId?: string; staffId?: string };
 }) {
     const session = await auth();
     
@@ -72,6 +72,7 @@ export default async function BookingPage({
                 profile={profile} 
                 service={selectedService} 
                 sessionUser={session?.user || null}
+                initialStaffId={searchParams.staffId || null}
             />
         </div>
     );

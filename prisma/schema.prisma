@@ -101,6 +101,7 @@ model Service {
   profile      Profile @relation(fields: [profile_id], references: [id])
   bookings     Booking[]
   photos       PortfolioPhoto[]
+  staff        Staff[] @relation("ServiceStaff")
 
   @@index([profile_id])
 }
@@ -178,21 +179,42 @@ model User {
 }
 
 model Staff {
+  id         String   @id @default(cuid())
+  profileId  Int
+  name       String
+  avatarUrl  String?
+  bio        String?
+  schedule   Json?
+  specialty  String?
+  experience String?
+  rating     Float    @default(5.0)
+  tags       String[] @default([])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  profile       Profile             @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  bookings      Booking[]
+  photos        PortfolioPhoto[]
+  availability  StaffAvailability[]
+  services      Service[]           @relation("ServiceStaff")
+
+  @@index([profileId])
+}
+
+model StaffAvailability {
   id        String   @id @default(cuid())
-  profileId Int
-  name      String
-  avatarUrl String?
-  bio       String?
-  schedule  Json?
-  specialty String?
+  staffId   String
+  dayOfWeek Int
+  startTime String
+  endTime   String
+  isWorking Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  profile  Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  bookings Booking[]
-  photos   PortfolioPhoto[]
+  staff     Staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
-  @@index([profileId])
+  @@unique([staffId, dayOfWeek])
+  @@index([staffId])
 }
 
 model PortfolioPhoto {

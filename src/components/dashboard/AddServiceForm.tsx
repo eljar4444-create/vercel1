@@ -1,11 +1,18 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
-import { Plus, Loader2, AlertCircle, Save } from 'lucide-react';
+import { Plus, Loader2, AlertCircle, Save, Camera } from 'lucide-react';
 import { addService, createService, updateService } from '@/app/actions/services';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { BEAUTY_SERVICES, getBeautyServicePath } from '@/lib/constants/services-taxonomy';
+import { PortfolioUploadInline, type PendingPhoto } from './PortfolioUploadInline';
+
+export interface StaffOption {
+    id: string;
+    name: string;
+    avatarUrl?: string | null;
+}
 
 interface AddServiceFormProps {
     profileId?: number;
@@ -16,10 +23,12 @@ interface AddServiceFormProps {
         price: number;
         duration_min: number;
         images?: string[];
+        staffIds?: string[];
     };
     serviceId?: string;
     returnHref?: string;
     compact?: boolean;
+    availableStaff?: StaffOption[];
     onSaved?: (service: {
         id: number;
         title: string;
@@ -27,6 +36,7 @@ interface AddServiceFormProps {
         images?: string[];
         price: string;
         duration_min: number;
+        staffIds?: string[];
     }) => void;
 }
 
@@ -36,11 +46,13 @@ export function AddServiceForm({
     serviceId,
     returnHref,
     compact = false,
+    availableStaff,
     onSaved,
 }: AddServiceFormProps) {
     const isEditing = Boolean(serviceId);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [staffError, setStaffError] = useState<string | null>(null);
     const taxonomyPath = useMemo(
         () => (initialData?.title ? getBeautyServicePath(initialData.title) : null),
         [initialData?.title]
@@ -59,6 +71,16 @@ export function AddServiceForm({
     const [byAgreement, setByAgreement] = useState(
         initialData ? Number(initialData.price) === 0 && initialData.duration_min === 0 : false
     );
+    const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>(initialData?.staffIds ?? []);
+    const [pendingPhotos, setPendingPhotos] = useState<PendingPhoto[]>([]);
+    const hasStaffOptions = (availableStaff?.length ?? 0) > 0;
+
+    const toggleStaff = (id: string) => {
+        setStaffError(null);
+        setSelectedStaffIds((prev) =>
+            prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+        );
+    };
 
     const categoryOptions = useMemo(() => Object.keys(BEAUTY_SERVICES), []);
     const subcategoryOptions = useMemo(() => {
@@ -94,10 +116,17 @@ export function AddServiceForm({
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
+        setStaffError(null);
 
         if (!selectedService) {
             setIsSubmitting(false);
             setError('Выберите услугу из справочника.');
+            return;
+        }
+
+        if (hasStaffOptions && selectedStaffIds.length === 0) {
+            setIsSubmitting(false);
+            setStaffError('Выберите хотя бы одного мастера.');
             return;
         }
 
@@ -123,6 +152,17 @@ export function AddServiceForm({
         formData.set('description', description.trim());
         formData.set('images', JSON.stringify(images));
         formData.set('redirect_on_success', onSaved ? 'false' : 'true');
+
+        if (hasStaffOptions) {
+            formData.set('staff_ids', JSON.stringify(selectedStaffIds));
+        }
+
+        // Attach pending portfolio photos for new service creation
+        if (!isEditing && pendingPhotos.length > 0) {
+            formData.set('portfolio_photos', JSON.stringify(
+                pendingPhotos.map((p) => ({ url: p.url, staffId: p.staffId }))
+            ));
+        }
 
         if (profileId != null) {
             formData.set('profile_id', profileId.toString());
@@ -322,6 +362,96 @@ export function AddServiceForm({
                         rows={profileId != null && !isEditing ? 3 : 5}
                         className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all"
                     />
+
+                    {hasStaffOptions && (
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-medium text-gray-700" id="staff-assignment-label">
+                                Назначить мастеров <span className="text-red-500">*</span>
+                            </label>
+                            <div className={`flex flex-wrap gap-2 rounded-lg p-1 transition-colors ${staffError ? 'bg-red-50 ring-1 ring-red-300' : ''}`}>
+                                {availableStaff!.map((member) => {
+                                    const isChecked = selectedStaffIds.includes(member.id);
+                                    return (
+                                        <button
+                                            key={member.id}
+                                            type="button"
+                                            onClick={() => toggleStaff(member.id)}
+                                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                                                isChecked
+                                                    ? 'border-gray-900 bg-gray-900 text-white'
+                                                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                            aria-pressed={isChecked}
+                                        >
+                                            {member.avatarUrl ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img
+                                                    src={member.avatarUrl}
+                                                    alt=""
+                                                    className="h-5 w-5 rounded-full object-cover"
+                                                />
+                                            ) : (
+                                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 text-[10px] text-gray-600">
+                                                    {member.name.charAt(0).toUpperCase()}
+                                                </span>
+                                            )}
+                                            <span>{member.name}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {staffError ? (
+                                <p className="flex items-center gap-1 text-xs text-red-600">
+                                    <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                                    {staffError}
+                                </p>
+                            ) : (
+                                <p className="text-xs text-gray-500">
+                                    Выберите специалистов, которые выполняют эту услугу. Клиенты увидят их в карточке услуги.
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Portfolio photo upload section */}
+                    {(() => {
+                        const hasStaffSelected = selectedStaffIds.length > 0;
+                        const assignedStaffList = hasStaffOptions
+                            ? (availableStaff ?? []).filter((s) => selectedStaffIds.includes(s.id))
+                            : [];
+
+                        // Staff exists but none selected — show hint
+                        if (hasStaffOptions && !hasStaffSelected) {
+                            return (
+                                <div className="flex items-center gap-2 rounded-xl border border-dashed border-gray-200 bg-gray-50/40 px-3 py-2.5">
+                                    <Camera className="h-3.5 w-3.5 text-gray-400" />
+                                    <p className="text-xs text-gray-400">
+                                        Выберите мастера, чтобы добавить примеры работ
+                                    </p>
+                                </div>
+                            );
+                        }
+
+                        // Ready to upload (both create and edit modes)
+                        return (
+                            <div className="flex flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/60 p-3">
+                                <div className="flex items-center gap-2">
+                                    <Camera className="h-3.5 w-3.5 text-gray-500" />
+                                    <label className="text-sm font-medium text-gray-700">
+                                        Примеры работ
+                                    </label>
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                    Добавьте фото результатов по этой услуге.{hasStaffOptions ? ' Они будут привязаны к выбранным мастерам.' : ''}
+                                </p>
+                                <PortfolioUploadInline
+                                    serviceId={isEditing && serviceId ? parseInt(serviceId, 10) : undefined}
+                                    assignedStaff={assignedStaffList}
+                                    onPendingPhotosChange={setPendingPhotos}
+                                />
+                            </div>
+                        );
+                    })()}
 
                     <button
                         type="submit"

@@ -25,9 +25,10 @@ interface BookingStandaloneProps {
         image?: string | null;
     } | null;
     sessionUser: any;
+    initialStaffId?: string | null;
 }
 
-export function BookingStandalone({ profile, service, sessionUser }: BookingStandaloneProps) {
+export function BookingStandalone({ profile, service, sessionUser, initialStaffId }: BookingStandaloneProps) {
     const router = useRouter();
     const today = useMemo(() => {
         const d = new Date();
@@ -46,7 +47,7 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
 
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
-    const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+    const [selectedStaffId, setSelectedStaffId] = useState<string | null>(initialStaffId || null);
 
     const [name, setName] = useState(sessionUser?.name || '');
     const [phone, setPhone] = useState('');
@@ -192,59 +193,34 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
             
-            <header className="mb-12 text-center md:text-left">
-                <h1 className="text-4xl md:text-5xl font-serif text-booking-textMain tracking-tight mb-4">
+            <header className="mb-10 text-center md:text-left">
+                <h1 className="text-4xl md:text-5xl font-sans font-semibold text-booking-textMain tracking-tight mb-3">
                     Оформление записи
                 </h1>
-                <p className="text-lg text-booking-textMuted max-w-2xl leading-relaxed">
-                    Выберите удобную дату и время для визита к мастеру <b>{profile.name}</b>. Мы подготовим все необходимое.
+                <p className="text-base text-booking-textMuted max-w-2xl leading-relaxed">
+                    Выберите удобную дату и время для визита в <span className="font-medium text-booking-textMain">{profile.name}</span>.
                 </p>
             </header>
 
             {profile.staff && profile.staff.length > 0 && (
                 <section className="mb-10">
-                    <h2 className="font-serif text-2xl text-booking-textMain flex items-center gap-2 mb-4">
-                        <span className="text-booking-textMuted tracking-tight text-xl translate-y-[2px]">👥</span> 
+                    <h2 className="text-sm font-semibold uppercase tracking-wider text-booking-textMuted mb-5">
                         Выберите мастера
                     </h2>
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                        <button
-                            type="button"
+                    <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
+                        <StaffPick
+                            selected={selectedStaffId === null}
                             onClick={() => { setSelectedStaffId(null); setSelectedDate(''); setSelectedTime(''); }}
-                            className={`shrink-0 rounded-[1.5rem] border p-4 flex items-center gap-3 min-w-[200px] transition-all duration-300 ${
-                                selectedStaffId === null 
-                                    ? 'bg-booking-primary text-white shadow-soft-in' 
-                                    : 'bg-[#F2EFE8] text-booking-textMain border-transparent shadow-[4px_4px_8px_rgba(200,193,183,0.5),-4px_-4px_8px_rgba(255,255,255,0.9)]'
-                            }`}
-                        >
-                            <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold ${selectedStaffId === null ? 'bg-white/20' : 'bg-[#EBE6DF]'}`}>
-                                Любой
-                            </div>
-                            <span className="font-medium">Любой мастер</span>
-                        </button>
-                        
+                            name="Любой"
+                        />
                         {profile.staff.map(staff => (
-                            <button
+                            <StaffPick
                                 key={staff.id}
-                                type="button"
+                                selected={selectedStaffId === staff.id}
                                 onClick={() => { setSelectedStaffId(staff.id); setSelectedDate(''); setSelectedTime(''); }}
-                                className={`shrink-0 rounded-[1.5rem] border p-4 flex items-center gap-3 min-w-[240px] transition-all duration-300 ${
-                                    selectedStaffId === staff.id
-                                        ? 'bg-booking-primary text-white shadow-soft-in' 
-                                        : 'bg-[#F2EFE8] text-booking-textMain border-transparent shadow-[4px_4px_8px_rgba(200,193,183,0.5),-4px_-4px_8px_rgba(255,255,255,0.9)] hover:shadow-[2px_2px_4px_rgba(200,193,183,0.5),-2px_-2px_4px_rgba(255,255,255,0.9)]'
-                                }`}
-                            >
-                                {staff.avatarUrl ? (
-                                    <img src={staff.avatarUrl} alt={staff.name} className="h-12 w-12 rounded-full object-cover" />
-                                ) : (
-                                    <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold ${selectedStaffId === staff.id ? 'bg-white/20' : 'bg-[#EBE6DF]'}`}>
-                                        {staff.name.charAt(0).toUpperCase()}
-                                    </div>
-                                )}
-                                <span className="font-medium text-left leading-tight truncate px-1">
-                                    {staff.name}
-                                </span>
-                            </button>
+                                name={staff.name}
+                                avatarUrl={staff.avatarUrl}
+                            />
                         ))}
                     </div>
                 </section>
@@ -271,12 +247,14 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
                         />
                     )}
 
-                    <UserForm
-                        name={name} setName={setName}
-                        phone={phone} setPhone={setPhone}
-                        email={email} setEmail={setEmail}
-                        comment={comment} setComment={setComment}
-                    />
+                    {selectedDate && selectedTime ? (
+                        <UserForm
+                            name={name} setName={setName}
+                            phone={phone} setPhone={setPhone}
+                            email={email} setEmail={setEmail}
+                            comment={comment} setComment={setComment}
+                        />
+                    ) : null}
                 </div>
 
                 {/* Sticky Summary & Submit Area */}
@@ -294,5 +272,46 @@ export function BookingStandalone({ profile, service, sessionUser }: BookingStan
             </div>
             
         </div>
+    );
+}
+
+function StaffPick({
+    selected,
+    onClick,
+    name,
+    avatarUrl,
+}: {
+    selected: boolean;
+    onClick: () => void;
+    name: string;
+    avatarUrl?: string | null;
+}) {
+    const initials = name === 'Любой' ? '∗' : name.charAt(0).toUpperCase();
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="shrink-0 flex flex-col items-center gap-2 w-20 group focus:outline-none"
+        >
+            <div
+                className={`h-16 w-16 rounded-full overflow-hidden bg-white border transition-all ${
+                    selected
+                        ? 'border-transparent ring-[3px] ring-booking-primary ring-offset-2 ring-offset-booking-bg'
+                        : 'border-booking-border group-hover:border-booking-textMuted'
+                }`}
+            >
+                {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+                ) : (
+                    <div className="h-full w-full flex items-center justify-center text-booking-textMuted font-medium text-lg">
+                        {initials}
+                    </div>
+                )}
+            </div>
+            <span className={`text-xs text-center leading-tight truncate w-full ${selected ? 'text-booking-textMain font-medium' : 'text-booking-textMuted'}`}>
+                {name}
+            </span>
+        </button>
     );
 }

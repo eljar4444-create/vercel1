@@ -6,6 +6,7 @@ vi.mock('@/lib/prisma', () => ({
         profile: { findUnique: vi.fn() },
         booking: { findMany: vi.fn(), create: vi.fn() },
         service: { findUnique: vi.fn() },
+        staffAvailability: { findMany: vi.fn().mockResolvedValue([]) },
     },
 }));
 
@@ -51,7 +52,7 @@ describe('createBooking — Multi-Staff B2B Logic', () => {
              const tx = {
                  profile: { findUnique: vi.fn().mockResolvedValue(mockProfileWithStaff) },
                  // Staff A is busy at 14:00, but Staff B is free!
-                 booking: { 
+                 booking: {
                      findMany: vi.fn().mockImplementation((query) => {
                          if (query.where?.staff_id === 'staff-a') {
                              return [{ time: '14:00', staff_id: 'staff-a', service: { duration_min: 60 } }];
@@ -63,7 +64,8 @@ describe('createBooking — Multi-Staff B2B Logic', () => {
                          return { id: 2 };
                      })
                  },
-                 service: { findUnique: vi.fn() }
+                 service: { findUnique: vi.fn() },
+                 staffAvailability: { findMany: vi.fn().mockResolvedValue([]) },
              };
              return callback(tx);
         });
@@ -83,13 +85,14 @@ describe('createBooking — Multi-Staff B2B Logic', () => {
         mockPrisma.$transaction.mockImplementation(async (callback: any) => {
              const tx = {
                  profile: { findUnique: vi.fn().mockResolvedValue(mockProfileWithStaff) },
-                 booking: { 
+                 booking: {
                      findMany: vi.fn().mockResolvedValue([]),
                      create: vi.fn().mockImplementation((args) => {
                          capturedData1 = args.data;
                          return { id: 3 };
                      })
                  },
+                 staffAvailability: { findMany: vi.fn().mockResolvedValue([]) },
              };
              return callback(tx);
         });
@@ -104,7 +107,7 @@ describe('createBooking — Multi-Staff B2B Logic', () => {
              const tx = {
                  profile: { findUnique: vi.fn().mockResolvedValue(mockProfileWithStaff) },
                  // Both A and B are occupied at 14:00
-                 booking: { 
+                 booking: {
                      findMany: vi.fn().mockImplementation((query) => {
                          if (query.where?.staff_id === 'staff-a') {
                              return [{ time: '14:00', staff_id: 'staff-a', service: { duration_min: 60 } }];
@@ -116,6 +119,7 @@ describe('createBooking — Multi-Staff B2B Logic', () => {
                      }),
                      create: vi.fn()
                  },
+                 staffAvailability: { findMany: vi.fn().mockResolvedValue([]) },
              };
              return callback(tx);
         });
@@ -123,5 +127,80 @@ describe('createBooking — Multi-Staff B2B Logic', () => {
         const result = await createBooking(validInput);
         expect(result.success).toBe(false);
         expect(result.error).toContain('уже занято у всех мастеров');
+    });
+
+    it('rejects booking when chosen staff is marked not-working via StaffAvailability', async () => {
+        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+            const tx = {
+                profile: { findUnique: vi.fn().mockResolvedValue(mockProfileWithStaff) },
+                booking: {
+                    findMany: vi.fn().mockResolvedValue([]),
+                    create: vi.fn(),
+                },
+                staffAvailability: {
+                    findMany: vi.fn().mockResolvedValue([
+                        // Wed (dayOfWeek 3): staff-a is off even though salon is open.
+                        { staffId: 'staff-a', dayOfWeek: 3, isWorking: false, startTime: '10:00', endTime: '18:00' },
+                    ]),
+                },
+            };
+            return callback(tx);
+        });
+
+        const result = await createBooking({ ...validInput, staffId: 'staff-a' });
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('Мастер не работает');
+    });
+
+    it('rejects booking outside an individual staff’s narrow StaffAvailability window', async () => {
+        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+            const tx = {
+                profile: { findUnique: vi.fn().mockResolvedValue(mockProfileWithStaff) },
+                booking: {
+                    findMany: vi.fn().mockResolvedValue([]),
+                    create: vi.fn(),
+                },
+                staffAvailability: {
+                    findMany: vi.fn().mockResolvedValue([
+                        // staff-a only works 15:00–18:00 on Wed; 14:00 must be rejected.
+                        { staffId: 'staff-a', dayOfWeek: 3, isWorking: true, startTime: '15:00', endTime: '18:00' },
+                    ]),
+                },
+            };
+            return callback(tx);
+        });
+
+        const result = await createBooking({ ...validInput, staffId: 'staff-a' });
+        expect(result.success).toBe(false);
+        expect(result.error).toContain('Выбранное время недоступно');
+    });
+
+    it('routes Any Master to the staff whose StaffAvailability window covers the requested time', async () => {
+        let capturedData: any = null;
+
+        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+            const tx = {
+                profile: { findUnique: vi.fn().mockResolvedValue(mockProfileWithStaff) },
+                booking: {
+                    findMany: vi.fn().mockResolvedValue([]),
+                    create: vi.fn().mockImplementation((args) => {
+                        capturedData = args.data;
+                        return { id: 4 };
+                    }),
+                },
+                staffAvailability: {
+                    findMany: vi.fn().mockResolvedValue([
+                        // staff-a only 16:00–18:00 Wed. staff-b has no override -> salon 09:00–18:00 applies.
+                        { staffId: 'staff-a', dayOfWeek: 3, isWorking: true, startTime: '16:00', endTime: '18:00' },
+                    ]),
+                },
+            };
+            return callback(tx);
+        });
+
+        const result = await createBooking(validInput); // 14:00
+        expect(result.success).toBe(true);
+        expect(capturedData.staff_id).toBe('staff-b');
+        expect(capturedData.slotLock).toBe('1:staff-b:2026-04-01:14:00');
     });
 });

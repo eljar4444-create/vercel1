@@ -286,6 +286,9 @@ async function renderProviderDashboard(
                 orderBy: { position: 'asc' },
                 select: { id: true, url: true, position: true, staffId: true },
             },
+            staff: {
+                select: { id: true },
+            },
         },
     });
 
@@ -343,6 +346,13 @@ async function renderProviderDashboard(
             position: p.position,
             staffId: p.staffId,
         })),
+        staffIds: s.staff.map((st) => st.id),
+    }));
+
+    const staffOptions = staff.map((s) => ({
+        id: s.id,
+        name: s.name,
+        avatarUrl: s.avatarUrl,
     }));
 
     const navItems = [
@@ -626,7 +636,7 @@ async function renderProviderDashboard(
                                     </p>
                                 </div>
                             </div>
-                            <ServicesSection profileId={profileId} services={serializedServices} />
+                            <ServicesSection profileId={profileId} services={serializedServices} staff={staffOptions} />
                         </div>
                     )}
 

@@ -126,7 +126,20 @@ async function getProfileBySlug(slug: string, includeDraft: boolean = false) {
                     id: true,
                     name: true,
                     avatarUrl: true,
+                    specialty: true,
+                    experience: true,
+                    rating: true,
+                    tags: true,
+                    photos: {
+                        orderBy: { position: 'asc' },
+                        select: { url: true },
+                    },
                 }
+            },
+            photos: {
+                where: { serviceId: null, staffId: null },
+                orderBy: { position: 'asc' },
+                select: { url: true },
             }
         },
     });
@@ -249,7 +262,10 @@ export default async function SalonProfilePage({
         address: profile.address,
         image_url: profile.image_url,
         gallery: profile.gallery,
-        studioImages: profile.studioImages,
+        studioImages: [
+            ...(profile.photos?.map((p) => p.url) ?? []),
+            ...(profile.studioImages ?? []),
+        ],
         bio: profile.bio,
         phone: profile.phone,
         languages: profileLanguages,
@@ -283,7 +299,16 @@ export default async function SalonProfilePage({
                 : String(r.createdAt),
             clientName: r.client?.name ?? 'Клиент',
         })) ?? [],
-        staff: profile.staff ?? [],
+        staff: profile.staff?.map((s) => ({
+            id: s.id,
+            name: s.name,
+            avatarUrl: s.avatarUrl,
+            specialty: s.specialty,
+            experience: s.experience,
+            rating: typeof s.rating === 'number' ? s.rating : 5.0,
+            tags: s.tags ?? [],
+            photos: s.photos?.map((p) => p.url) ?? [],
+        })) ?? [],
     };
 
     return (

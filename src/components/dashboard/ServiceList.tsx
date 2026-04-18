@@ -11,6 +11,7 @@ export interface ServiceData {
     price: string;
     duration_min: number;
     portfolioPhotos?: ServicePhoto[];
+    staffIds?: string[];
 }
 
 interface ServiceListProps {

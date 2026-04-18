@@ -1,13 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Camera, Plus, Trash2, X, User as UserIcon } from 'lucide-react';
+import { Camera, Clock, Plus, Trash2, X, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createStaff, deleteStaff } from '@/app/actions/staff';
-import {
-    StaffPhotosModal,
-    type StaffPhotoService,
-} from '@/components/dashboard/StaffPhotosModal';
+import { type ServicePhoto } from '@/components/dashboard/ServicePhotoUpload';
+import { StaffManagementHub } from '@/components/dashboard/StaffManagementHub';
+
+export interface StaffPhotoService {
+    id: number;
+    title: string;
+    portfolioPhotos: ServicePhoto[];
+}
 
 interface StaffSectionProps {
     staff: any[];
@@ -20,9 +24,7 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
     const [bio, setBio] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [photosStaff, setPhotosStaff] = useState<{ id: string; name: string } | null>(
-        null
-    );
+    const [managingStaff, setManagingStaff] = useState<any | null>(null);
 
     const photoCountByStaffId = services.reduce<Record<string, number>>((acc, s) => {
         for (const p of s.portfolioPhotos) {
@@ -107,39 +109,38 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {staff.map((s) => (
-                    <div key={s.id} className="relative flex items-center gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:shadow-md">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-400">
+                    <div 
+                        key={s.id} 
+                        onClick={() => setManagingStaff(s)}
+                        className="group relative flex items-center gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:shadow-md hover:border-stone-300 cursor-pointer"
+                    >
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-stone-100 text-stone-400 ring-2 ring-transparent transition group-hover:ring-amber-200">
                             {s.avatarUrl ? (
                                 <img src={s.avatarUrl} alt={s.name} className="h-full w-full object-cover rounded-full" />
                             ) : (
                                 <UserIcon className="h-6 w-6" />
                             )}
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <h4 className="truncate text-sm font-bold text-slate-900">{s.name}</h4>
-                            {s.bio && <p className="truncate text-xs text-stone-500">{s.bio}</p>}
-                            <p className="mt-1 inline-flex items-center gap-1 text-[10px] text-stone-500">
-                                <Camera className="h-3 w-3" />
-                                {photoCountByStaffId[s.id] ?? 0} фото
-                            </p>
-                            {!s.schedule && <p className="mt-1 text-[10px] text-amber-600 font-semibold">Общее расписание</p>}
+                        <div className="flex-1 min-w-0 pr-24">
+                            <h4 className="truncate text-sm font-bold text-slate-900 group-hover:text-amber-700 transition-colors">{s.name}</h4>
+                            {s.specialty && <p className="truncate text-xs text-stone-500 font-medium">{s.specialty}</p>}
+                            {s.bio && <p className="truncate text-xs text-stone-400 mt-0.5 max-h-8 whitespace-normal line-clamp-2">{s.bio}</p>}
+                            <div className="mt-1 flex items-center gap-2">
+                                <p className="inline-flex items-center gap-1 text-[10px] text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded">
+                                    <Camera className="h-3 w-3" />
+                                    {photoCountByStaffId[s.id] ?? 0} фото
+                                </p>
+                                {!s.schedule && <p className="text-[10px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">Общее расписание</p>}
+                            </div>
                         </div>
-                        <div className="absolute right-3 top-3 flex items-center gap-1">
+                        <div className="absolute right-3 top-3 flex items-center bg-white/80 backdrop-blur pl-2 rounded-l-md">
                             <button
                                 type="button"
-                                onClick={() => setPhotosStaff({ id: s.id, name: s.name })}
-                                className="text-stone-300 transition hover:text-amber-600"
-                                aria-label="Фотографии работ"
-                                title="Фотографии работ"
-                            >
-                                <Camera className="h-4 w-4" />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => handleDelete(s.id)}
+                                onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
                                 disabled={loading}
-                                className="text-stone-300 transition hover:text-red-500"
+                                className="text-stone-300 transition hover:text-red-500 p-2"
                                 aria-label="Удалить мастера"
+                                title="Удалить мастера"
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>
@@ -154,11 +155,11 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
                 )}
             </div>
 
-            {photosStaff && (
-                <StaffPhotosModal
-                    staff={photosStaff}
+            {managingStaff && (
+                <StaffManagementHub
+                    staff={managingStaff}
                     services={services}
-                    onClose={() => setPhotosStaff(null)}
+                    onClose={() => setManagingStaff(null)}
                 />
             )}
         </div>

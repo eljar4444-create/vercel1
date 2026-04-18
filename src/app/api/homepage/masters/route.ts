@@ -66,6 +66,12 @@ export async function GET(req: NextRequest) {
                 category: { select: { name: true } },
                 user: { select: { image: true } },
                 services: { select: { title: true, price: true, duration_min: true }, take: 2 },
+                photos: {
+                    where: { serviceId: null, staffId: null },
+                    orderBy: { position: 'asc' },
+                    select: { url: true },
+                    take: 1,
+                },
             },
             orderBy: { created_at: 'desc' },
         });
@@ -86,11 +92,22 @@ export async function GET(req: NextRequest) {
                     ? (master.reviews.reduce((sum, r) => sum + r.rating, 0) / master.reviews.length).toFixed(1)
                     : '5.0';
 
-            const workPhotoUrl =
+            const isSalon = master.provider_type === 'SALON';
+
+            const interiorPhoto =
+                master.photos[0]?.url?.trim() ||
+                master.studioImages.find((p) => typeof p === 'string' && p.trim().length > 0) ||
                 master.gallery.find((p) => typeof p === 'string' && p.trim().length > 0) ||
-                master.image_url?.trim() ||
-                master.user?.image?.trim() ||
                 null;
+
+            const avatarPhoto = master.image_url?.trim() || master.user?.image?.trim() || null;
+
+            // Salons must never fall back to a personal avatar — keep brand integrity by
+            // letting the card render its premium placeholder instead.
+            // Freelancers lead with the avatar (it's the person's face), then portfolio.
+            const workPhotoUrl = isSalon
+                ? interiorPhoto
+                : avatarPhoto || interiorPhoto;
 
             return {
                 id: master.id,
@@ -99,7 +116,9 @@ export async function GET(req: NextRequest) {
                 category: master.category?.name || 'Бьюти-мастер',
                 city: master.city,
                 isVerified: master.is_verified,
+                providerType: master.provider_type,
                 avgRating,
+                reviewCount: master.reviews.length,
                 workPhotoUrl,
                 services: master.services.map((s) => ({
                     title: s.title,

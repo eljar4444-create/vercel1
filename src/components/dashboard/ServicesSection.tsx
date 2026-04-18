@@ -4,15 +4,16 @@ import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { deleteService } from '@/app/actions/services';
 import { ServiceList, type ServiceData } from '@/components/dashboard/ServiceList';
-import { AddServiceForm } from '@/components/dashboard/AddServiceForm';
+import { AddServiceForm, type StaffOption } from '@/components/dashboard/AddServiceForm';
 import toast from 'react-hot-toast';
 
 interface ServicesSectionProps {
     profileId: number;
     services: ServiceData[];
+    staff?: StaffOption[];
 }
 
-export function ServicesSection({ profileId, services }: ServicesSectionProps) {
+export function ServicesSection({ profileId, services, staff = [] }: ServicesSectionProps) {
     const [serviceItems, setServiceItems] = useState(services);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editingService, setEditingService] = useState<ServiceData | null>(null);
@@ -86,7 +87,9 @@ export function ServicesSection({ profileId, services }: ServicesSectionProps) {
                                 price: Number(currentService.price),
                                 duration_min: currentService.duration_min,
                                 images: currentService.images,
+                                staffIds: currentService.staffIds,
                             } : undefined}
+                            availableStaff={staff}
                             compact
                             onSaved={handleServiceSaved}
                         />

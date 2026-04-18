@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, Variants } from 'framer-motion';
 import MasterCard from './MasterCard';
 import { ArrowRight, Loader2 } from 'lucide-react';
@@ -24,6 +24,8 @@ const itemVariants: Variants = {
     }
 };
 
+type ProviderType = 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
+
 interface MasterData {
     id: number;
     slug: string;
@@ -31,17 +33,41 @@ interface MasterData {
     category: string;
     city: string;
     isVerified: boolean;
+    providerType: ProviderType;
     avgRating: string;
+    reviewCount: number;
     workPhotoUrl: string | null;
     services: { title: string; price: number; durationMin: number }[];
 }
+
+type ProfileTab = 'FREELANCER' | 'SALON';
 
 export default function MasterGallery() {
     const [masters, setMasters] = useState<MasterData[]>([]);
     const [loading, setLoading] = useState(true);
     const [localLoading, setLocalLoading] = useState(false);
-    const [heading, setHeading] = useState('Топ-мастера платформы');
+    const [profileType, setProfileType] = useState<ProfileTab>('SALON');
+    const [cityName, setCityName] = useState<string | null>(null);
     const [localModeStatus, setLocalModeStatus] = useState<'idle' | 'active' | 'empty'>('idle');
+    const salonScrollRef = useRef<HTMLDivElement>(null);
+
+    const scrollSalons = (direction: 'prev' | 'next') => {
+        const el = salonScrollRef.current;
+        if (!el) return;
+        const card = el.querySelector('[data-salon-card]') as HTMLElement | null;
+        const styles = window.getComputedStyle(el);
+        const gap = parseFloat(styles.columnGap || styles.gap || '0') || 24;
+        const step = (card?.offsetWidth ?? el.clientWidth / 3) + gap;
+        el.scrollBy({ left: direction === 'next' ? step : -step, behavior: 'smooth' });
+    };
+
+    const filteredMasters = masters.filter((m) =>
+        profileType === 'SALON' ? m.providerType === 'SALON' : m.providerType !== 'SALON'
+    );
+
+    const baseHeading = profileType === 'SALON' ? 'Топ-салоны платформы' : 'Топ-мастера платформы';
+    const localizedHeading = profileType === 'SALON' ? `Салоны — ${cityName}` : `Мастера — ${cityName}`;
+    const heading = localModeStatus === 'active' && cityName ? localizedHeading : baseHeading;
 
     useEffect(() => {
         setLoading(true);
@@ -49,7 +75,6 @@ export default function MasterGallery() {
             .then((res) => res.json())
             .then((data: MasterData[]) => {
                 setMasters(data);
-                setHeading('Топ-мастера платформы');
                 setLoading(false);
             })
             .catch((err) => {
@@ -64,7 +89,7 @@ export default function MasterGallery() {
             .then((res) => res.json())
             .then((data: MasterData[]) => {
                 setMasters(data);
-                setHeading('Топ-мастера платформы');
+                setCityName(null);
                 setLocalModeStatus('idle');
                 setLocalLoading(false);
             })
@@ -79,7 +104,7 @@ export default function MasterGallery() {
         const data: MasterData[] = await res.json();
         if (data.length > 0) {
             setMasters(data);
-            setHeading(`Мастера — ${city}`);
+            setCityName(city);
             setLocalModeStatus('active');
             return true;
         }
@@ -158,7 +183,7 @@ export default function MasterGallery() {
 
     if (masters.length === 0) return null;
 
-    const showArrows = masters.length > 4;
+    const showArrows = profileType === 'SALON' && filteredMasters.length > 3;
 
     return (
         <section className="py-24 px-8 bg-[#f0ebe4]">
@@ -183,6 +208,33 @@ export default function MasterGallery() {
                         <p className="text-booking-textMuted text-lg leading-relaxed mt-2 mb-2">
                             Мы проверяем каждого мастера на соответствие золотому стандарту качества SVOI.
                         </p>
+
+                        <div className="bg-gray-100 p-1 rounded-full inline-flex">
+                            <button
+                                type="button"
+                                onClick={() => setProfileType('FREELANCER')}
+                                className={
+                                    profileType === 'FREELANCER'
+                                        ? 'bg-white text-gray-900 shadow-sm rounded-full px-6 py-2 text-sm font-medium transition-all'
+                                        : 'text-gray-500 hover:text-gray-700 px-6 py-2 text-sm font-medium transition-all'
+                                }
+                                aria-pressed={profileType === 'FREELANCER'}
+                            >
+                                Частные мастера
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setProfileType('SALON')}
+                                className={
+                                    profileType === 'SALON'
+                                        ? 'bg-white text-gray-900 shadow-sm rounded-full px-6 py-2 text-sm font-medium transition-all'
+                                        : 'text-gray-500 hover:text-gray-700 px-6 py-2 text-sm font-medium transition-all'
+                                }
+                                aria-pressed={profileType === 'SALON'}
+                            >
+                                Салоны
+                            </button>
+                        </div>
 
                         {localModeStatus !== 'active' ? (
                             <button
@@ -231,12 +283,22 @@ export default function MasterGallery() {
 
                     {showArrows && (
                         <div className="hidden md:flex gap-4 absolute right-0 bottom-0">
-                            <button className="w-12 h-12 rounded-full border border-stone-300 flex items-center justify-center hover:bg-white transition-all">
+                            <button
+                                type="button"
+                                onClick={() => scrollSalons('prev')}
+                                aria-label="Предыдущие салоны"
+                                className="w-12 h-12 rounded-full border border-stone-300 flex items-center justify-center hover:bg-white transition-all"
+                            >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
-                            <button className="w-12 h-12 rounded-full border border-stone-300 flex items-center justify-center hover:bg-white transition-all">
+                            <button
+                                type="button"
+                                onClick={() => scrollSalons('next')}
+                                aria-label="Следующие салоны"
+                                className="w-12 h-12 rounded-full border border-stone-300 flex items-center justify-center hover:bg-white transition-all"
+                            >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
@@ -245,28 +307,73 @@ export default function MasterGallery() {
                     )}
                 </motion.div>
 
-                <motion.div 
-                    variants={containerVariants}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true, amount: 0.2 }}
-                    className="flex flex-wrap justify-center gap-6 w-full items-start"
-                >
-                    {masters.map((master) => (
-                        <motion.div key={master.id} variants={itemVariants} className="w-full md:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] flex-none">
-                            <MasterCard
-                                slug={master.slug}
-                                name={master.name}
-                                category={master.category}
-                                city={master.city}
-                                isVerified={master.isVerified}
-                                avgRating={master.avgRating}
-                                workPhotoUrl={master.workPhotoUrl}
-                                services={master.services}
-                            />
-                        </motion.div>
-                    ))}
-                </motion.div>
+                {filteredMasters.length === 0 ? (
+                    <div className="mx-auto max-w-md text-center py-12">
+                        <p className="text-base font-medium text-booking-textMain">
+                            {profileType === 'SALON'
+                                ? 'В вашем районе пока нет добавленных салонов. Будьте первыми!'
+                                : 'В вашем районе пока нет частных мастеров. Будьте первыми!'}
+                        </p>
+                    </div>
+                ) : profileType === 'SALON' ? (
+                    <motion.div
+                        ref={salonScrollRef}
+                        key={profileType}
+                        variants={containerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.2 }}
+                        className="flex overflow-x-auto snap-x snap-mandatory gap-6 scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                    >
+                        {filteredMasters.map((master) => (
+                            <motion.div
+                                key={master.id}
+                                data-salon-card
+                                variants={itemVariants}
+                                className="snap-start shrink-0 w-full md:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
+                            >
+                                <MasterCard
+                                    slug={master.slug}
+                                    name={master.name}
+                                    category={master.category}
+                                    city={master.city}
+                                    isVerified={master.isVerified}
+                                    avgRating={master.avgRating}
+                                    reviewCount={master.reviewCount}
+                                    workPhotoUrl={master.workPhotoUrl}
+                                    providerType={master.providerType}
+                                    services={master.services}
+                                />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key={profileType}
+                        variants={containerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.2 }}
+                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 w-full"
+                    >
+                        {filteredMasters.map((master) => (
+                            <motion.div key={master.id} variants={itemVariants}>
+                                <MasterCard
+                                    slug={master.slug}
+                                    name={master.name}
+                                    category={master.category}
+                                    city={master.city}
+                                    isVerified={master.isVerified}
+                                    avgRating={master.avgRating}
+                                    reviewCount={master.reviewCount}
+                                    workPhotoUrl={master.workPhotoUrl}
+                                    providerType={master.providerType}
+                                    services={master.services}
+                                />
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                )}
             </div>
         </section>
     );
