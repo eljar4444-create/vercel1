@@ -17,7 +17,7 @@ import {
 // Subcomponents
 import { StaffAvatarUpload } from './StaffAvatarUpload';
 import { ServicePhotoUpload } from './ServicePhotoUpload';
-import type { StaffPhotoService } from './StaffPhotosModal';
+import type { StaffPhotoService } from './StaffSection';
 
 const DAYS: { id: number; label: string }[] = [
     { id: 1, label: 'Понедельник' },
@@ -382,7 +382,7 @@ function HubPortfolioTab({ staff, services, onClose }: { staff: StaffManagementH
         <div className="p-6">
             {services.length === 0 ? (
                 <div className="py-12 bg-white rounded-2xl border border-dashed border-stone-200 text-center flex flex-col items-center justify-center p-6">
-                    <p className="text-sm text-stone-500 max-w-md">В салоне пока нет услуг. Фотографии мастеров прикрепляются к конкретной услуге (например, "Окрашивание корней").</p>
+                    <p className="text-sm text-stone-500 max-w-md">В салоне пока нет услуг. Фотографии мастеров прикрепляются к конкретной услуге (например, &laquo;Окрашивание корней&raquo;).</p>
                     <Link
                         href="/dashboard?section=services"
                         onClick={onClose}
