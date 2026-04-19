@@ -251,6 +251,12 @@ export default async function SearchPage({
                 category: true,
                 services: true,
                 reviews: true,
+                photos: {
+                    where: { serviceId: null, staffId: null },
+                    orderBy: { position: 'asc' },
+                    select: { url: true },
+                    take: 1,
+                },
             },
             orderBy,
             take: 50,
@@ -264,6 +270,20 @@ export default async function SearchPage({
         favoriteProfileIds = [];
     }
 
+    function resolveImageUrl(profile: any): string | null {
+        const interiorPhoto =
+            profile.photos?.[0]?.url?.trim() ||
+            profile.studioImages?.find?.((p: any) => typeof p === 'string' && p.trim().length > 0) ||
+            profile.gallery?.find?.((p: any) => typeof p === 'string' && p.trim().length > 0) ||
+            null;
+        const avatarPhoto = profile.image_url?.trim() || null;
+
+        // Salons must never fall back to a personal avatar.
+        return profile.provider_type === 'SALON'
+            ? interiorPhoto
+            : avatarPhoto || interiorPhoto;
+    }
+
     const mapMarkers = profiles.map((profile) => ({
         id: profile.id,
         name: profile.name,
@@ -272,7 +292,7 @@ export default async function SearchPage({
         address: profile.provider_type === 'SALON' ? profile.address : null,
         lat: profile.latitude,
         lng: profile.longitude,
-        image: profile.image_url,
+        image: resolveImageUrl(profile),
         slug: profile.slug,
     }));
 
@@ -283,7 +303,7 @@ export default async function SearchPage({
         provider_type: profile.provider_type,
         city: profile.city,
         address: profile.provider_type === 'SALON' ? profile.address : null,
-        image_url: profile.image_url,
+        image_url: resolveImageUrl(profile),
         services: (profile.services || []).map((service: any) => ({
             id: service.id,
             title: service.title,

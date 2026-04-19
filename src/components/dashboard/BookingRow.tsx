@@ -42,41 +42,41 @@ const STATUS_CONFIG: Record<string, {
         label: 'Ожидает',
         labelColor: 'text-amber-700',
         dotColor: 'bg-amber-400',
-        pillBg: 'bg-amber-50 border border-amber-200',
+        pillBg: 'bg-transparent border border-amber-300',
         borderColor: 'border-l-amber-400',
-        rowBg: 'hover:bg-amber-50/30',
+        rowBg: '',
     },
     confirmed: {
         label: 'Подтверждена',
         labelColor: 'text-emerald-700',
         dotColor: 'bg-emerald-500',
-        pillBg: 'bg-emerald-50 border border-emerald-200',
+        pillBg: 'bg-transparent border border-emerald-300',
         borderColor: 'border-l-emerald-500',
-        rowBg: 'hover:bg-emerald-50/20',
+        rowBg: '',
     },
     cancelled: {
         label: 'Отменена',
         labelColor: 'text-rose-600',
         dotColor: 'bg-rose-400',
-        pillBg: 'bg-rose-50 border border-rose-200',
+        pillBg: 'bg-transparent border border-rose-300',
         borderColor: 'border-l-rose-400',
-        rowBg: 'hover:bg-rose-50/20',
+        rowBg: '',
     },
     completed: {
         label: 'Визит завершен',
         labelColor: 'text-slate-500',
         dotColor: 'bg-slate-400',
-        pillBg: 'bg-slate-100 border border-slate-200',
+        pillBg: 'bg-transparent border border-slate-300',
         borderColor: 'border-l-slate-300',
-        rowBg: 'hover:bg-slate-50/50',
+        rowBg: '',
     },
     no_show: {
         label: 'Не пришел',
         labelColor: 'text-slate-500',
         dotColor: 'bg-slate-400',
-        pillBg: 'bg-slate-100 border border-slate-200',
+        pillBg: 'bg-transparent border border-slate-300',
         borderColor: 'border-l-slate-300',
-        rowBg: 'hover:bg-slate-50/50',
+        rowBg: '',
     },
 };
 
@@ -84,7 +84,7 @@ const DEFAULT_STATUS = {
     label: 'Неизвестно',
     labelColor: 'text-slate-500',
     dotColor: 'bg-slate-400',
-    pillBg: 'bg-slate-100 border border-slate-200',
+    pillBg: 'bg-transparent border border-slate-300',
     borderColor: 'border-l-slate-200',
     rowBg: '',
 };
@@ -136,12 +136,12 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
     };
 
     return (
-        <div className={`group relative overflow-hidden rounded-xl border border-slate-100 border-l-4 ${cfg.borderColor} bg-white shadow-sm transition-all duration-150 ${cfg.rowBg} hover:shadow-md`}>
+        <div className={`group relative bg-transparent border-l-2 ${cfg.borderColor} transition-colors duration-150 hover:bg-gray-50/40`}>
             <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
 
                 {/* ── Date block ───────────────────────────── */}
                 <div className="flex items-center gap-3 sm:w-[140px] sm:shrink-0">
-                    <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-slate-50 border border-slate-100 shadow-sm">
+                    <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-md bg-transparent border border-gray-300">
                         <span className="text-base font-extrabold leading-none text-slate-900">{dayNum}</span>
                         <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">{monthShort}</span>
                     </div>
@@ -159,7 +159,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                     <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                         <User className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                         <span className="text-sm font-semibold text-slate-900">{booking.user_name}</span>
-                        <span className="inline-flex items-center rounded-md bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-600 ring-1 ring-inset ring-violet-500/20">
+                        <span className="inline-flex items-center rounded-full border border-violet-300 bg-transparent px-2 py-0.5 text-[10px] font-semibold text-violet-600">
                             ✨ Новый клиент
                         </span>
                     </div>
@@ -179,7 +179,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                                 href={`https://wa.me/${booking.user_phone.replace(/\D/g, '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700 hover:bg-green-100 transition-colors"
+                                className="inline-flex items-center gap-1 rounded-full border border-green-300 bg-transparent px-2.5 py-0.5 text-[11px] font-semibold text-green-700 hover:border-green-600 transition-colors"
                             >
                                 <MessageCircle className="h-3 w-3" />
                                 WhatsApp
@@ -190,7 +190,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                                 type="button"
                                 onClick={handleOpenChat}
                                 disabled={isOpeningChat}
-                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-transparent px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 hover:border-gray-900 transition-colors disabled:opacity-50"
                             >
                                 {isOpeningChat
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -203,7 +203,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                     {booking.service && (
                         <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
                             <span className="text-xs text-slate-500">{booking.service.title}</span>
-                            <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-bold text-slate-700">
+                            <span className="rounded-md border border-gray-300 bg-transparent px-1.5 py-0.5 text-[11px] font-bold text-slate-700">
                                 {booking.service.price}
                             </span>
                         </div>
@@ -224,7 +224,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                             <button
                                 onClick={() => handleStatusChange('confirmed')}
                                 disabled={busy}
-                                className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 hover:shadow-sm disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
                             >
                                 {isUpdating === 'confirmed'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -234,7 +234,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                             <button
                                 onClick={() => handleStatusChange('cancelled')}
                                 disabled={busy}
-                                className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-transparent px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-500 disabled:opacity-50"
                             >
                                 {isUpdating === 'cancelled'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -249,7 +249,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                             <button
                                 onClick={() => handleStatusChange('completed')}
                                 disabled={busy}
-                                className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-800 hover:shadow-sm disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
                             >
                                 {isUpdating === 'completed'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
@@ -259,7 +259,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                             <button
                                 onClick={() => handleStatusChange('no_show')}
                                 disabled={busy}
-                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50 disabled:opacity-50"
+                                className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-transparent px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-gray-900 disabled:opacity-50"
                             >
                                 {isUpdating === 'no_show'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />

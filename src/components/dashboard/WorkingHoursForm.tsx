@@ -167,53 +167,53 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-                <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
+                <div className="flex items-center gap-2 border-l-2 border-red-500 px-3 py-2 text-xs text-red-700">
                     <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
                     {error}
                 </div>
             )}
             {saved && (
-                <div className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
+                <div className="flex items-center gap-2 border-l-2 border-green-500 px-3 py-2 text-xs text-green-700">
                     <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
                     Расписание сохранено
                 </div>
             )}
 
-            <div className="rounded-2xl border border-gray-100 bg-slate-50 p-3">
+            <div className="border-l-2 border-gray-300 pl-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Пресеты времени</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                     <button
                         type="button"
                         onClick={() => applyPreset('09:00', '18:00')}
-                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        className="rounded-full border border-gray-300 bg-transparent px-4 py-1.5 text-sm font-medium text-gray-700 hover:border-gray-900 transition-colors"
                     >
                         Стандарт: 09:00 - 18:00
                     </button>
                     <button
                         type="button"
                         onClick={() => applyPreset('10:00', '20:00')}
-                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                        className="rounded-full border border-gray-300 bg-transparent px-4 py-1.5 text-sm font-medium text-gray-700 hover:border-gray-900 transition-colors"
                     >
                         Вечерний: 10:00 - 20:00
                     </button>
                 </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="divide-y divide-gray-200">
                 {DAYS.map((day) => {
                     const intervals = scheduleByDay[day.id] ?? [];
                     const active = intervals.length > 0;
 
                     return (
-                        <div key={day.id} className="rounded-2xl border border-gray-100 bg-white p-4">
+                        <div key={day.id} className="bg-transparent py-4">
                             <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
                                 <button
                                     type="button"
                                     onClick={() => toggleDay(day.id)}
-                                    className={`inline-flex h-11 min-w-[64px] items-center justify-center rounded-xl border text-sm font-semibold transition ${
+                                    className={`inline-flex h-11 min-w-[64px] items-center justify-center rounded-md border bg-transparent text-sm font-semibold transition-colors ${
                                         active
-                                            ? 'border-gray-900 bg-gray-900 text-white'
-                                            : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                                            ? 'border-gray-900 text-gray-900'
+                                            : 'border-gray-300 text-gray-500 hover:border-gray-900'
                                     }`}
                                 >
                                     {day.label}
@@ -234,7 +234,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                                                                 required
                                                                 value={interval.start}
                                                                 onChange={(e) => updateIntervalField(day.id, index, 'start', e.target.value)}
-                                                                className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 outline-none focus:border-transparent focus:ring-2 focus:ring-gray-300"
+                                                                className="h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors"
                                                             />
                                                         </div>
                                                         <div>
@@ -246,7 +246,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                                                                 required
                                                                 value={interval.end}
                                                                 onChange={(e) => updateIntervalField(day.id, index, 'end', e.target.value)}
-                                                                className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 outline-none focus:border-transparent focus:ring-2 focus:ring-gray-300"
+                                                                className="h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors"
                                                             />
                                                         </div>
                                                     </div>
@@ -255,7 +255,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                                                         <button
                                                             type="button"
                                                             onClick={() => removeInterval(day.id, index)}
-                                                            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                                                            className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-transparent text-gray-400 transition-colors hover:border-red-500 hover:text-red-500"
                                                             aria-label="Удалить интервал"
                                                         >
                                                             <X className="h-4 w-4" />
@@ -288,7 +288,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
             <button
                 type="submit"
                 disabled={isSubmitting || activeDaysCount === 0}
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:opacity-60"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-gray-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-gray-700 disabled:opacity-60"
             >
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock3 className="h-4 w-4" />}
                 Сохранить часы работы

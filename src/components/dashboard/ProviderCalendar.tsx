@@ -160,10 +160,10 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
     const PIXELS_PER_MIN = ROW_HEIGHT_PX / SLOT_MINUTES;
 
     return (
-        <div className="rounded-2xl border border-stone-200 bg-white overflow-hidden">
+        <div className="bg-transparent overflow-hidden">
 
             {/* ── Week navigation (sticky, always visible) ── */}
-            <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b-2 border-stone-200 bg-stone-50 px-4 py-3">
+            <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b border-gray-300 bg-transparent px-4 py-3">
                 <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-slate-800 capitalize">{weekRangeLabel}</span>
                 </div>
@@ -171,7 +171,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
                     <button
                         type="button"
                         onClick={goPrevWeek}
-                        className="flex h-10 items-center gap-1.5 rounded-xl border-2 border-stone-300 bg-white px-3 text-stone-700 transition hover:bg-stone-100 hover:border-stone-400"
+                        className="flex h-10 items-center gap-1.5 rounded-full border border-gray-300 bg-transparent px-3 text-stone-700 transition hover:border-gray-900"
                         aria-label="Предыдущая неделя"
                         title="Предыдущая неделя"
                     >
@@ -181,7 +181,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
                     <button
                         type="button"
                         onClick={goToday}
-                        className="rounded-xl border-2 border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:bg-stone-100 hover:border-stone-400"
+                        className="rounded-full border border-gray-300 bg-transparent px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-gray-900"
                         title="Текущая неделя"
                     >
                         Сегодня
@@ -189,7 +189,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
                     <button
                         type="button"
                         onClick={goNextWeek}
-                        className="flex h-10 items-center gap-1.5 rounded-xl border-2 border-stone-300 bg-white px-3 text-stone-700 transition hover:bg-stone-100 hover:border-stone-400"
+                        className="flex h-10 items-center gap-1.5 rounded-full border border-gray-300 bg-transparent px-3 text-stone-700 transition hover:border-gray-900"
                         aria-label="Следующая неделя"
                         title="Следующая неделя"
                     >
@@ -200,7 +200,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
             </div>
 
             {error && (
-                <div className="mx-4 mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs text-red-700">{error}</div>
+                <div className="mx-4 mt-3 border-l-2 border-red-500 px-3 py-2 text-xs text-red-700">{error}</div>
             )}
 
             {loading && (

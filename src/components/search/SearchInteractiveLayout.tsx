@@ -92,6 +92,24 @@ export function SearchInteractiveLayout({
     const [isPending, startTransition] = useTransition();
     const [bounds, setBounds] = useState<MapBounds | null>(null);
     const [resultCount, setResultCount] = useState<number>(initialProfiles.length);
+    const [profileType, setProfileType] = useState<'FREELANCER' | 'SALON'>('FREELANCER');
+
+    const filteredProfiles = profiles.filter((p: any) =>
+        profileType === 'SALON' ? p.provider_type === 'SALON' : p.provider_type !== 'SALON'
+    );
+
+    // Russian pluralization: 1 салон, 2 салона, 5 салонов
+    const pluralize = (n: number, forms: [string, string, string]) => {
+        const mod10 = n % 10;
+        const mod100 = n % 100;
+        if (mod10 === 1 && mod100 !== 11) return forms[0];
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return forms[1];
+        return forms[2];
+    };
+
+    const resultsLabel = profileType === 'SALON'
+        ? pluralize(filteredProfiles.length, ['салон', 'салона', 'салонов'])
+        : pluralize(filteredProfiles.length, ['специалист', 'специалиста', 'специалистов']);
 
     const favoriteSet = new Set(favoriteIds);
 
@@ -213,20 +231,48 @@ export function SearchInteractiveLayout({
     }, []);
 
     return (
-        <div className="flex h-full flex-col lg:flex-row">
-            <div className="relative z-10 h-full w-full overflow-y-auto bg-transparent p-4 pb-24 shadow-[20px_0_30px_-15px_rgba(0,0,0,0.05)] md:p-6 lg:w-[48%] xl:w-[46%]">
+        <div className="flex h-full min-h-0 flex-col lg:flex-row">
+            <div className="relative z-10 h-full min-h-0 w-full overflow-y-auto bg-transparent p-4 pb-12 shadow-[20px_0_30px_-15px_rgba(0,0,0,0.05)] md:p-6 lg:w-[48%] xl:w-[46%]">
                 {/* Header with dynamic result count */}
                 <div className="mb-3 flex items-center justify-between gap-3">
                     <h1 className="text-2xl font-bold text-stone-800 font-sans">
                         {isLoading
                             ? 'Поиск специалистов…'
-                            : resultCount > 0
-                                ? `Найдено ${resultCount} специалистов`
-                                : 'Специалисты не найдены'}
+                            : filteredProfiles.length > 0
+                                ? `Найдено ${filteredProfiles.length} ${resultsLabel}`
+                                : profileType === 'SALON' ? 'Салоны не найдены' : 'Специалисты не найдены'}
                     </h1>
                     <Link href="/" className="text-sm text-stone-500 transition hover:text-stone-800">
                         На главную
                     </Link>
+                </div>
+
+                {/* Freelancer / Salon toggle */}
+                <div className="mb-4 inline-flex rounded-full bg-stone-100 p-1 text-sm font-medium">
+                    <button
+                        type="button"
+                        onClick={() => setProfileType('FREELANCER')}
+                        className={cn(
+                            'px-4 py-1.5 rounded-full transition-colors',
+                            profileType === 'FREELANCER'
+                                ? 'bg-white text-stone-900 shadow-sm'
+                                : 'text-stone-500 hover:text-stone-700'
+                        )}
+                    >
+                        Частные мастера
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setProfileType('SALON')}
+                        className={cn(
+                            'px-4 py-1.5 rounded-full transition-colors',
+                            profileType === 'SALON'
+                                ? 'bg-white text-stone-900 shadow-sm'
+                                : 'text-stone-500 hover:text-stone-700'
+                        )}
+                    >
+                        Салоны
+                    </button>
                 </div>
 
                 <Suspense fallback={<div className="h-10" />}>
@@ -246,9 +292,9 @@ export function SearchInteractiveLayout({
                             (isLoading || isPending) ? "opacity-50 pointer-events-none" : "opacity-100"
                         )}
                     >
-                        {profiles.length > 0 ? (
-                            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 items-start">
-                                {profiles.map((profile: any) => (
+                        {filteredProfiles.length > 0 ? (
+                            <div className="flex flex-col gap-4 w-full">
+                                {filteredProfiles.map((profile: any) => (
                                     <div
                                         key={profile.id}
                                         onMouseEnter={() => setHoveredMasterId(profile.id)}
@@ -258,6 +304,7 @@ export function SearchInteractiveLayout({
                                             profile={profile}
                                             initialIsFavorited={favoriteSet.has(profile.id)}
                                             isHovered={hoveredMasterId === profile.id}
+                                            profileType={profileType}
                                         />
                                     </div>
                                 ))}

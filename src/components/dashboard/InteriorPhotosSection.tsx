@@ -103,7 +103,7 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
                             key={photo.id}
                             value={photo}
                             whileDrag={{ scale: 1.05, boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}
-                            className="group relative aspect-square w-[calc(50%-4px)] cursor-grab overflow-hidden rounded-xl border border-gray-200 bg-gray-100 sm:w-[calc(25%-6px)] active:cursor-grabbing"
+                            className="group relative aspect-square w-[calc(50%-4px)] cursor-grab overflow-hidden rounded-md border border-gray-300 bg-transparent sm:w-[calc(25%-6px)] active:cursor-grabbing"
                         >
                             <img
                                 src={photo.url}
@@ -132,7 +132,7 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
                     ))}
                 </Reorder.Group>
             ) : (
-                <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50/70 py-10 text-center">
+                <div className="border border-dashed border-gray-300 bg-transparent py-10 text-center">
                     <Upload className="mx-auto mb-2 h-8 w-8 text-gray-300" />
                     <p className="text-sm text-gray-500">Добавьте фото вашего интерьера</p>
                     <p className="mt-1 text-xs text-gray-400">
@@ -143,7 +143,7 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
 
             <div className="flex items-center gap-3">
                 <label
-                    className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 ${
+                    className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-gray-300 bg-transparent px-4 text-sm font-medium text-gray-700 transition-colors hover:border-gray-900 ${
                         isUploading || photos.length >= MAX_PHOTOS
                             ? 'cursor-not-allowed opacity-60'
                             : ''

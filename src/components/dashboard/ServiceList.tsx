@@ -32,10 +32,10 @@ export function ServiceList({ services, deletingId, onDelete, onEdit, showPhotoU
     }
 
     return (
-        <div className="space-y-2 py-2">
+        <div className="divide-y divide-gray-200">
             {services.map((service) => (
-                <div key={service.id} className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-3 py-3">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                <div key={service.id} className="flex items-center gap-3 bg-transparent py-4">
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-gray-300 bg-transparent">
                         {service.images?.[0] ? (
                             <img
                                 src={service.images[0]}
@@ -61,7 +61,7 @@ export function ServiceList({ services, deletingId, onDelete, onEdit, showPhotoU
                                 <button
                                     type="button"
                                     onClick={() => onEdit(service)}
-                                    className="inline-flex h-8 items-center gap-1 rounded-lg px-2.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+                                    className="inline-flex h-8 items-center gap-1 rounded-full border border-gray-300 px-3 text-xs font-medium text-gray-600 transition-colors hover:border-gray-900 hover:text-gray-900"
                                 >
                                     <Pencil className="h-3.5 w-3.5" />
                                     Изменить
@@ -70,7 +70,7 @@ export function ServiceList({ services, deletingId, onDelete, onEdit, showPhotoU
                                     type="button"
                                     onClick={() => onDelete(service.id)}
                                     disabled={deletingId === service.id}
-                                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-300 transition hover:bg-red-50 hover:text-red-500 disabled:opacity-60"
+                                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-300 transition-colors hover:text-red-500 disabled:opacity-60"
                                     aria-label="Удалить услугу"
                                 >
                                     {deletingId === service.id ? (

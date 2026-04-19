@@ -76,7 +76,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
     };
 
     const inputClass =
-        'w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all';
+        'w-full h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors';
     const labelClass = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5';
 
     return (
@@ -161,7 +161,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                     type="button"
                     onClick={handleSave}
                     disabled={isSaving || isClearing || !address.trim()}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-gray-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-10 items-center gap-2 rounded-md bg-gray-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
                     id="arrival-save-btn"
                 >
                     {isSaving ? (
@@ -177,7 +177,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                         type="button"
                         onClick={handleClear}
                         disabled={isSaving || isClearing}
-                        className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm font-medium text-gray-500 transition-colors hover:bg-gray-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-10 items-center gap-2 rounded-full border border-gray-300 bg-transparent px-4 text-sm font-medium text-gray-500 transition-colors hover:border-gray-900 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60"
                         id="arrival-clear-btn"
                     >
                         {isClearing ? (
@@ -197,7 +197,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                         <Eye className="h-3 w-3" />
                         Превью — так увидит клиент после записи
                     </div>
-                    <div className="rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-orange-50/30 to-white p-5 shadow-sm">
+                    <div className="border-l-2 border-amber-300 bg-transparent pl-4 py-2">
                         <h4 className="mb-3 text-sm font-bold text-slate-800">Как добраться</h4>
                         <div className="space-y-2 text-sm text-slate-700">
                             <div className="flex items-start gap-2.5">

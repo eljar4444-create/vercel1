@@ -241,7 +241,7 @@ export function AddServiceForm({
 
     return (
         <div className={compact || (profileId != null && !isEditing) ? '' : 'min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8'}>
-            <div className={compact || (profileId != null && !isEditing) ? '' : 'bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg border border-gray-100'}>
+            <div className={compact || (profileId != null && !isEditing) ? '' : 'bg-transparent w-full max-w-lg'}>
                 {!compact && (profileId == null || isEditing) && (
                     <h1 className="text-2xl font-bold mb-2 text-center text-gray-900">
                         {isEditing ? 'Редактировать услугу' : 'Какую услугу вы хотите предложить?'}
@@ -250,7 +250,7 @@ export function AddServiceForm({
 
                 <form onSubmit={handleSubmit} className={profileId != null && !isEditing ? 'space-y-3' : 'space-y-6'} noValidate>
                     {error && (
-                        <div className="flex items-center gap-2 bg-red-50 text-red-600 px-3 py-2 rounded-lg text-xs">
+                        <div className="flex items-center gap-2 border-l-2 border-red-500 px-3 py-2 text-xs text-red-600">
                             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                             {error}
                         </div>
@@ -264,7 +264,7 @@ export function AddServiceForm({
                             setSelectedSubcategory('');
                             setSelectedService('');
                         }}
-                        className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all"
+                        className="w-full h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:border-gray-900 transition-colors"
                     >
                         <option value="" disabled>Выберите категорию</option>
                         {categoryOptions.map((category) => (
@@ -282,7 +282,7 @@ export function AddServiceForm({
                             setSelectedService('');
                         }}
                         disabled={!selectedCategory}
-                        className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all disabled:opacity-60"
+                        className="w-full h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:border-gray-900 transition-colors disabled:opacity-60"
                     >
                         <option value="" disabled>
                             {selectedCategory ? 'Выберите подкатегорию' : 'Сначала выберите категорию'}
@@ -301,7 +301,7 @@ export function AddServiceForm({
                             value={selectedService}
                             onChange={(e) => setSelectedService(e.target.value)}
                             disabled={!selectedSubcategory}
-                            className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all disabled:opacity-60"
+                            className="w-full h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:border-gray-900 transition-colors disabled:opacity-60"
                         >
                             <option value="" disabled>
                                 Выберите конкретную услугу
@@ -327,7 +327,7 @@ export function AddServiceForm({
                                 disabled={byAgreement}
                                 value={price}
                                 onChange={(e) => setPrice(e.target.value)}
-                                className="flex-1 min-w-0 h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all disabled:opacity-60 disabled:bg-gray-100"
+                                className="flex-1 min-w-0 h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors disabled:opacity-60"
                             />
                             <input
                                 name="duration"
@@ -337,15 +337,15 @@ export function AddServiceForm({
                                 disabled={byAgreement}
                                 value={duration}
                                 onChange={(e) => setDuration(e.target.value)}
-                                className="w-24 h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all disabled:opacity-60 disabled:bg-gray-100"
+                                className="w-24 h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors disabled:opacity-60"
                             />
                             <button
                                 type="button"
                                 onClick={() => setByAgreement((prev) => !prev)}
-                                className={`h-10 px-4 rounded-lg text-sm font-medium whitespace-nowrap border transition-all ${
+                                className={`h-10 px-4 rounded-full text-sm font-medium whitespace-nowrap border bg-transparent transition-colors ${
                                     byAgreement
-                                        ? 'bg-gray-900 text-white border-gray-900'
-                                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                                        ? 'border-gray-900 text-gray-900'
+                                        : 'border-gray-300 text-gray-700 hover:border-gray-900'
                                 }`}
                             >
                                 по договорённости
@@ -360,7 +360,7 @@ export function AddServiceForm({
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Описание услуги (что входит в процедуру, материалы, особенности)"
                         rows={profileId != null && !isEditing ? 3 : 5}
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all"
+                        className="w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors resize-none"
                     />
 
                     {hasStaffOptions && (
@@ -368,7 +368,7 @@ export function AddServiceForm({
                             <label className="text-sm font-medium text-gray-700" id="staff-assignment-label">
                                 Назначить мастеров <span className="text-red-500">*</span>
                             </label>
-                            <div className={`flex flex-wrap gap-2 rounded-lg p-1 transition-colors ${staffError ? 'bg-red-50 ring-1 ring-red-300' : ''}`}>
+                            <div className={`flex flex-wrap gap-2 rounded-md p-1 transition-colors ${staffError ? 'border border-red-300' : ''}`}>
                                 {availableStaff!.map((member) => {
                                     const isChecked = selectedStaffIds.includes(member.id);
                                     return (
@@ -376,10 +376,10 @@ export function AddServiceForm({
                                             key={member.id}
                                             type="button"
                                             onClick={() => toggleStaff(member.id)}
-                                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                                            className={`inline-flex items-center gap-2 rounded-full border bg-transparent px-3 py-1.5 text-xs font-medium transition-colors ${
                                                 isChecked
-                                                    ? 'border-gray-900 bg-gray-900 text-white'
-                                                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                                                    ? 'border-gray-900 text-gray-900'
+                                                    : 'border-gray-300 text-gray-700 hover:border-gray-900'
                                             }`}
                                             aria-pressed={isChecked}
                                         >
@@ -423,7 +423,7 @@ export function AddServiceForm({
                         // Staff exists but none selected — show hint
                         if (hasStaffOptions && !hasStaffSelected) {
                             return (
-                                <div className="flex items-center gap-2 rounded-xl border border-dashed border-gray-200 bg-gray-50/40 px-3 py-2.5">
+                                <div className="flex items-center gap-2 border-l-2 border-gray-300 px-3 py-2.5">
                                     <Camera className="h-3.5 w-3.5 text-gray-400" />
                                     <p className="text-xs text-gray-400">
                                         Выберите мастера, чтобы добавить примеры работ
@@ -434,7 +434,7 @@ export function AddServiceForm({
 
                         // Ready to upload (both create and edit modes)
                         return (
-                            <div className="flex flex-col gap-2 rounded-xl border border-gray-100 bg-gray-50/60 p-3">
+                            <div className="flex flex-col gap-2 border-l-2 border-gray-300 pl-3">
                                 <div className="flex items-center gap-2">
                                     <Camera className="h-3.5 w-3.5 text-gray-500" />
                                     <label className="text-sm font-medium text-gray-700">
@@ -456,7 +456,7 @@ export function AddServiceForm({
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full h-10 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full h-11 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-md transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {isSubmitting ? (
                             <Loader2 className="w-4 h-4 animate-spin" />

@@ -132,10 +132,28 @@ export async function GET(request: NextRequest) {
                 category: true,
                 services: true,
                 reviews: true,
+                photos: {
+                    where: { serviceId: null, staffId: null },
+                    orderBy: { position: 'asc' },
+                    select: { url: true },
+                    take: 1,
+                },
             },
             orderBy,
             take: 50,
         });
+
+        const resolveImageUrl = (profile: any): string | null => {
+            const interiorPhoto =
+                profile.photos?.[0]?.url?.trim() ||
+                profile.studioImages?.find?.((p: any) => typeof p === 'string' && p.trim().length > 0) ||
+                profile.gallery?.find?.((p: any) => typeof p === 'string' && p.trim().length > 0) ||
+                null;
+            const avatarPhoto = profile.image_url?.trim() || null;
+            return profile.provider_type === 'SALON'
+                ? interiorPhoto
+                : avatarPhoto || interiorPhoto;
+        };
 
         const results = profiles.map((profile: any) => ({
             id: profile.id,
@@ -144,7 +162,7 @@ export async function GET(request: NextRequest) {
             provider_type: profile.provider_type,
             city: profile.city,
             address: profile.provider_type === 'SALON' ? profile.address : null,
-            image_url: profile.image_url,
+            image_url: resolveImageUrl(profile),
             latitude: profile.latitude,
             longitude: profile.longitude,
             services: (profile.services || []).map((s: any) => ({

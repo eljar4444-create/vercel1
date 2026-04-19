@@ -58,21 +58,24 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
     }
 
     return (
-        <div className="space-y-4 p-5">
+        <div className="space-y-6 bg-transparent">
             {!isAdding && (
                 <div className="flex justify-end">
-                    <Button onClick={() => setIsAdding(true)} className="flex items-center gap-2">
+                    <Button
+                        onClick={() => setIsAdding(true)}
+                        className="rounded-full border border-gray-300 bg-transparent text-gray-900 hover:border-gray-900 hover:bg-gray-50 flex items-center gap-2"
+                    >
                         <Plus className="h-4 w-4" /> Добавить мастера
                     </Button>
                 </div>
             )}
 
             {isAdding && (
-                <form onSubmit={handleAdd} className="rounded-xl border border-stone-200 bg-stone-50 p-4 shadow-sm">
+                <form onSubmit={handleAdd} className="bg-transparent border-l-2 border-gray-300 pl-4 py-2">
                     <h3 className="mb-4 text-sm font-semibold text-slate-900">Новый мастер</h3>
-                    
+
                     {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
-                    
+
                     <div className="mb-3">
                         <label className="mb-1 block text-xs font-medium text-slate-700">Имя мастера *</label>
                         <input
@@ -80,60 +83,60 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full rounded-lg border-stone-300 shadow-sm focus:border-amber-400 focus:ring-amber-400 sm:text-sm"
+                            className="w-full h-10 px-3 rounded-md border border-gray-300 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors"
                             placeholder="Например: Анна"
                         />
                     </div>
-                    
+
                     <div className="mb-4">
                         <label className="mb-1 block text-xs font-medium text-slate-700">Специализация / Био</label>
                         <input
                             type="text"
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
-                            className="w-full rounded-lg border-stone-300 shadow-sm focus:border-amber-400 focus:ring-amber-400 sm:text-sm"
+                            className="w-full h-10 px-3 rounded-md border border-gray-300 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors"
                             placeholder="Топ-стилист, колорист"
                         />
                     </div>
-                    
+
                     <div className="flex items-center gap-2">
-                        <Button type="submit" disabled={loading} className="bg-amber-400 text-stone-900 hover:bg-amber-500">
+                        <Button type="submit" disabled={loading} className="bg-gray-900 text-white hover:bg-gray-700">
                             {loading ? 'Сохранение...' : 'Сохранить'}
                         </Button>
-                        <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
+                        <Button type="button" variant="outline" onClick={() => setIsAdding(false)} className="rounded-full border border-gray-300 bg-transparent hover:border-gray-900">
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
                 </form>
             )}
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {staff.map((s) => (
-                    <div 
-                        key={s.id} 
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 divide-x divide-gray-300">
+                {staff.map((s, idx) => (
+                    <div
+                        key={s.id}
                         onClick={() => setManagingStaff(s)}
-                        className="group relative flex items-center gap-4 rounded-xl border border-stone-200 bg-white p-4 shadow-sm transition hover:shadow-md hover:border-stone-300 cursor-pointer"
+                        className={`group relative flex items-center gap-4 bg-transparent border-b border-gray-200 px-5 py-5 cursor-pointer transition-colors hover:bg-gray-50/50 ${idx === 0 ? 'sm:pl-0' : ''}`}
                     >
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-stone-100 text-stone-400 ring-2 ring-transparent transition group-hover:ring-amber-200">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gray-300 text-stone-400">
                             {s.avatarUrl ? (
                                 <img src={s.avatarUrl} alt={s.name} className="h-full w-full object-cover rounded-full" />
                             ) : (
                                 <UserIcon className="h-6 w-6" />
                             )}
                         </div>
-                        <div className="flex-1 min-w-0 pr-24">
-                            <h4 className="truncate text-sm font-bold text-slate-900 group-hover:text-amber-700 transition-colors">{s.name}</h4>
+                        <div className="flex-1 min-w-0 pr-12">
+                            <h4 className="truncate text-sm font-bold text-slate-900 group-hover:text-gray-900 transition-colors">{s.name}</h4>
                             {s.specialty && <p className="truncate text-xs text-stone-500 font-medium">{s.specialty}</p>}
                             {s.bio && <p className="truncate text-xs text-stone-400 mt-0.5 max-h-8 whitespace-normal line-clamp-2">{s.bio}</p>}
                             <div className="mt-1 flex items-center gap-2">
-                                <p className="inline-flex items-center gap-1 text-[10px] text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded">
+                                <p className="inline-flex items-center gap-1 text-[10px] text-stone-500">
                                     <Camera className="h-3 w-3" />
                                     {photoCountByStaffId[s.id] ?? 0} фото
                                 </p>
-                                {!s.schedule && <p className="text-[10px] text-amber-600 font-semibold bg-amber-50 px-1.5 py-0.5 rounded">Общее расписание</p>}
+                                {!s.schedule && <p className="text-[10px] text-amber-600 font-semibold">Общее расписание</p>}
                             </div>
                         </div>
-                        <div className="absolute right-3 top-3 flex items-center bg-white/80 backdrop-blur pl-2 rounded-l-md">
+                        <div className="absolute right-3 top-3 flex items-center">
                             <button
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
@@ -147,7 +150,7 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
                         </div>
                     </div>
                 ))}
-                
+
                 {staff.length === 0 && !isAdding && (
                     <div className="col-span-full py-10 text-center text-sm text-stone-400">
                         В вашем салоне еще нет добавленных мастеров.

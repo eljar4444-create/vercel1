@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, Star, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { MapPin, Star, ChevronRight } from 'lucide-react';
 import { LiveQuickSlots } from '@/components/search/LiveQuickSlots';
 import { FavoriteButton } from '@/components/client/FavoriteButton';
 
@@ -27,6 +27,7 @@ interface SearchResultListItemProps {
     };
     initialIsFavorited?: boolean;
     isHovered?: boolean;
+    profileType?: 'FREELANCER' | 'SALON';
 }
 
 function getInitials(name: string): string {
@@ -37,65 +38,78 @@ function getInitials(name: string): string {
     return parts[0]?.slice(0, 2).toUpperCase() || '';
 }
 
-export function SearchResultListItem({ profile, initialIsFavorited = false, isHovered = false }: SearchResultListItemProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
+export function SearchResultListItem({
+    profile,
+    initialIsFavorited = false,
+    isHovered = false,
+    profileType,
+}: SearchResultListItemProps) {
+    const router = useRouter();
 
-    const isSalon = profile.provider_type === 'SALON';
-    const visibleAddress = isSalon
+    const isSalonView = (profileType ?? (profile.provider_type === 'SALON' ? 'SALON' : 'FREELANCER')) === 'SALON';
+    const visibleAddress = profile.provider_type === 'SALON'
         ? [profile.address, profile.city].filter(Boolean).join(', ')
         : profile.city;
     const initials = getInitials(profile.name);
 
+    const imageWrapperClass = isSalonView
+        ? 'w-full sm:w-64 sm:min-w-[16rem] aspect-video'
+        : 'w-full sm:w-44 sm:min-w-[11rem] aspect-[4/5]';
+
+    const primaryService = profile.services[0];
+    const profileHref = `/salon/${profile.slug}`;
+
+    const goToProfile = () => router.push(profileHref);
+
     return (
         <article
-            className={`overflow-hidden rounded-2xl bg-white relative transition-all duration-300 ${isHovered
-                    ? 'shadow-[0_12px_40px_rgb(0,0,0,0.10)] -translate-y-1'
-                    : 'shadow-[0_4px_20px_rgb(0,0,0,0.06)]'
-                }`}
+            onClick={goToProfile}
+            className={`group flex flex-col sm:flex-row bg-transparent gap-4 sm:gap-5 pb-8 mb-8 border-b border-gray-200/50 last:border-b-0 last:pb-0 last:mb-0 cursor-pointer transition-opacity duration-300 ${
+                isHovered ? 'opacity-95' : 'opacity-100'
+            }`}
         >
-            {/* ── Photo – top, full width ──────────────────────── */}
-            <Link
-                href={`/salon/${profile.slug}`}
-                className="relative block w-full aspect-[4/3] overflow-hidden bg-stone-100 rounded-t-2xl"
-                aria-label={`Открыть профиль ${profile.name}`}
+            {/* ── Left: Photo ───────────────────────────────────── */}
+            <div
+                className={`relative shrink-0 overflow-hidden rounded-xl ${imageWrapperClass}`}
+                onClick={(e) => e.stopPropagation()}
             >
-                <FavoriteButton
-                    providerProfileId={profile.id}
-                    initialIsFavorited={initialIsFavorited}
-                    variant="card"
-                />
-                {profile.image_url ? (
-                    <Image
-                        src={profile.image_url}
-                        alt={`${profile.name} — мастер в ${profile.city}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                <Link href={profileHref} className="block h-full w-full" aria-label={`Открыть профиль ${profile.name}`}>
+                    <FavoriteButton
+                        providerProfileId={profile.id}
+                        initialIsFavorited={initialIsFavorited}
+                        variant="card"
                     />
-                ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-stone-100">
-                        {initials ? (
-                            <span className="text-3xl font-bold text-stone-300">{initials}</span>
-                        ) : (
-                            <User size={48} className="text-stone-300" />
-                        )}
-                    </div>
-                )}
-            </Link>
+                    {profile.image_url ? (
+                        <Image
+                            src={profile.image_url}
+                            alt={`${profile.name} — мастер в ${profile.city}`}
+                            fill
+                            sizes={isSalonView ? '(max-width: 640px) 100vw, 16rem' : '(max-width: 640px) 100vw, 11rem'}
+                            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        />
+                    ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1a2e25] via-[#0f1f18] to-[#0a1812]">
+                            <span className="text-3xl font-serif font-medium tracking-wide text-[#C29F52]">
+                                {initials || 'M'}
+                            </span>
+                        </div>
+                    )}
+                </Link>
+            </div>
 
-            {/* ── Content ──────────────────────────────────────── */}
-            <div className="p-5">
+            {/* ── Middle: Info ──────────────────────────────────── */}
+            <div className="flex flex-col flex-grow min-w-0">
                 {/* Name + rating */}
                 <div className="flex items-start justify-between gap-2">
-                    <Link href={`/salon/${profile.slug}`} className="block min-w-0">
-                        <h2 className="truncate text-lg font-bold leading-snug text-stone-900 font-sans transition-colors hover:text-stone-600">
+                    <div className="min-w-0">
+                        <h2 className="truncate font-bold text-lg text-gray-900 leading-snug font-sans group-hover:text-stone-700 transition-colors">
                             {profile.name}
                         </h2>
-                        <p className="mt-0.5 flex items-center gap-1 text-xs text-stone-500">
-                            <MapPin className="h-3 w-3 shrink-0" />
+                        <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
+                            <MapPin className="h-3.5 w-3.5 shrink-0" />
                             <span className="truncate">{visibleAddress}</span>
                         </p>
-                    </Link>
+                    </div>
                     <div
                         className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
                         aria-label="Рейтинг 5.0"
@@ -105,35 +119,59 @@ export function SearchResultListItem({ profile, initialIsFavorited = false, isHo
                     </div>
                 </div>
 
-                {/* Services & Slots */}
+                {/* Services 2x2 grid (transparent, flat) */}
                 {profile.services.length > 0 && (
-                    <div className="mt-4">
-                        {(isExpanded ? profile.services : profile.services.slice(0, 3)).map((service) => (
-                            <div key={service.id} className="border-b border-stone-100 last:border-0 pb-3 mb-3">
-                                <div className="flex justify-between items-center text-sm font-medium text-stone-800 mb-1.5">
-                                    <span className="truncate pr-2">{service.title}</span>
-                                    <span className="shrink-0 text-stone-600">€{service.price}</span>
+                    <div
+                        className="mt-3 grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-4 w-full"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {profile.services.slice(0, 4).map((service) => (
+                            <div key={service.id}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="font-medium text-sm text-gray-900 truncate">{service.title}</span>
+                                    <span className="text-gray-400 text-xs shrink-0">• {service.duration_min} мин</span>
                                 </div>
-                                <LiveQuickSlots profileId={profile.id} slug={profile.slug} service={service} />
+                                <LiveQuickSlots
+                                    profileId={profile.id}
+                                    slug={profile.slug}
+                                    service={service}
+                                    maxSlots={4}
+                                />
                             </div>
                         ))}
                     </div>
                 )}
 
-                {/* Show More Button */}
-                {profile.services.length > 3 && (
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            setIsExpanded(!isExpanded);
-                        }}
-                        className="mt-1 w-full flex items-center justify-center gap-1.5 text-sm text-stone-500 hover:text-stone-800 transition-colors py-2"
-                    >
-                        {isExpanded ? 'Скрыть' : `Показать все услуги (еще ${profile.services.length - 3})`}
-                        {isExpanded ? <ChevronUp className="h-4 w-4 text-stone-400" /> : <ChevronDown className="h-4 w-4 text-stone-400" />}
-                    </button>
+                {/* See other services CTA */}
+                {profile.services.length > 4 && (
+                    <div className="flex justify-end mt-3 w-full">
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(profileHref);
+                            }}
+                            className="text-[13px] font-medium text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1"
+                        >
+                            смотреть другие услуги <span className="text-lg leading-none">↗</span>
+                        </button>
+                    </div>
                 )}
             </div>
+
+            {/* ── Right: Price + CTA (grouped, vertically centered) ── */}
+            {primaryService && (
+                <div className="hidden sm:flex flex-col items-end justify-center shrink-0 w-28 border-l border-gray-300/50 pl-4 ml-2">
+                    <span className="block text-[11px] uppercase tracking-wider text-stone-400">от</span>
+                    <span className="block text-2xl font-bold text-gray-900 leading-none mt-0.5">
+                        €{primaryService.price}
+                    </span>
+                    <span className="mt-3 inline-flex items-center gap-0.5 text-sm font-medium text-yellow-700 hover:text-yellow-800 transition-colors">
+                        В профиль
+                        <ChevronRight className="h-4 w-4" />
+                    </span>
+                </div>
+            )}
         </article>
     );
 }

@@ -225,39 +225,39 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
         }
     };
 
-    const inputClass = 'w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all';
+    const inputClass = 'w-full h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors';
     const labelClass = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5';
 
     return (
         <form onSubmit={handleSubmit} className="space-y-3">
             {/* Status messages */}
             {error && (
-                <div className="flex items-center gap-2 bg-red-50 text-red-600 px-3 py-2 rounded-lg text-xs">
+                <div className="flex items-center gap-2 border-l-2 border-red-500 px-3 py-2 text-xs text-red-600">
                     <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
                     {error}
                 </div>
             )}
             {saved && (
-                <div className="flex items-center gap-2 bg-green-50 text-green-600 px-3 py-2 rounded-lg text-xs">
+                <div className="flex items-center gap-2 border-l-2 border-green-500 px-3 py-2 text-xs text-green-600">
                     <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
                     Изменения сохранены!
                 </div>
             )}
 
             <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'main' | 'location' | 'notifications')} className="w-full">
-                <TabsList className="grid h-auto w-full grid-cols-3 rounded-2xl bg-slate-100 p-1">
-                    <TabsTrigger value="main" className="rounded-xl text-xs sm:text-sm">
+                <TabsList className="grid h-auto w-full grid-cols-3 rounded-none bg-transparent border-b border-gray-300 p-0">
+                    <TabsTrigger value="main" className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent text-xs sm:text-sm">
                         Основное
                     </TabsTrigger>
-                    <TabsTrigger value="location" className="rounded-xl text-xs sm:text-sm">
+                    <TabsTrigger value="location" className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent text-xs sm:text-sm">
                         Локация
                     </TabsTrigger>
-                    <TabsTrigger value="notifications" className="rounded-xl text-xs sm:text-sm">
+                    <TabsTrigger value="notifications" className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent text-xs sm:text-sm">
                         Уведомления
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="main" className="mt-3 space-y-3 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
+                <TabsContent value="main" className="mt-6 space-y-4 bg-transparent">
                     <div>
                         <label className={labelClass}>Имя / Название</label>
                         <input
@@ -273,7 +273,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                     <div>
                         <label className={labelClass}>Тип исполнителя</label>
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-700 hover:border-gray-900 transition-colors">
                                 <input
                                     type="radio"
                                     name="provider_type"
@@ -284,7 +284,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                                 />
                                 Я представляю салон
                             </label>
-                            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                            <label className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-700 hover:border-gray-900 transition-colors">
                                 <input
                                     type="radio"
                                     name="provider_type"
@@ -309,7 +309,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
                             placeholder="Расскажите о вашем опыте, подходе к работе и материалах, которые вы используете..."
-                            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all resize-none"
+                            className="w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors resize-none"
                         />
                     </div>
 
@@ -321,10 +321,10 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                                 return (
                                     <label
                                         key={option.value}
-                                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-colors ${
+                                        className={`flex cursor-pointer items-center gap-2 rounded-md border bg-transparent px-3 py-2 text-sm transition-colors ${
                                             active
-                                                ? 'border-gray-900 bg-gray-100 text-gray-900'
-                                                : 'border-gray-200 bg-gray-50 text-gray-700'
+                                                ? 'border-gray-900 text-gray-900'
+                                                : 'border-gray-300 text-gray-700 hover:border-gray-500'
                                         }`}
                                     >
                                         <input
@@ -344,7 +344,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                         </div>
                     </div>
 
-                    <div className="mt-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-3">
+                    <div className="mt-2 border-l-2 border-gray-300 pl-3">
                         <label className={labelClass}>Steuernummer</label>
                         <input
                             name="taxId"
@@ -360,7 +360,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                     </div>
                 </TabsContent>
 
-                <TabsContent value="location" className="mt-3 space-y-3 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
+                <TabsContent value="location" className="mt-6 space-y-4 bg-transparent">
                     <div>
                         <label className={labelClass}>Телефон</label>
                         <input
@@ -417,7 +417,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                     ) : null}
                 </TabsContent>
 
-                <TabsContent value="notifications" className="mt-3 space-y-3 rounded-2xl border border-gray-100 bg-white p-3 sm:p-4">
+                <TabsContent value="notifications" className="mt-6 space-y-4 bg-transparent">
                     <div className="space-y-3">
                         <h3 className="text-sm font-semibold text-gray-900">Telegram-уведомления</h3>
                         {profile.telegramChatId ? (
@@ -440,7 +440,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                                             toast.error(result.error || 'Ошибка');
                                         }
                                     }}
-                                    className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                                    className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-transparent px-4 py-2 text-sm font-medium text-gray-700 hover:border-gray-900 disabled:opacity-60 transition-colors"
                                 >
                                     {isDisconnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                                     Отключить
@@ -470,7 +470,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
             <button
                 type="submit"
                 disabled={isSubmitting || isUploadingStudio}
-                className="w-full h-10 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full h-11 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-md transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
                 {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />

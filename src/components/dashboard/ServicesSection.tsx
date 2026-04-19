@@ -56,8 +56,8 @@ export function ServicesSection({ profileId, services, staff = [] }: ServicesSec
 
         return (
             <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-3 sm:items-center">
-                <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
-                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                <div className="w-full max-w-2xl rounded-md bg-[#F5F2ED] border border-gray-300">
+                    <div className="flex items-center justify-between border-b border-gray-300 px-4 py-3">
                         <h3 className="text-base font-semibold text-slate-900">
                             {isEdit ? 'Изменить услугу' : 'Новая услуга'}
                         </h3>
@@ -70,7 +70,7 @@ export function ServicesSection({ profileId, services, staff = [] }: ServicesSec
                                     setIsAddOpen(false);
                                 }
                             }}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 bg-transparent text-slate-500 hover:border-gray-900 hover:text-slate-900"
                             aria-label="Закрыть"
                         >
                             <X className="h-4 w-4" />
@@ -101,20 +101,20 @@ export function ServicesSection({ profileId, services, staff = [] }: ServicesSec
 
     return (
         <>
-            <div className="space-y-4 p-4 sm:p-5">
-                <div className="flex items-center justify-between gap-3">
+            <div className="space-y-4 bg-transparent">
+                <div className="flex items-center justify-between gap-3 border-b border-gray-300 pb-4">
                     <p className="text-sm text-slate-500">Управляйте услугами и ценами в пару кликов.</p>
                     <button
                         type="button"
                         onClick={() => setIsAddOpen(true)}
-                        className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+                        className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-700"
                     >
                         <Plus className="h-4 w-4" />
                         Добавить услугу
                     </button>
                 </div>
 
-                <div className="rounded-2xl border border-slate-100 bg-white px-3 sm:px-4">
+                <div className="bg-transparent">
                     <ServiceList
                         services={serviceItems}
                         deletingId={deletingId}

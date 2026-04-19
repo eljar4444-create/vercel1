@@ -61,7 +61,7 @@ function ExpertCard({ member, onClick }: { member: Staff; onClick: () => void })
     return (
         <div
             onClick={onClick}
-            className="group h-full flex flex-col items-center text-center bg-white rounded-2xl border border-gray-100 p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 cursor-pointer"
+            className="group h-full flex flex-col items-center text-center bg-transparent border-x border-gray-300 px-6 py-2 cursor-pointer"
         >
             <div className="relative h-24 w-24 mb-4 overflow-hidden rounded-full border border-gray-200">
                 {member.avatarUrl ? (
@@ -121,10 +121,10 @@ function ExpertCard({ member, onClick }: { member: Staff; onClick: () => void })
                     e.stopPropagation();
                     onClick();
                 }}
-                className="mt-auto pt-5 w-full"
+                className="mt-auto pt-5"
             >
-                <span className="inline-flex h-9 w-full items-center justify-center rounded-xl bg-gray-50 border border-gray-200 px-4 text-xs font-medium tracking-wide text-gray-700 transition-colors duration-300 group-hover:bg-gray-100 active:scale-95">
-                    Портфолио
+                <span className="inline-flex items-center gap-1 text-xs font-medium tracking-wide text-gray-500 transition-colors duration-300 group-hover:text-gray-900">
+                    Портфолио <span className="text-base leading-none">↗</span>
                 </span>
             </button>
         </div>

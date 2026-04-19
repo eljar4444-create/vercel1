@@ -49,7 +49,7 @@ export function BookingListClient({ bookings, providerId }: BookingListClientPro
     };
 
     return (
-        <div className="space-y-2.5">
+        <div className="divide-y divide-gray-200">
             {optimisticBookings.map((booking) => (
                 <BookingRow
                     key={booking.id}

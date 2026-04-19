@@ -12,9 +12,10 @@ interface LiveQuickSlotsProps {
         id: number;
         duration_min: number;
     };
+    maxSlots?: number;
 }
 
-export function LiveQuickSlots({ profileId, slug, service }: LiveQuickSlotsProps) {
+export function LiveQuickSlots({ profileId, slug, service, maxSlots }: LiveQuickSlotsProps) {
     const [slotsData, setSlotsData] = useState<QuickSlotsResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -48,7 +49,8 @@ export function LiveQuickSlots({ profileId, slug, service }: LiveQuickSlotsProps
     }
 
     const { morning, evening } = slotsData;
-    const allSlots = [...morning, ...evening];
+    const combined = [...morning, ...evening];
+    const allSlots = typeof maxSlots === 'number' ? combined.slice(0, maxSlots) : combined;
 
     if (allSlots.length === 0) {
         return (
@@ -62,12 +64,12 @@ export function LiveQuickSlots({ profileId, slug, service }: LiveQuickSlotsProps
     return (
         <div className={service ? "mt-2" : "mt-3"}>
             {!service && <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">Быстрые слоты</p>}
-            <div className="mt-1.5 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="mt-1.5 flex flex-wrap gap-2">
                 {allSlots.map((slot, idx) => (
                     <Link
                         key={idx}
                         href={`/salon/${slug}?book=1&date=${slot.date}&time=${encodeURIComponent(slot.time)}${service ? `&service=${service.id}` : ''}`}
-                        className="px-3 py-1.5 rounded-lg bg-[#F5F2ED] text-xs font-medium text-stone-600 hover:bg-[#E5D5C5] transition-colors whitespace-nowrap"
+                        className="border border-gray-200 rounded-md px-3 py-1.5 text-sm text-gray-700 hover:border-yellow-600 hover:text-yellow-700 transition-colors whitespace-nowrap"
                     >
                         {slot.time}
                     </Link>

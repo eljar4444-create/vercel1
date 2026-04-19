@@ -407,8 +407,8 @@ async function renderProviderDashboard(
             <div className="mx-auto w-full max-w-7xl px-3 pb-24 pt-5 sm:px-4 md:pb-10">
                 <PendingReviewNotice profileId={profileId} profileStatus={profile.status} />
 
-                <div className="relative flex w-full gap-5">
-                    <main className="min-w-0 flex-1 space-y-4">
+                <div className="relative flex w-full gap-0">
+                    <main className="min-w-0 flex-1 md:pr-8">
 
                     <Link
                         href={`/salon/${profile.slug}`}
@@ -420,55 +420,52 @@ async function renderProviderDashboard(
 
                     {currentSection !== 'analytics' && (
                         <>
-                            <div className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_28px_rgba(15,23,42,0.07)]">
-                                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-                                <div className="p-7">
-                                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                                        <div className="flex items-center gap-5">
-                                            <div className="shrink-0 rounded-full border-2 border-slate-200 bg-white p-[3px] shadow-sm">
-                                                <AvatarUpload
-                                                    profileId={profileId}
-                                                    profileName={profile.name}
-                                                    currentImageUrl={profile.image_url}
-                                                />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-3xl">
-                                                    {profile.name}
-                                                </h1>
-                                                {profile.category && (
-                                                    <p className="mt-0.5 text-sm font-medium text-slate-400">
-                                                        {profile.category.name}
-                                                    </p>
-                                                )}
-                                                {isProfileVerified && !isPendingReview && (
-                                                    <div className="mt-2.5">
-                                                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                                            <ShieldCheck className="h-3 w-3" />
-                                                            Активен
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
+                            <div className="bg-transparent border-b border-gray-300 pb-8 mb-8 mt-6">
+                                <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex items-center gap-5">
                                         <div className="shrink-0">
-                                            <Link
-                                                href={`/salon/${profile.slug}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800 active:bg-slate-950"
-                                            >
-                                                <Eye className="h-4 w-4" />
-                                                Посмотреть профиль
-                                            </Link>
+                                            <AvatarUpload
+                                                profileId={profileId}
+                                                profileName={profile.name}
+                                                currentImageUrl={profile.image_url}
+                                            />
                                         </div>
+                                        <div className="min-w-0">
+                                            <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-3xl">
+                                                {profile.name}
+                                            </h1>
+                                            {profile.category && (
+                                                <p className="mt-0.5 text-sm font-medium text-slate-400">
+                                                    {profile.category.name}
+                                                </p>
+                                            )}
+                                            {isProfileVerified && !isPendingReview && (
+                                                <div className="mt-2.5">
+                                                    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                                                        <ShieldCheck className="h-3 w-3" />
+                                                        Активен
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="shrink-0">
+                                        <Link
+                                            href={`/salon/${profile.slug}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-transparent px-5 py-2 text-sm font-medium text-gray-900 transition-colors hover:border-gray-900 hover:bg-gray-50"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                            Посмотреть профиль
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
 
                             {currentSection === 'bookings' && (
-                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-300 border-b border-gray-300 pb-8 mb-8">
                                     {kpiCards.map((card) => {
                                         const Icon = card.icon;
                                         const trendCls =
@@ -480,7 +477,7 @@ async function renderProviderDashboard(
                                         return (
                                             <div
                                                 key={card.label}
-                                                className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_4px_16px_rgba(15,23,42,0.06)] sm:p-6"
+                                                className="flex flex-col justify-between gap-4 px-5 first:pl-0 last:pr-0"
                                             >
                                                 <div className="flex items-center justify-between gap-2">
                                                     <p className="text-[11px] font-semibold uppercase leading-none tracking-widest text-slate-400">
@@ -503,11 +500,9 @@ async function renderProviderDashboard(
                             )}
 
                             {(!hasServices || !hasScheduleConfigured) && (
-                                <div className="rounded-2xl border border-stone-200/70 bg-white p-5 shadow-sm">
+                                <div className="bg-transparent border-b border-gray-300 pb-8 mb-8">
                                     <div className="flex items-start gap-4">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-indigo-100">
-                                            <ListChecks className="h-5 w-5 text-violet-600" />
-                                        </div>
+                                        <ListChecks className="h-5 w-5 mt-1 shrink-0 text-violet-600" />
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between gap-2">
                                                 <h2 className="text-sm font-semibold text-slate-900">Ваш прогресс</h2>
@@ -515,24 +510,24 @@ async function renderProviderDashboard(
                                                     {setupProgressPercent}% готово
                                                 </span>
                                             </div>
-                                            <div className="mt-2 h-1.5 w-full rounded-full bg-stone-100">
+                                            <div className="mt-2 h-1 w-full bg-gray-200">
                                                 <div
-                                                    className="h-1.5 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500"
+                                                    className="h-1 bg-slate-900 transition-all duration-500"
                                                     style={{ width: `${setupProgressPercent}%` }}
                                                 />
                                             </div>
                                             <div className="mt-3 space-y-1.5 text-sm">
                                                 <Link
                                                     href="/dashboard?section=services"
-                                                    className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${hasServices
+                                                    className={`flex items-center gap-2 py-1 transition-colors ${hasServices
                                                         ? 'text-emerald-700'
-                                                        : 'text-slate-600 hover:bg-stone-50'
+                                                        : 'text-slate-600 hover:text-slate-900'
                                                         }`}
                                                 >
                                                     <span
-                                                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${hasServices
-                                                            ? 'bg-emerald-100 text-emerald-700'
-                                                            : 'bg-stone-100 text-stone-500'
+                                                        className={`flex h-5 w-5 shrink-0 items-center justify-center text-[10px] font-bold ${hasServices
+                                                            ? 'text-emerald-700'
+                                                            : 'text-stone-500'
                                                             }`}
                                                     >
                                                         {hasServices ? '✓' : '1'}
@@ -541,15 +536,15 @@ async function renderProviderDashboard(
                                                 </Link>
                                                 <Link
                                                     href="/dashboard?section=schedule"
-                                                    className={`flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors ${hasScheduleConfigured
+                                                    className={`flex items-center gap-2 py-1 transition-colors ${hasScheduleConfigured
                                                         ? 'text-emerald-700'
-                                                        : 'text-slate-600 hover:bg-stone-50'
+                                                        : 'text-slate-600 hover:text-slate-900'
                                                         }`}
                                                 >
                                                     <span
-                                                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${hasScheduleConfigured
-                                                            ? 'bg-emerald-100 text-emerald-700'
-                                                            : 'bg-stone-100 text-stone-500'
+                                                        className={`flex h-5 w-5 shrink-0 items-center justify-center text-[10px] font-bold ${hasScheduleConfigured
+                                                            ? 'text-emerald-700'
+                                                            : 'text-stone-500'
                                                             }`}
                                                     >
                                                         {hasScheduleConfigured ? '✓' : '2'}
@@ -571,21 +566,21 @@ async function renderProviderDashboard(
                     )}
 
                     {currentSection === 'bookings' && (
-                        <div className="space-y-4">
-                            <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
-                                <div className="border-b border-stone-100 px-5 py-4">
+                        <div className="space-y-10">
+                            <div className="bg-transparent">
+                                <div className="border-b border-gray-300 pb-4 mb-6">
                                     <h2 className="text-base font-semibold text-slate-900">Календарь записей</h2>
                                     <p className="mt-0.5 text-xs text-stone-400">
                                         Неделя по умолчанию. Клик по записи — детали и смена статуса.
                                     </p>
                                 </div>
-                                <div className="p-4">
+                                <div className="border border-gray-300">
                                     <ProviderCalendar profileId={profileId} />
                                 </div>
                             </div>
 
-                            <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
-                                <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
+                            <div className="bg-transparent">
+                                <div className="flex items-center justify-between border-b border-gray-300 pb-4 mb-6">
                                     <div>
                                         <h2 className="text-base font-semibold text-slate-900">Входящие записи</h2>
                                         <p className="mt-0.5 text-xs text-stone-400">
@@ -597,21 +592,19 @@ async function renderProviderDashboard(
                                     )}
                                 </div>
 
-                                <div className="p-4">
+                                <div>
                                     {serializedBookings.length > 0 ? (
                                         <BookingListClient bookings={serializedBookings} providerId={profileId} />
                                     ) : (
-                                        <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50/70 py-14 text-center">
-                                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-sm">
-                                                <Inbox className="h-8 w-8 text-stone-300" />
-                                            </div>
+                                        <div className="border border-dashed border-gray-300 py-14 text-center">
+                                            <Inbox className="mx-auto mb-4 h-12 w-12 text-stone-300" />
                                             <h3 className="text-base font-semibold text-slate-700">
                                                 У вас пока нет записей
                                             </h3>
                                             <p className="mx-auto mt-1 max-w-xs text-sm text-stone-400">
                                                 Поделитесь ссылкой на профиль, чтобы клиенты начали бронировать услуги.
                                             </p>
-                                            <Button asChild className="mt-5 bg-slate-900 text-white hover:bg-slate-800">
+                                            <Button asChild className="mt-5 rounded-full border border-gray-300 bg-transparent text-gray-900 hover:border-gray-900 hover:bg-gray-50">
                                                 <Link href={`/salon/${profile.slug}`} target="_blank" rel="noopener noreferrer">
                                                     Поделиться ссылкой на профиль
                                                 </Link>
@@ -624,11 +617,9 @@ async function renderProviderDashboard(
                     )}
 
                     {currentSection === 'services' && (
-                        <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
-                            <div className="flex items-center gap-3 border-b border-stone-100 px-5 py-4">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-100 to-indigo-100">
-                                    <Briefcase className="h-[18px] w-[18px] text-violet-600" />
-                                </div>
+                        <div className="bg-transparent">
+                            <div className="flex items-center gap-3 border-b border-gray-300 pb-4 mb-6">
+                                <Briefcase className="h-5 w-5 text-violet-600" />
                                 <div>
                                     <h2 className="text-base font-semibold text-slate-900">Мои услуги</h2>
                                     <p className="text-xs text-stone-400">
@@ -641,30 +632,26 @@ async function renderProviderDashboard(
                     )}
 
                     {currentSection === 'schedule' && (
-                        <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
-                            <div className="border-b border-stone-100 px-5 py-4">
+                        <div className="bg-transparent">
+                            <div className="border-b border-gray-300 pb-4 mb-6">
                                 <h2 className="text-base font-semibold text-slate-900">Расписание салона</h2>
                                 <p className="mt-0.5 text-xs text-stone-400">
                                     Общие рабочие часы. Если для мастера не задано личное расписание, будет применяться это.
                                 </p>
                             </div>
-                            <div className="p-5">
-                                <WorkingHoursForm
-                                    profileId={profileId}
-                                    initialSchedule={{
-                                        days: workingSchedule.days,
-                                    }}
-                                />
-                            </div>
+                            <WorkingHoursForm
+                                profileId={profileId}
+                                initialSchedule={{
+                                    days: workingSchedule.days,
+                                }}
+                            />
                         </div>
                     )}
 
                     {currentSection === 'staff' && isSalonProvider && (
-                        <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
-                            <div className="flex items-center gap-3 border-b border-stone-100 px-5 py-4">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 to-orange-100">
-                                    <Users className="h-[18px] w-[18px] text-orange-600" />
-                                </div>
+                        <div className="bg-transparent">
+                            <div className="flex items-center gap-3 border-b border-gray-300 pb-4 mb-6">
+                                <Users className="h-5 w-5 text-orange-600" />
                                 <div>
                                     <h2 className="text-base font-semibold text-slate-900">Команда мастеров</h2>
                                     <p className="text-xs text-stone-400">
@@ -677,13 +664,11 @@ async function renderProviderDashboard(
                     )}
 
                     {currentSection === 'profile' && (
-                        <>
+                        <div className="space-y-10">
                             {!hasTaxId && (
-                                <div className="overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50 to-white shadow-sm">
-                                    <div className="flex items-start gap-3 px-5 py-4">
-                                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-                                            <AlertCircle className="h-4 w-4" />
-                                        </div>
+                                <div className="bg-transparent border-b border-amber-300 pb-6">
+                                    <div className="flex items-start gap-3">
+                                        <AlertCircle className="h-5 w-5 mt-0.5 shrink-0 text-amber-700" />
                                         <div className="min-w-0">
                                             {isSalonProvider ? (
                                                 <>
@@ -704,7 +689,7 @@ async function renderProviderDashboard(
                                                     </p>
                                                     <Link
                                                         href="/guide/kleingewerbe"
-                                                        className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-amber-100 px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-200"
+                                                        className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-transparent px-4 py-1.5 text-sm font-medium text-amber-900 transition hover:border-amber-700"
                                                     >
                                                         У меня еще нет номера. Как его получить? 👉
                                                     </Link>
@@ -714,86 +699,80 @@ async function renderProviderDashboard(
                                     </div>
                                 </div>
                             )}
-                            <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
-                                <div className="border-b border-stone-100 px-5 py-4">
+                            <div className="bg-transparent">
+                                <div className="border-b border-gray-300 pb-4 mb-6">
                                     <h2 className="text-base font-semibold text-slate-900">Профиль мастера</h2>
                                     <p className="mt-0.5 text-xs text-stone-400">
                                         Обновите описание, контакты и данные витрины для клиентов.
                                     </p>
                                 </div>
-                                <div className="p-5">
-                                    <EditProfileForm
-                                        profile={{
-                                            id: profileId,
-                                            name: profile.name,
-                                            providerType: profile.provider_type,
-                                            bio: profile.bio,
-                                            phone: profile.phone,
-                                            languages: profileLanguages,
-                                            telegramChatId: profile.telegramChatId ?? null,
-                                            city: profile.city,
-                                            address: profile.address,
-                                            latitude: profile.latitude,
-                                            longitude: profile.longitude,
-                                            studioImages: profile.studioImages,
-                                            taxId: currentTaxId,
-                                        }}
-                                        connectTelegramLink={connectTelegramLink}
-                                    />
-                                </div>
+                                <EditProfileForm
+                                    profile={{
+                                        id: profileId,
+                                        name: profile.name,
+                                        providerType: profile.provider_type,
+                                        bio: profile.bio,
+                                        phone: profile.phone,
+                                        languages: profileLanguages,
+                                        telegramChatId: profile.telegramChatId ?? null,
+                                        city: profile.city,
+                                        address: profile.address,
+                                        latitude: profile.latitude,
+                                        longitude: profile.longitude,
+                                        studioImages: profile.studioImages,
+                                        taxId: currentTaxId,
+                                    }}
+                                    connectTelegramLink={connectTelegramLink}
+                                />
                             </div>
 
                             {isSalonProvider && (
-                                <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
-                                    <div className="border-b border-stone-100 px-5 py-4">
+                                <div className="bg-transparent">
+                                    <div className="border-b border-gray-300 pb-4 mb-6">
                                         <h2 className="text-base font-semibold text-slate-900">Фото интерьера</h2>
                                         <p className="mt-0.5 text-xs text-stone-400">
                                             Покажите атмосферу вашего салона — эти фото будут отображаться на вашем публичном профиле.
                                         </p>
                                     </div>
-                                    <div className="p-5">
-                                        <InteriorPhotosSection initialPhotos={interiorPhotos} />
-                                    </div>
+                                    <InteriorPhotosSection initialPhotos={interiorPhotos} />
                                 </div>
                             )}
 
                             {!isSalonProvider && (
-                                <div className="overflow-hidden rounded-2xl border border-stone-200/70 bg-white shadow-sm">
-                                    <div className="border-b border-stone-100 px-5 py-4">
+                                <div className="bg-transparent">
+                                    <div className="border-b border-gray-300 pb-4 mb-6">
                                         <h2 className="text-base font-semibold text-slate-900">Информация о прибытии</h2>
                                         <p className="mt-0.5 text-xs text-stone-400">
                                             Эти данные будут видны клиенту только после подтверждения записи.
                                         </p>
                                     </div>
-                                    <div className="p-5">
-                                        <ArrivalInfoSection
-                                            initialData={
-                                                profile.arrivalInfo &&
-                                                typeof profile.arrivalInfo === 'object' &&
-                                                !Array.isArray(profile.arrivalInfo) &&
-                                                'address' in profile.arrivalInfo &&
-                                                typeof (profile.arrivalInfo as Record<string, unknown>).address === 'string'
-                                                    ? (profile.arrivalInfo as { address: string; doorCode?: string; bellNote?: string; waitingSpot?: string })
-                                                    : null
-                                            }
-                                        />
-                                    </div>
+                                    <ArrivalInfoSection
+                                        initialData={
+                                            profile.arrivalInfo &&
+                                            typeof profile.arrivalInfo === 'object' &&
+                                            !Array.isArray(profile.arrivalInfo) &&
+                                            'address' in profile.arrivalInfo &&
+                                            typeof (profile.arrivalInfo as Record<string, unknown>).address === 'string'
+                                                ? (profile.arrivalInfo as { address: string; doorCode?: string; bellNote?: string; waitingSpot?: string })
+                                                : null
+                                        }
+                                    />
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
                     </main>
 
-                    <aside className="sticky top-6 hidden h-fit w-56 shrink-0 md:block">
-                        <div className="overflow-hidden rounded-2xl border border-stone-200/60 bg-white shadow-[0_4px_24px_rgba(15,23,42,0.07)]">
-                            <div className="border-b border-stone-200/60 bg-gradient-to-br from-stone-100 to-amber-50 px-4 py-5">
+                    <aside className="sticky top-6 hidden h-fit w-56 shrink-0 border-l border-gray-300 pl-8 md:block">
+                        <div className="bg-transparent">
+                            <div className="border-b border-gray-300 pb-4 mb-4">
                                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">
                                     SVOI.DE
                                 </p>
                                 <h2 className="mt-1 text-sm font-bold text-slate-800">Кабинет мастера</h2>
                             </div>
 
-                            <nav className="space-y-0.5 p-2">
+                            <nav className="space-y-0.5">
                                 {navItems.map((item) => {
                                     const Icon = item.icon;
                                     const isActive = currentSection === item.key;
@@ -801,20 +780,15 @@ async function renderProviderDashboard(
                                         <Link
                                             key={item.key}
                                             href={`/dashboard?section=${item.key}`}
-                                            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 ${isActive
-                                                ? 'bg-slate-900 text-white shadow-sm'
-                                                : 'text-stone-500 hover:bg-stone-50 hover:text-slate-900'
+                                            className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${isActive
+                                                ? 'border-l-2 border-slate-900 text-slate-900'
+                                                : 'border-l-2 border-transparent text-stone-500 hover:text-slate-900'
                                                 }`}
                                         >
-                                            <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-amber-300' : ''}`} />
+                                            <Icon className="h-4 w-4 shrink-0" />
                                             {item.label}
                                             {item.key === 'bookings' && pendingCount > 0 && (
-                                                <span
-                                                    className={`ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ${isActive
-                                                        ? 'bg-amber-400 text-slate-900'
-                                                        : 'bg-amber-100 text-amber-700'
-                                                        }`}
-                                                >
+                                                <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full border border-amber-300 px-1.5 text-[10px] font-bold text-amber-700">
                                                     {pendingCount}
                                                 </span>
                                             )}
@@ -823,25 +797,23 @@ async function renderProviderDashboard(
                                 })}
                             </nav>
 
-                            <div className="mx-2 my-1 border-t border-stone-100" />
-                            <div className="p-2 pb-3">
-                                <Link
-                                    href={`/salon/${profile.slug}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-stone-500 transition hover:bg-stone-50 hover:text-slate-800"
-                                >
-                                    <Eye className="h-4 w-4 shrink-0" />
-                                    Посмотреть профиль
-                                </Link>
-                            </div>
+                            <div className="my-3 border-t border-gray-300" />
+                            <Link
+                                href={`/salon/${profile.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-stone-500 transition hover:text-slate-800"
+                            >
+                                <Eye className="h-4 w-4 shrink-0" />
+                                Посмотреть профиль
+                            </Link>
                         </div>
                     </aside>
                 </div>
             </div>
 
-            <nav className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 overflow-hidden rounded-2xl border border-stone-200/80 bg-white/90 shadow-[0_8px_32px_rgba(15,23,42,0.18)] backdrop-blur-md md:hidden">
-                <div className="grid grid-cols-4">
+            <nav className="fixed bottom-4 left-1/2 z-30 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 border border-gray-300 bg-[#F5F2ED]/95 backdrop-blur-md md:hidden">
+                <div className="grid grid-cols-4 divide-x divide-gray-300">
                     {mobileNavItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = currentSection === item.key;
@@ -850,11 +822,11 @@ async function renderProviderDashboard(
                                 key={`mobile-${item.key}`}
                                 href={`/dashboard?section=${item.key}`}
                                 className={`flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors ${isActive
-                                    ? 'bg-slate-900 text-white'
-                                    : 'text-stone-500 hover:bg-stone-50 hover:text-slate-900'
+                                    ? 'text-slate-900 border-t-2 border-slate-900'
+                                    : 'text-stone-500 hover:text-slate-900 border-t-2 border-transparent'
                                     }`}
                             >
-                                <Icon className={`h-[18px] w-[18px] ${isActive ? 'text-amber-300' : ''}`} />
+                                <Icon className="h-[18px] w-[18px]" />
                                 {item.label}
                             </Link>
                         );
