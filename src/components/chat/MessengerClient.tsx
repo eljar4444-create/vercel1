@@ -163,21 +163,21 @@ export function MessengerClient({
     const bookingStatus = useMemo(() => {
         if (!bookingContext) return null;
 
-        if (bookingContext.status === 'confirmed') {
+        if (bookingContext.status === 'CONFIRMED') {
             return {
                 label: 'Подтверждено',
                 className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
             };
         }
 
-        if (bookingContext.status === 'pending') {
+        if (bookingContext.status === 'PENDING') {
             return {
                 label: 'Ожидает подтверждения',
                 className: 'border-amber-200 bg-amber-50 text-amber-700',
             };
         }
 
-        if (bookingContext.status === 'cancelled') {
+        if (bookingContext.status === 'CANCELED') {
             return {
                 label: 'Отменено',
                 className: 'border-rose-200 bg-rose-50 text-rose-700',

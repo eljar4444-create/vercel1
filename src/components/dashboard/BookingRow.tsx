@@ -6,6 +6,7 @@ import { Check, X, Loader2, Clock, User, Phone, MessageCircle } from 'lucide-rea
 import { updateBookingStatus } from '@/app/actions/updateBookingStatus';
 import { getOrCreateConversationForProvider } from '@/app/actions/chat';
 import { Button } from '@/components/ui/button';
+import toast from 'react-hot-toast';
 
 interface BookingData {
     id: number;
@@ -38,7 +39,7 @@ const STATUS_CONFIG: Record<string, {
     borderColor: string;
     rowBg: string;
 }> = {
-    pending: {
+    PENDING: {
         label: 'Ожидает',
         labelColor: 'text-amber-700',
         dotColor: 'bg-amber-400',
@@ -46,7 +47,7 @@ const STATUS_CONFIG: Record<string, {
         borderColor: 'border-l-amber-400',
         rowBg: '',
     },
-    confirmed: {
+    CONFIRMED: {
         label: 'Подтверждена',
         labelColor: 'text-emerald-700',
         dotColor: 'bg-emerald-500',
@@ -54,7 +55,7 @@ const STATUS_CONFIG: Record<string, {
         borderColor: 'border-l-emerald-500',
         rowBg: '',
     },
-    cancelled: {
+    CANCELED: {
         label: 'Отменена',
         labelColor: 'text-rose-600',
         dotColor: 'bg-rose-400',
@@ -62,16 +63,16 @@ const STATUS_CONFIG: Record<string, {
         borderColor: 'border-l-rose-400',
         rowBg: '',
     },
-    completed: {
-        label: 'Визит завершен',
+    COMPLETED: {
+        label: 'Визит завершён',
         labelColor: 'text-slate-500',
         dotColor: 'bg-slate-400',
         pillBg: 'bg-transparent border border-slate-300',
         borderColor: 'border-l-slate-300',
         rowBg: '',
     },
-    no_show: {
-        label: 'Не пришел',
+    NO_SHOW: {
+        label: 'Не пришёл',
         labelColor: 'text-slate-500',
         dotColor: 'bg-slate-400',
         pillBg: 'bg-transparent border border-slate-300',
@@ -104,8 +105,17 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
             return;
         }
         setIsUpdating(newStatus);
-        await updateBookingStatus(booking.id, newStatus);
-        setIsUpdating(null);
+        try {
+            const result = await updateBookingStatus(booking.id, newStatus);
+            if (!result?.success) {
+                toast.error(result?.error ?? 'Не удалось обновить статус');
+            }
+        } catch (err) {
+            console.error('updateBookingStatus failed:', err);
+            toast.error('Не удалось обновить статус');
+        } finally {
+            setIsUpdating(null);
+        }
     };
 
     const cfg = STATUS_CONFIG[booking.status] ?? DEFAULT_STATUS;
@@ -218,25 +228,25 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                         {cfg.label}
                     </span>
 
-                    {/* Action buttons */}
-                    {booking.status === 'pending' && (
+                    {/* Action buttons — terminal states (COMPLETED/CANCELED/NO_SHOW) show none */}
+                    {booking.status === 'PENDING' && (
                         <div className="flex items-center gap-1.5">
                             <button
-                                onClick={() => handleStatusChange('confirmed')}
+                                onClick={() => handleStatusChange('CONFIRMED')}
                                 disabled={busy}
                                 className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
                             >
-                                {isUpdating === 'confirmed'
+                                {isUpdating === 'CONFIRMED'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <Check className="h-3 w-3" />}
                                 Подтвердить
                             </button>
                             <button
-                                onClick={() => handleStatusChange('cancelled')}
+                                onClick={() => handleStatusChange('CANCELED')}
                                 disabled={busy}
                                 className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-transparent px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-500 disabled:opacity-50"
                             >
-                                {isUpdating === 'cancelled'
+                                {isUpdating === 'CANCELED'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <X className="h-3 w-3" />}
                                 Отменить
@@ -244,27 +254,37 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                         </div>
                     )}
 
-                    {booking.status === 'confirmed' && (
+                    {booking.status === 'CONFIRMED' && (
                         <div className="flex items-center gap-1.5">
                             <button
-                                onClick={() => handleStatusChange('completed')}
+                                onClick={() => handleStatusChange('COMPLETED')}
                                 disabled={busy}
                                 className="inline-flex items-center gap-1 rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-700 disabled:opacity-50"
                             >
-                                {isUpdating === 'completed'
+                                {isUpdating === 'COMPLETED'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <Check className="h-3 w-3" />}
                                 Завершить
                             </button>
                             <button
-                                onClick={() => handleStatusChange('no_show')}
+                                onClick={() => handleStatusChange('NO_SHOW')}
                                 disabled={busy}
                                 className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-transparent px-3 py-1.5 text-xs font-semibold text-slate-500 transition hover:border-gray-900 disabled:opacity-50"
                             >
-                                {isUpdating === 'no_show'
+                                {isUpdating === 'NO_SHOW'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <X className="h-3 w-3" />}
-                                Не пришел
+                                Не пришёл
+                            </button>
+                            <button
+                                onClick={() => handleStatusChange('CANCELED')}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1 rounded-full border border-gray-300 bg-transparent px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:border-rose-500 disabled:opacity-50"
+                            >
+                                {isUpdating === 'CANCELED'
+                                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                                    : <X className="h-3 w-3" />}
+                                Отменить
                             </button>
                         </div>
                     )}

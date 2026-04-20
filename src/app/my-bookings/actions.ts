@@ -36,7 +36,7 @@ async function cancelClientBookingCore(userId: string, bookingId: number) {
         return { success: false, error: 'Недостаточно прав' };
     }
 
-    if (booking.status === 'cancelled') {
+    if (booking.status === 'CANCELED') {
         return { success: false, error: 'Запись уже отменена' };
     }
 
@@ -47,7 +47,7 @@ async function cancelClientBookingCore(userId: string, bookingId: number) {
 
     await prisma.booking.update({
         where: { id: booking.id },
-        data: { status: 'cancelled' },
+        data: { status: 'CANCELED', canceledBy: 'CLIENT' },
     });
 
     revalidatePath('/dashboard');

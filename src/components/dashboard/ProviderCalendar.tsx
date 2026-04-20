@@ -23,11 +23,11 @@ const ROW_HEIGHT_PX = 26;
 const DAY_LABELS_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 const STATUS_CARD_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-    pending:   { bg: 'bg-amber-400',   text: 'text-amber-950', border: 'border-amber-500' },
-    confirmed: { bg: 'bg-emerald-500', text: 'text-white',      border: 'border-emerald-600' },
-    completed: { bg: 'bg-slate-300',   text: 'text-slate-800',  border: 'border-slate-400' },
-    no_show:   { bg: 'bg-slate-200',   text: 'text-slate-700',  border: 'border-slate-300' },
-    cancelled: { bg: 'bg-rose-100',    text: 'text-rose-700',   border: 'border-rose-300' },
+    PENDING:   { bg: 'bg-amber-400',   text: 'text-amber-950', border: 'border-amber-500' },
+    CONFIRMED: { bg: 'bg-emerald-500', text: 'text-white',      border: 'border-emerald-600' },
+    COMPLETED: { bg: 'bg-slate-300',   text: 'text-slate-800',  border: 'border-slate-400' },
+    NO_SHOW:   { bg: 'bg-slate-200',   text: 'text-slate-700',  border: 'border-slate-300' },
+    CANCELED:  { bg: 'bg-rose-100',    text: 'text-rose-700',   border: 'border-rose-300' },
 };
 
 function getDefaultWeekStart(): Date {
@@ -294,7 +294,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
                                                 const topPx = (b.startMin - HOUR_START * 60) * PIXELS_PER_MIN;
                                                 const heightPx = Math.max(20, b.durationMin * PIXELS_PER_MIN - 2);
                                                 const isCompact = heightPx < 36;
-                                                const st = STATUS_CARD_STYLES[b.status] ?? STATUS_CARD_STYLES.completed;
+                                                const st = STATUS_CARD_STYLES[b.status] ?? STATUS_CARD_STYLES.COMPLETED;
 
                                                 return (
                                                     <button

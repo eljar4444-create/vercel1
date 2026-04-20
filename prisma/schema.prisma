@@ -25,6 +25,20 @@ enum ProfileStatus {
   SUSPENDED
 }
 
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+  COMPLETED
+  NO_SHOW
+}
+
+enum BookingCanceledBy {
+  CLIENT
+  MASTER
+  SYSTEM
+}
+
 model Category {
   id          Int       @id @default(autoincrement())
   name        String
@@ -85,6 +99,7 @@ model Profile {
   reviews     Review[]
   telegramTokens TelegramToken[]
   photos      PortfolioPhoto[]
+  clients     Client[]
 
   @@index([category_id])
 }
@@ -116,10 +131,12 @@ model Booking {
   time        String
   user_name   String
   user_phone  String
-  status      String   @default("pending")
-  slotLock    String?  @unique
+  status      BookingStatus      @default(PENDING)
+  canceledBy  BookingCanceledBy?
+  isManual    Boolean            @default(false)
+  slotLock    String?            @unique
   reviewRequestedAt DateTime?
-  created_at  DateTime @default(now())
+  created_at  DateTime           @default(now())
 
   user        User?    @relation(fields: [user_id], references: [id], onDelete: SetNull)
   profile     Profile  @relation(fields: [profile_id], references: [id])
@@ -318,13 +335,15 @@ model Favorite {
 }
 
 model Review {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   profileId   Int
   clientId    String
-  bookingId   Int      @unique
-  comment     String?  @db.Text
-  rating      Int      // 1–5
-  createdAt   DateTime @default(now())
+  bookingId   Int       @unique
+  comment     String?   @db.Text
+  rating      Int       // 1–5
+  replyText   String?   @db.Text
+  repliedAt   DateTime?
+  createdAt   DateTime  @default(now())
 
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
   client  User    @relation(fields: [clientId], references: [id], onDelete: Cascade)
@@ -333,6 +352,26 @@ model Review {
   @@index([profileId])
   @@index([clientId])
   @@index([createdAt])
+}
+
+model Client {
+  id             String   @id @default(cuid())
+  profileId      Int
+  name           String
+  phone          String
+  email          String?
+  totalBookings  Int      @default(0)
+  totalSpent     Decimal  @default(0) @db.Decimal(12, 2)
+  noShows        Int      @default(0)
+  lastVisit      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  profile        Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, phone])
+  @@index([profileId])
+  @@index([profileId, lastVisit])
 }
 
 model TelegramToken {

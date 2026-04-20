@@ -39,7 +39,7 @@ export async function GET(
     if (booking.user_id !== session.user.id) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
-    if (booking.status !== 'confirmed') {
+    if (booking.status !== 'CONFIRMED') {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     if (booking.profile.provider_type === 'SALON') {

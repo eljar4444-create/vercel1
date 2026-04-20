@@ -32,10 +32,11 @@ function getInitials(name: string | null | undefined): string {
 
 function StatusBadge({ status }: { status: string }) {
     const statusMap: Record<string, { label: string; classes: string }> = {
-        pending: { label: "Ожидает", classes: "bg-yellow-50 text-yellow-700 border border-yellow-200" },
-        confirmed: { label: "Подтверждено", classes: "bg-blue-50 text-blue-700 border border-blue-200" },
-        completed: { label: "Завершено", classes: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
-        canceled: { label: "Отменено", classes: "bg-red-50 text-red-700 border border-red-200" },
+        PENDING: { label: "Ожидает", classes: "bg-yellow-50 text-yellow-700 border border-yellow-200" },
+        CONFIRMED: { label: "Подтверждено", classes: "bg-blue-50 text-blue-700 border border-blue-200" },
+        COMPLETED: { label: "Завершено", classes: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+        CANCELED: { label: "Отменено", classes: "bg-red-50 text-red-700 border border-red-200" },
+        NO_SHOW: { label: "Не пришёл", classes: "bg-slate-50 text-slate-600 border border-slate-200" },
     };
 
     const config = statusMap[status] || { label: status, classes: "bg-gray-50 text-gray-700 border border-gray-200" };

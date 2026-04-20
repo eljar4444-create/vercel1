@@ -51,7 +51,7 @@ export async function getQuickSlots(profileId: number, durationMin: number = 30)
             where: {
                 profile_id: profileId,
                 status: {
-                    in: ['pending', 'confirmed']
+                    in: ['PENDING', 'CONFIRMED']
                 },
                 date: {
                     gte: new Date(`${todayStr}T00:00:00Z`),

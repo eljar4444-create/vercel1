@@ -35,8 +35,8 @@ export async function submitReview(formData: FormData) {
             return { success: false, error: 'Вы не можете оставить отзыв на чужую запись' };
         }
 
-        if (booking.status === 'canceled' || booking.status === 'rejected') {
-            return { success: false, error: 'Нельзя оставить отзыв на отмененную запись' };
+        if (booking.status === 'CANCELED' || booking.status === 'NO_SHOW') {
+            return { success: false, error: 'Нельзя оставить отзыв на отменённую запись' };
         }
 
         const existingReview = await prisma.review.findUnique({

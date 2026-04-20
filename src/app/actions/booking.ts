@@ -12,6 +12,7 @@ import { calculateSlots, normalizeDuration } from '@/lib/booking/slots';
 import { auth } from '@/auth';
 import { inngest } from '@/inngest/client';
 import { checkBanned } from '@/lib/requireNotBanned';
+import { upsertClientOnBookingCreated } from '@/lib/client/upsert';
 
 type StaffAvailMap = Map<string, { isWorking: boolean; startTime: string; endTime: string }>;
 
@@ -81,7 +82,7 @@ async function fetchSingleEntitySlots(
     const busyWhere: any = {
         profile_id: profileId,
         date: new Date(date),
-        status: { in: ['pending', 'confirmed'] },
+        status: { in: ['PENDING', 'CONFIRMED'] },
     };
 
     if (staffId) {
@@ -198,7 +199,7 @@ export async function getWeekAvailableSlots(input: {
                     gte: start,
                     lt: end,
                 },
-                status: { in: ['pending', 'confirmed'] },
+                status: { in: ['PENDING', 'CONFIRMED'] },
             },
             select: {
                 date: true,
@@ -344,7 +345,7 @@ export async function createBooking(input: BookingInput) {
 
             const slotLock = `${profileId}:${assignedStaffId || 'none'}:${input.date}:${input.time}`;
 
-            return tx.booking.create({
+            const created = await tx.booking.create({
                 data: {
                     profile_id: profileId,
                     service_id: serviceId,
@@ -354,10 +355,18 @@ export async function createBooking(input: BookingInput) {
                     time: input.time,
                     user_name: input.userName,
                     user_phone: input.userPhone,
-                    status: 'pending',
+                    status: 'PENDING',
                     slotLock,
                 },
             });
+
+            await upsertClientOnBookingCreated(tx, {
+                profileId,
+                name: input.userName,
+                phone: input.userPhone,
+            });
+
+            return created;
         }, {
             isolationLevel: 'Serializable',
         });

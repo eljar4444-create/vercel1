@@ -19,11 +19,16 @@ import {
     TrendingUp,
     BarChart2,
     Users,
+    Contact,
+    Star,
 } from 'lucide-react';
 import { DashboardView } from '@/components/client/DashboardView';
 import { BookingListClient } from '@/components/dashboard/BookingListClient';
 import { ProviderCalendar } from '@/components/dashboard/ProviderCalendar';
+import { ManualBookingTrigger } from '@/components/dashboard/ManualBookingTrigger';
 import { AnalyticsView, AnalyticsViewSkeleton } from '@/components/dashboard/AnalyticsView';
+import { ClientsSection } from '@/components/dashboard/ClientsSection';
+import { ReviewsSection } from '@/components/dashboard/ReviewsSection';
 import { ServicesSection } from '@/components/dashboard/ServicesSection';
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
@@ -57,7 +62,7 @@ function normalizeOnboardingType(type?: string | null) {
 
 function parseSection(
     searchParams?: DashboardPageProps['searchParams'],
-): 'bookings' | 'analytics' | 'services' | 'schedule' | 'profile' | 'staff' {
+): 'bookings' | 'analytics' | 'services' | 'schedule' | 'profile' | 'staff' | 'clients' | 'reviews' {
     const sectionRaw = searchParams?.section;
     const section = Array.isArray(sectionRaw) ? sectionRaw[0] : sectionRaw;
 
@@ -66,7 +71,9 @@ function parseSection(
         section === 'schedule' ||
         section === 'profile' ||
         section === 'analytics' ||
-        section === 'staff'
+        section === 'staff' ||
+        section === 'clients' ||
+        section === 'reviews'
     ) {
         return section;
     }
@@ -120,7 +127,7 @@ async function renderClientDashboard(userId: string) {
     const bookings = rawBookings.map((booking) => {
         const dateTime = buildBookingDateTime(booking.date, booking.time);
         const isFuture = dateTime.getTime() >= now;
-        const isCancellable = isFuture && booking.status !== 'cancelled';
+        const isCancellable = isFuture && booking.status !== 'CANCELED';
 
         return {
             id: booking.id,
@@ -141,11 +148,11 @@ async function renderClientDashboard(userId: string) {
     });
 
     const upcoming = bookings
-        .filter((b) => b.isFuture && b.status !== 'cancelled' && b.status !== 'completed' && b.status !== 'COMPLETED')
+        .filter((b) => b.isFuture && b.status !== 'CANCELED' && b.status !== 'COMPLETED' && b.status !== 'NO_SHOW')
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     const history = bookings
-        .filter((b) => !b.isFuture || b.status === 'cancelled' || b.status === 'completed' || b.status === 'COMPLETED')
+        .filter((b) => !b.isFuture || b.status === 'CANCELED' || b.status === 'COMPLETED' || b.status === 'NO_SHOW')
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const totalBookings = rawBookings.length;
@@ -310,10 +317,10 @@ async function renderProviderDashboard(
     const isPendingReview = profile.status === 'PENDING_REVIEW';
 
     const totalBookings = bookings.length;
-    const pendingCount = bookings.filter((b) => b.status === 'pending').length;
-    const confirmedCount = bookings.filter((b) => b.status === 'confirmed').length;
-    const cancelledCount = bookings.filter((b) => b.status === 'cancelled').length;
-    const completedCount = bookings.filter((b) => b.status === 'completed').length;
+    const pendingCount = bookings.filter((b) => b.status === 'PENDING').length;
+    const confirmedCount = bookings.filter((b) => b.status === 'CONFIRMED').length;
+    const cancelledCount = bookings.filter((b) => b.status === 'CANCELED').length;
+    const completedCount = bookings.filter((b) => b.status === 'COMPLETED').length;
 
     const setupCompletedSteps = Number(hasServices) + Number(hasScheduleConfigured);
     const setupProgressPercent = Math.round((setupCompletedSteps / 2) * 100);
@@ -357,6 +364,8 @@ async function renderProviderDashboard(
 
     const navItems = [
         { key: 'bookings', label: 'Записи', icon: CalendarDays },
+        { key: 'clients', label: 'Клиенты', icon: Contact },
+        { key: 'reviews', label: 'Отзывы', icon: Star },
         { key: 'analytics', label: 'Статистика', icon: BarChart2 },
         { key: 'services', label: 'Услуги', icon: Briefcase },
         { key: 'schedule', label: 'Расписание', icon: Clock },
@@ -565,14 +574,34 @@ async function renderProviderDashboard(
                         </Suspense>
                     )}
 
+                    {currentSection === 'clients' && (
+                        <ClientsSection profileId={profileId} />
+                    )}
+
+                    {currentSection === 'reviews' && (
+                        <ReviewsSection profileId={profileId} />
+                    )}
+
                     {currentSection === 'bookings' && (
                         <div className="space-y-10">
                             <div className="bg-transparent">
-                                <div className="border-b border-gray-300 pb-4 mb-6">
-                                    <h2 className="text-base font-semibold text-slate-900">Календарь записей</h2>
-                                    <p className="mt-0.5 text-xs text-stone-400">
-                                        Неделя по умолчанию. Клик по записи — детали и смена статуса.
-                                    </p>
+                                <div className="flex items-end justify-between border-b border-gray-300 pb-4 mb-6">
+                                    <div>
+                                        <h2 className="text-base font-semibold text-slate-900">Календарь записей</h2>
+                                        <p className="mt-0.5 text-xs text-stone-400">
+                                            Неделя по умолчанию. Клик по записи — детали и смена статуса.
+                                        </p>
+                                    </div>
+                                    <ManualBookingTrigger
+                                        profileId={profileId}
+                                        services={services.map((s) => ({
+                                            id: s.id,
+                                            title: s.title,
+                                            price: Number(s.price),
+                                            duration_min: s.duration_min,
+                                        }))}
+                                        staff={staff.map((m) => ({ id: m.id, name: m.name }))}
+                                    />
                                 </div>
                                 <div className="border border-gray-300">
                                     <ProviderCalendar profileId={profileId} />

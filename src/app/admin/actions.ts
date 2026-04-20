@@ -115,8 +115,8 @@ export async function getAdminData() {
             prisma.service.count(),
             prisma.profile.count({ where: { status: 'PUBLISHED' } }),
             prisma.booking.count(),
-            prisma.booking.count({ where: { status: "completed" } }),
-            prisma.booking.count({ where: { status: "canceled" } }),
+            prisma.booking.count({ where: { status: "COMPLETED" } }),
+            prisma.booking.count({ where: { status: "CANCELED" } }),
             prisma.user.findMany({
                 take: 100, // Hard cap to prevent memory exhaustion
                 orderBy: { createdAt: "desc" },

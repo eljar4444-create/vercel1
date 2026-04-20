@@ -43,7 +43,7 @@ describe('GET /api/bookings/[id]/arrival', () => {
         mockPrisma.booking.findUnique.mockResolvedValue({
             id: 1,
             user_id: 'different-user',
-            status: 'confirmed',
+            status: 'CONFIRMED',
             profile: { provider_type: 'PRIVATE', arrivalInfo: { address: 'X' } },
         } as any);
         const res = await GET(req(), { params: { id: '1' } });
@@ -55,7 +55,7 @@ describe('GET /api/bookings/[id]/arrival', () => {
         mockPrisma.booking.findUnique.mockResolvedValue({
             id: 1,
             user_id: 'u1',
-            status: 'pending',
+            status: 'PENDING',
             profile: { provider_type: 'PRIVATE', arrivalInfo: { address: 'X' } },
         } as any);
         const res = await GET(req(), { params: { id: '1' } });
@@ -67,7 +67,7 @@ describe('GET /api/bookings/[id]/arrival', () => {
         mockPrisma.booking.findUnique.mockResolvedValue({
             id: 1,
             user_id: 'u1',
-            status: 'confirmed',
+            status: 'CONFIRMED',
             profile: { provider_type: 'SALON', arrivalInfo: { address: 'X' } },
         } as any);
         const res = await GET(req(), { params: { id: '1' } });
@@ -80,7 +80,7 @@ describe('GET /api/bookings/[id]/arrival', () => {
         mockPrisma.booking.findUnique.mockResolvedValue({
             id: 1,
             user_id: 'u1',
-            status: 'confirmed',
+            status: 'CONFIRMED',
             profile: { provider_type: 'PRIVATE', arrivalInfo },
         } as any);
         const res = await GET(req(), { params: { id: '1' } });
@@ -94,7 +94,7 @@ describe('GET /api/bookings/[id]/arrival', () => {
         mockPrisma.booking.findUnique.mockResolvedValue({
             id: 1,
             user_id: 'u1',
-            status: 'confirmed',
+            status: 'CONFIRMED',
             profile: { provider_type: 'PRIVATE', arrivalInfo: null },
         } as any);
         const res = await GET(req(), { params: { id: '1' } });

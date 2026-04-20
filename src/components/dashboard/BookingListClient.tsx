@@ -39,12 +39,19 @@ export function BookingListClient({ bookings, providerId }: BookingListClientPro
     const handleStatusChange = (bookingId: number, newStatus: string) => {
         addOptimistic({ bookingId, newStatus });
         startTransition(async () => {
-            const result = await updateBookingStatus(bookingId, newStatus);
-            if (!result.success) {
-                toast.error(result.error ?? 'Ошибка при обновлении');
-                throw new Error(result.error);
+            try {
+                const result = await updateBookingStatus(bookingId, newStatus);
+                if (!result.success) {
+                    toast.error(result.error ?? 'Не удалось обновить статус');
+                    router.refresh();
+                    return;
+                }
+                router.refresh();
+            } catch (err) {
+                console.error('updateBookingStatus failed:', err);
+                toast.error('Не удалось обновить статус');
+                router.refresh();
             }
-            router.refresh();
         });
     };
 

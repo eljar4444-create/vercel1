@@ -34,7 +34,7 @@ export async function createReview(bookingId: number, rating: number, comment?: 
             return { success: false, error: 'Это не ваша запись' };
         }
 
-        if (booking.status !== 'completed' && booking.status !== 'COMPLETED') {
+        if (booking.status !== 'COMPLETED') {
             return { success: false, error: 'Отзыв можно оставить только после завершения визита' };
         }
 

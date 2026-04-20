@@ -35,7 +35,7 @@ export async function getProviderAvailability(
     const bookings = await prisma.booking.findMany({
         where: {
             profile_id: profileId,
-            status: { not: 'cancelled' },
+            status: { not: 'CANCELED' },
             date: {
                 gte: startDate,
                 lte: endDate

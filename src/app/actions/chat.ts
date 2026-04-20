@@ -312,7 +312,7 @@ export async function getConversationBookingContext(conversationId: string) {
         where: {
             profile_id: conversation.providerProfileId,
             user_id: conversation.clientUserId,
-            status: { in: ['pending', 'confirmed'] },
+            status: { in: ['PENDING', 'CONFIRMED'] },
         },
         select: {
             id: true,

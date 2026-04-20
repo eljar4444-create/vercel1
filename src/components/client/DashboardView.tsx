@@ -338,7 +338,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                         </div>
                                                     </div>
                                                     <div className="sm:ml-4 shrink-0 mt-3 sm:mt-0 space-y-2">
-                                                        {b.status === 'completed' && !b.hasReview && (
+                                                        {b.status === 'COMPLETED' && !b.hasReview && (
                                                             <Button
                                                                 variant="outline"
                                                                 size="sm"
@@ -352,7 +352,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                                 Оценить визит
                                                             </Button>
                                                         )}
-                                                        {b.status !== 'cancelled' ? (
+                                                        {b.status !== 'CANCELED' ? (
                                                             <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
                                                                 <Link href={`/salon/${b.profile.slug}`}>Повторить запись</Link>
                                                             </Button>

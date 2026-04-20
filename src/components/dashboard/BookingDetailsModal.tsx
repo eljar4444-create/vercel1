@@ -37,32 +37,32 @@ const STATUS_CONFIG: Record<
     string,
     { label: string; bg: string; text: string; dot: string }
 > = {
-    pending: {
+    PENDING: {
         label: 'Ожидает',
         bg: 'bg-amber-50',
         text: 'text-amber-700',
         dot: 'bg-amber-400',
     },
-    confirmed: {
+    CONFIRMED: {
         label: 'Подтверждена',
         bg: 'bg-green-50',
         text: 'text-green-700',
         dot: 'bg-green-400',
     },
-    cancelled: {
+    CANCELED: {
         label: 'Отменена',
         bg: 'bg-red-50',
         text: 'text-red-600',
         dot: 'bg-red-400',
     },
-    completed: {
-        label: 'Визит завершен',
+    COMPLETED: {
+        label: 'Визит завершён',
         bg: 'bg-gray-100',
         text: 'text-gray-600',
         dot: 'bg-gray-400',
     },
-    no_show: {
-        label: 'Не пришел',
+    NO_SHOW: {
+        label: 'Не пришёл',
         bg: 'bg-slate-100',
         text: 'text-slate-500',
         dot: 'bg-slate-400',
@@ -257,17 +257,17 @@ export function BookingDetailsModal({
                         )}
                     </div>
 
-                    {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                    {(booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
                         <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
-                            {booking.status === 'pending' && (
+                            {booking.status === 'PENDING' && (
                                 <>
                                     <Button
                                         size="sm"
-                                        onClick={() => handleStatusChange('confirmed')}
+                                        onClick={() => handleStatusChange('CONFIRMED')}
                                         disabled={isUpdating !== null}
                                         className="bg-green-600 hover:bg-green-700"
                                     >
-                                        {isUpdating === 'confirmed' ? (
+                                        {isUpdating === 'CONFIRMED' ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                         ) : (
                                             <Check className="h-4 w-4" />
@@ -277,11 +277,11 @@ export function BookingDetailsModal({
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => handleStatusChange('cancelled')}
+                                        onClick={() => handleStatusChange('CANCELED')}
                                         disabled={isUpdating !== null}
                                         className="text-red-600 border-red-200 hover:bg-red-50"
                                     >
-                                        {isUpdating === 'cancelled' ? (
+                                        {isUpdating === 'CANCELED' ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                         ) : (
                                             <X className="h-4 w-4" />
@@ -290,14 +290,14 @@ export function BookingDetailsModal({
                                     </Button>
                                 </>
                             )}
-                            {booking.status === 'confirmed' && (
+                            {booking.status === 'CONFIRMED' && (
                                 <>
                                     <Button
                                         size="sm"
-                                        onClick={() => handleStatusChange('completed')}
+                                        onClick={() => handleStatusChange('COMPLETED')}
                                         disabled={isUpdating !== null}
                                     >
-                                        {isUpdating === 'completed' ? (
+                                        {isUpdating === 'COMPLETED' ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                         ) : (
                                             <Check className="h-4 w-4" />
@@ -307,15 +307,29 @@ export function BookingDetailsModal({
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        onClick={() => handleStatusChange('no_show')}
+                                        onClick={() => handleStatusChange('NO_SHOW')}
                                         disabled={isUpdating !== null}
                                     >
-                                        {isUpdating === 'no_show' ? (
+                                        {isUpdating === 'NO_SHOW' ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                         ) : (
                                             <X className="h-4 w-4" />
                                         )}
-                                        <span className="ml-2">Не пришел</span>
+                                        <span className="ml-2">Не пришёл</span>
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => handleStatusChange('CANCELED')}
+                                        disabled={isUpdating !== null}
+                                        className="text-red-600 border-red-200 hover:bg-red-50"
+                                    >
+                                        {isUpdating === 'CANCELED' ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <X className="h-4 w-4" />
+                                        )}
+                                        <span className="ml-2">Отменить</span>
                                     </Button>
                                 </>
                             )}

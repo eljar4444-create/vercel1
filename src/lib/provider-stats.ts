@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma';
+import { BookingStatus } from '@prisma/client';
 import { format, startOfDay, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
@@ -19,19 +20,19 @@ export type ProviderStats = {
 
 /**
  * Агрегирует статистику по записям (Booking) мастера для дашборда аналитики.
- * totalRevenue — сумма стоимости услуг по завершённым визитам (status === 'completed').
+ * totalRevenue — сумма стоимости услуг по завершённым визитам (status === COMPLETED).
  * Уникальные клиенты считаются по user_id (без null).
  */
 export async function getProviderStats(providerId: number): Promise<ProviderStats> {
     const [completedBookings, canceledBookings, completedForRevenue, uniqueClientsResult] = await Promise.all([
         prisma.booking.count({
-            where: { profile_id: providerId, status: 'completed' },
+            where: { profile_id: providerId, status: BookingStatus.COMPLETED },
         }),
         prisma.booking.count({
-            where: { profile_id: providerId, status: 'cancelled' },
+            where: { profile_id: providerId, status: BookingStatus.CANCELED },
         }),
         prisma.booking.findMany({
-            where: { profile_id: providerId, status: 'completed' },
+            where: { profile_id: providerId, status: BookingStatus.COMPLETED },
             select: { service_id: true, service: { select: { price: true } } },
         }),
         prisma.booking.groupBy({
@@ -65,11 +66,11 @@ export type TopServiceRow = {
 
 /**
  * Топ услуг по завершённым визитам: название, количество визитов, принесённый доход.
- * Группировка по service_id, только status === 'completed'.
+ * Группировка по service_id, только status === COMPLETED.
  */
 export async function getTopServices(providerId: number): Promise<TopServiceRow[]> {
     const completed = await prisma.booking.findMany({
-        where: { profile_id: providerId, status: 'completed' },
+        where: { profile_id: providerId, status: BookingStatus.COMPLETED },
         select: { service_id: true, service: { select: { id: true, title: true, price: true } } },
     });
 
@@ -115,7 +116,7 @@ export async function getRevenueByDay(providerId: number, days: number = 14): Pr
     const completed = await prisma.booking.findMany({
         where: {
             profile_id: providerId,
-            status: 'completed',
+            status: BookingStatus.COMPLETED,
             date: { gte: start, lte: end },
         },
         select: { date: true, service: { select: { price: true } } },

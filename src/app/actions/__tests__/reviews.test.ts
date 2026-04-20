@@ -64,7 +64,7 @@ describe('submitReview actions', () => {
         mockPrisma.booking.findUnique.mockResolvedValue({ 
             id: 1, 
             user_id: 'client-1', 
-            status: 'confirmed', 
+            status: 'CONFIRMED',
             profile_id: 10,
             profile: { slug: 'test-slug' } 
         } as any);

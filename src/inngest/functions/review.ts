@@ -40,7 +40,7 @@ export const scheduleReviewRequest = inngest.createFunction(
       return { 
           booking: b, 
           hasReview: !!review, 
-          isValid: b.status !== 'canceled' && b.status !== 'rejected' && !b.reviewRequestedAt
+          isValid: b.status !== 'CANCELED' && b.status !== 'NO_SHOW' && !b.reviewRequestedAt
       };
     });
 
