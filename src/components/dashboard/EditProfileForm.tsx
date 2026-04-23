@@ -2,15 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, CheckCircle, AlertCircle, Save, Upload, X } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, Save } from 'lucide-react';
 import { updateProfile } from '@/app/actions/updateProfile';
 import { disconnectTelegram } from '@/app/actions/telegram';
 import { uploadServicePhoto } from '@/app/actions/upload';
 import toast from 'react-hot-toast';
 import { CityAutocomplete, type CitySuggestion } from '@/components/dashboard/CityAutocomplete';
 import { SalonAddressAutocomplete, type SalonAddressSuggestion } from '@/components/dashboard/SalonAddressAutocomplete';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LANGUAGES, PROVIDER_LANGUAGE_OPTIONS, normalizeProviderLanguage, type ProviderLanguage } from '@/lib/provider-languages';
+
+export type ProfileSection = 'general' | 'location' | 'notifications';
 
 function TelegramIcon({ className }: { className?: string }) {
     return (
@@ -34,16 +35,18 @@ interface EditProfileFormProps {
         longitude: number | null;
         studioImages: string[];
         languages: string[];
+        categoryId: number;
         taxId?: string;
     };
+    categories: Array<{ id: number; name: string }>;
     connectTelegramLink: string | null;
+    section: ProfileSection;
 }
 
-export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFormProps) {
+export function EditProfileForm({ profile, categories, connectTelegramLink, section }: EditProfileFormProps) {
     const router = useRouter();
     const initialProviderType: 'SALON' | 'PRIVATE' | 'INDIVIDUAL' =
         profile.providerType === 'SALON' ? 'SALON' : profile.providerType === 'INDIVIDUAL' ? 'INDIVIDUAL' : 'PRIVATE';
-    const [activeTab, setActiveTab] = useState<'main' | 'location' | 'notifications'>('main');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -71,6 +74,8 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
     const [isUploadingStudio, setIsUploadingStudio] = useState(false);
     const [isDisconnecting, setIsDisconnecting] = useState(false);
     const [taxId, setTaxId] = useState(profile.taxId || '');
+    const [phone, setPhone] = useState(profile.phone || '');
+    const [categoryId, setCategoryId] = useState<number>(profile.categoryId);
     const isSalon = providerType === 'SALON';
 
 
@@ -172,23 +177,29 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
         }
     };
 
+
+
+    const goToLocationSection = () => {
+        router.push('/dashboard?section=profile-location');
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!city || !city.trim() || !isCityValidated) {
-            setActiveTab('location');
             setError('Выберите город из выпадающего списка.');
+            goToLocationSection();
             return;
         }
         if (isSalon) {
             if (!address.trim()) {
-                setActiveTab('location');
                 setError('Укажите полный адрес салона.');
+                goToLocationSection();
                 return;
             }
 
             if (!isAddressValidated || addressCoordinates.lat == null || addressCoordinates.lng == null) {
-                setActiveTab('location');
                 setError('Выберите адрес салона из выпадающего списка.');
+                goToLocationSection();
                 return;
             }
         }
@@ -209,6 +220,9 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
         formData.set('name', name.trim());
         formData.set('bio', bio);
         formData.set('taxId', taxId.trim());
+        formData.set('phone', phone.trim());
+        formData.set('category_id', String(categoryId));
+
         formData.delete('languages');
         languages.forEach((language) => formData.append('languages', language));
 
@@ -229,7 +243,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
     const labelClass = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5';
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-3xl">
             {/* Status messages */}
             {error && (
                 <div className="flex items-center gap-2 border-l-2 border-red-500 px-3 py-2 text-xs text-red-600">
@@ -244,22 +258,11 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                 </div>
             )}
 
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'main' | 'location' | 'notifications')} className="w-full">
-                <TabsList className="grid h-auto w-full grid-cols-3 rounded-none bg-transparent border-b border-gray-300 p-0">
-                    <TabsTrigger value="main" className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent text-xs sm:text-sm">
-                        Основное
-                    </TabsTrigger>
-                    <TabsTrigger value="location" className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent text-xs sm:text-sm">
-                        Локация
-                    </TabsTrigger>
-                    <TabsTrigger value="notifications" className="rounded-none border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:bg-transparent text-xs sm:text-sm">
-                        Уведомления
-                    </TabsTrigger>
-                </TabsList>
+            {section === 'general' && (
+                <div className="space-y-4 bg-transparent">
 
-                <TabsContent value="main" className="mt-6 space-y-4 bg-transparent">
                     <div>
-                        <label className={labelClass}>Имя / Название</label>
+                        <label className={labelClass}>Имя / Название <span className="text-red-500">*</span></label>
                         <input
                             name="name"
                             type="text"
@@ -271,7 +274,7 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                     </div>
 
                     <div>
-                        <label className={labelClass}>Тип исполнителя</label>
+                        <label className={labelClass}>Тип исполнителя <span className="text-red-500">*</span></label>
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             <label className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-700 hover:border-gray-900 transition-colors">
                                 <input
@@ -302,6 +305,23 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                     </div>
 
                     <div>
+                        <label className="block text-xs uppercase tracking-wide text-gray-400 mb-1.5">
+                            Специализация (категория) <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            value={categoryId}
+                            onChange={(e) => setCategoryId(Number(e.target.value))}
+                            className="w-full bg-transparent border border-gray-300 rounded-lg p-3 text-sm text-gray-900 outline-none focus:border-gray-900 transition-colors"
+                        >
+                            {categories.map((cat) => (
+                                <option key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
                         <label className={labelClass}>О себе / О салоне</label>
                         <textarea
                             name="bio"
@@ -315,17 +335,13 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
 
                     <div>
                         <label className={labelClass}>Языки</label>
-                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6 mt-3">
                             {PROVIDER_LANGUAGE_OPTIONS.map((option) => {
                                 const active = languages.includes(option.value);
                                 return (
                                     <label
                                         key={option.value}
-                                        className={`flex cursor-pointer items-center gap-2 rounded-md border bg-transparent px-3 py-2 text-sm transition-colors ${
-                                            active
-                                                ? 'border-gray-900 text-gray-900'
-                                                : 'border-gray-300 text-gray-700 hover:border-gray-500'
-                                        }`}
+                                        className="flex items-center gap-3 cursor-pointer group"
                                     >
                                         <input
                                             type="checkbox"
@@ -333,9 +349,9 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                                             value={option.value}
                                             checked={active}
                                             onChange={() => toggleLanguage(option.value)}
-                                            className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
+                                            className="w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900 transition-colors cursor-pointer"
                                         />
-                                        <span>
+                                        <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors select-none">
                                             {LANGUAGES[option.value].flag} {LANGUAGES[option.value].label}
                                         </span>
                                     </label>
@@ -344,9 +360,27 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                         </div>
                     </div>
 
-                    <div className="mt-2 border-l-2 border-gray-300 pl-3">
+                    <div>
+                        <label className="block text-xs uppercase tracking-wide text-gray-400 mb-1.5">
+                            Контактный телефон <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            name="phone"
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="+49 170 1234567"
+                            className={inputClass}
+                        />
+                    </div>
+
+                    <div className="bg-gray-50 border border-gray-200 p-6 rounded-xl">
+                        <p className="text-xs uppercase text-gray-500 mb-4 tracking-wide font-semibold">
+                            Юридическая информация
+                        </p>
                         <label className={labelClass}>Steuernummer</label>
                         <input
+                            id="steuernummer-input"
                             name="taxId"
                             type="text"
                             value={taxId}
@@ -358,20 +392,11 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                             Erforderlich, um Ihr Profil für Kunden sichtbar zu machen.
                         </p>
                     </div>
-                </TabsContent>
+                </div>
+            )}
 
-                <TabsContent value="location" className="mt-6 space-y-4 bg-transparent">
-                    <div>
-                        <label className={labelClass}>Телефон</label>
-                        <input
-                            name="phone"
-                            type="tel"
-                            defaultValue={profile.phone || ''}
-                            placeholder="+49 170 1234567"
-                            className={inputClass}
-                        />
-                    </div>
-
+            {section === 'location' && (
+                <div className="space-y-4 bg-transparent">
                     <div>
                         <label className={labelClass}>Город</label>
                         <CityAutocomplete
@@ -415,9 +440,11 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                             ) : null}
                         </div>
                     ) : null}
-                </TabsContent>
+                </div>
+            )}
 
-                <TabsContent value="notifications" className="mt-6 space-y-4 bg-transparent">
+            {section === 'notifications' && (
+                <div className="space-y-4 bg-transparent">
                     <div className="space-y-3">
                         <h3 className="text-sm font-semibold text-gray-900">Telegram-уведомления</h3>
                         {profile.telegramChatId ? (
@@ -462,9 +489,8 @@ export function EditProfileForm({ profile, connectTelegramLink }: EditProfileFor
                             </p>
                         )}
                     </div>
-                </TabsContent>
-
-            </Tabs>
+                </div>
+            )}
 
             {/* Submit */}
             <button

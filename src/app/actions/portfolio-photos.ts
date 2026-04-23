@@ -417,10 +417,6 @@ export async function uploadInteriorPhotos(formData: FormData): Promise<UploadRe
                 ? null
                 : await requireProviderProfile(session.user.id, session.user.email);
 
-        if (profile && profile.provider_type !== 'SALON') {
-            return { success: false, error: 'Фото интерьера доступны только для салонов.' };
-        }
-
         const profileId = profile
             ? profile.id
             : (() => {

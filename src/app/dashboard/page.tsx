@@ -19,8 +19,6 @@ import {
     TrendingUp,
     BarChart2,
     Users,
-    Contact,
-    Star,
 } from 'lucide-react';
 import { DashboardView } from '@/components/client/DashboardView';
 import { BookingListClient } from '@/components/dashboard/BookingListClient';
@@ -29,6 +27,9 @@ import { ManualBookingTrigger } from '@/components/dashboard/ManualBookingTrigge
 import { AnalyticsView, AnalyticsViewSkeleton } from '@/components/dashboard/AnalyticsView';
 import { ClientsSection } from '@/components/dashboard/ClientsSection';
 import { ReviewsSection } from '@/components/dashboard/ReviewsSection';
+import { CopyProfileLinkButton } from '@/components/dashboard/CopyProfileLinkButton';
+import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
+import { ScrollToTaxIdButton } from '@/components/dashboard/ScrollToTaxIdButton';
 import { ServicesSection } from '@/components/dashboard/ServicesSection';
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload';
 import { EditProfileForm } from '@/components/dashboard/EditProfileForm';
@@ -36,6 +37,7 @@ import { WorkingHoursForm } from '@/components/dashboard/WorkingHoursForm';
 import { StaffSection } from '@/components/dashboard/StaffSection';
 import { ArrivalInfoSection } from '@/components/dashboard/ArrivalInfoSection';
 import { InteriorPhotosSection } from '@/components/dashboard/InteriorPhotosSection';
+import { CoverPhotoSection } from '@/components/dashboard/CoverPhotoSection';
 import { parseSchedule } from '@/lib/scheduling';
 import { Button } from '@/components/ui/button';
 import { createTelegramConnectLink } from '@/lib/telegram-link';
@@ -60,22 +62,38 @@ function normalizeOnboardingType(type?: string | null) {
     return type === 'SALON' || type === 'INDIVIDUAL' ? type : null;
 }
 
-function parseSection(
-    searchParams?: DashboardPageProps['searchParams'],
-): 'bookings' | 'analytics' | 'services' | 'schedule' | 'profile' | 'staff' | 'clients' | 'reviews' {
+type DashboardSection =
+    | 'bookings'
+    | 'analytics'
+    | 'services'
+    | 'schedule'
+    | 'staff'
+    | 'clients'
+    | 'reviews'
+    | 'profile-general'
+    | 'profile-location'
+    | 'profile-notifications';
+
+function parseSection(searchParams?: DashboardPageProps['searchParams']): DashboardSection {
     const sectionRaw = searchParams?.section;
     const section = Array.isArray(sectionRaw) ? sectionRaw[0] : sectionRaw;
 
     if (
         section === 'services' ||
         section === 'schedule' ||
-        section === 'profile' ||
         section === 'analytics' ||
         section === 'staff' ||
         section === 'clients' ||
-        section === 'reviews'
+        section === 'reviews' ||
+        section === 'profile-general' ||
+        section === 'profile-location' ||
+        section === 'profile-notifications'
     ) {
         return section;
+    }
+
+    if (section === 'profile') {
+        return 'profile-general';
     }
 
     return 'bookings';
@@ -234,6 +252,7 @@ async function renderProviderDashboard(
             name: true,
             provider_type: true,
             image_url: true,
+            gallery: true,
             studioImages: true,
             bio: true,
             phone: true,
@@ -246,6 +265,7 @@ async function renderProviderDashboard(
             status: true,
             schedule: true,
             arrivalInfo: true,
+            category_id: true,
             category: { select: { name: true, slug: true } },
             user_id: true,
         },
@@ -304,11 +324,16 @@ async function renderProviderDashboard(
         orderBy: { createdAt: 'desc' }
     }) : [];
 
-    const interiorPhotos = isSalonProvider ? await prisma.portfolioPhoto.findMany({
+    const interiorPhotos = await prisma.portfolioPhoto.findMany({
         where: { profileId, serviceId: null, staffId: null },
         orderBy: { position: 'asc' },
         select: { id: true, url: true, position: true },
-    }) : [];
+    });
+
+    const categories = await prisma.category.findMany({
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true },
+    });
 
     const workingSchedule = parseSchedule(profile.schedule);
     const hasServices = services.length > 0;
@@ -362,22 +387,16 @@ async function renderProviderDashboard(
         avatarUrl: s.avatarUrl,
     }));
 
-    const navItems = [
-        { key: 'bookings', label: 'Записи', icon: CalendarDays },
-        { key: 'clients', label: 'Клиенты', icon: Contact },
-        { key: 'reviews', label: 'Отзывы', icon: Star },
-        { key: 'analytics', label: 'Статистика', icon: BarChart2 },
-        { key: 'services', label: 'Услуги', icon: Briefcase },
-        { key: 'schedule', label: 'Расписание', icon: Clock },
-        ...(isSalonProvider ? [{ key: 'staff', label: 'Сотрудники', icon: Users }] as const : []),
-        { key: 'profile', label: 'Профиль', icon: UserCircle2 },
-    ] as const;
+    const isProfileSection =
+        currentSection === 'profile-general' ||
+        currentSection === 'profile-location' ||
+        currentSection === 'profile-notifications';
 
     const mobileNavItems = [
         { key: 'bookings', label: 'Записи', icon: CalendarDays },
         { key: 'analytics', label: 'Статистика', icon: BarChart2 },
         ...(isSalonProvider ? [{ key: 'staff', label: 'Команда', icon: Users }] as const : []),
-        { key: 'profile', label: 'Профиль', icon: UserCircle2 },
+        { key: 'profile-general', label: 'Профиль', icon: UserCircle2 },
     ] as const;
 
     const kpiCards = [
@@ -459,7 +478,7 @@ async function renderProviderDashboard(
                                         </div>
                                     </div>
 
-                                    <div className="shrink-0">
+                                    <div className="flex shrink-0 items-center gap-2">
                                         <Link
                                             href={`/salon/${profile.slug}`}
                                             target="_blank"
@@ -469,6 +488,7 @@ async function renderProviderDashboard(
                                             <Eye className="h-4 w-4" />
                                             Посмотреть профиль
                                         </Link>
+                                        <CopyProfileLinkButton slug={profile.slug} />
                                     </div>
                                 </div>
                             </div>
@@ -692,9 +712,9 @@ async function renderProviderDashboard(
                         </div>
                     )}
 
-                    {currentSection === 'profile' && (
+                    {isProfileSection && (
                         <div className="space-y-10">
-                            {!hasTaxId && (
+                            {!hasTaxId && currentSection === 'profile-general' && (
                                 <div className="bg-transparent border-b border-amber-300 pb-6">
                                     <div className="flex items-start gap-3">
                                         <AlertCircle className="h-5 w-5 mt-0.5 shrink-0 text-amber-700" />
@@ -707,6 +727,9 @@ async function renderProviderDashboard(
                                                     <p className="mt-1 text-sm leading-relaxed text-amber-800">
                                                         Для активации профиля салона и публикации в каталоге, пожалуйста, укажите налоговый номер вашей компании в настройках.
                                                     </p>
+                                                    <div className="mt-3">
+                                                        <ScrollToTaxIdButton />
+                                                    </div>
                                                 </>
                                             ) : (
                                                 <>
@@ -716,25 +739,37 @@ async function renderProviderDashboard(
                                                     <p className="mt-1 text-sm leading-relaxed text-amber-800">
                                                         Чтобы клиенты могли находить вас в поиске и записываться, пожалуйста, укажите ваш налоговый номер в настройках профиля.
                                                     </p>
-                                                    <Link
-                                                        href="/guide/kleingewerbe"
-                                                        className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-transparent px-4 py-1.5 text-sm font-medium text-amber-900 transition hover:border-amber-700"
-                                                    >
-                                                        У меня еще нет номера. Как его получить? 👉
-                                                    </Link>
+                                                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                        <ScrollToTaxIdButton />
+                                                        <Link
+                                                            href="/guide/kleingewerbe"
+                                                            className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-transparent px-4 py-1.5 text-sm font-medium text-amber-900 transition hover:border-amber-700"
+                                                        >
+                                                            У меня еще нет номера. Как его получить? 👉
+                                                        </Link>
+                                                    </div>
                                                 </>
                                             )}
                                         </div>
                                     </div>
                                 </div>
                             )}
-                            <div className="bg-transparent">
-                                <div className="border-b border-gray-300 pb-4 mb-6">
-                                    <h2 className="text-base font-semibold text-slate-900">Профиль мастера</h2>
-                                    <p className="mt-0.5 text-xs text-stone-400">
-                                        Обновите описание, контакты и данные витрины для клиентов.
-                                    </p>
+                            {currentSection === 'profile-general' && (
+                                <div className="bg-transparent mb-6">
+                                    <div className="border-b border-gray-300 pb-4 mb-6">
+                                        <h2 className="text-base font-semibold text-slate-900">
+                                            {isSalonProvider ? 'Фото интерьера' : 'Фото работ'}
+                                        </h2>
+                                        <p className="mt-0.5 text-xs text-stone-400">
+                                            {isSalonProvider
+                                                ? 'Покажите атмосферу вашего салона — эти фото будут отображаться на вашем публичном профиле.'
+                                                : 'Добавьте фото ваших работ — они будут отображаться в шапке вашего профиля.'}
+                                        </p>
+                                    </div>
+                                    <InteriorPhotosSection initialPhotos={interiorPhotos} />
                                 </div>
+                            )}
+                            <div className="bg-transparent">
                                 <EditProfileForm
                                     profile={{
                                         id: profileId,
@@ -749,25 +784,23 @@ async function renderProviderDashboard(
                                         latitude: profile.latitude,
                                         longitude: profile.longitude,
                                         studioImages: profile.studioImages,
+                                        categoryId: profile.category_id,
                                         taxId: currentTaxId,
                                     }}
+                                    categories={categories}
                                     connectTelegramLink={connectTelegramLink}
+                                    section={
+                                        currentSection === 'profile-location'
+                                            ? 'location'
+                                            : currentSection === 'profile-notifications'
+                                                ? 'notifications'
+                                                : 'general'
+                                    }
                                 />
                             </div>
 
-                            {isSalonProvider && (
-                                <div className="bg-transparent">
-                                    <div className="border-b border-gray-300 pb-4 mb-6">
-                                        <h2 className="text-base font-semibold text-slate-900">Фото интерьера</h2>
-                                        <p className="mt-0.5 text-xs text-stone-400">
-                                            Покажите атмосферу вашего салона — эти фото будут отображаться на вашем публичном профиле.
-                                        </p>
-                                    </div>
-                                    <InteriorPhotosSection initialPhotos={interiorPhotos} />
-                                </div>
-                            )}
 
-                            {!isSalonProvider && (
+                            {!isSalonProvider && currentSection === 'profile-location' && (
                                 <div className="bg-transparent">
                                     <div className="border-b border-gray-300 pb-4 mb-6">
                                         <h2 className="text-base font-semibold text-slate-900">Информация о прибытии</h2>
@@ -792,52 +825,12 @@ async function renderProviderDashboard(
                     )}
                     </main>
 
-                    <aside className="sticky top-6 hidden h-fit w-56 shrink-0 border-l border-gray-300 pl-8 md:block">
-                        <div className="bg-transparent">
-                            <div className="border-b border-gray-300 pb-4 mb-4">
-                                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">
-                                    SVOI.DE
-                                </p>
-                                <h2 className="mt-1 text-sm font-bold text-slate-800">Кабинет мастера</h2>
-                            </div>
-
-                            <nav className="space-y-0.5">
-                                {navItems.map((item) => {
-                                    const Icon = item.icon;
-                                    const isActive = currentSection === item.key;
-                                    return (
-                                        <Link
-                                            key={item.key}
-                                            href={`/dashboard?section=${item.key}`}
-                                            className={`flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors duration-150 ${isActive
-                                                ? 'border-l-2 border-slate-900 text-slate-900'
-                                                : 'border-l-2 border-transparent text-stone-500 hover:text-slate-900'
-                                                }`}
-                                        >
-                                            <Icon className="h-4 w-4 shrink-0" />
-                                            {item.label}
-                                            {item.key === 'bookings' && pendingCount > 0 && (
-                                                <span className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full border border-amber-300 px-1.5 text-[10px] font-bold text-amber-700">
-                                                    {pendingCount}
-                                                </span>
-                                            )}
-                                        </Link>
-                                    );
-                                })}
-                            </nav>
-
-                            <div className="my-3 border-t border-gray-300" />
-                            <Link
-                                href={`/salon/${profile.slug}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-stone-500 transition hover:text-slate-800"
-                            >
-                                <Eye className="h-4 w-4 shrink-0" />
-                                Посмотреть профиль
-                            </Link>
-                        </div>
-                    </aside>
+                    <DashboardSidebar
+                        currentSection={currentSection}
+                        pendingCount={pendingCount}
+                        isSalonProvider={isSalonProvider}
+                        profileSlug={profile.slug}
+                    />
                 </div>
             </div>
 
@@ -845,7 +838,10 @@ async function renderProviderDashboard(
                 <div className="grid grid-cols-4 divide-x divide-gray-300">
                     {mobileNavItems.map((item) => {
                         const Icon = item.icon;
-                        const isActive = currentSection === item.key;
+                        const isActive =
+                            item.key === 'profile-general'
+                                ? isProfileSection
+                                : currentSection === item.key;
                         return (
                             <Link
                                 key={`mobile-${item.key}`}

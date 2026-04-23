@@ -42,6 +42,11 @@ export async function updateProfile(formData: FormData) {
     const providerTypeRaw = String(formData.get('provider_type') || '').trim();
     const bio = formData.get('bio') as string;
     const phone = formData.get('phone') as string;
+    const categoryIdRaw = formData.get('category_id');
+    const categoryIdParsed = typeof categoryIdRaw === 'string' && categoryIdRaw.trim()
+        ? Number.parseInt(categoryIdRaw, 10)
+        : NaN;
+    const categoryId = Number.isFinite(categoryIdParsed) ? categoryIdParsed : null;
     let city = (formData.get('city') as string)?.trim() ?? '';
     let address = (formData.get('address') as string)?.trim() ?? '';
     const cityValidated = String(formData.get('city_validated') || 'false') === 'true';
@@ -175,6 +180,7 @@ export async function updateProfile(formData: FormData) {
         }
 
         const updated = await prisma.$transaction(async (tx) => {
+
             const profile = await tx.profile.update({
                 where: { id: profileId },
                 data: {
@@ -182,13 +188,14 @@ export async function updateProfile(formData: FormData) {
                     slug: newSlug,
                     provider_type: providerType,
                     bio: bioToSave || null,
-                    phone: phone || null,
+                    phone: phone?.trim() ? phone.trim() : null,
                     ...(telegramChatId !== undefined && { telegramChatId }),
                     city: officialCity,
                     address: address || null,
                     studioImages,
                     latitude,
                     longitude,
+                    ...(categoryId !== null && { category_id: categoryId }),
                 },
                 select: { slug: true, user_id: true },
             });

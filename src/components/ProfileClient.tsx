@@ -101,7 +101,7 @@ function getInitials(name: string) {
 }
 
 function formatProviderLanguages(languages: string[]) {
-  return languages
+    return languages
         .map((language) => normalizeProviderLanguage(language))
         .filter((language): language is keyof typeof LANGUAGES => Boolean(language))
         .map((language) => ({
@@ -300,12 +300,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
         ...(profile.gallery || []),
         ...(profile.studioImages || []),
     ].filter(Boolean);
-    const coverImages = profile.provider_type === 'SALON'
-        ? bannerImages
-        : [
-            ...(profile.image_url ? [profile.image_url] : []),
-            ...bannerImages,
-        ];
+    const coverImages = bannerImages;
     const coverSrc = coverImages[0] || FALLBACK_COVER;
     const [headerAvatarSrc, setHeaderAvatarSrc] = useState<string | null>(coverSrc);
 
@@ -352,13 +347,13 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
         const next = new URLSearchParams(searchParams.toString());
         next.delete('book'); next.delete('service'); next.delete('date'); next.delete('time');
         const q = next.toString();
-        
+
         let targetServiceId = '';
         if (Number.isInteger(serviceIdParam)) {
             const svc = services.find((s) => s.id === serviceIdParam);
             if (svc) targetServiceId = `?serviceId=${svc.id}`;
         }
-        
+
         // Redirect completely out of profile to the new book wizard route
         router.replace(`/book/${profile.slug}${targetServiceId}`);
     }, [router, searchParams, services, profile.slug]);
@@ -402,25 +397,45 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                             {coverImages.length > 0 ? (
                                 <>
                                     {/* Image 1 (Left) */}
-                                    <div className={`relative w-full h-full ${coverImages.length === 1 ? 'md:col-span-2' : ''}`}>
-                                        <Image
-                                            src={coverImages[0]}
-                                            alt={`${profile.name} cover 1`}
-                                            fill
-                                            className="w-full h-full object-cover"
-                                            priority
+                                    <div className={`relative w-full h-full overflow-hidden ${coverImages.length === 1 ? 'md:col-span-2' : ''}`}>
+                                        <div
+                                            className="absolute inset-[-10%] w-[120%] h-[120%] blur-xl opacity-60 pointer-events-none"
+                                            style={{
+                                                backgroundImage: `url(${coverImages[0]})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                            }}
+                                        />
+                                        <div
+                                            className="absolute inset-0 w-full h-full"
+                                            style={{
+                                                backgroundImage: `url(${coverImages[0]})`,
+                                                backgroundSize: 'contain',
+                                                backgroundPosition: 'center',
+                                                backgroundRepeat: 'no-repeat'
+                                            }}
                                         />
                                     </div>
-                                    
+
                                     {/* Image 2 (Right) */}
                                     {coverImages.length > 1 && (
-                                        <div className="relative w-full h-full hidden md:block">
-                                            <Image
-                                                src={coverImages[1]}
-                                                alt={`${profile.name} cover 2`}
-                                                fill
-                                                className="w-full h-full object-cover"
-                                                priority
+                                        <div className="relative w-full h-full hidden md:block overflow-hidden">
+                                            <div
+                                                className="absolute inset-[-10%] w-[120%] h-[120%] blur-xl opacity-60 pointer-events-none"
+                                                style={{
+                                                    backgroundImage: `url(${coverImages[1]})`,
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                }}
+                                            />
+                                            <div
+                                                className="absolute inset-0 w-full h-full"
+                                                style={{
+                                                    backgroundImage: `url(${coverImages[1]})`,
+                                                    backgroundSize: 'contain',
+                                                    backgroundPosition: 'center',
+                                                    backgroundRepeat: 'no-repeat'
+                                                }}
                                             />
                                         </div>
                                     )}
@@ -428,10 +443,10 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                             ) : (
                                 <div className="w-full h-full md:col-span-2 bg-gradient-to-br from-stone-100 via-stone-50 to-amber-50" />
                             )}
-                            
+
                             {/* Subtle Gradient Overlay */}
                             <div className="absolute bottom-0 left-0 right-0 md:col-span-2 h-32 bg-gradient-to-t from-black/50 via-black/10 to-transparent pointer-events-none" />
-                            
+
                             {/* Photo Count Badge */}
                             {coverImages.length > 2 && (
                                 <div
@@ -441,7 +456,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         setSelectedImageIndex(0);
                                     }}
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
                                     Смотреть все {coverImages.length} фото
                                 </div>
                             )}
@@ -487,46 +502,118 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                     </section>
                 ) : (
                     <section className="bg-transparent border-b border-gray-300 pb-8 mb-8">
-                        {/* Header */}
-                        <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-                            {headerAvatarSrc ? (
-                                <Image src={headerAvatarSrc} alt={profile.name} width={128} height={128} className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-sm shrink-0 object-top" onError={() => {
-                                        if (headerAvatarSrc !== FALLBACK_COVER) {
-                                            setHeaderAvatarSrc(FALLBACK_COVER);
-                                            return;
-                                        }
-                                        setHeaderAvatarSrc(null);
-                                    }}
-                                />
+                        {/* Cover Banner — same grid layout as Salon */}
+                        <div
+                            className="w-full h-48 md:h-64 relative overflow-hidden rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-1 bg-stone-100 group cursor-pointer"
+                            onClick={() => setSelectedImageIndex(0)}
+                        >
+                            {coverImages.length > 0 ? (
+                                <>
+                                    {/* Image 1 (Left) */}
+                                    <div className={`relative w-full h-full overflow-hidden ${coverImages.length === 1 ? 'md:col-span-2' : ''}`}>
+                                        <div
+                                            className="absolute inset-[-10%] w-[120%] h-[120%] blur-xl opacity-60 pointer-events-none"
+                                            style={{
+                                                backgroundImage: `url(${coverImages[0]})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                            }}
+                                        />
+                                        <div
+                                            className="absolute inset-0 w-full h-full"
+                                            style={{
+                                                backgroundImage: `url(${coverImages[0]})`,
+                                                backgroundSize: 'contain',
+                                                backgroundPosition: 'center',
+                                                backgroundRepeat: 'no-repeat'
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Image 2 (Right) */}
+                                    {coverImages.length > 1 && (
+                                        <div className="relative w-full h-full hidden md:block overflow-hidden">
+                                            <div
+                                                className="absolute inset-[-10%] w-[120%] h-[120%] blur-xl opacity-60 pointer-events-none"
+                                                style={{
+                                                    backgroundImage: `url(${coverImages[1]})`,
+                                                    backgroundSize: 'cover',
+                                                    backgroundPosition: 'center',
+                                                }}
+                                            />
+                                            <div
+                                                className="absolute inset-0 w-full h-full"
+                                                style={{
+                                                    backgroundImage: `url(${coverImages[1]})`,
+                                                    backgroundSize: 'contain',
+                                                    backgroundPosition: 'center',
+                                                    backgroundRepeat: 'no-repeat'
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                </>
                             ) : (
-                                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-stone-200 text-stone-600 shadow-sm shrink-0 flex items-center justify-center">
-                                    <span className="text-2xl md:text-3xl font-semibold">{getInitials(profile.name)}</span>
+                                <div className="w-full h-full md:col-span-2 bg-gradient-to-br from-stone-100 via-stone-50 to-amber-50" />
+                            )}
+
+                            {/* Subtle Gradient Overlay */}
+                            <div className="absolute bottom-0 left-0 right-0 md:col-span-2 h-32 bg-gradient-to-t from-black/50 via-black/10 to-transparent pointer-events-none" />
+
+                            {/* Photo Count Badge */}
+                            {coverImages.length > 2 && (
+                                <div
+                                    className="absolute bottom-4 right-4 z-10 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full text-[11px] font-semibold tracking-wide text-white flex items-center gap-1.5 shadow-sm border border-white/20 transition-all hover:bg-black/50"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedImageIndex(0);
+                                    }}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+                                    Смотреть все {coverImages.length} фото
                                 </div>
                             )}
-                            <div className="flex-1 min-w-0">
-                                <h1 className="text-3xl font-bold tracking-tight text-stone-900 truncate">
-                                    {profile.name}
-                                </h1>
-                                <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-stone-500">
-                                    <span className="inline-flex items-center gap-1.5">
-                                        <MapPin className="h-3.5 w-3.5 text-stone-400" />
-                                        {visibleAddress}
-                                    </span>
-                                    <span className="inline-flex items-center gap-1.5">
-                                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                                        <span className="font-medium text-stone-700">
-                                            {profile.averageRating.toFixed(1)}
+                        </div>
+
+                        {/* Header Content with Avatar Overlap */}
+                        <div className="-mt-12 sm:-mt-16 relative z-10 px-4 sm:px-8">
+                            <div className="flex flex-col md:flex-row gap-6 items-start md:items-end">
+                                {/* Avatar */}
+                                {profile.image_url ? (
+                                    <Image src={profile.image_url} alt={profile.name} width={128} height={128} className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-sm shrink-0 object-top border-4 border-[#faf8f5] bg-[#faf8f5]" />
+                                ) : (
+                                    <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-stone-200 text-stone-600 shadow-sm shrink-0 flex items-center justify-center border-4 border-[#faf8f5]">
+                                        <span className="text-2xl md:text-3xl font-semibold">{getInitials(profile.name)}</span>
+                                    </div>
+                                )}
+
+                                <div className="flex-1 min-w-0 md:pb-2 w-full">
+                                    <h1 className="text-3xl font-bold tracking-tight text-stone-900 truncate">
+                                        {profile.name}
+                                    </h1>
+                                    <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-stone-500">
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <MapPin className="h-3.5 w-3.5 text-stone-400" />
+                                            {visibleAddress}
                                         </span>
-                                    </span>
-                                    <span className="text-stone-400">{priceLevel}</span>
+                                        <span className="inline-flex items-center gap-1.5">
+                                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                                            <span className="font-medium text-stone-700">
+                                                {profile.averageRating.toFixed(1)}
+                                            </span>
+                                        </span>
+                                        <span className="text-stone-400">{priceLevel}</span>
+                                    </div>
+                                </div>
+                                <div className="md:pb-3 w-full md:w-auto">
+                                    <button
+                                        onClick={() => openBooking()}
+                                        className="w-full md:w-auto h-11 md:h-12 shrink-0 rounded-full border border-stone-600 bg-transparent px-6 sm:px-8 text-sm font-medium tracking-wide text-stone-700 transition-all hover:bg-[#F5F2ED] active:scale-95"
+                                    >
+                                        Забронировать
+                                    </button>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => openBooking()}
-                                className="h-11 md:h-12 shrink-0 rounded-full border border-stone-600 bg-transparent px-6 sm:px-8 text-sm font-medium tracking-wide text-stone-700 transition-all hover:bg-[#F5F2ED] active:scale-95"
-                            >
-                                Забронировать
-                            </button>
                         </div>
                     </section>
                 )}
@@ -611,99 +698,98 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                 {(() => {
                     const hasSalonStaff = profile.provider_type === 'SALON' && profile.staff && profile.staff.length > 0;
                     return (
-                <ScrollReveal>
-                    <div className={hasSalonStaff ? 'grid grid-cols-1 border-t border-gray-300 pt-10 mt-10' : 'grid grid-cols-1 gap-0 md:grid-cols-3 border-t border-gray-300 pt-10 mt-10'}>
+                        <ScrollReveal>
+                            <div className={hasSalonStaff ? 'grid grid-cols-1 border-t border-gray-300 pt-10 mt-10' : 'grid grid-cols-1 gap-0 md:grid-cols-3 border-t border-gray-300 pt-10 mt-10'}>
 
-                        {/* Services */}
-                        <article
-                            id="services"
-                            className={`bg-transparent scroll-mt-6 h-fit self-start ${
-                                hasSalonStaff
-                                    ? ''
-                                    : 'md:col-span-2 border-b border-gray-300 pb-10 mb-10 md:border-b-0 md:pb-0 md:mb-0 md:border-r md:border-gray-300 md:pr-12'
-                            }`}
-                        >
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-semibold text-stone-800">Услуги</h2>
-                                <span className="text-xs text-stone-400">
-                                    {services.length} {services.length === 1 ? 'услуга' : 'услуг'}
-                                </span>
-                            </div>
+                                {/* Services */}
+                                <article
+                                    id="services"
+                                    className={`bg-transparent scroll-mt-6 h-fit self-start ${hasSalonStaff
+                                            ? ''
+                                            : 'md:col-span-2 border-b border-gray-300 pb-10 mb-10 md:border-b-0 md:pb-0 md:mb-0 md:border-r md:border-gray-300 md:pr-12'
+                                        }`}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-xl font-semibold text-stone-800">Услуги</h2>
+                                        <span className="text-xs text-stone-400">
+                                            {services.length} {services.length === 1 ? 'услуга' : 'услуг'}
+                                        </span>
+                                    </div>
 
-                            {services.length === 0 ? (
-                                <p className="mt-6 text-sm text-stone-400">Список услуг пока пуст.</p>
-                            ) : (
-                                <div className="mt-4 space-y-6">
-                                    {groupedServices.map(([groupTitle, groupItems]) => (
-                                        <div key={groupTitle}>
-                                            {groupItems.map((service) => (
-                                                <ServiceRow
-                                                    key={service.id}
-                                                    service={service}
-                                                    fallbackThumb={coverSrc}
-                                                    onBook={() =>
-                                                        openBooking({
-                                                            id: service.id,
-                                                            title: service.title,
-                                                            price: formatPrice(service.price),
-                                                            duration_min: service.duration_min,
-                                                        })
-                                                    }
-                                                />
+                                    {services.length === 0 ? (
+                                        <p className="mt-6 text-sm text-stone-400">Список услуг пока пуст.</p>
+                                    ) : (
+                                        <div className="mt-4 space-y-6">
+                                            {groupedServices.map(([groupTitle, groupItems]) => (
+                                                <div key={groupTitle}>
+                                                    {groupItems.map((service) => (
+                                                        <ServiceRow
+                                                            key={service.id}
+                                                            service={service}
+                                                            fallbackThumb={coverSrc}
+                                                            onBook={() =>
+                                                                openBooking({
+                                                                    id: service.id,
+                                                                    title: service.title,
+                                                                    price: formatPrice(service.price),
+                                                                    duration_min: service.duration_min,
+                                                                })
+                                                            }
+                                                        />
+                                                    ))}
+                                                </div>
                                             ))}
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </article>
+                                    )}
+                                </article>
 
-                        {/* Sidebar (Private / non-staff Salon only) */}
-                        {!hasSalonStaff && (
-                            <aside className="md:col-span-1 md:sticky md:top-6 md:self-start md:pl-12">
-                                <div className="bg-transparent">
+                                {/* Sidebar (Private / non-staff Salon only) */}
+                                {!hasSalonStaff && (
+                                    <aside className="md:col-span-1 md:sticky md:top-6 md:self-start md:pl-12">
+                                        <div className="bg-transparent">
 
-                                    {/* Rating headline */}
-                                    <h2 className="text-xl font-semibold text-stone-800">Рейтинг и отзывы</h2>
-                                    <div className="mt-4 flex items-end gap-2">
-                                        <span className="text-5xl font-bold leading-none tracking-tight text-stone-800">
-                                            {profile.averageRating.toFixed(1)}
-                                        </span>
-                                        <span className="mb-1 text-xs text-stone-400">
-                                            {profile.reviewCount} {pluralReviews(profile.reviewCount)}
-                                        </span>
-                                    </div>
+                                            {/* Rating headline */}
+                                            <h2 className="text-xl font-semibold text-stone-800">Рейтинг и отзывы</h2>
+                                            <div className="mt-4 flex items-end gap-2">
+                                                <span className="text-5xl font-bold leading-none tracking-tight text-stone-800">
+                                                    {profile.averageRating.toFixed(1)}
+                                                </span>
+                                                <span className="mb-1 text-xs text-stone-400">
+                                                    {profile.reviewCount} {pluralReviews(profile.reviewCount)}
+                                                </span>
+                                            </div>
 
-                                    {/* Breakdown bars */}
-                                    <div className="mt-5 space-y-3">
-                                        {RATING_BREAKDOWN.map((item) => (
-                                            <RatingBar key={item.label} label={item.label} score={item.score} />
-                                        ))}
-                                    </div>
+                                            {/* Breakdown bars */}
+                                            <div className="mt-5 space-y-3">
+                                                {RATING_BREAKDOWN.map((item) => (
+                                                    <RatingBar key={item.label} label={item.label} score={item.score} />
+                                                ))}
+                                            </div>
 
-                                    {/* Price from */}
-                                    {cheapestService ? (
-                                        <div className="mt-6 border-t border-[#E5E0D8]/50 pt-5">
-                                            <p className="text-xs uppercase tracking-widest text-stone-400">Цена от</p>
-                                            <p className="mt-1 text-3xl font-bold text-stone-800 tabular-nums">
-                                                {formatPrice(cheapestService.price)}
-                                            </p>
+                                            {/* Price from */}
+                                            {cheapestService ? (
+                                                <div className="mt-6 border-t border-[#E5E0D8]/50 pt-5">
+                                                    <p className="text-xs uppercase tracking-widest text-stone-400">Цена от</p>
+                                                    <p className="mt-1 text-3xl font-bold text-stone-800 tabular-nums">
+                                                        {formatPrice(cheapestService.price)}
+                                                    </p>
+                                                </div>
+                                            ) : null}
+
+                                            {/* Chat button */}
+                                            <button
+                                                onClick={startChat}
+                                                disabled={isStartingChat}
+                                                className="mt-5 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#E5D5C5] text-sm font-medium text-stone-600 transition-all hover:bg-[#F5F2ED] disabled:opacity-60"
+                                            >
+                                                <MessageCircle className="h-4 w-4" />
+                                                {isStartingChat ? 'Открываем…' : 'Написать мастеру'}
+                                            </button>
                                         </div>
-                                    ) : null}
-
-                                    {/* Chat button */}
-                                    <button
-                                        onClick={startChat}
-                                        disabled={isStartingChat}
-                                        className="mt-5 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#E5D5C5] text-sm font-medium text-stone-600 transition-all hover:bg-[#F5F2ED] disabled:opacity-60"
-                                    >
-                                        <MessageCircle className="h-4 w-4" />
-                                        {isStartingChat ? 'Открываем…' : 'Написать мастеру'}
-                                    </button>
-                                </div>
-                            </aside>
-                        )}
-                    </div>
-                </ScrollReveal>
+                                    </aside>
+                                )}
+                            </div>
+                        </ScrollReveal>
                     );
                 })()}
 
