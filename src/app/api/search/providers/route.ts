@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { searchRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const ip = forwardedFor?.split(',')[0]?.trim() || 'unknown';
+    
+    if (ip !== 'unknown') {
+        const rateLimit = await searchRateLimit.limit(ip);
+        if (!rateLimit.success) {
+            return NextResponse.json(
+                { error: 'Too Many Requests' },
+                { 
+                    status: 429, 
+                    headers: { 'Retry-After': String(Math.ceil((rateLimit.reset - Date.now()) / 1000)) }
+                }
+            );
+        }
+    }
+
     const { searchParams } = request.nextUrl;
 
     const minLat = parseFloat(searchParams.get('minLat') || '');
@@ -131,7 +148,6 @@ export async function GET(request: NextRequest) {
             include: {
                 category: true,
                 services: true,
-                reviews: true,
                 photos: {
                     where: { serviceId: null, staffId: null },
                     orderBy: { position: 'asc' },

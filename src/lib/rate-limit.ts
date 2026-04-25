@@ -27,3 +27,11 @@ export const mutationRateLimit = new Ratelimit({
     analytics: true,
     prefix: '@upstash/ratelimit/mutation',
 });
+
+// 30 requests per 1 minute for Public Search API
+export const searchRateLimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(30, '1 m'),
+    analytics: true,
+    prefix: '@upstash/ratelimit/search',
+});
