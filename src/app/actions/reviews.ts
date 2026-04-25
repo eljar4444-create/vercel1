@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
+import { mutationRateLimit } from '@/lib/rate-limit';
 
 export async function submitReview(formData: FormData) {
     const session = await auth();
@@ -11,6 +12,11 @@ export async function submitReview(formData: FormData) {
     }
     if (session.user.isBanned) {
         return { success: false, error: 'Ваш аккаунт заблокирован' };
+    }
+
+    const rateLimit = await mutationRateLimit.limit(`submitReview:${session.user.id}`);
+    if (!rateLimit.success) {
+        return { success: false, error: 'Слишком много запросов. Попробуйте позже.' };
     }
 
     const bookingId = parseInt(formData.get('bookingId') as string, 10);

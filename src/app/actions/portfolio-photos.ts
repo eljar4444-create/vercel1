@@ -83,7 +83,11 @@ export async function uploadServicePhotos(formData: FormData): Promise<UploadRes
 
         const service = await prisma.service.findUnique({
             where: { id: serviceId },
-            select: { id: true, profile_id: true },
+            select: {
+                id: true,
+                profile_id: true,
+                profile: { select: { slug: true } },
+            },
         });
         if (!service) return { success: false, error: 'Услуга не найдена.' };
         if (profile && service.profile_id !== profile.id) {
@@ -141,6 +145,7 @@ export async function uploadServicePhotos(formData: FormData): Promise<UploadRes
         );
 
         revalidatePath('/dashboard', 'layout');
+        if (service.profile?.slug) revalidatePath(`/salon/${service.profile.slug}`);
         return { success: true, photos: created };
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {
@@ -178,7 +183,11 @@ export async function reorderServicePhotos(
 
         const service = await prisma.service.findUnique({
             where: { id: serviceId },
-            select: { id: true, profile_id: true },
+            select: {
+                id: true,
+                profile_id: true,
+                profile: { select: { slug: true } },
+            },
         });
         if (!service) return { success: false, error: 'Услуга не найдена.' };
         if (profile && service.profile_id !== profile.id) {
@@ -207,6 +216,7 @@ export async function reorderServicePhotos(
         );
 
         revalidatePath('/dashboard', 'layout');
+        if (service.profile?.slug) revalidatePath(`/salon/${service.profile.slug}`);
         return { success: true };
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {
@@ -243,7 +253,11 @@ export async function reorderStaffServicePhotos(
 
         const service = await prisma.service.findUnique({
             where: { id: serviceId },
-            select: { id: true, profile_id: true },
+            select: {
+                id: true,
+                profile_id: true,
+                profile: { select: { slug: true } },
+            },
         });
         if (!service) return { success: false, error: 'Услуга не найдена.' };
         if (profile && service.profile_id !== profile.id) {
@@ -273,6 +287,7 @@ export async function reorderStaffServicePhotos(
         );
 
         revalidatePath('/dashboard', 'layout');
+        if (service.profile?.slug) revalidatePath(`/salon/${service.profile.slug}`);
         return { success: true };
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {
@@ -344,6 +359,7 @@ export async function updateArrivalInfo(
         });
 
         revalidatePath('/dashboard', 'layout');
+        revalidatePath(`/salon/${profile.slug}`);
         return { success: true };
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {
@@ -368,7 +384,7 @@ export async function deletePortfolioPhoto(photoId: string): Promise<MutationRes
             where: { id: photoId },
             select: {
                 id: true,
-                profile: { select: { user_id: true, user_email: true } },
+                profile: { select: { slug: true, user_id: true, user_email: true } },
             },
         });
         if (!photo) return { success: false, error: 'Фото не найдено.' };
@@ -385,6 +401,7 @@ export async function deletePortfolioPhoto(photoId: string): Promise<MutationRes
 
         await prisma.portfolioPhoto.delete({ where: { id: photoId } });
         revalidatePath('/dashboard', 'layout');
+        revalidatePath(`/salon/${photo.profile.slug}`);
         return { success: true };
     } catch (error: any) {
         console.error('deletePortfolioPhoto error:', error);
@@ -468,7 +485,13 @@ export async function uploadInteriorPhotos(formData: FormData): Promise<UploadRe
             )
         );
 
+        const profileSlug = profile?.slug ?? (await prisma.profile.findUnique({
+            where: { id: profileId },
+            select: { slug: true },
+        }))?.slug;
+
         revalidatePath('/dashboard', 'layout');
+        if (profileSlug) revalidatePath(`/salon/${profileSlug}`);
         return { success: true, photos: created };
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {
@@ -528,6 +551,7 @@ export async function reorderInteriorPhotos(
         );
 
         revalidatePath('/dashboard', 'layout');
+        if (profile?.slug) revalidatePath(`/salon/${profile.slug}`);
         return { success: true };
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {

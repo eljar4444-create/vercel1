@@ -2,16 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
+import { registerRateLimit } from '@/lib/rate-limit';
 
 const RegisterSchema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
     name: z.string().min(2),
 });
-
-// In-memory rate limiting map
-// Keys are IP addresses, values are { count, resetTime }
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 export async function POST(req: NextRequest) {
     const jwtSecret = process.env.JWT_SECRET;
@@ -50,26 +47,12 @@ export async function POST(req: NextRequest) {
 
         // 2. IP Rate Limiting (5 attempts per hour)
         if (clientIp !== 'unknown') {
-            const NOW = Date.now();
-            const WINDOW_MS = 60 * 60 * 1000; // 1 hour
-            const MAX_ATTEMPTS = 5;
-
-            const record = rateLimitMap.get(clientIp);
-            if (record) {
-                if (NOW > record.resetTime) {
-                    rateLimitMap.set(clientIp, { count: 1, resetTime: NOW + WINDOW_MS });
-                } else {
-                    if (record.count >= MAX_ATTEMPTS) {
-                        return NextResponse.json(
-                            { error: 'Слишком много попыток регистрации с этого IP. Попробуйте снова через час.' },
-                            { status: 429 }
-                        );
-                    }
-                    record.count += 1;
-                    rateLimitMap.set(clientIp, record);
-                }
-            } else {
-                rateLimitMap.set(clientIp, { count: 1, resetTime: NOW + WINDOW_MS });
+            const rateLimit = await registerRateLimit.limit(clientIp);
+            if (!rateLimit.success) {
+                return NextResponse.json(
+                    { error: 'Слишком много попыток регистрации с этого IP. Попробуйте снова через час.' },
+                    { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.reset - Date.now()) / 1000)) } }
+                );
             }
         }
 

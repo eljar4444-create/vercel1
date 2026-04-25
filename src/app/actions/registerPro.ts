@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { generateUniqueSlug } from '@/lib/generateUniqueSlug';
+import { generateUniqueProfileSlug } from '@/lib/slugify';
 
 interface RegisterProResult {
     success: boolean;
@@ -30,7 +30,7 @@ export async function registerPro(formData: FormData): Promise<RegisterProResult
         }
 
         // Generate unique slug
-        const slug = await generateUniqueSlug(name, city);
+        const slug = await generateUniqueProfileSlug(name, city);
 
         await prisma.profile.create({
             data: {

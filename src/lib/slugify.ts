@@ -4,6 +4,12 @@ export function slugify(text: string): string {
     return text
         .toString()
         .toLowerCase()
+        // German transliteration MUST run before non-word stripping,
+        // otherwise ä/ö/ü/ß are dropped entirely (München → mnchen).
+        .replace(/ä/g, 'ae')
+        .replace(/ö/g, 'oe')
+        .replace(/ü/g, 'ue')
+        .replace(/ß/g, 'ss')
         .replace(/\s+/g, '-')
         .replace(/[^\w\-]+/g, '')
         .replace(/\-\-+/g, '-')

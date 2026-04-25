@@ -1,11 +1,11 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { getCityFilterVariants } from '@/constants/searchSuggestions';
 import { GERMAN_CITIES } from '@/constants/germanCities';
 import { SearchResultListItem } from '@/components/search/SearchResultListItem';
-import { deslugify } from '@/lib/slugify';
+import { deslugify, slugify } from '@/lib/slugify';
 import type { Metadata } from 'next';
 import ScrollReveal from '@/components/ScrollReveal';
 
@@ -13,18 +13,19 @@ import ScrollReveal from '@/components/ScrollReveal';
  * Resolve slug back to a pretty German city name from GERMAN_CITIES.
  */
 function resolveCityName(slug: string): string {
-    const decoded = decodeURIComponent(slug).toLowerCase().replace(/-/g, ' ');
+    const decoded = decodeURIComponent(slug).toLowerCase();
+    const slugForm = slugify(decoded);
 
-    for (const entry of GERMAN_CITIES) {
-        for (const name of entry.names) {
-            if (name.toLowerCase() === decoded) {
-                const display = entry.data?.display_name?.split(',')?.[0]?.trim();
-                return display || name.charAt(0).toUpperCase() + name.slice(1);
+    if (slugForm) {
+        for (const entry of GERMAN_CITIES) {
+            const display = entry.data?.display_name?.split(',')?.[0]?.trim() || '';
+            if (display && slugify(display) === slugForm) return display;
+            for (const name of entry.names) {
+                const nameSlug = slugify(name);
+                if (nameSlug && nameSlug === slugForm) {
+                    return display || name.charAt(0).toUpperCase() + name.slice(1);
+                }
             }
-        }
-        const display = entry.data?.display_name?.split(',')?.[0]?.trim() || '';
-        if (display.toLowerCase().replace(/\s+/g, '-') === decoded.replace(/\s+/g, '-')) {
-            return display;
         }
     }
 

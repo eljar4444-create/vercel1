@@ -25,7 +25,7 @@ export async function uploadStaffAvatar(formData: FormData) {
     }
 
     try {
-        const profileId = await verifySalonAccess();
+        const { id: profileId } = await verifySalonAccess();
         const staff = await prisma.staff.findFirst({
             where: { id: staffId, profileId },
             include: { profile: { select: { slug: true } } }

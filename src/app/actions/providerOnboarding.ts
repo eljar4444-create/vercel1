@@ -3,7 +3,7 @@
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { revalidatePath } from 'next/cache';
-import { generateUniqueSlug } from '@/lib/generateUniqueSlug';
+import { generateUniqueProfileSlug } from '@/lib/slugify';
 import { geocodeAddress } from '@/lib/geocode';
 import { buildSchedulePayload, createUniformSchedule } from '@/lib/scheduling';
 import type { Prisma, ProviderType } from '@prisma/client';
@@ -372,8 +372,8 @@ async function prepareDraftData(
         : null;
     const safeBio = payload.bio || existingProfile?.bio || null;
     const slug = existingProfile
-        ? await generateUniqueSlug(safeName, safeCity, existingProfile.id)
-        : await generateUniqueSlug(safeName, safeCity);
+        ? await generateUniqueProfileSlug(safeName, safeCity, existingProfile.id)
+        : await generateUniqueProfileSlug(safeName, safeCity);
 
     return {
         data: {

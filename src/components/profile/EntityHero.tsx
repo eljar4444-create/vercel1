@@ -40,7 +40,6 @@ export function EntityHero({
                             fill
                             className="object-cover"
                             sizes="80px"
-                            priority
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center text-xl font-serif font-medium text-booking-textMuted uppercase">
@@ -91,7 +90,6 @@ export function EntityHero({
                             fill
                             className="object-cover"
                             sizes="96px"
-                            priority
                         />
                     ) : (
                         <div className="flex h-full w-full items-center justify-center text-2xl font-serif font-medium text-booking-textMuted uppercase">

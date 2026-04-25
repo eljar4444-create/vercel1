@@ -439,7 +439,7 @@ async function renderProviderDashboard(
                     <main className="min-w-0 flex-1 md:pr-8">
 
                     <Link
-                        href={`/salon/${profile.slug}`}
+                        href={`/dashboard/preview/${profile.slug}`}
                         className="inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-700"
                     >
                         <ArrowLeft className="h-4 w-4" />
@@ -480,7 +480,7 @@ async function renderProviderDashboard(
 
                                     <div className="flex shrink-0 items-center gap-2">
                                         <Link
-                                            href={`/salon/${profile.slug}`}
+                                            href={`/dashboard/preview/${profile.slug}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-transparent px-5 py-2 text-sm font-medium text-gray-900 transition-colors hover:border-gray-900 hover:bg-gray-50"

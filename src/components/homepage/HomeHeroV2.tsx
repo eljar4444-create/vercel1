@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ReactNode } from 'react';
 
 const CITIES = [
@@ -14,10 +15,14 @@ export default function HomeHeroV2({ children }: { children?: ReactNode }) {
         <header className="relative min-h-[100dvh] flex items-center justify-center pt-20">
             {/* Background image/video with overlay */}
             <div className="absolute inset-0 z-0 bg-[#1A1A1A] overflow-hidden">
-                <img
+                <Image
                     src="/hero-bg.jpg"
                     alt="Beauty salon interior"
-                    className="absolute inset-0 w-full h-full object-cover object-center"
+                    fill
+                    priority
+                    fetchPriority="high"
+                    sizes="100vw"
+                    className="object-cover object-center"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/60" />
             </div>

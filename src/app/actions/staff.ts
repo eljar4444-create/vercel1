@@ -11,7 +11,7 @@ interface StaffInput {
     avatarUrl?: string;
 }
 
-export async function verifySalonAccess() {
+export async function verifySalonAccess(): Promise<{ id: number; slug: string }> {
     const session = await auth();
     if (!session?.user?.id) throw new Error('Unauthorized');
     const banned = checkBanned(session);
@@ -25,16 +25,16 @@ export async function verifySalonAccess() {
             ],
             provider_type: 'SALON'
         },
-        select: { id: true }
+        select: { id: true, slug: true }
     });
 
     if (!profile) throw new Error('Доступ запрещен. Требуется профиль типа САЛОН.');
-    return profile.id;
+    return { id: profile.id, slug: profile.slug };
 }
 
 export async function createStaff(input: StaffInput) {
     try {
-        const profileId = await verifySalonAccess();
+        const { id: profileId, slug: profileSlug } = await verifySalonAccess();
         if (!input.name || input.name.trim().length < 2) {
             return { success: false, error: 'Введите корректное имя' };
         }
@@ -49,6 +49,7 @@ export async function createStaff(input: StaffInput) {
         });
 
         revalidatePath('/dashboard');
+        revalidatePath(`/salon/${profileSlug}`);
         return { success: true, staffId: staff.id };
     } catch (error: any) {
         return { success: false, error: error.message };
@@ -57,11 +58,12 @@ export async function createStaff(input: StaffInput) {
 
 export async function deleteStaff(staffId: string) {
     try {
-        const profileId = await verifySalonAccess();
+        const { id: profileId, slug: profileSlug } = await verifySalonAccess();
         await prisma.staff.deleteMany({
             where: { id: staffId, profileId } // profileId ensures they own it
         });
         revalidatePath('/dashboard');
+        revalidatePath(`/salon/${profileSlug}`);
         return { success: true };
     } catch (error: any) {
         return { success: false, error: 'Ошибка при удалении мастера' };
@@ -80,7 +82,7 @@ export async function updateStaffProfile(
     }
 ) {
     try {
-        const profileId = await verifySalonAccess();
+        const { id: profileId, slug: profileSlug } = await verifySalonAccess();
         await verifyStaffOwnership(staffId, profileId);
 
         if (!data.name || data.name.trim().length < 2) {
@@ -113,6 +115,7 @@ export async function updateStaffProfile(
         });
 
         revalidatePath('/dashboard');
+        revalidatePath(`/salon/${profileSlug}`);
         return { success: true };
     } catch (error: any) {
         return { success: false, error: error.message || 'Ошибка при обновлении профиля' };
@@ -122,12 +125,13 @@ export async function updateStaffProfile(
 // Updating staff schedule (legacy JSON-based, kept for backward compat)
 export async function updateStaffSchedule(staffId: string, schedule: any) {
     try {
-        const profileId = await verifySalonAccess();
+        const { id: profileId, slug: profileSlug } = await verifySalonAccess();
         await prisma.staff.updateMany({
             where: { id: staffId, profileId },
             data: { schedule }
         });
         revalidatePath('/dashboard');
+        revalidatePath(`/salon/${profileSlug}`);
         return { success: true };
     } catch (error: any) {
          return { success: false, error: 'Ошибка при сохранении расписания' };
@@ -166,7 +170,7 @@ async function verifyStaffOwnership(staffId: string, profileId: number) {
 
 export async function getStaffAvailability(staffId: string) {
     try {
-        const profileId = await verifySalonAccess();
+        const { id: profileId } = await verifySalonAccess();
         await verifyStaffOwnership(staffId, profileId);
 
         const rows = await prisma.staffAvailability.findMany({
@@ -193,7 +197,7 @@ export async function updateStaffAvailability(
     days: StaffAvailabilityDay[]
 ) {
     try {
-        const profileId = await verifySalonAccess();
+        const { id: profileId, slug: profileSlug } = await verifySalonAccess();
         await verifyStaffOwnership(staffId, profileId);
 
         for (const d of days) {
@@ -222,6 +226,7 @@ export async function updateStaffAvailability(
         );
 
         revalidatePath('/dashboard');
+        revalidatePath(`/salon/${profileSlug}`);
         return { success: true };
     } catch (error: any) {
         return { success: false, error: error.message || 'Ошибка при сохранении расписания' };

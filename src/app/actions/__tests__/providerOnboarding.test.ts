@@ -31,8 +31,11 @@ vi.mock('@/lib/geocode', () => ({
     geocodeAddress: vi.fn(),
 }));
 
-vi.mock('@/lib/generateUniqueSlug', () => ({
-    generateUniqueSlug: vi.fn().mockResolvedValue('test-slug-berlin'),
+vi.mock('@/lib/slugify', () => ({
+    slugify: vi.fn((text: string) => text.toLowerCase().replace(/\s+/g, '-')),
+    deslugify: vi.fn((slug: string) => slug),
+    createBaseSlug: vi.fn((name: string, city: string) => `${name}-${city}`.toLowerCase().replace(/\s+/g, '-')),
+    generateUniqueProfileSlug: vi.fn().mockResolvedValue('test-slug-berlin'),
 }));
 
 import prisma from '@/lib/prisma';

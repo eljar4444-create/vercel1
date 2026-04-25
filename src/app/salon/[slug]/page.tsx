@@ -1,161 +1,23 @@
-import prisma from '@/lib/prisma';
-import { auth } from '@/auth';
 import { notFound } from 'next/navigation';
-import { ProfileClient } from '@/components/ProfileClient';
-import { GERMAN_CITIES } from '@/constants/germanCities';
 import type { Metadata } from 'next';
+import { fetchProfileForView, PublicProfileView } from '@/lib/profileView';
 
-export const dynamic = 'force-dynamic';
-
-const DEFAULT_CITY_COORDS = {
-    lat: 52.52,
-    lng: 13.405,
-};
-const addressCoordsCache = new Map<string, { lat: number; lng: number }>();
-
-function resolveCityCoordinates(city: string) {
-    const normalized = city.trim().toLowerCase();
-    const match = GERMAN_CITIES.find((entry) =>
-        entry.names.some((name) => normalized.includes(name.toLowerCase()))
-    );
-
-    if (!match) {
-        return DEFAULT_CITY_COORDS;
-    }
-
-    return {
-        lat: Number(match.data.lat) || DEFAULT_CITY_COORDS.lat,
-        lng: Number(match.data.lon) || DEFAULT_CITY_COORDS.lng,
-    };
-}
-
-async function resolveAddressCoordinates(address: string, city: string) {
-    const query = [address, city, 'Deutschland'].filter(Boolean).join(', ').trim();
-    if (!query) return null;
-
-    const cached = addressCoordsCache.get(query);
-    if (cached) return cached;
-
-    try {
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`,
-            {
-                headers: {
-                    'Accept-Language': 'de,en',
-                    'User-Agent': 'svoi.de/1.0 (support@svoi.de)',
-                },
-                cache: 'no-store',
-            }
-        );
-        if (!response.ok) return null;
-
-        const payload = (await response.json()) as Array<{ lat: string; lon: string }>;
-        const first = payload?.[0];
-        if (!first) return null;
-
-        const lat = Number(first.lat);
-        const lng = Number(first.lon);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-
-        const coords = { lat, lng };
-        addressCoordsCache.set(query, coords);
-        return coords;
-    } catch {
-        return null;
-    }
-}
-
-async function getProfileBySlug(slug: string, includeDraft: boolean = false) {
-    return prisma.profile.findFirst({
-        where: includeDraft ? { slug } : { slug, status: 'PUBLISHED' },
-        select: {
-            id: true,
-            slug: true,
-            user_id: true,
-            user_email: true,
-            name: true,
-            provider_type: true,
-            city: true,
-            address: true,
-            image_url: true,
-            gallery: true,
-            studioImages: true,
-            bio: true,
-            phone: true,
-            is_verified: true,
-            created_at: true,
-            attributes: true,
-            schedule: true,
-            status: true,
-            category: {
-                select: {
-                    id: true,
-                    name: true,
-                    slug: true,
-                },
-            },
-            services: {
-                select: {
-                    id: true,
-                    title: true,
-                    description: true,
-                    images: true,
-                    price: true,
-                    duration_min: true,
-                    photos: {
-                        orderBy: { position: 'asc' },
-                        select: { url: true },
-                    },
-                },
-            },
-            reviews: {
-                take: 5,
-                orderBy: { createdAt: 'desc' },
-                select: {
-                    id: true,
-                    comment: true,
-                    rating: true,
-                    createdAt: true,
-                    client: {
-                        select: { name: true },
-                    },
-                },
-            },
-            staff: {
-                select: {
-                    id: true,
-                    name: true,
-                    avatarUrl: true,
-                    specialty: true,
-                    experience: true,
-                    rating: true,
-                    tags: true,
-                    photos: {
-                        orderBy: { position: 'asc' },
-                        select: { url: true },
-                    },
-                }
-            },
-            photos: {
-                where: { serviceId: null, staffId: null },
-                orderBy: { position: 'asc' },
-                select: { url: true },
-            }
-        },
-    });
-}
+export const revalidate = 3600;
 
 export async function generateMetadata({
     params,
 }: {
     params: { slug: string };
 }): Promise<Metadata> {
-    const profile = await getProfileBySlug(params.slug);
+    const profile = await fetchProfileForView(params.slug, { includeDraft: false });
     if (!profile) {
         return { title: 'Профиль не найден | Svoi.de' };
     }
 
-    const topService = profile.services.length > 0 ? profile.services[0].title : profile.category?.name || 'Мастер красоты';
+    const topService =
+        profile.services.length > 0
+            ? profile.services[0].title
+            : profile.category?.name || 'Мастер красоты';
     const title = `${profile.name} — ${topService} в ${profile.city} | Svoi.de`;
     const description = profile.bio
         ? profile.bio.slice(0, 150).trim() + (profile.bio.length > 150 ? '…' : '')
@@ -164,10 +26,13 @@ export async function generateMetadata({
     return {
         title,
         description,
+        alternates: {
+            canonical: `/salon/${profile.slug}`,
+        },
         openGraph: {
             title,
             description,
-            ...(profile.image_url ? { images: [{ url: profile.image_url }] } : {}),
+            url: `/salon/${profile.slug}`,
         },
     };
 }
@@ -177,147 +42,8 @@ export default async function SalonProfilePage({
 }: {
     params: { slug: string };
 }) {
-    const session = await auth();
-    const profile = await getProfileBySlug(params.slug, true);
+    const profile = await fetchProfileForView(params.slug, { includeDraft: false });
     if (!profile) notFound();
 
-    const isOwner =
-        session?.user?.role === 'ADMIN' ||
-        profile.user_id === session?.user?.id ||
-        (session?.user?.email ? profile.user_email === session.user.email : false);
-
-    if (profile.status !== 'PUBLISHED' && !isOwner) {
-        notFound();
-    }
-
-    const languageRows = await prisma.$queryRaw<Array<{ languages: string[] | null }>>`
-        SELECT "languages"
-        FROM "Profile"
-        WHERE "id" = ${profile.id}
-        LIMIT 1
-    `;
-    const profileLanguages = languageRows[0]?.languages ?? [];
-
-    const cityCoordinates = resolveCityCoordinates(profile.city);
-    const preciseCoordinates =
-        profile.provider_type === 'SALON' && profile.address
-            ? await resolveAddressCoordinates(profile.address, profile.city)
-            : null;
-    const mapCoordinates = preciseCoordinates || cityCoordinates;
-
-    const reviewStats = await prisma.review.aggregate({
-        where: { profileId: profile.id },
-        _avg: { rating: true },
-        _count: { id: true },
-    });
-    const averageRating = reviewStats._avg.rating ? Number(reviewStats._avg.rating.toFixed(1)) : 5.0;
-    const reviewCount = reviewStats._count.id || 0;
-
-    // Compute values for JSON-LD
-    const services = profile.services || [];
-    const topService = services.length > 0 ? services[0].title : profile.category?.name || 'Мастер красоты';
-    const prices = services.map(s => Number(s.price)).filter(p => Number.isFinite(p) && p > 0);
-    const minPrice = prices.length > 0 ? Math.min(...prices) : undefined;
-    const maxPrice = prices.length > 0 ? Math.max(...prices) : undefined;
-    const priceRange = minPrice !== undefined && maxPrice !== undefined
-        ? `€${minPrice.toFixed(0)} - €${maxPrice.toFixed(0)}`
-        : '€€€';
-    const bioText = (profile.bio || '').trim();
-
-    const jsonLd = {
-        '@context': 'https://schema.org',
-        '@type': 'LocalBusiness',
-        name: profile.name,
-        description: bioText || `${topService} in ${profile.city}`,
-        address: {
-            '@type': 'PostalAddress',
-            addressLocality: profile.city,
-            ...(profile.address ? { streetAddress: profile.address } : {}),
-            addressCountry: 'DE',
-        },
-        ...(profile.image_url ? { image: profile.image_url } : {}),
-        priceRange,
-        aggregateRating: {
-            '@type': 'AggregateRating',
-            ratingValue: averageRating.toString(),
-            reviewCount: reviewCount > 0 ? reviewCount.toString() : '1',
-            bestRating: '5',
-            worstRating: '1',
-        },
-        geo: {
-            '@type': 'GeoCoordinates',
-            latitude: mapCoordinates.lat,
-            longitude: mapCoordinates.lng,
-        },
-        url: `https://svoi.de/salon/${profile.slug}`,
-    };
-
-    // Serialize for client component (Decimal → string, Date → string)
-    const serialized = {
-        id: profile.id,
-        name: profile.name,
-        slug: profile.slug,
-        provider_type: profile.provider_type,
-        city: profile.city,
-        address: profile.address,
-        image_url: profile.image_url,
-        gallery: profile.gallery,
-        studioImages: [
-            ...(profile.photos?.map((p) => p.url) ?? []),
-            ...(profile.studioImages ?? []),
-        ],
-        bio: profile.bio,
-        phone: profile.phone,
-        languages: profileLanguages,
-        is_verified: profile.is_verified,
-        created_at: profile.created_at instanceof Date
-            ? profile.created_at.toISOString()
-            : String(profile.created_at),
-        latitude: mapCoordinates.lat,
-        longitude: mapCoordinates.lng,
-        attributes: profile.attributes,
-        category: profile.category
-            ? { id: profile.category.id, name: profile.category.name, slug: profile.category.slug }
-            : null,
-        services: profile.services.map(s => ({
-            id: s.id,
-            title: s.title,
-            description: s.description,
-            images: s.images,
-            portfolioPhotos: s.photos.map((p) => p.url),
-            price: s.price.toString(),
-            duration_min: s.duration_min,
-        })),
-        averageRating,
-        reviewCount,
-        reviews: profile.reviews?.map((r) => ({
-            id: r.id,
-            comment: r.comment,
-            rating: r.rating,
-            createdAt: r.createdAt instanceof Date
-                ? r.createdAt.toISOString()
-                : String(r.createdAt),
-            clientName: r.client?.name ?? 'Клиент',
-        })) ?? [],
-        staff: profile.staff?.map((s) => ({
-            id: s.id,
-            name: s.name,
-            avatarUrl: s.avatarUrl,
-            specialty: s.specialty,
-            experience: s.experience,
-            rating: typeof s.rating === 'number' ? s.rating : 5.0,
-            tags: s.tags ?? [],
-            photos: s.photos?.map((p) => p.url) ?? [],
-        })) ?? [],
-    };
-
-    return (
-        <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
-            <ProfileClient profile={serialized} />
-        </>
-    );
+    return <PublicProfileView profile={profile} />;
 }

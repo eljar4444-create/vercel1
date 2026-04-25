@@ -398,44 +398,26 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 <>
                                     {/* Image 1 (Left) */}
                                     <div className={`relative w-full h-full overflow-hidden ${coverImages.length === 1 ? 'md:col-span-2' : ''}`}>
-                                        <div
-                                            className="absolute inset-[-10%] w-[120%] h-[120%] blur-xl opacity-60 pointer-events-none"
-                                            style={{
-                                                backgroundImage: `url(${coverImages[0]})`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
-                                            }}
-                                        />
-                                        <div
-                                            className="absolute inset-0 w-full h-full"
-                                            style={{
-                                                backgroundImage: `url(${coverImages[0]})`,
-                                                backgroundSize: 'contain',
-                                                backgroundPosition: 'center',
-                                                backgroundRepeat: 'no-repeat'
-                                            }}
+                                        <Image
+                                            src={coverImages[0]}
+                                            alt={`${profile.name} — обложка`}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                            priority
+                                            fetchPriority="high"
+                                            className="object-cover"
                                         />
                                     </div>
 
                                     {/* Image 2 (Right) */}
                                     {coverImages.length > 1 && (
                                         <div className="relative w-full h-full hidden md:block overflow-hidden">
-                                            <div
-                                                className="absolute inset-[-10%] w-[120%] h-[120%] blur-xl opacity-60 pointer-events-none"
-                                                style={{
-                                                    backgroundImage: `url(${coverImages[1]})`,
-                                                    backgroundSize: 'cover',
-                                                    backgroundPosition: 'center',
-                                                }}
-                                            />
-                                            <div
-                                                className="absolute inset-0 w-full h-full"
-                                                style={{
-                                                    backgroundImage: `url(${coverImages[1]})`,
-                                                    backgroundSize: 'contain',
-                                                    backgroundPosition: 'center',
-                                                    backgroundRepeat: 'no-repeat'
-                                                }}
+                                            <Image
+                                                src={coverImages[1]}
+                                                alt={`${profile.name} — обложка 2`}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 50vw"
+                                                className="object-cover"
                                             />
                                         </div>
                                     )}
@@ -511,44 +493,26 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 <>
                                     {/* Image 1 (Left) */}
                                     <div className={`relative w-full h-full overflow-hidden ${coverImages.length === 1 ? 'md:col-span-2' : ''}`}>
-                                        <div
-                                            className="absolute inset-[-10%] w-[120%] h-[120%] blur-xl opacity-60 pointer-events-none"
-                                            style={{
-                                                backgroundImage: `url(${coverImages[0]})`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center',
-                                            }}
-                                        />
-                                        <div
-                                            className="absolute inset-0 w-full h-full"
-                                            style={{
-                                                backgroundImage: `url(${coverImages[0]})`,
-                                                backgroundSize: 'contain',
-                                                backgroundPosition: 'center',
-                                                backgroundRepeat: 'no-repeat'
-                                            }}
+                                        <Image
+                                            src={coverImages[0]}
+                                            alt={`${profile.name} — обложка`}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 50vw"
+                                            priority
+                                            fetchPriority="high"
+                                            className="object-cover"
                                         />
                                     </div>
 
                                     {/* Image 2 (Right) */}
                                     {coverImages.length > 1 && (
                                         <div className="relative w-full h-full hidden md:block overflow-hidden">
-                                            <div
-                                                className="absolute inset-[-10%] w-[120%] h-[120%] blur-xl opacity-60 pointer-events-none"
-                                                style={{
-                                                    backgroundImage: `url(${coverImages[1]})`,
-                                                    backgroundSize: 'cover',
-                                                    backgroundPosition: 'center',
-                                                }}
-                                            />
-                                            <div
-                                                className="absolute inset-0 w-full h-full"
-                                                style={{
-                                                    backgroundImage: `url(${coverImages[1]})`,
-                                                    backgroundSize: 'contain',
-                                                    backgroundPosition: 'center',
-                                                    backgroundRepeat: 'no-repeat'
-                                                }}
+                                            <Image
+                                                src={coverImages[1]}
+                                                alt={`${profile.name} — обложка 2`}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, 50vw"
+                                                className="object-cover"
                                             />
                                         </div>
                                     )}

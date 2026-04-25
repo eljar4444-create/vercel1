@@ -1,9 +1,14 @@
-"use client";
-
-import { motion } from "framer-motion";
-import { Scissors, Sparkles, Eye, Palette, Hand, Flower } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import type { Metadata } from "next";
+import { Scissors, Sparkles, Eye, Palette, Hand, Flower } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { getCityFilterVariants } from "@/constants/searchSuggestions";
+
+export const revalidate = 3600;
+
+interface PageParams {
+    params: { city: string };
+}
 
 const categories = [
     {
@@ -11,135 +16,172 @@ const categories = [
         title: "Волосы",
         icon: Scissors,
         services: [
-            "Стрижки",
-            "Сложное окрашивание",
-            "Наращивание",
-            "Тонирование",
-            "Укладки",
-            "Кератин / Ботокс"
-        ]
+            "Стрижки", "Сложное окрашивание", "Наращивание",
+            "Тонирование", "Укладки", "Кератин / Ботокс",
+        ],
     },
     {
         id: "face",
         title: "Лицо и Уход",
         icon: Sparkles,
         services: [
-            "Чистка лица",
-            "Пилинги",
-            "Аппаратная косметология",
-            "Массаж лица",
-            "Уходовые маски"
-        ]
+            "Чистка лица", "Пилинги", "Аппаратная косметология",
+            "Массаж лица", "Уходовые маски",
+        ],
     },
     {
         id: "lashes",
         title: "Брови и Ресницы",
         icon: Eye,
-        services: [
-            "Архитектура бровей",
-            "Ламинирование",
-            "Наращивание ресниц",
-            "Окрашивание"
-        ]
+        services: ["Архитектура бровей", "Ламинирование", "Наращивание ресниц", "Окрашивание"],
     },
     {
         id: "makeup",
         title: "Макияж",
         icon: Palette,
-        services: [
-            "Вечерний макияж",
-            "Свадебный макияж",
-            "Экспресс-мейкап",
-            "Обучение «Макияж для себя»"
-        ]
+        services: ["Вечерний макияж", "Свадебный макияж", "Экспресс-мейкап", "Обучение «Макияж для себя»"],
     },
     {
         id: "nails",
         title: "Ногтевой сервис",
         icon: Hand,
-        services: [
-            "Маникюр",
-            "Педикюр",
-            "Наращивание ногтей",
-            "Подология",
-            "Дизайн"
-        ]
+        services: ["Маникюр", "Педикюр", "Наращивание ногтей", "Подология", "Дизайн"],
     },
     {
         id: "body",
         title: "Тело и Эпиляция",
         icon: Flower,
-        services: [
-            "Массаж",
-            "Лазерная эпиляция",
-            "Шугаринг / Воск",
-            "Антицеллюлитный уход",
-            "СПА"
-        ]
-    }
+        services: ["Массаж", "Лазерная эпиляция", "Шугаринг / Воск", "Антицеллюлитный уход", "СПА"],
+    },
 ];
 
-const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: { staggerChildren: 0.15 }
+function buildCityWhere(cityName: string) {
+    const variants = getCityFilterVariants(cityName);
+    const andConditions: any[] = [
+        { status: "PUBLISHED" },
+        { is_verified: true },
+        { category: { slug: { not: "health" } } },
+        { user: { isBanned: false } },
+    ];
+    if (variants.length > 0) {
+        andConditions.push({
+            OR: variants.map((variant) => ({
+                city: { contains: variant, mode: "insensitive" },
+            })),
+        });
     }
-};
+    return { AND: andConditions };
+}
 
-const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } }
-};
+async function getCityMasterCount(cityName: string): Promise<number> {
+    try {
+        return await prisma.profile.count({ where: buildCityWhere(cityName) });
+    } catch {
+        return 0;
+    }
+}
 
-export default function CityHubPage() {
-    const params = useParams();
-    const cityName = decodeURIComponent(params.city as string);
+async function getTopMasters(cityName: string) {
+    try {
+        return await prisma.profile.findMany({
+            where: buildCityWhere(cityName),
+            select: {
+                id: true,
+                slug: true,
+                name: true,
+                city: true,
+                image_url: true,
+                provider_type: true,
+                category: { select: { name: true } },
+            },
+            orderBy: { created_at: "desc" },
+            take: 6,
+        });
+    } catch {
+        return [];
+    }
+}
+
+export async function generateMetadata({ params }: PageParams): Promise<Metadata> {
+    const cityName = decodeURIComponent(params.city);
+    const count = await getCityMasterCount(cityName);
+
+    const title = `Лучшие бьюти-мастера в ${cityName} | SVOI`;
+    const description = count > 0
+        ? `Найдено ${count} проверенных мастеров в ${cityName}. Сравните цены, отзывы и запишитесь онлайн на SVOI.de.`
+        : `Проверенные бьюти-мастера в ${cityName}. Сравните цены, отзывы и запишитесь онлайн на SVOI.de.`;
+
+    return {
+        title,
+        description,
+        alternates: { canonical: `/locations/${encodeURIComponent(cityName)}` },
+        openGraph: { title, description, url: `/locations/${encodeURIComponent(cityName)}` },
+    };
+}
+
+export default async function CityHubPage({ params }: PageParams) {
+    const cityName = decodeURIComponent(params.city);
+    const [count, topMasters] = await Promise.all([
+        getCityMasterCount(cityName),
+        getTopMasters(cityName),
+    ]);
 
     return (
         <div className="min-h-[calc(100vh-4rem)] bg-[#F4EFE6] w-full flex flex-col items-center py-16 md:py-20">
-            {/* Hero Section */}
             <section className="w-full max-w-6xl px-6 md:px-12 text-center mb-20">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                >
-                    <h1 className="text-4xl md:text-5xl lg:text-5xl font-medium tracking-tight text-gray-900 mb-6">
-                        Бьюти-специалисты в городе {cityName}
-                    </h1>
-                    <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
-                        Выберите направление, чтобы найти лучших мастеров SVOI в вашей локации.
-                    </p>
-                </motion.div>
+                <h1 className="text-4xl md:text-5xl lg:text-5xl font-medium tracking-tight text-gray-900 mb-6">
+                    Бьюти-специалисты в городе {cityName}
+                </h1>
+                <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto font-light leading-relaxed">
+                    {count > 0
+                        ? `Найдено ${count} проверенных мастеров в ${cityName}. Выберите направление, чтобы найти лучших мастеров SVOI в вашей локации.`
+                        : `Новые мастера скоро появятся в ${cityName}. А пока — изучите каталог направлений.`}
+                </p>
             </section>
 
-            {/* Catalog Grid */}
+            {topMasters.length > 0 && (
+                <section className="w-full max-w-6xl px-6 md:px-12 mb-20">
+                    <h2 className="text-3xl font-medium tracking-tight text-[#1B2A23] mb-8">
+                        Популярные мастера в {cityName}
+                    </h2>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {topMasters.map((master) => (
+                            <li key={master.id}>
+                                <Link
+                                    href={`/salon/${master.slug}`}
+                                    className="block bg-white border border-[#C2A363]/40 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-[#C2A363] transition"
+                                >
+                                    <h3 className="text-xl font-semibold text-[#1B2A23] mb-1">
+                                        {master.name}
+                                    </h3>
+                                    <p className="text-sm text-gray-600">
+                                        {master.category?.name ?? "Мастер красоты"} · {master.city}
+                                    </p>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
+
             <section className="w-full max-w-6xl px-6 md:px-12">
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
-                >
+                <h2 className="sr-only">Направления услуг в {cityName}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {categories.map((category) => {
                         const Icon = category.icon;
-
                         return (
-                            <motion.div
+                            <div
                                 key={category.id}
-                                variants={itemVariants}
-                                className="bg-[#1B2A23] border-2 border-[#C2A363] p-8 rounded-3xl flex flex-col h-full shadow-lg transition-all duration-300"
+                                className="bg-[#1B2A23] border-2 border-[#C2A363] p-8 rounded-3xl flex flex-col h-full shadow-lg"
                             >
                                 <div className="flex items-center space-x-5 mb-8">
                                     <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-white flex-shrink-0">
                                         <Icon className="w-6 h-6" strokeWidth={1.5} />
                                     </div>
-                                    <h2 className="text-2xl font-medium tracking-tight text-white">
+                                    <h3 className="text-2xl font-medium tracking-tight text-white">
                                         {category.title}
-                                    </h2>
+                                    </h3>
                                 </div>
-
                                 <div className="flex flex-wrap gap-3">
                                     {category.services.map((service) => (
                                         <Link
@@ -151,10 +193,10 @@ export default function CityHubPage() {
                                         </Link>
                                     ))}
                                 </div>
-                            </motion.div>
+                            </div>
                         );
                     })}
-                </motion.div>
+                </div>
             </section>
         </div>
     );

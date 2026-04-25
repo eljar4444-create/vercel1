@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { X, Clock, User, Phone, CheckCircle, Loader2, MapPin, Star, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { createBooking, getWeekAvailableSlots } from '@/app/actions/booking';
 import { useEffect } from 'react';
@@ -459,7 +460,13 @@ export function BookingModal({
                                                 }`}
                                             >
                                                 {staff.avatarUrl ? (
-                                                    <img src={staff.avatarUrl} alt={staff.name} className="h-12 w-12 rounded-full border border-stone-200 object-cover" />
+                                                    <Image
+                                                        src={staff.avatarUrl}
+                                                        alt={staff.name}
+                                                        width={48}
+                                                        height={48}
+                                                        className="h-12 w-12 rounded-full border border-stone-200 object-cover"
+                                                    />
                                                 ) : (
                                                     <div className="h-12 w-12 rounded-full border border-stone-200 bg-stone-100 flex items-center justify-center text-stone-500 font-bold">
                                                         {staff.name.charAt(0).toUpperCase()}

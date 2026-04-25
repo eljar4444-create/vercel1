@@ -17,8 +17,16 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+    metadataBase: new URL('https://www.svoi.de'),
     title: "Svoi.de — Маркетплейс услуг",
     description: "Найдите идеального специалиста для любой задачи на Svoi.de",
+    alternates: {
+        canonical: '/',
+        languages: {
+            'de-DE': '/',
+            'ru-DE': '/',
+        },
+    },
 };
 
 export const viewport: Viewport = {
@@ -33,7 +41,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     return (
-        <html lang="ru" className={cn("font-sans")}>
+        <html lang="de" className={cn("font-sans")}>
             <body className={`${inter.variable} font-sans antialiased text-gray-900 min-h-[100dvh] flex flex-col pb-[env(safe-area-inset-bottom)]`}>
                 <Providers>
                     <Suspense fallback={<div className="relative z-50 h-16 bg-[#1A1514]" />}>

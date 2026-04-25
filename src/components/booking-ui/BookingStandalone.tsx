@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import Image from 'next/image';
 import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import { DateScroll } from '@/components/booking-ui/DateScroll';
@@ -301,8 +302,13 @@ function StaffPick({
                 }`}
             >
                 {avatarUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={avatarUrl} alt={name} className="h-full w-full object-cover" />
+                    <Image
+                        src={avatarUrl}
+                        alt={name}
+                        width={64}
+                        height={64}
+                        className="h-full w-full object-cover"
+                    />
                 ) : (
                     <div className="h-full w-full flex items-center justify-center text-booking-textMuted font-medium text-lg">
                         {initials}

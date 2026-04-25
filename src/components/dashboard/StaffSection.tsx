@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Camera, Clock, Plus, Trash2, X, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createStaff, deleteStaff } from '@/app/actions/staff';
@@ -119,7 +120,13 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
                     >
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gray-300 text-stone-400">
                             {s.avatarUrl ? (
-                                <img src={s.avatarUrl} alt={s.name} className="h-full w-full object-cover rounded-full" />
+                                <Image
+                                    src={s.avatarUrl}
+                                    alt={s.name}
+                                    width={48}
+                                    height={48}
+                                    className="h-full w-full object-cover rounded-full"
+                                />
                             ) : (
                                 <UserIcon className="h-6 w-6" />
                             )}

@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import prisma from '@/lib/prisma';
 import HomeHeroV2 from '@/components/homepage/HomeHeroV2';
 import SearchBar from '@/components/homepage/SearchBar';
@@ -8,13 +7,21 @@ import HowItWorks from '@/components/homepage/HowItWorks';
 import JealousyCard from '@/components/homepage/JealousyCard';
 import ManifestoBand from '@/components/homepage/ManifestoBand';
 import HomepageFooter from '@/components/homepage/Footer';
+import { getFeaturedMasters } from '@/lib/homepage/getFeaturedMasters';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export default async function HomePage() {
-    const categories = await prisma.category.findMany({
-        select: { id: true, name: true, slug: true, icon: true },
-    });
+    let categories: { id: number; name: string; slug: string; icon: string | null }[] = [];
+    try {
+        categories = await prisma.category.findMany({
+            select: { id: true, name: true, slug: true, icon: true },
+        });
+    } catch (e) {
+        console.warn('[HomePage] Could not load categories (DB unreachable?):', e);
+    }
+
+    const featuredMasters = await getFeaturedMasters();
 
     const searchCategories = categories.map(c => ({
         id: String(c.id),
@@ -36,7 +43,7 @@ export default async function HomePage() {
             </div>
 
             <div id="masters" className="scroll-mt-46">
-                <MasterGallery />
+                <MasterGallery initialMasters={featuredMasters} />
             </div>
 
             <HowItWorks />

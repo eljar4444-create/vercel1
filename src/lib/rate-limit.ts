@@ -1,40 +1,29 @@
-const WINDOW_MS = 15 * 60 * 1000;
-const MAX_ATTEMPTS = 5;
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
-type RateLimitEntry = {
-    count: number;
-    resetAt: number;
-};
+// Validate Env vars early (falls back to localhost or throws if missing in prod)
+const redis = Redis.fromEnv();
 
-const attempts = new Map<string, RateLimitEntry>();
+// 5 attempts per 15 minutes for Login
+export const loginRateLimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '15 m'),
+    analytics: true,
+    prefix: '@upstash/ratelimit/login',
+});
 
-function getFreshEntry(now: number): RateLimitEntry {
-    return {
-        count: 0,
-        resetAt: now + WINDOW_MS,
-    };
-}
+// 5 attempts per 1 hour for Registration
+export const registerRateLimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '1 h'),
+    analytics: true,
+    prefix: '@upstash/ratelimit/register',
+});
 
-export function checkRateLimit(key: string) {
-    const now = Date.now();
-    const current = attempts.get(key);
-    const entry = !current || current.resetAt <= now ? getFreshEntry(now) : current;
-
-    if (entry.count >= MAX_ATTEMPTS) {
-        attempts.set(key, entry);
-        return {
-            allowed: false,
-            remaining: 0,
-            resetAt: entry.resetAt,
-        };
-    }
-
-    entry.count += 1;
-    attempts.set(key, entry);
-
-    return {
-        allowed: true,
-        remaining: Math.max(0, MAX_ATTEMPTS - entry.count),
-        resetAt: entry.resetAt,
-    };
-}
+// 20 requests per 1 minute for general mutations (Reviews, Profile updates)
+export const mutationRateLimit = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(20, '1 m'),
+    analytics: true,
+    prefix: '@upstash/ratelimit/mutation',
+});

@@ -7,6 +7,7 @@ import { generateUniqueProfileSlug } from '@/lib/slugify';
 import { geocodeAddress } from '@/lib/geocode';
 import { requireProviderProfile } from '@/lib/auth-helpers';
 import { isProviderLanguage } from '@/lib/provider-languages';
+import { mutationRateLimit } from '@/lib/rate-limit';
 
 const GEO_ERROR_MESSAGE =
     'Мы не смогли найти этот адрес на карте. Пожалуйста, проверьте правильность написания города и адреса или укажите ближайший крупный ориентир.';
@@ -27,6 +28,11 @@ export async function updateProfile(formData: FormData) {
     }
     if (session.user.isBanned) {
         return { success: false, error: 'Ваш аккаунт заблокирован.' };
+    }
+
+    const rateLimit = await mutationRateLimit.limit(`updateProfile:${session.user.id}`);
+    if (!rateLimit.success) {
+        return { success: false, error: 'Слишком много запросов. Попробуйте позже.' };
     }
 
     if (session.user.role !== 'ADMIN') {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion, Variants } from 'framer-motion';
 import MasterCard from './MasterCard';
 import { ArrowRight, Loader2 } from 'lucide-react';
@@ -42,9 +42,12 @@ interface MasterData {
 
 type ProfileTab = 'FREELANCER' | 'SALON';
 
-export default function MasterGallery() {
-    const [masters, setMasters] = useState<MasterData[]>([]);
-    const [loading, setLoading] = useState(true);
+interface MasterGalleryProps {
+    initialMasters: MasterData[];
+}
+
+export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
+    const [masters, setMasters] = useState<MasterData[]>(initialMasters);
     const [localLoading, setLocalLoading] = useState(false);
     const [profileType, setProfileType] = useState<ProfileTab>('SALON');
     const [cityName, setCityName] = useState<string | null>(null);
@@ -68,20 +71,6 @@ export default function MasterGallery() {
     const baseHeading = profileType === 'SALON' ? 'Топ-салоны платформы' : 'Топ-мастера платформы';
     const localizedHeading = profileType === 'SALON' ? `Салоны — ${cityName}` : `Мастера — ${cityName}`;
     const heading = localModeStatus === 'active' && cityName ? localizedHeading : baseHeading;
-
-    useEffect(() => {
-        setLoading(true);
-        fetch('/api/homepage/masters')
-            .then((res) => res.json())
-            .then((data: MasterData[]) => {
-                setMasters(data);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error('[MasterGallery] Fetch error:', err);
-                setLoading(false);
-            });
-    }, []);
 
     const fetchGlobalMasters = () => {
         setLocalLoading(true);
@@ -170,16 +159,6 @@ export default function MasterGallery() {
             setLocalLoading(false);
         }
     };
-
-    if (loading) {
-        return (
-            <section className="py-24 px-8 bg-[#f0ebe4]">
-                <div className="max-w-screen-2xl mx-auto">
-                    <div className="h-96 w-full animate-pulse rounded-2xl bg-[#e8e3dc]" />
-                </div>
-            </section>
-        );
-    }
 
     if (masters.length === 0) return null;
 

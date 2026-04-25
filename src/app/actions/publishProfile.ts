@@ -37,6 +37,7 @@ export async function verifyAndPublishProfile() {
 
         revalidatePath('/dashboard');
         revalidatePath('/search');
+        revalidatePath(`/salon/${profile.slug}`);
 
         return { success: true };
     } catch (e: any) {
@@ -64,6 +65,7 @@ export async function unpublishProfile() {
 
         revalidatePath('/dashboard');
         revalidatePath('/search');
+        revalidatePath(`/salon/${profile.slug}`);
 
         return { success: true };
     } catch (e: any) {

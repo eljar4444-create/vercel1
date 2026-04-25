@@ -57,18 +57,49 @@ interface SearchInteractiveLayoutProps {
 
 function ProfileCardSkeleton() {
     return (
-        <div className="overflow-hidden rounded-2xl bg-white shadow-[0_4px_20px_rgb(0,0,0,0.06)]">
-            <Skeleton className="aspect-[4/3] w-full rounded-t-2xl" />
-            <div className="space-y-3 p-5">
-                <Skeleton className="h-4 w-36 bg-stone-100" />
-                <Skeleton className="h-3 w-24 bg-stone-100" />
-                <div className="flex gap-2">
-                    <Skeleton className="h-6 w-24 rounded-full bg-stone-100" />
-                    <Skeleton className="h-6 w-20 rounded-full bg-stone-100" />
+        <article className="flex flex-col sm:flex-row gap-4 sm:gap-5 pb-8 mb-8 border-b border-gray-200/50 last:border-b-0 last:pb-0 last:mb-0">
+            {/* Photo placeholder */}
+            <Skeleton className="w-full sm:w-44 sm:min-w-[11rem] aspect-[4/5] shrink-0 rounded-xl" />
+
+            {/* Info block */}
+            <div className="flex flex-col flex-grow min-w-0 gap-3">
+                {/* Name + rating row */}
+                <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 space-y-2">
+                        <Skeleton className="h-5 w-40" />
+                        <div className="flex items-center gap-1.5">
+                            <Skeleton className="h-3.5 w-3.5 rounded-full" />
+                            <Skeleton className="h-3.5 w-28" />
+                        </div>
+                    </div>
+                    <Skeleton className="h-6 w-14 rounded-full shrink-0" />
                 </div>
-                <Skeleton className="h-3 w-16 bg-stone-100" />
+
+                {/* Service rows */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-4 w-full mt-1">
+                    {[1, 2].map((i) => (
+                        <div key={i} className="space-y-2">
+                            <div className="flex items-center gap-2">
+                                <Skeleton className="h-4 w-32" />
+                                <Skeleton className="h-3 w-14" />
+                            </div>
+                            <div className="flex gap-1.5">
+                                {[1, 2, 3].map((j) => (
+                                    <Skeleton key={j} className="h-8 w-16 rounded-lg" />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
-        </div>
+
+            {/* Price + CTA */}
+            <div className="hidden sm:flex flex-col items-end justify-center shrink-0 w-28 border-l border-gray-200/50 pl-4 ml-2 gap-2">
+                <Skeleton className="h-3 w-8" />
+                <Skeleton className="h-7 w-16" />
+                <Skeleton className="h-4 w-20 mt-2" />
+            </div>
+        </article>
     );
 }
 
@@ -280,7 +311,7 @@ export function SearchInteractiveLayout({
                 </Suspense>
 
                 {isLoading && profiles.length === 0 ? (
-                    <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 items-start">
+                    <div className="flex flex-col gap-0 w-full">
                         {[1, 2, 3, 4].map((i) => (
                             <ProfileCardSkeleton key={i} />
                         ))}

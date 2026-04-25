@@ -147,6 +147,7 @@ export async function createService(prevState: any, formData: FormData) {
 
         revalidatePath('/dashboard');
         revalidatePath('/dashboard', 'layout');
+        revalidatePath(`/salon/${profile.slug}`);
         redirect('/dashboard?section=services');
     } catch (error: any) {
         if (error?.message === 'PROFILE_NOT_FOUND') {
@@ -237,6 +238,7 @@ export async function updateService(serviceId: string, prevState: any, formData:
         revalidatePath('/dashboard');
         revalidatePath(`/services/${serviceId}`);
         revalidatePath('/dashboard', 'layout');
+        revalidatePath(`/salon/${profile.slug}`);
 
         if (shouldRedirect) {
             redirect('/dashboard?section=services');
@@ -336,7 +338,10 @@ export async function addService(formData: FormData) {
                     ? { staff: { connect: ownedStaffIds.map((id) => ({ id })) } }
                     : {}),
             },
-            include: { staff: { select: { id: true } } },
+            include: {
+                staff: { select: { id: true } },
+                profile: { select: { slug: true } },
+            },
         });
 
         // Create portfolio photos if provided (from inline uploader during creation)
@@ -373,6 +378,9 @@ export async function addService(formData: FormData) {
 
         revalidatePath('/dashboard');
         revalidatePath('/dashboard', 'layout');
+        if (createdService.profile?.slug) {
+            revalidatePath(`/salon/${createdService.profile.slug}`);
+        }
         return { success: true, service: serializeService(createdService) };
     } catch (error: any) {
         console.error('addService error:', error);
@@ -398,18 +406,18 @@ export async function deleteService(serviceId: number) {
     }
 
     try {
-        if (session.user.role !== 'ADMIN') {
-            const service = await prisma.service.findUnique({
-                where: { id: serviceId },
-                select: {
-                    id: true,
-                    profile: {
-                        select: { user_id: true, user_email: true },
-                    },
+        const service = await prisma.service.findUnique({
+            where: { id: serviceId },
+            select: {
+                id: true,
+                profile: {
+                    select: { slug: true, user_id: true, user_email: true },
                 },
-            });
+            },
+        });
+        if (!service) return { success: false, error: 'Услуга не найдена.' };
 
-            if (!service) return { success: false, error: 'Услуга не найдена.' };
+        if (session.user.role !== 'ADMIN') {
             const ownsByUserId = service.profile.user_id && service.profile.user_id === session.user.id;
             const ownsByEmail = session.user.email && service.profile.user_email === session.user.email;
             if (!ownsByUserId && !ownsByEmail) {
@@ -422,6 +430,7 @@ export async function deleteService(serviceId: number) {
         });
 
         revalidatePath('/dashboard', 'layout');
+        revalidatePath(`/salon/${service.profile.slug}`);
         return { success: true };
     } catch (error: any) {
         console.error('deleteService error:', error);
