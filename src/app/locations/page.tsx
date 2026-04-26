@@ -46,6 +46,7 @@ const popularDestinations = (
                     className="group relative block h-[450px] rounded-3xl overflow-hidden bg-[#1B2A23] bg-cover bg-center border border-[#C2A363] hover:shadow-[0_0_40px_rgba(194,163,99,0.45)] hover:border-2 transition-shadow duration-500"
                     style={{ backgroundImage: `url('${city.image}')` }}
                 >
+                    <span className="sr-only">Мастера красоты в {city.name}</span>
                     <div className="absolute inset-0 bg-black/50 pointer-events-none z-0" />
                     <div className="relative z-10 flex flex-col h-full justify-end p-8 md:p-10 pointer-events-none">
                         <h3 className="text-3xl font-bold text-white mb-2 drop-shadow-md">

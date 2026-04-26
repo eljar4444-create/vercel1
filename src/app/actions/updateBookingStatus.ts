@@ -47,7 +47,6 @@ export async function updateBookingStatus(
                 profile: {
                     select: {
                         user_id: true,
-                        user_email: true,
                     },
                 },
             },
@@ -57,9 +56,7 @@ export async function updateBookingStatus(
             return { success: false, error: 'Booking not found' };
         }
 
-        const ownsByUserId = booking.profile.user_id && booking.profile.user_id === session.user.id;
-        const ownsByEmail = session.user.email && booking.profile.user_email === session.user.email;
-        const isMaster = Boolean(ownsByUserId || ownsByEmail);
+        const isMaster = Boolean(booking.profile.user_id && booking.profile.user_id === session.user.id);
         const isClient = Boolean(booking.user_id && booking.user_id === session.user.id);
         const isAdmin = session.user.role === 'ADMIN';
 

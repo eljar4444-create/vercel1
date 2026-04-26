@@ -239,14 +239,9 @@ async function resolveCategoryId(categoryId: number | null) {
     return beautyCategory?.id ?? 1;
 }
 
-async function findOwnedProfile(userId: string, email: string) {
+async function findOwnedProfile(userId: string) {
     return prisma.profile.findFirst({
-        where: {
-            OR: [
-                { user_id: userId },
-                { user_email: email },
-            ],
-        },
+        where: { user_id: userId },
         select: {
             id: true,
             slug: true,
@@ -410,7 +405,7 @@ export async function saveProviderDraft(formData: FormData): Promise<ProviderOnb
     const payload = parseDraftPayload(formData);
 
     try {
-        const existingProfile = await findOwnedProfile(session.user.id, session.user.email);
+        const existingProfile = await findOwnedProfile(session.user.id);
 
         if (existingProfile?.status === 'PUBLISHED') {
             return { success: true, profileId: existingProfile.id };
@@ -508,7 +503,6 @@ export async function publishProviderProfile(formData: FormData): Promise<Provid
             select: {
                 id: true,
                 user_id: true,
-                user_email: true,
                 slug: true,
                 attributes: true,
                 latitude: true,
@@ -521,8 +515,7 @@ export async function publishProviderProfile(formData: FormData): Promise<Provid
         }
 
         const ownsByUserId = profile.user_id === session.user.id;
-        const ownsByEmail = profile.user_email === session.user.email;
-        if (session.user.role !== 'ADMIN' && !ownsByUserId && !ownsByEmail) {
+        if (session.user.role !== 'ADMIN' && !ownsByUserId) {
             return { success: false, error: 'Недостаточно прав.' };
         }
         if (profile.latitude == null || profile.longitude == null) {

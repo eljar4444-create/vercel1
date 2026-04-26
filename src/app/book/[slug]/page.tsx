@@ -12,11 +12,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
         select: { name: true, city: true }
     });
     
-    if (!profile) return { title: 'Не найдено' };
-    
+    if (!profile) return { title: 'Не найдено', robots: { index: false } };
+
     return {
         title: `Запись к ${profile.name} | Svoi.de`,
         description: `Оформление записи онлайн. ${profile.city}.`,
+        robots: { index: false },
     };
 }
 

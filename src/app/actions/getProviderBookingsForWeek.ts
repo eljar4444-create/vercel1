@@ -28,7 +28,7 @@ export async function getProviderBookingsForWeek(profileId: number, weekStart: s
     try {
         const profile = await prisma.profile.findUnique({
             where: { id: profileIdNum },
-            select: { id: true, user_id: true, user_email: true },
+            select: { id: true, user_id: true },
         });
 
         if (!profile) {
@@ -37,8 +37,7 @@ export async function getProviderBookingsForWeek(profileId: number, weekStart: s
 
         if (session.user.role !== 'ADMIN') {
             const ownsByUserId = profile.user_id && profile.user_id === session.user.id;
-            const ownsByEmail = session.user.email && profile.user_email === session.user.email;
-            if (!ownsByUserId && !ownsByEmail) {
+            if (!ownsByUserId) {
                 return { success: false, bookings: [], error: 'Forbidden' };
             }
         }

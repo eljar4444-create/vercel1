@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { searchRateLimit } from '@/lib/rate-limit';
+import { getBatchedQuickSlots } from '@/app/actions/getQuickSlots';
 
 export const dynamic = 'force-dynamic';
 
@@ -189,7 +190,15 @@ export async function GET(request: NextRequest) {
             })),
         }));
 
-        return NextResponse.json({ providers: results });
+        const profileIds = results.map((p: any) => p.id);
+        const batchedSlots = await getBatchedQuickSlots(profileIds);
+
+        const resultsWithSlots = results.map((p: any) => ({
+            ...p,
+            prefetchedSlots: batchedSlots[p.id] || null
+        }));
+
+        return NextResponse.json({ providers: resultsWithSlots });
     } catch (e: any) {
         console.error('[api/search/providers] DB error:', e);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -23,6 +23,10 @@ export async function generateMetadata({
         ? profile.bio.slice(0, 150).trim() + (profile.bio.length > 150 ? '…' : '')
         : `${profile.name} — ${topService} в ${profile.city}. Онлайн-запись через Svoi.de.`;
 
+    const ogImages = [profile.image_url, ...(profile.gallery ?? [])]
+        .filter((url): url is string => typeof url === 'string' && url.trim().length > 0)
+        .slice(0, 4);
+
     return {
         title,
         description,
@@ -33,6 +37,7 @@ export async function generateMetadata({
             title,
             description,
             url: `/salon/${profile.slug}`,
+            ...(ogImages.length > 0 && { images: ogImages }),
         },
     };
 }

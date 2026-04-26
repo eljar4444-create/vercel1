@@ -39,7 +39,7 @@ export async function uploadCoverPhoto(formData: FormData): Promise<CoverResult>
     try {
         const profile = session.user.role === 'ADMIN'
             ? null
-            : await requireProviderProfile(session.user.id, session.user.email);
+            : await requireProviderProfile(session.user.id);
 
         const profileId = profile
             ? profile.id
@@ -99,7 +99,7 @@ export async function deleteCoverPhoto(): Promise<MutationResult> {
     if (session.user.isBanned) return { success: false, error: 'Ваш аккаунт заблокирован.' };
 
     try {
-        const profile = await requireProviderProfile(session.user.id, session.user.email);
+        const profile = await requireProviderProfile(session.user.id);
 
         const currentProfile = await prisma.profile.findUnique({
             where: { id: profile.id },

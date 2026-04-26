@@ -25,8 +25,7 @@ export default async function ProfilePreviewPage({
 
     const isOwner =
         session.user.role === 'ADMIN' ||
-        profile.user_id === session.user.id ||
-        (session.user.email ? profile.user_email === session.user.email : false);
+        profile.user_id === session.user.id;
 
     if (!isOwner) notFound();
 

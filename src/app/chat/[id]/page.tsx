@@ -2,8 +2,11 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { getConversationBookingContext, getMyConversations } from '@/app/actions/chat';
 import { MessengerClient } from '@/components/chat/MessengerClient';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = { robots: { index: false } };
 
 export default async function ChatByIdPage({
     params,

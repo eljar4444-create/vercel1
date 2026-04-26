@@ -76,7 +76,7 @@ export default function AboutPage() {
                             <div className="w-12 h-12 bg-[#ebe4db] rounded-full flex items-center justify-center mb-4">
                                 <Sparkles className="w-6 h-6 text-booking-primary" />
                             </div>
-                            <h4 className="text-lg font-bold mb-2 text-booking-textMain">Верификация квалификации</h4>
+                            <h3 className="text-lg font-bold mb-2 text-booking-textMain">Верификация квалификации</h3>
                             <p className="text-booking-textMuted text-sm leading-relaxed">
                                 Мы проверяем профессиональный бэкграунд каждого специалиста. Доступ на платформу открыт только мастерам с подтвержденным опытом и сертификацией.
                             </p>
@@ -86,7 +86,7 @@ export default function AboutPage() {
                             <div className="w-12 h-12 bg-[#ebe4db] rounded-full flex items-center justify-center mb-4">
                                 <ShieldCheck className="w-6 h-6 text-booking-primary" />
                             </div>
-                            <h4 className="text-lg font-bold mb-2 text-booking-textMain">Оценка портфолио</h4>
+                            <h3 className="text-lg font-bold mb-2 text-booking-textMain">Оценка портфолио</h3>
                             <p className="text-booking-textMuted text-sm leading-relaxed">
                                 Никаких стоковых изображений или чужих работ. Профиль мастера — это строго задокументированная витрина его реальных навыков.
                             </p>
@@ -96,7 +96,7 @@ export default function AboutPage() {
                             <div className="w-12 h-12 bg-[#ebe4db] rounded-full flex items-center justify-center mb-4">
                                 <BadgeCheck className="w-6 h-6 text-booking-primary" />
                             </div>
-                            <h4 className="text-lg font-bold mb-2 text-booking-textMain">Независимый рейтинг</h4>
+                            <h3 className="text-lg font-bold mb-2 text-booking-textMain">Независимый рейтинг</h3>
                             <p className="text-booking-textMuted text-sm leading-relaxed">
                                 Оценки и отзывы формируются алгоритмом исключительно на основе подтвержденных визитов через платформу SVOI. Накрутки исключены.
                             </p>

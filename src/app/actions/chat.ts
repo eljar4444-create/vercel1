@@ -12,12 +12,9 @@ function roleOrNull(role?: string): ChatRole | null {
     return null;
 }
 
-function providerOwnershipFilter(userId: string, email?: string | null) {
+function providerOwnershipFilter(userId: string) {
     return {
-        OR: [
-            { user_id: userId },
-            ...(email ? [{ user_email: email }] : []),
-        ],
+        user_id: userId,
     };
 }
 
@@ -37,7 +34,7 @@ async function getAuthorizedUser() {
     };
 }
 
-async function hasConversationAccess(conversationId: string, userId: string, role: ChatRole, email?: string | null) {
+async function hasConversationAccess(conversationId: string, userId: string, role: ChatRole) {
     if (role === 'ADMIN') return true;
 
     const conversation = await prisma.conversation.findUnique({
@@ -45,20 +42,19 @@ async function hasConversationAccess(conversationId: string, userId: string, rol
         select: {
             clientUserId: true,
             providerProfile: {
-                select: { user_id: true, user_email: true },
+                select: { user_id: true },
             },
         },
     });
 
     if (!conversation) return false;
     const ownsById = conversation.providerProfile.user_id === userId;
-    const ownsByEmail = Boolean(email) && conversation.providerProfile.user_email === email;
 
     // In old roles, we branched based on Client/Provider. 
     // Now role is USER, we check both conditions.
     const isClient = conversation.clientUserId === userId;
 
-    return isClient || ownsById || ownsByEmail;
+    return isClient || ownsById;
 }
 
 export async function startConversationWithProvider(providerProfileId: number) {
@@ -117,7 +113,7 @@ export async function getOrCreateConversationForProvider(providerProfileId: numb
     if (user.role !== 'ADMIN') {
         const providerProfile = await prisma.profile.findUnique({
             where: { id: providerProfileId },
-            select: { user_id: true, user_email: true },
+            select: { user_id: true },
         });
 
         if (!providerProfile) {
@@ -125,8 +121,7 @@ export async function getOrCreateConversationForProvider(providerProfileId: numb
         }
 
         const ownsByUserId = providerProfile.user_id === user.userId;
-        const ownsByEmail = Boolean(user.email) && providerProfile.user_email === user.email;
-        if (!ownsByUserId && !ownsByEmail) {
+        if (!ownsByUserId) {
             return { success: false, error: 'Доступ запрещен' };
         }
     }
@@ -158,7 +153,7 @@ export async function getMyConversations() {
     const where = user.role === 'ADMIN' ? {} : {
         OR: [
             { clientUserId: user.userId },
-            { providerProfile: providerOwnershipFilter(user.userId, user.email) }
+            { providerProfile: providerOwnershipFilter(user.userId) }
         ]
     };
 
@@ -169,7 +164,7 @@ export async function getMyConversations() {
                 select: { id: true, name: true, image: true, email: true },
             },
             providerProfile: {
-                select: { id: true, name: true, image_url: true, city: true, user_email: true },
+                select: { id: true, name: true, image_url: true, city: true },
             },
             messages: {
                 select: { id: true, content: true, createdAt: true, senderUserId: true },
@@ -218,7 +213,7 @@ export async function getConversationMessages(conversationId: string) {
     const user = await getAuthorizedUser();
     if (!user) return { success: false, messages: [] as any[] };
 
-    const allowed = await hasConversationAccess(conversationId, user.userId, user.role, user.email);
+    const allowed = await hasConversationAccess(conversationId, user.userId, user.role);
     if (!allowed) return { success: false, messages: [] as any[] };
 
     const messages = await prisma.message.findMany({
@@ -271,7 +266,7 @@ export async function sendMessage(formData: FormData): Promise<void> {
     // Enforce message length limit (M-1 finding)
     content = content.slice(0, 5000);
 
-    const allowed = await hasConversationAccess(conversationId, user.userId, user.role, user.email);
+    const allowed = await hasConversationAccess(conversationId, user.userId, user.role);
     if (!allowed) return;
 
     await prisma.message.create({
@@ -295,7 +290,7 @@ export async function getConversationBookingContext(conversationId: string) {
     const user = await getAuthorizedUser();
     if (!user) return { success: false, booking: null };
 
-    const allowed = await hasConversationAccess(conversationId, user.userId, user.role, user.email);
+    const allowed = await hasConversationAccess(conversationId, user.userId, user.role);
     if (!allowed) return { success: false, booking: null };
 
     const conversation = await prisma.conversation.findUnique({

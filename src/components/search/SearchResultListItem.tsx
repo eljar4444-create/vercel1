@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { MapPin, Star, ChevronRight } from 'lucide-react';
 import { LiveQuickSlots } from '@/components/search/LiveQuickSlots';
 import { FavoriteButton } from '@/components/client/FavoriteButton';
+import type { QuickSlotsResponse } from '@/app/actions/getQuickSlots';
 
 interface SearchResultService {
     id: number;
@@ -28,6 +28,8 @@ interface SearchResultListItemProps {
     initialIsFavorited?: boolean;
     isHovered?: boolean;
     profileType?: 'FREELANCER' | 'SALON';
+    prefetchedSlots?: QuickSlotsResponse | null;
+    priority?: boolean;
 }
 
 function getInitials(name: string): string {
@@ -43,9 +45,9 @@ export function SearchResultListItem({
     initialIsFavorited = false,
     isHovered = false,
     profileType,
+    prefetchedSlots,
+    priority = false,
 }: SearchResultListItemProps) {
-    const router = useRouter();
-
     const isSalonView = (profileType ?? (profile.provider_type === 'SALON' ? 'SALON' : 'FREELANCER')) === 'SALON';
     const visibleAddress = profile.provider_type === 'SALON'
         ? [profile.address, profile.city].filter(Boolean).join(', ')
@@ -58,21 +60,18 @@ export function SearchResultListItem({
 
     const primaryService = profile.services[0];
     const profileHref = `/salon/${profile.slug}`;
-
-    const goToProfile = () => router.push(profileHref);
+    const titleSuffix = primaryService
+        ? ` — ${primaryService.title} в ${profile.city}`
+        : ` в ${profile.city}`;
 
     return (
         <article
-            onClick={goToProfile}
-            className={`group flex flex-col sm:flex-row bg-transparent gap-4 sm:gap-5 pb-8 mb-8 border-b border-gray-200/50 last:border-b-0 last:pb-0 last:mb-0 cursor-pointer transition-opacity duration-300 ${
+            className={`group flex flex-col sm:flex-row bg-transparent gap-4 sm:gap-5 pb-8 mb-8 border-b border-gray-200/50 last:border-b-0 last:pb-0 last:mb-0 transition-opacity duration-300 ${
                 isHovered ? 'opacity-95' : 'opacity-100'
             }`}
         >
             {/* ── Left: Photo ───────────────────────────────────── */}
-            <div
-                className={`relative shrink-0 overflow-hidden rounded-xl ${imageWrapperClass}`}
-                onClick={(e) => e.stopPropagation()}
-            >
+            <div className={`relative shrink-0 overflow-hidden rounded-xl ${imageWrapperClass}`}>
                 <Link href={profileHref} className="block h-full w-full" aria-label={`Открыть профиль ${profile.name}`}>
                     <FavoriteButton
                         providerProfileId={profile.id}
@@ -85,6 +84,7 @@ export function SearchResultListItem({
                             alt={`${profile.name} — мастер в ${profile.city}`}
                             fill
                             sizes={isSalonView ? '(max-width: 640px) 100vw, 16rem' : '(max-width: 640px) 100vw, 11rem'}
+                            priority={priority}
                             className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                         />
                     ) : (
@@ -102,9 +102,12 @@ export function SearchResultListItem({
                 {/* Name + rating */}
                 <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                        <h2 className="truncate font-bold text-lg text-gray-900 leading-snug font-sans group-hover:text-stone-700 transition-colors">
-                            {profile.name}
-                        </h2>
+                        <Link href={profileHref} className="block min-w-0">
+                            <h2 className="truncate font-bold text-lg text-gray-900 leading-snug font-sans group-hover:text-stone-700 transition-colors">
+                                {profile.name}
+                                <span className="sr-only">{titleSuffix}</span>
+                            </h2>
+                        </Link>
                         <p className="mt-1 flex items-center gap-1 text-sm text-gray-500">
                             <MapPin className="h-3.5 w-3.5 shrink-0" />
                             <span className="truncate">{visibleAddress}</span>
@@ -121,10 +124,7 @@ export function SearchResultListItem({
 
                 {/* Services 2x2 grid (transparent, flat) */}
                 {profile.services.length > 0 && (
-                    <div
-                        className="mt-3 grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-4 w-full"
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="mt-3 grid grid-cols-1 xl:grid-cols-2 gap-x-6 gap-y-4 w-full">
                         {profile.services.slice(0, 4).map((service) => (
                             <div key={service.id}>
                                 <div className="flex items-center gap-2 mb-2">
@@ -136,6 +136,7 @@ export function SearchResultListItem({
                                     slug={profile.slug}
                                     service={service}
                                     maxSlots={4}
+                                    prefetchedSlots={prefetchedSlots}
                                 />
                             </div>
                         ))}
@@ -145,23 +146,23 @@ export function SearchResultListItem({
                 {/* See other services CTA */}
                 {profile.services.length > 4 && (
                     <div className="flex justify-end mt-3 w-full">
-                        <button
-                            type="button"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(profileHref);
-                            }}
+                        <Link
+                            href={profileHref}
                             className="text-[13px] font-medium text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1"
                         >
                             смотреть другие услуги <span className="text-lg leading-none">↗</span>
-                        </button>
+                        </Link>
                     </div>
                 )}
             </div>
 
             {/* ── Right: Price + CTA (grouped, vertically centered) ── */}
             {primaryService && (
-                <div className="hidden sm:flex flex-col items-end justify-center shrink-0 w-28 border-l border-gray-300/50 pl-4 ml-2">
+                <Link
+                    href={profileHref}
+                    className="hidden sm:flex flex-col items-end justify-center shrink-0 w-28 border-l border-gray-300/50 pl-4 ml-2"
+                    aria-label={`Открыть профиль ${profile.name}${titleSuffix}`}
+                >
                     <span className="block text-[11px] uppercase tracking-wider text-stone-400">от</span>
                     <span className="block text-2xl font-bold text-gray-900 leading-none mt-0.5">
                         €{primaryService.price}
@@ -170,7 +171,7 @@ export function SearchResultListItem({
                         В профиль
                         <ChevronRight className="h-4 w-4" />
                     </span>
-                </div>
+                </Link>
             )}
         </article>
     );

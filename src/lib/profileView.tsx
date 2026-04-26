@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import prisma from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { GERMAN_CITIES } from '@/constants/germanCities';
@@ -53,13 +54,11 @@ function buildKnowsLanguage(languages: string[]) {
 }
 
 const DEFAULT_CITY_COORDS = { lat: 52.52, lng: 13.405 };
-const addressCoordsCache = new Map<string, { lat: number; lng: number }>();
 
 const PROFILE_VIEW_SELECT = {
     id: true,
     slug: true,
     user_id: true,
-    user_email: true,
     name: true,
     provider_type: true,
     city: true,
@@ -69,6 +68,8 @@ const PROFILE_VIEW_SELECT = {
     studioImages: true,
     bio: true,
     phone: true,
+    latitude: true,
+    longitude: true,
     is_verified: true,
     created_at: true,
     attributes: true,
@@ -118,15 +119,15 @@ const PROFILE_VIEW_SELECT = {
 
 export type ProfileForView = Prisma.ProfileGetPayload<{ select: typeof PROFILE_VIEW_SELECT }>;
 
-export async function fetchProfileForView(
+export const fetchProfileForView = cache(async (
     slug: string,
     opts: { includeDraft: boolean }
-): Promise<ProfileForView | null> {
+): Promise<ProfileForView | null> => {
     return prisma.profile.findFirst({
         where: opts.includeDraft ? { slug } : { slug, status: 'PUBLISHED' },
         select: PROFILE_VIEW_SELECT,
     });
-}
+});
 
 function resolveCityCoordinates(city: string) {
     const normalized = city.trim().toLowerCase();
@@ -140,41 +141,7 @@ function resolveCityCoordinates(city: string) {
     };
 }
 
-async function resolveAddressCoordinates(address: string, city: string) {
-    const query = [address, city, 'Deutschland'].filter(Boolean).join(', ').trim();
-    if (!query) return null;
 
-    const cached = addressCoordsCache.get(query);
-    if (cached) return cached;
-
-    try {
-        const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`,
-            {
-                headers: {
-                    'Accept-Language': 'de,en',
-                    'User-Agent': 'svoi.de/1.0 (support@svoi.de)',
-                },
-                cache: 'no-store',
-            }
-        );
-        if (!response.ok) return null;
-
-        const payload = (await response.json()) as Array<{ lat: string; lon: string }>;
-        const first = payload?.[0];
-        if (!first) return null;
-
-        const lat = Number(first.lat);
-        const lng = Number(first.lon);
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-
-        const coords = { lat, lng };
-        addressCoordsCache.set(query, coords);
-        return coords;
-    } catch {
-        return null;
-    }
-}
 
 export async function PublicProfileView({
     profile,
@@ -192,11 +159,10 @@ export async function PublicProfileView({
     const profileLanguages = languageRows[0]?.languages ?? [];
 
     const cityCoordinates = resolveCityCoordinates(profile.city);
-    const preciseCoordinates =
-        profile.provider_type === 'SALON' && profile.address
-            ? await resolveAddressCoordinates(profile.address, profile.city)
-            : null;
-    const mapCoordinates = preciseCoordinates || cityCoordinates;
+    const mapCoordinates =
+        profile.latitude != null && profile.longitude != null
+            ? { lat: profile.latitude, lng: profile.longitude }
+            : cityCoordinates;
 
     const reviewStats = await prisma.review.aggregate({
         where: { profileId: profile.id },
@@ -214,7 +180,7 @@ export async function PublicProfileView({
     const priceRange =
         minPrice !== undefined && maxPrice !== undefined
             ? `€${minPrice.toFixed(0)} - €${maxPrice.toFixed(0)}`
-            : '€€€';
+            : null;
     const bioText = (profile.bio || '').trim();
 
     const schemaType: string | string[] =
@@ -238,7 +204,7 @@ export async function PublicProfileView({
             addressCountry: 'DE',
         },
         ...(profile.image_url ? { image: profile.image_url } : {}),
-        priceRange,
+        ...(priceRange ? { priceRange } : {}),
         ...(phone ? { telephone: phone } : {}),
         ...(knowsLanguage.length > 0 ? { knowsLanguage } : {}),
         ...(openingHours.length > 0 ? { openingHoursSpecification: openingHours } : {}),
@@ -270,7 +236,7 @@ export async function PublicProfileView({
             latitude: mapCoordinates.lat,
             longitude: mapCoordinates.lng,
         },
-        url: `https://svoi.de/salon/${profile.slug}`,
+        url: `https://www.svoi.de/salon/${profile.slug}`,
     };
 
     const serialized = {

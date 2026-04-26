@@ -14,6 +14,7 @@ interface MasterCardProps {
     workPhotoUrl: string | null;
     providerType: ProviderType;
     services: { title: string; price: number; durationMin: number }[];
+    priority?: boolean;
 }
 
 function getInitials(name: string) {
@@ -35,6 +36,7 @@ function SalonCard({
     name,
     category,
     workPhotoUrl,
+    priority = false,
 }: MasterCardProps) {
     const specialty = category || 'Салон';
 
@@ -49,6 +51,7 @@ function SalonCard({
                     alt={name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    priority={priority}
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
             ) : (
@@ -78,6 +81,7 @@ function FreelancerCard({
     name,
     category,
     workPhotoUrl,
+    priority = false,
 }: MasterCardProps) {
     const specialty = category || 'Мастер';
 
@@ -92,6 +96,7 @@ function FreelancerCard({
                     alt={name}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    priority={priority}
                     className="object-cover object-top group-hover:scale-105 transition-transform duration-700"
                 />
             ) : (

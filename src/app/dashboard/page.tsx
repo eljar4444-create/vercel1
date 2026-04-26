@@ -869,12 +869,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     }
 
     const providerProfile = await prisma.profile.findFirst({
-        where: {
-            OR: [
-                { user_id: session.user.id },
-                ...(session.user.email ? [{ user_email: session.user.email }] : []),
-            ],
-        },
+        where: { user_id: session.user.id },
         select: {
             id: true,
             status: true,

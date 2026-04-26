@@ -37,7 +37,7 @@ export async function updateProfile(formData: FormData) {
 
     if (session.user.role !== 'ADMIN') {
         try {
-            await requireProviderProfile(session.user.id, session.user.email);
+            await requireProviderProfile(session.user.id);
         } catch {
             return { success: false, error: 'Unauthorized' };
         }
@@ -89,7 +89,7 @@ export async function updateProfile(formData: FormData) {
     const currentProfile = await prisma.profile.findUnique({
         where: { id: profileId },
         select: {
-            user_id: true, user_email: true, name: true,
+            user_id: true, name: true,
             city: true, slug: true, address: true, bio: true,
             latitude: true, longitude: true, telegramChatId: true,
         },
@@ -130,8 +130,7 @@ export async function updateProfile(formData: FormData) {
     try {
         if (session.user.role !== 'ADMIN') {
             const ownsByUserId = currentProfile.user_id && currentProfile.user_id === session.user.id;
-            const ownsByEmail = session.user.email && currentProfile.user_email === session.user.email;
-            if (!ownsByUserId && !ownsByEmail) {
+            if (!ownsByUserId) {
                 return { success: false, error: 'Недостаточно прав.' };
             }
         }
@@ -146,7 +145,7 @@ export async function updateProfile(formData: FormData) {
         if (isSalon) {
             latitude = addressLatitude;
             longitude = addressLongitude;
-        } else if (nameChanged || addressChanged || city !== currentProfile.city) {
+        } else if (addressChanged || city !== currentProfile.city) {
             try {
                 const coords = await geocodeAddress('', city, '');
                 if (!coords) {
@@ -199,18 +198,13 @@ export async function updateProfile(formData: FormData) {
                     city: officialCity,
                     address: address || null,
                     studioImages,
+                    languages,
                     latitude,
                     longitude,
                     ...(categoryId !== null && { category_id: categoryId }),
                 },
                 select: { slug: true, user_id: true },
             });
-
-            await tx.$executeRaw`
-                UPDATE "Profile"
-                SET "languages" = ${languages}
-                WHERE "id" = ${profileId}
-            `;
 
             // Persist taxId on the User record if provided
             const taxIdValue = (formData.get('taxId') as string)?.trim() || null;

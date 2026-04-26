@@ -10,6 +10,19 @@ import { savePublicUpload } from '@/lib/server/public-upload';
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
+// Single round-trip reorder: UNNEST pairs each id with its new position
+// and applies all updates in one statement, avoiding N round-trips and
+// per-row lock acquisition.
+async function applyPhotoOrder(photoIdOrder: string[]): Promise<void> {
+    const positions = photoIdOrder.map((_, i) => i);
+    await prisma.$executeRaw`
+        UPDATE "PortfolioPhoto"
+        SET "position" = data."position"
+        FROM unnest(${photoIdOrder}::text[], ${positions}::int[]) AS data(id, "position")
+        WHERE "PortfolioPhoto"."id" = data.id
+    `;
+}
+
 type UploadResult =
     | { success: true; photos: Array<{ id: string; url: string; position: number }> }
     | { success: false; error: string };
@@ -79,7 +92,7 @@ export async function uploadServicePhotos(formData: FormData): Promise<UploadRes
         const profile =
             session.user.role === 'ADMIN'
                 ? null
-                : await requireProviderProfile(session.user.id, session.user.email);
+                : await requireProviderProfile(session.user.id);
 
         const service = await prisma.service.findUnique({
             where: { id: serviceId },
@@ -179,7 +192,7 @@ export async function reorderServicePhotos(
         const profile =
             session.user.role === 'ADMIN'
                 ? null
-                : await requireProviderProfile(session.user.id, session.user.email);
+                : await requireProviderProfile(session.user.id);
 
         const service = await prisma.service.findUnique({
             where: { id: serviceId },
@@ -206,14 +219,7 @@ export async function reorderServicePhotos(
             return { success: false, error: 'Недопустимый id фото.' };
         }
 
-        await prisma.$transaction(
-            photoIdOrder.map((id, position) =>
-                prisma.portfolioPhoto.update({
-                    where: { id },
-                    data: { position },
-                })
-            )
-        );
+        await applyPhotoOrder(photoIdOrder);
 
         revalidatePath('/dashboard', 'layout');
         if (service.profile?.slug) revalidatePath(`/salon/${service.profile.slug}`);
@@ -249,7 +255,7 @@ export async function reorderStaffServicePhotos(
         const profile =
             session.user.role === 'ADMIN'
                 ? null
-                : await requireProviderProfile(session.user.id, session.user.email);
+                : await requireProviderProfile(session.user.id);
 
         const service = await prisma.service.findUnique({
             where: { id: serviceId },
@@ -277,14 +283,7 @@ export async function reorderStaffServicePhotos(
             return { success: false, error: 'Недопустимый id фото.' };
         }
 
-        await prisma.$transaction(
-            photoIdOrder.map((id, position) =>
-                prisma.portfolioPhoto.update({
-                    where: { id },
-                    data: { position },
-                })
-            )
-        );
+        await applyPhotoOrder(photoIdOrder);
 
         revalidatePath('/dashboard', 'layout');
         if (service.profile?.slug) revalidatePath(`/salon/${service.profile.slug}`);
@@ -313,7 +312,7 @@ export async function updateArrivalInfo(
     if (session.user.isBanned) return { success: false, error: 'Ваш аккаунт заблокирован.' };
 
     try {
-        const profile = await requireProviderProfile(session.user.id, session.user.email);
+        const profile = await requireProviderProfile(session.user.id);
 
         if (profile.provider_type === 'SALON') {
             return {
@@ -384,7 +383,7 @@ export async function deletePortfolioPhoto(photoId: string): Promise<MutationRes
             where: { id: photoId },
             select: {
                 id: true,
-                profile: { select: { slug: true, user_id: true, user_email: true } },
+                profile: { select: { slug: true, user_id: true } },
             },
         });
         if (!photo) return { success: false, error: 'Фото не найдено.' };
@@ -392,9 +391,7 @@ export async function deletePortfolioPhoto(photoId: string): Promise<MutationRes
         if (session.user.role !== 'ADMIN') {
             const ownsByUserId =
                 photo.profile.user_id && photo.profile.user_id === session.user.id;
-            const ownsByEmail =
-                session.user.email && photo.profile.user_email === session.user.email;
-            if (!ownsByUserId && !ownsByEmail) {
+            if (!ownsByUserId) {
                 return { success: false, error: 'Недостаточно прав.' };
             }
         }
@@ -432,7 +429,7 @@ export async function uploadInteriorPhotos(formData: FormData): Promise<UploadRe
         const profile =
             session.user.role === 'ADMIN'
                 ? null
-                : await requireProviderProfile(session.user.id, session.user.email);
+                : await requireProviderProfile(session.user.id);
 
         const profileId = profile
             ? profile.id
@@ -524,7 +521,7 @@ export async function reorderInteriorPhotos(
         const profile =
             session.user.role === 'ADMIN'
                 ? null
-                : await requireProviderProfile(session.user.id, session.user.email);
+                : await requireProviderProfile(session.user.id);
 
         const profileId = profile?.id;
         if (!profileId) return { success: false, error: 'Профиль не найден.' };
@@ -541,14 +538,7 @@ export async function reorderInteriorPhotos(
             return { success: false, error: 'Недопустимый id фото.' };
         }
 
-        await prisma.$transaction(
-            photoIdOrder.map((id, position) =>
-                prisma.portfolioPhoto.update({
-                    where: { id },
-                    data: { position },
-                })
-            )
-        );
+        await applyPhotoOrder(photoIdOrder);
 
         revalidatePath('/dashboard', 'layout');
         if (profile?.slug) revalidatePath(`/salon/${profile.slug}`);

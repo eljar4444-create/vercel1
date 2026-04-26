@@ -210,6 +210,7 @@ export function SearchInteractiveLayout({
                     address: p.address,
                     image_url: p.image_url,
                     services: p.services || [],
+                    prefetchedSlots: p.prefetchedSlots || null,
                 })));
 
                 setMapMarkers(providers.map((p: any) => ({
@@ -325,7 +326,7 @@ export function SearchInteractiveLayout({
                     >
                         {filteredProfiles.length > 0 ? (
                             <div className="flex flex-col gap-4 w-full">
-                                {filteredProfiles.map((profile: any) => (
+                                {filteredProfiles.map((profile: any, index: number) => (
                                     <div
                                         key={profile.id}
                                         onMouseEnter={() => setHoveredMasterId(profile.id)}
@@ -336,6 +337,8 @@ export function SearchInteractiveLayout({
                                             initialIsFavorited={favoriteSet.has(profile.id)}
                                             isHovered={hoveredMasterId === profile.id}
                                             profileType={profileType}
+                                            prefetchedSlots={profile.prefetchedSlots}
+                                            priority={index < 3}
                                         />
                                     </div>
                                 ))}

@@ -12,10 +12,14 @@ export default async function LegalSetupPage() {
         select: { 
             id: true, 
             onboardingCompleted: true, 
-            legalEntityType: true, 
-            legalName: true, 
-            taxId: true, 
-            vatId: true 
+            user: {
+                select: {
+                    legalEntityType: true, 
+                    legalName: true, 
+                    taxId: true, 
+                    vatId: true
+                }
+            }
         }
     });
 
@@ -32,10 +36,10 @@ export default async function LegalSetupPage() {
                 <LegalSetupForm 
                     profileId={profile.id} 
                     initialData={{
-                        legalEntityType: profile.legalEntityType || 'individual',
-                        legalName: profile.legalName || '',
-                        taxId: profile.taxId || '',
-                        vatId: profile.vatId || ''
+                        legalEntityType: profile.user?.legalEntityType || 'individual',
+                        legalName: profile.user?.legalName || '',
+                        taxId: profile.user?.taxId || '',
+                        vatId: profile.user?.vatId || ''
                     }} 
                 />
             </div>

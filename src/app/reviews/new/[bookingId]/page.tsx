@@ -2,6 +2,9 @@ import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { ReviewForm } from './ReviewForm';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = { robots: { index: false } };
 
 interface Props {
     params: { bookingId: string };

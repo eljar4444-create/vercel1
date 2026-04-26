@@ -33,16 +33,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             select: {
                 slug: true,
                 city: true,
+                updatedAt: true,
                 category: { select: { slug: true } },
             },
         });
 
         // 2. Profile pages (/salon/:slug)
-        // Profile model has no updated_at; use new Date() so Google always
-        // considers these pages fresh and re-crawls for price/portfolio changes.
+        // Profile model has updated_at; use it to signal fresh content.
         const profileRoutes: MetadataRoute.Sitemap = publishedProfiles.map((profile) => ({
             url: `${BASE_URL}/salon/${profile.slug}`,
-            lastModified: new Date(),
+            lastModified: profile.updatedAt || new Date(),
             changeFrequency: 'weekly',
             priority: 0.8,
         }));

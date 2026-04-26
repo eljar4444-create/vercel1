@@ -343,7 +343,7 @@ export async function createBooking(input: BookingInput) {
                 }
             }
 
-            const slotLock = `${profileId}:${assignedStaffId || 'none'}:${input.date}:${input.time}`;
+            const slotLock = `${profileId}::${assignedStaffId || 'solo'}::${input.date}::${input.time}`;
 
             const created = await tx.booking.create({
                 data: {
@@ -391,7 +391,7 @@ export async function createBooking(input: BookingInput) {
     } catch (error: any) {
         console.error('Booking creation error:', error);
         if (error.code === 'P2002') {
-            return { success: false, error: 'К сожалению, это время только что заняли. Пожалуйста, выберите другое.' };
+            return { success: false, error: 'К сожалению, это время только что было занято другим клиентом.' };
         }
         return { success: false, error: error.message || 'Ошибка при создании записи' };
     }

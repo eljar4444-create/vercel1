@@ -74,6 +74,7 @@ export function CityDirectoryClient({
                                         className="text-gray-600 hover:text-[#C2A363] hover:underline underline-offset-4 transition-colors font-medium"
                                     >
                                         {city}
+                                        <span className="sr-only"> — Мастера красоты в {city}</span>
                                     </Link>
                                 ))}
                             </div>

@@ -2,6 +2,9 @@ import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 import { redirect } from 'next/navigation';
 import { AccountSettingsView } from '@/components/AccountSettingsView';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = { robots: { index: false } };
 
 export default async function AccountSettingsPage() {
     const session = await auth();
@@ -35,12 +38,7 @@ export default async function AccountSettingsPage() {
     let resolvedImage = user.image;
     if (!resolvedImage) {
         const profile = await prisma.profile.findFirst({
-            where: {
-                OR: [
-                    { user_id: session.user.id },
-                    ...(session.user.email ? [{ user_email: session.user.email }] : []),
-                ],
-            },
+            where: { user_id: session.user.id },
             select: { image_url: true },
         });
         resolvedImage = profile?.image_url ?? null;

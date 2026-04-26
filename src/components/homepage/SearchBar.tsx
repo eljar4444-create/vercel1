@@ -235,16 +235,12 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                             
                             {/* Mega Menu Footer Action */}
                             <div className="mt-8 pt-5 border-t border-gray-100">
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        router.push('/services');
-                                    }}
+                                <Link
+                                    href="/services"
                                     className="text-sm font-medium text-gray-500 hover:text-green-800 transition-colors duration-200"
                                 >
                                     Посмотреть все услуги ➔
-                                </button>
+                                </Link>
                             </div>
                         </>
                     )}

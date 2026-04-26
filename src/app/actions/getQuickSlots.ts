@@ -147,3 +147,144 @@ function getRussianDayShort(day: number): string {
     const days = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
     return days[day];
 }
+
+/**
+ * Batched version: Returns quick slots for multiple profiles in just two queries.
+ * @param profileIds Array of profile IDs
+ * @param durationMin Duration in minutes to calculate slots (default 30)
+ */
+export async function getBatchedQuickSlots(profileIds: number[], durationMin: number = 30): Promise<Record<number, QuickSlotsResponse>> {
+    const result: Record<number, QuickSlotsResponse> = {};
+    if (!profileIds || profileIds.length === 0) return result;
+
+    try {
+        const profiles = await prisma.profile.findMany({
+            where: { id: { in: profileIds } },
+            select: { id: true, schedule: true }
+        });
+
+        const TIMEZONE = 'Europe/Berlin';
+        const nowZoned = toZonedTime(new Date(), TIMEZONE);
+        const todayStr = format(nowZoned, 'yyyy-MM-dd');
+        const endDateStr = format(addDays(nowZoned, DAYS_TO_CHECK), 'yyyy-MM-dd');
+
+        const bookings = await prisma.booking.findMany({
+            where: {
+                profile_id: { in: profileIds },
+                status: {
+                    in: ['PENDING', 'CONFIRMED']
+                },
+                date: {
+                    gte: new Date(`${todayStr}T00:00:00Z`),
+                    lte: new Date(`${endDateStr}T23:59:59Z`)
+                }
+            },
+            select: {
+                profile_id: true,
+                date: true,
+                time: true,
+                service: { select: { duration_min: true } }
+            }
+        });
+
+        const bookingsByProfile: Record<number, Record<string, { startMin: number; endMin: number }[]>> = {};
+        for (const pid of profileIds) {
+            bookingsByProfile[pid] = {};
+        }
+
+        for (const b of bookings) {
+            const dateStr = format(b.date, 'yyyy-MM-dd');
+            if (!bookingsByProfile[b.profile_id]) bookingsByProfile[b.profile_id] = {};
+            if (!bookingsByProfile[b.profile_id][dateStr]) bookingsByProfile[b.profile_id][dateStr] = [];
+            const startMin = timeToMinutes(b.time);
+            const duration = b.service?.duration_min || 60;
+            bookingsByProfile[b.profile_id][dateStr].push({ startMin, endMin: startMin + duration });
+        }
+
+        for (const profile of profiles) {
+            if (!profile.schedule) {
+                result[profile.id] = { hasSchedule: false, morning: [], evening: [] };
+                continue;
+            }
+
+            const schedule = parseSchedule(profile.schedule);
+            if (!schedule.workingDays || schedule.workingDays.length === 0) {
+                result[profile.id] = { hasSchedule: false, morning: [], evening: [] };
+                continue;
+            }
+
+            const morning: QuickSlot[] = [];
+            const evening: QuickSlot[] = [];
+            const profileBookings = bookingsByProfile[profile.id] || {};
+
+            for (let i = 0; i < DAYS_TO_CHECK; i++) {
+                const checkDate = addDays(nowZoned, i);
+                const checkDateStr = format(checkDate, 'yyyy-MM-dd');
+                const dayOfWeek = getDay(checkDate);
+                const workIntervals = getDayIntervals(schedule, dayOfWeek);
+                if (workIntervals.length === 0) continue;
+                const dayBookings = profileBookings[checkDateStr] || [];
+
+                let limitReached = false;
+                for (const interval of workIntervals) {
+                    if (limitReached) break;
+                    const workStartMin = timeToMinutes(interval.start);
+                    const workEndMin = timeToMinutes(interval.end);
+
+                    for (let min = workStartMin; min <= workEndMin - Math.max(30, durationMin); min += 30) {
+                        if (i === 0) {
+                            const currentHour = nowZoned.getHours();
+                            const currentMinute = nowZoned.getMinutes();
+                            const currentMinOfDay = currentHour * 60 + currentMinute;
+                            if (min <= currentMinOfDay + 30) continue;
+                        }
+
+                        const isOverlapping = dayBookings.some((b) => {
+                            const slotEnd = min + durationMin;
+                            return (min >= b.startMin && min < b.endMin) ||
+                                (slotEnd > b.startMin && slotEnd <= b.endMin) ||
+                                (min <= b.startMin && slotEnd >= b.endMin);
+                        });
+
+                        if (!isOverlapping) {
+                            const timeStr = minutesToTime(min);
+                            const dayLabel = getRussianDayShort(dayOfWeek) + ' ' + format(checkDate, 'd');
+
+                            const slot: QuickSlot = {
+                                date: checkDateStr,
+                                time: timeStr,
+                                label: i === 0 ? 'Сегодня' : dayLabel,
+                                period: min < 12 * 60 ? 'morning' : 'evening',
+                            };
+
+                            if (slot.period === 'morning' && morning.length < MAX_SLOTS_PER_PERIOD) {
+                                morning.push(slot);
+                            } else if (slot.period === 'evening' && evening.length < MAX_SLOTS_PER_PERIOD) {
+                                evening.push(slot);
+                            }
+
+                            if (morning.length >= MAX_SLOTS_PER_PERIOD && evening.length >= MAX_SLOTS_PER_PERIOD) {
+                                limitReached = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (limitReached) break;
+            }
+            result[profile.id] = { hasSchedule: true, morning, evening };
+        }
+
+        for (const pid of profileIds) {
+            if (!result[pid]) {
+                result[pid] = { hasSchedule: false, morning: [], evening: [] };
+            }
+        }
+
+        return result;
+
+    } catch (error) {
+        console.error('Error fetching batched quick slots:', error);
+        return result;
+    }
+}

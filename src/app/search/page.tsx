@@ -1,7 +1,11 @@
+// Next.js segment config is module-static and cannot be conditionalized per-request.
+// Bare /search is the only indexable variant (filtered URLs are noindex via CB-1);
+// the heavy provider query for that variant is cached below via unstable_cache (1h TTL).
+// We keep the page itself dynamic so per-user state (favorites) renders correctly.
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 import { Suspense } from "react";
+import { unstable_cache } from "next/cache";
 import prisma from "@/lib/prisma";
 import { getCityFilterVariants } from "@/constants/searchSuggestions";
 import { GERMAN_CITIES } from "@/constants/germanCities";
@@ -12,6 +16,35 @@ import { geocodeCity } from "@/lib/geocode";
 import { calculateMapZoom } from "@/components/search/types";
 import type { Metadata } from "next";
 import { SearchQuickFilters } from "@/components/search/SearchQuickFilters";
+
+const fetchUnfilteredSearchProfiles = unstable_cache(
+    async () =>
+        prisma.profile.findMany({
+            where: {
+                AND: [
+                    { status: 'PUBLISHED' },
+                    { is_verified: true },
+                    { category: { slug: { not: 'health' } } },
+                    { user: { isBanned: false } },
+                ],
+            },
+            include: {
+                category: true,
+                services: true,
+                reviews: true,
+                photos: {
+                    where: { serviceId: null, staffId: null },
+                    orderBy: { position: 'asc' },
+                    select: { url: true },
+                    take: 1,
+                },
+            },
+            orderBy: { created_at: 'desc' },
+            take: 50,
+        }),
+    ['search-bare-profiles-v1'],
+    { revalidate: 3600, tags: ['profiles'] },
+);
 
 const DEFAULT_CITY_COORDS = {
     lat: 52.52,
@@ -54,9 +87,13 @@ export async function generateMetadata({
         ? `Найдите лучших мастеров красоты${query ? ` по запросу «${query}»` : ''} в городе ${city}. Онлайн-запись на Svoi.de.`
         : `Найдите лучших мастеров красоты${query ? ` по запросу «${query}»` : ''} в Германии. Онлайн-запись на Svoi.de.`;
 
+    const hasFilters = Object.values(searchParams).some((v) => v !== undefined && v !== '');
+
     return {
         title,
         description,
+        alternates: { canonical: '/search' },
+        ...(hasFilters && { robots: { index: false, follow: true } }),
     };
 }
 
@@ -95,7 +132,13 @@ export default async function SearchPage({
     let initialCenter: [number, number] | undefined = undefined;
     let favoriteProfileIds: number[] = [];
 
+    const hasFilters = Object.values(searchParams).some((v) => v !== undefined && v !== '');
+
     try {
+        if (!hasFilters) {
+            profiles = await fetchUnfilteredSearchProfiles();
+            favoriteProfileIds = await getFavoriteProfileIds();
+        } else {
         const andConditions: any[] = [
             { status: 'PUBLISHED' },
             { is_verified: true },
@@ -263,6 +306,7 @@ export default async function SearchPage({
         });
 
         favoriteProfileIds = await getFavoriteProfileIds();
+        }
     } catch (e: any) {
         console.error("Search page data fetch error:", e);
         // Graceful fallback: render empty results instead of crashing

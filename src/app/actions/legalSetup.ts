@@ -29,10 +29,6 @@ export async function submitLegalSetup(formData: FormData) {
                 user_id: session.user.id 
             },
             data: {
-                legalEntityType,
-                legalName,
-                taxId,
-                vatId,
                 onboardingCompleted: true, // Officially unblocks the dashboard
                 status: 'PENDING_REVIEW' // Hides profile from global search until manual verification
             }
@@ -41,7 +37,13 @@ export async function submitLegalSetup(formData: FormData) {
         // Toggle the global user flag which controls NextAuth JWT middleware
         await prisma.user.update({
             where: { id: session.user.id },
-            data: { onboardingCompleted: true }
+            data: { 
+                onboardingCompleted: true,
+                legalEntityType,
+                legalName,
+                taxId,
+                vatId,
+            }
         });
 
         return { success: true };

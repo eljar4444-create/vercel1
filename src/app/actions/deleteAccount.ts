@@ -2,6 +2,53 @@
 
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
+import { del } from '@vercel/blob';
+
+function isVercelBlobUrl(url: unknown): url is string {
+    if (typeof url !== 'string' || url.length === 0) return false;
+    try {
+        return new URL(url).hostname.endsWith('.blob.vercel-storage.com');
+    } catch {
+        return false;
+    }
+}
+
+// Best-effort cleanup of blob storage before the DB rows are removed.
+// Cascade deletes nuke PortfolioPhoto/Profile rows but leave the actual
+// files orphaned in storage — collect & delete them up front.
+async function deleteBlobsForProfile(profileId: number): Promise<void> {
+    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
+    if (!token) return;
+
+    const [profile, photos] = await Promise.all([
+        prisma.profile.findUnique({
+            where: { id: profileId },
+            select: { image_url: true, gallery: true, studioImages: true },
+        }),
+        prisma.portfolioPhoto.findMany({
+            where: { profileId },
+            select: { url: true },
+        }),
+    ]);
+
+    const urls = [
+        profile?.image_url,
+        ...(profile?.gallery ?? []),
+        ...(profile?.studioImages ?? []),
+        ...photos.map((p) => p.url),
+    ].filter(isVercelBlobUrl);
+
+    if (urls.length === 0) return;
+
+    const results = await Promise.allSettled(urls.map((url) => del(url, { token })));
+    const failed = results.filter((r) => r.status === 'rejected');
+    if (failed.length > 0) {
+        console.warn(
+            `[deleteUserAccount] ${failed.length}/${urls.length} blob deletions failed`,
+            failed.map((r) => (r as PromiseRejectedResult).reason),
+        );
+    }
+}
 
 /**
  * Полностью удаляет аккаунт текущего пользователя и все связанные данные.
@@ -20,6 +67,14 @@ export async function deleteUserAccount(): Promise<{ success: boolean; error?: s
     const userId = session.user.id;
 
     try {
+        const profileForBlobs = await prisma.profile.findUnique({
+            where: { user_id: userId },
+            select: { id: true },
+        });
+        if (profileForBlobs) {
+            await deleteBlobsForProfile(profileForBlobs.id);
+        }
+
         await prisma.$transaction(async (tx) => {
             // 1. Find user's profile (if any)
             const profile = await tx.profile.findUnique({

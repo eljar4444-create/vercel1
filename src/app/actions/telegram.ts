@@ -13,7 +13,7 @@ export async function disconnectTelegram(profileId: number) {
 
     if (session.user.role !== 'ADMIN') {
         try {
-            await requireProviderProfile(session.user.id, session.user.email);
+            await requireProviderProfile(session.user.id);
         } catch {
             return { success: false, error: 'Unauthorized' };
         }
@@ -26,7 +26,7 @@ export async function disconnectTelegram(profileId: number) {
 
     const profile = await prisma.profile.findUnique({
         where: { id },
-        select: { user_id: true, user_email: true, slug: true },
+        select: { user_id: true, slug: true },
     });
 
     if (!profile) {
@@ -34,9 +34,7 @@ export async function disconnectTelegram(profileId: number) {
     }
 
     if (session.user.role !== 'ADMIN') {
-        const owns =
-            (profile.user_id && profile.user_id === session.user.id) ||
-            (session.user.email && profile.user_email === session.user.email);
+        const owns = profile.user_id && profile.user_id === session.user.id;
         if (!owns) {
             return { success: false, error: 'Недостаточно прав.' };
         }

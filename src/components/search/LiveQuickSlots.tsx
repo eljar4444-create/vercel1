@@ -13,20 +13,27 @@ interface LiveQuickSlotsProps {
         duration_min: number;
     };
     maxSlots?: number;
+    prefetchedSlots?: QuickSlotsResponse | null;
 }
 
-export function LiveQuickSlots({ profileId, slug, service, maxSlots }: LiveQuickSlotsProps) {
-    const [slotsData, setSlotsData] = useState<QuickSlotsResponse | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+export function LiveQuickSlots({ profileId, slug, service, maxSlots, prefetchedSlots }: LiveQuickSlotsProps) {
+    const [slotsData, setSlotsData] = useState<QuickSlotsResponse | null>(prefetchedSlots || null);
+    const [isLoading, setIsLoading] = useState(prefetchedSlots === undefined);
 
     useEffect(() => {
+        if (prefetchedSlots !== undefined) {
+            setSlotsData(prefetchedSlots);
+            setIsLoading(false);
+            return;
+        }
+
         setIsLoading(true);
         const duration = service?.duration_min || 30;
         getQuickSlots(profileId, duration)
             .then(setSlotsData)
             .catch(console.error)
             .finally(() => setIsLoading(false));
-    }, [profileId, service?.duration_min]);
+    }, [profileId, service?.duration_min, prefetchedSlots]);
 
     if (isLoading) {
         return (

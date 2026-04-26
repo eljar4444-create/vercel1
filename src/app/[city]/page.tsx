@@ -9,6 +9,7 @@ import { deslugify, slugify } from '@/lib/slugify';
 import type { Metadata } from 'next';
 import ScrollReveal from '@/components/ScrollReveal';
 import { notFound } from 'next/navigation';
+import { getBatchedQuickSlots } from '@/app/actions/getQuickSlots';
 
 const RESERVED_SLUGS = [
     'login', 'register', 'auth', 'api', 'admin', 'dashboard', 
@@ -85,6 +86,7 @@ export default async function CityPage({
     }
 
     let profiles: any[] = [];
+    let batchedSlots: Record<number, any> = {};
     try {
         profiles = await prisma.profile.findMany({
             where: { AND: andConditions },
@@ -92,12 +94,48 @@ export default async function CityPage({
             orderBy: { created_at: 'desc' },
             take: 50,
         });
+        if (profiles.length > 0) {
+            const profileIds = profiles.map((p) => p.id);
+            batchedSlots = await getBatchedQuickSlots(profileIds);
+        }
     } catch (e: any) {
         console.error('DB Error:', e);
     }
 
+    if (profiles.length === 0) {
+        notFound();
+    }
+
+    const breadcrumbJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Главная', item: 'https://www.svoi.de' },
+            { '@type': 'ListItem', position: 2, name: cityName, item: `https://www.svoi.de/${params.city}` },
+        ],
+    };
+
+    const itemListJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        itemListElement: profiles.map((profile: any, i: number) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            url: `https://www.svoi.de/salon/${profile.slug}`,
+            name: profile.name,
+        })),
+    };
+
     return (
         <main className="min-h-screen">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+            />
             <div className="container mx-auto max-w-5xl px-4 py-8">
                 <nav aria-label="Навигация" className="mb-6">
                     <Link href="/" className="text-sm text-slate-500 transition hover:text-slate-800">
@@ -116,7 +154,7 @@ export default async function CityPage({
 
                 <ScrollReveal className="mt-8">
                     {profiles.length > 0 ? (
-                        profiles.map((profile: any) => (
+                        profiles.map((profile: any, index: number) => (
                             <SearchResultListItem
                                 key={profile.id}
                                 profile={{
@@ -134,6 +172,8 @@ export default async function CityPage({
                                         duration_min: s.duration_min,
                                     })),
                                 }}
+                                prefetchedSlots={batchedSlots[profile.id] || null}
+                                priority={index < 3}
                             />
                         ))
                     ) : (

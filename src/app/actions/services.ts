@@ -76,7 +76,7 @@ export async function createService(prevState: any, formData: FormData) {
     }
 
     try {
-        const profile = await requireProviderProfile(session.user.id, session.user.email);
+        const profile = await requireProviderProfile(session.user.id);
         const title = (formData.get('title') as string | null)?.trim() || '';
         const rawPrice = formData.get('price');
         const price = rawPrice ? parseFloat(rawPrice as string) : 0;
@@ -174,7 +174,7 @@ export async function updateService(serviceId: string, prevState: any, formData:
     }
 
     try {
-        const profile = await requireProviderProfile(session.user.id, session.user.email);
+        const profile = await requireProviderProfile(session.user.id);
         const serviceIdInt = parseInt(serviceId, 10);
         const title = (formData.get('title') as string | null)?.trim() || '';
         const rawPrice = formData.get('price');
@@ -269,7 +269,7 @@ export async function addService(formData: FormData) {
 
     if (session.user.role !== 'ADMIN') {
         try {
-            await requireProviderProfile(session.user.id, session.user.email);
+            await requireProviderProfile(session.user.id);
         } catch {
             return { success: false, error: 'Unauthorized' };
         }
@@ -307,13 +307,12 @@ export async function addService(formData: FormData) {
         if (session.user.role !== 'ADMIN') {
             const profile = await prisma.profile.findUnique({
                 where: { id: profileId },
-                select: { user_id: true, user_email: true },
+                select: { user_id: true },
             });
             if (!profile) return { success: false, error: 'Профиль не найден.' };
 
             const ownsByUserId = profile.user_id && profile.user_id === session.user.id;
-            const ownsByEmail = session.user.email && profile.user_email === session.user.email;
-            if (!ownsByUserId && !ownsByEmail) {
+            if (!ownsByUserId) {
                 return { success: false, error: 'Недостаточно прав.' };
             }
         }
@@ -399,7 +398,7 @@ export async function deleteService(serviceId: number) {
 
     if (session.user.role !== 'ADMIN') {
         try {
-            await requireProviderProfile(session.user.id, session.user.email);
+            await requireProviderProfile(session.user.id);
         } catch {
             return { success: false, error: 'Unauthorized' };
         }
@@ -411,7 +410,7 @@ export async function deleteService(serviceId: number) {
             select: {
                 id: true,
                 profile: {
-                    select: { slug: true, user_id: true, user_email: true },
+                    select: { slug: true, user_id: true },
                 },
             },
         });
@@ -419,8 +418,7 @@ export async function deleteService(serviceId: number) {
 
         if (session.user.role !== 'ADMIN') {
             const ownsByUserId = service.profile.user_id && service.profile.user_id === session.user.id;
-            const ownsByEmail = session.user.email && service.profile.user_email === session.user.email;
-            if (!ownsByUserId && !ownsByEmail) {
+            if (!ownsByUserId) {
                 return { success: false, error: 'Недостаточно прав.' };
             }
         }

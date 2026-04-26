@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Scissors, Sparkles, Eye, Palette, Hand, Flower } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { getCityFilterVariants } from "@/constants/searchSuggestions";
+import { slugify } from "@/lib/slugify";
 
 export const revalidate = 3600;
 
@@ -111,11 +112,13 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
         ? `Найдено ${count} проверенных мастеров в ${cityName}. Сравните цены, отзывы и запишитесь онлайн на SVOI.de.`
         : `Проверенные бьюти-мастера в ${cityName}. Сравните цены, отзывы и запишитесь онлайн на SVOI.de.`;
 
+    const citySlug = slugify(cityName);
+
     return {
         title,
         description,
-        alternates: { canonical: `/locations/${encodeURIComponent(cityName)}` },
-        openGraph: { title, description, url: `/locations/${encodeURIComponent(cityName)}` },
+        alternates: { canonical: `/${citySlug}` },
+        openGraph: { title, description, url: `/${citySlug}` },
     };
 }
 

@@ -41,16 +41,15 @@ export async function POST(request: Request) {
 
     const profile = await prisma.profile.findUnique({
         where: { id: input.profileId },
-        select: { id: true, user_id: true, user_email: true },
+        select: { id: true, user_id: true },
     });
     if (!profile) {
         return NextResponse.json({ error: 'Профиль не найден' }, { status: 404 });
     }
 
     const ownsByUserId = profile.user_id && profile.user_id === session.user.id;
-    const ownsByEmail = session.user.email && profile.user_email === session.user.email;
     const isAdmin = session.user.role === 'ADMIN';
-    if (!ownsByUserId && !ownsByEmail && !isAdmin) {
+    if (!ownsByUserId && !isAdmin) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

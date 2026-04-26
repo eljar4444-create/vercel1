@@ -35,14 +35,14 @@ export async function uploadAvatar(formData: FormData) {
     try {
         const profile = await prisma.profile.findUnique({
             where: { id: profileId },
-            select: { id: true, user_id: true, user_email: true, slug: true },
+            select: { id: true, user_id: true, slug: true },
         });
 
         if (!profile) {
             return { success: false, error: 'Профиль не найден.' };
         }
 
-        const isOwner = profile.user_id === session.user.id || (session.user.email && profile.user_email === session.user.email);
+        const isOwner = profile.user_id === session.user.id;
         if (session.user.role !== 'ADMIN' && !isOwner) {
             throw new Error('Forbidden');
         }

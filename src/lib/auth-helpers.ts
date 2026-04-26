@@ -1,13 +1,8 @@
 import prisma from '@/lib/prisma';
 
-export async function requireProviderProfile(userId: string, email?: string | null) {
+export async function requireProviderProfile(userId: string) {
   const profile = await prisma.profile.findFirst({
-    where: {
-      OR: [
-        { user_id: userId },
-        ...(email ? [{ user_email: email }] : []),
-      ],
-    },
+    where: { user_id: userId },
   });
 
   if (!profile) {

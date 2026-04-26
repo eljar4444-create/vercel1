@@ -24,12 +24,7 @@ export async function GET(request: Request) {
     const sortField = SORT_WHITELIST.has(sortBy) ? sortBy : 'lastVisit';
 
     const profile = await prisma.profile.findFirst({
-        where: {
-            OR: [
-                { user_id: session.user.id },
-                ...(session.user.email ? [{ user_email: session.user.email }] : []),
-            ],
-        },
+        where: { user_id: session.user.id },
         select: { id: true },
     });
 

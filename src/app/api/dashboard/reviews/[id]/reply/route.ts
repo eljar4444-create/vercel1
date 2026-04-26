@@ -7,19 +7,18 @@ const ReplySchema = z.object({
     replyText: z.string().trim().min(1, 'Ответ не может быть пустым').max(2000),
 });
 
-async function getOwnedReview(reviewId: string, userId: string, userEmail?: string | null) {
+async function getOwnedReview(reviewId: string, userId: string) {
     const review = await prisma.review.findUnique({
         where: { id: reviewId },
         select: {
             id: true,
-            profile: { select: { id: true, user_id: true, user_email: true } },
+            profile: { select: { id: true, user_id: true } },
         },
     });
     if (!review) return null;
 
     const ownsByUserId = review.profile.user_id && review.profile.user_id === userId;
-    const ownsByEmail = userEmail && review.profile.user_email === userEmail;
-    if (!ownsByUserId && !ownsByEmail) return 'forbidden' as const;
+    if (!ownsByUserId) return 'forbidden' as const;
 
     return review;
 }
@@ -36,7 +35,7 @@ export async function PATCH(
         return NextResponse.json({ error: 'Ваш аккаунт заблокирован.' }, { status: 403 });
     }
 
-    const owned = await getOwnedReview(params.id, session.user.id, session.user.email);
+    const owned = await getOwnedReview(params.id, session.user.id);
     if (!owned) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (owned === 'forbidden') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
@@ -83,7 +82,7 @@ export async function DELETE(
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const owned = await getOwnedReview(params.id, session.user.id, session.user.email);
+    const owned = await getOwnedReview(params.id, session.user.id);
     if (!owned) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     if (owned === 'forbidden') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 

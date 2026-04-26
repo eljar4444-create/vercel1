@@ -304,7 +304,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                         viewport={{ once: true, amount: 0.2 }}
                         className="flex overflow-x-auto snap-x snap-mandatory gap-6 scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                     >
-                        {filteredMasters.map((master) => (
+                        {filteredMasters.map((master, index) => (
                             <motion.div
                                 key={master.id}
                                 data-salon-card
@@ -322,6 +322,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                                     workPhotoUrl={master.workPhotoUrl}
                                     providerType={master.providerType}
                                     services={master.services}
+                                    priority={index < 3}
                                 />
                             </motion.div>
                         ))}
@@ -335,7 +336,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                         viewport={{ once: true, amount: 0.2 }}
                         className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 w-full"
                     >
-                        {filteredMasters.map((master) => (
+                        {filteredMasters.map((master, index) => (
                             <motion.div key={master.id} variants={itemVariants}>
                                 <MasterCard
                                     slug={master.slug}
@@ -348,6 +349,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                                     workPhotoUrl={master.workPhotoUrl}
                                     providerType={master.providerType}
                                     services={master.services}
+                                    priority={index < 3}
                                 />
                             </motion.div>
                         ))}
