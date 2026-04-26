@@ -25,7 +25,7 @@ const fetchUnfilteredSearchProfiles = unstable_cache(
                     { status: 'PUBLISHED' },
                     { is_verified: true },
                     { category: { slug: { not: 'health' } } },
-                    { user: { isBanned: false } },
+                    { NOT: { user: { isBanned: true } } },
                 ],
             },
             include: {
@@ -42,7 +42,7 @@ const fetchUnfilteredSearchProfiles = unstable_cache(
             orderBy: { created_at: 'desc' },
             take: 50,
         }),
-    ['search-bare-profiles-v1'],
+    ['search-bare-profiles-v2'],
     { revalidate: 3600, tags: ['profiles'] },
 );
 
@@ -143,7 +143,9 @@ export default async function SearchPage({
             { status: 'PUBLISHED' },
             { is_verified: true },
             { category: { slug: { not: 'health' } } },
-            { user: { isBanned: false } },
+            // Exclude only explicitly-banned users. Profiles with user_id=null
+            // (orphaned via user-deletion + onDelete:SetNull) must remain visible.
+            { NOT: { user: { isBanned: true } } },
         ];
 
         if (categoryFilter && categoryFilter !== 'health') {
@@ -207,20 +209,32 @@ export default async function SearchPage({
         }
 
         if (queryFilter) {
-            andConditions.push({
-                OR: [
-                    { name: { contains: queryFilter, mode: 'insensitive' } },
-                    { city: { contains: queryFilter, mode: 'insensitive' } },
-                    { category: { name: { contains: queryFilter, mode: 'insensitive' } } },
-                    {
-                        services: {
-                            some: {
-                                title: { contains: queryFilter, mode: 'insensitive' },
+            // Tokenize on whitespace so multi-word queries don't require verbatim
+            // adjacency. Each token must match at least one of name/city/category/
+            // service title (case-insensitive substring). Example:
+            //   q="Архитектура бровей" → tokens ["Архитектура", "бровей"]
+            //   matches service title "Архитектура и коррекция бровей" because
+            //   each token appears in that string, even though the literal
+            //   substring "Архитектура бровей" does not.
+            const tokens = queryFilter.trim().split(/\s+/).filter(Boolean);
+            if (tokens.length > 0) {
+                andConditions.push({
+                    AND: tokens.map((token) => ({
+                        OR: [
+                            { name: { contains: token, mode: 'insensitive' } },
+                            { city: { contains: token, mode: 'insensitive' } },
+                            { category: { name: { contains: token, mode: 'insensitive' } } },
+                            {
+                                services: {
+                                    some: {
+                                        title: { contains: token, mode: 'insensitive' },
+                                    },
+                                },
                             },
-                        },
-                    },
-                ],
-            });
+                        ],
+                    })),
+                });
+            }
         }
 
         if (languageFilter) {

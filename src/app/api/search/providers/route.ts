@@ -50,7 +50,9 @@ export async function GET(request: NextRequest) {
         { status: 'PUBLISHED' },
         { is_verified: true },
         { category: { slug: { not: 'health' } } },
-        { user: { isBanned: false } },
+        // Exclude only explicitly-banned users. Profiles with user_id=null
+        // (orphaned via user-deletion + onDelete:SetNull) must remain visible.
+        { NOT: { user: { isBanned: true } } },
         {
             latitude: { not: null, gte: minLat, lte: maxLat },
         },
@@ -64,20 +66,27 @@ export async function GET(request: NextRequest) {
     }
 
     if (q) {
-        andConditions.push({
-            OR: [
-                { name: { contains: q, mode: 'insensitive' } },
-                { city: { contains: q, mode: 'insensitive' } },
-                { category: { name: { contains: q, mode: 'insensitive' } } },
-                {
-                    services: {
-                        some: {
-                            title: { contains: q, mode: 'insensitive' },
+        // Tokenize on whitespace so multi-word queries don't require verbatim
+        // adjacency. Mirrors src/app/search/page.tsx:209-235 — keep these in sync.
+        const tokens = q.trim().split(/\s+/).filter(Boolean);
+        if (tokens.length > 0) {
+            andConditions.push({
+                AND: tokens.map((token) => ({
+                    OR: [
+                        { name: { contains: token, mode: 'insensitive' } },
+                        { city: { contains: token, mode: 'insensitive' } },
+                        { category: { name: { contains: token, mode: 'insensitive' } } },
+                        {
+                            services: {
+                                some: {
+                                    title: { contains: token, mode: 'insensitive' },
+                                },
+                            },
                         },
-                    },
-                },
-            ],
-        });
+                    ],
+                })),
+            });
+        }
     }
 
     if (language) {
