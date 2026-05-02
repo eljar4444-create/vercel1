@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { searchRateLimit } from '@/lib/rate-limit';
 import { getBatchedQuickSlots } from '@/app/actions/getQuickSlots';
+import { resolveLocale } from '@/i18n/canonical';
+import { localizeService } from '@/lib/localized';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,19 +12,24 @@ export async function GET(request: NextRequest) {
     const ip = forwardedFor?.split(',')[0]?.trim() || 'unknown';
     
     if (ip !== 'unknown') {
-        const rateLimit = await searchRateLimit.limit(ip);
-        if (!rateLimit.success) {
-            return NextResponse.json(
-                { error: 'Too Many Requests' },
-                { 
-                    status: 429, 
-                    headers: { 'Retry-After': String(Math.ceil((rateLimit.reset - Date.now()) / 1000)) }
-                }
-            );
+        try {
+            const rateLimit = await searchRateLimit.limit(ip);
+            if (!rateLimit.success) {
+                return NextResponse.json(
+                    { error: 'Too Many Requests' },
+                    { 
+                        status: 429, 
+                        headers: { 'Retry-After': String(Math.ceil((rateLimit.reset - Date.now()) / 1000)) }
+                    }
+                );
+            }
+        } catch (error: any) {
+            console.warn('[api/search/providers] Rate limit bypass (Redis unconfigured or unreachable):', error.message);
         }
     }
 
     const { searchParams } = request.nextUrl;
+    const locale = resolveLocale(request.headers.get('x-locale') || searchParams.get('locale') || undefined);
 
     const minLat = parseFloat(searchParams.get('minLat') || '');
     const maxLat = parseFloat(searchParams.get('maxLat') || '');
@@ -75,11 +82,35 @@ export async function GET(request: NextRequest) {
                     OR: [
                         { name: { contains: token, mode: 'insensitive' } },
                         { city: { contains: token, mode: 'insensitive' } },
-                        { category: { name: { contains: token, mode: 'insensitive' } } },
+                        {
+                            category: {
+                                OR: [
+                                    { name: { contains: token, mode: 'insensitive' } },
+                                    {
+                                        translations: {
+                                            some: { name: { contains: token, mode: 'insensitive' } },
+                                        },
+                                    },
+                                ],
+                            },
+                        },
                         {
                             services: {
                                 some: {
-                                    title: { contains: token, mode: 'insensitive' },
+                                    OR: [
+                                        { title: { contains: token, mode: 'insensitive' } },
+                                        { description: { contains: token, mode: 'insensitive' } },
+                                        {
+                                            translations: {
+                                                some: {
+                                                    OR: [
+                                                        { title: { contains: token, mode: 'insensitive' } },
+                                                        { description: { contains: token, mode: 'insensitive' } },
+                                                    ],
+                                                },
+                                            },
+                                        },
+                                    ],
                                 },
                             },
                         },
@@ -156,8 +187,8 @@ export async function GET(request: NextRequest) {
         const profiles = await prisma.profile.findMany({
             where: { AND: andConditions },
             include: {
-                category: true,
-                services: true,
+                category: { include: { translations: true } },
+                services: { include: { translations: true } },
                 photos: {
                     where: { serviceId: null, staffId: null },
                     orderBy: { position: 'asc' },
@@ -166,7 +197,7 @@ export async function GET(request: NextRequest) {
                 },
             },
             orderBy,
-            take: 50,
+            take: 200,
         });
 
         const resolveImageUrl = (profile: any): string | null => {
@@ -191,12 +222,15 @@ export async function GET(request: NextRequest) {
             image_url: resolveImageUrl(profile),
             latitude: profile.latitude,
             longitude: profile.longitude,
-            services: (profile.services || []).map((s: any) => ({
-                id: s.id,
-                title: s.title,
-                price: Number(s.price),
-                duration_min: s.duration_min,
-            })),
+            services: (profile.services || []).map((rawService: any) => {
+                const service = localizeService(rawService, locale);
+                return {
+                    id: service.id,
+                    title: service.title,
+                    price: Number(service.price),
+                    duration_min: service.duration_min,
+                };
+            }),
         }));
 
         const profileIds = results.map((p: any) => p.id);

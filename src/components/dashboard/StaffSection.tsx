@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { createStaff, deleteStaff } from '@/app/actions/staff';
 import { type ServicePhoto } from '@/components/dashboard/ServicePhotoUpload';
 import { StaffManagementHub } from '@/components/dashboard/StaffManagementHub';
+import { useTranslations } from 'next-intl';
 
 export interface StaffPhotoService {
     id: number;
@@ -20,6 +21,7 @@ interface StaffSectionProps {
 }
 
 export function StaffSection({ staff, services = [] }: StaffSectionProps) {
+    const t = useTranslations('dashboard.provider.staffUi');
     const [isAdding, setIsAdding] = useState(false);
     const [name, setName] = useState('');
     const [bio, setBio] = useState('');
@@ -45,13 +47,13 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
             setName('');
             setBio('');
         } else {
-            setError(res.error || 'Ошибка');
+            setError(res.error || t('genericError'));
         }
         setLoading(false);
     }
 
     async function handleDelete(id: string) {
-        if (!confirm('Удалить мастера? Все записи к нему останутся, но он исчезнет из формы бронирования.')) return;
+        if (!confirm(t('deleteConfirm'))) return;
         setLoading(true);
         const res = await deleteStaff(id);
         if (!res.success) alert(res.error);
@@ -66,43 +68,43 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
                         onClick={() => setIsAdding(true)}
                         className="rounded-full border border-gray-300 bg-transparent text-gray-900 hover:border-gray-900 hover:bg-gray-50 flex items-center gap-2"
                     >
-                        <Plus className="h-4 w-4" /> Добавить мастера
+                        <Plus className="h-4 w-4" /> {t('addStaff')}
                     </Button>
                 </div>
             )}
 
             {isAdding && (
                 <form onSubmit={handleAdd} className="bg-transparent border-l-2 border-gray-300 pl-4 py-2">
-                    <h3 className="mb-4 text-sm font-semibold text-slate-900">Новый мастер</h3>
+                    <h3 className="mb-4 text-sm font-semibold text-slate-900">{t('newStaff')}</h3>
 
                     {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
 
                     <div className="mb-3">
-                        <label className="mb-1 block text-xs font-medium text-slate-700">Имя мастера *</label>
+                        <label className="mb-1 block text-xs font-medium text-slate-700">{t('staffName')} *</label>
                         <input
                             required
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className="w-full h-10 px-3 rounded-md border border-gray-300 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors"
-                            placeholder="Например: Анна"
+                            placeholder={t('namePlaceholder')}
                         />
                     </div>
 
                     <div className="mb-4">
-                        <label className="mb-1 block text-xs font-medium text-slate-700">Специализация / Био</label>
+                        <label className="mb-1 block text-xs font-medium text-slate-700">{t('specialtyBio')}</label>
                         <input
                             type="text"
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
                             className="w-full h-10 px-3 rounded-md border border-gray-300 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors"
-                            placeholder="Топ-стилист, колорист"
+                            placeholder={t('specialtyPlaceholder')}
                         />
                     </div>
 
                     <div className="flex items-center gap-2">
                         <Button type="submit" disabled={loading} className="bg-gray-900 text-white hover:bg-gray-700">
-                            {loading ? 'Сохранение...' : 'Сохранить'}
+                            {loading ? t('saving') : t('save')}
                         </Button>
                         <Button type="button" variant="outline" onClick={() => setIsAdding(false)} className="rounded-full border border-gray-300 bg-transparent hover:border-gray-900">
                             <X className="h-4 w-4" />
@@ -138,9 +140,9 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
                             <div className="mt-1 flex items-center gap-2">
                                 <p className="inline-flex items-center gap-1 text-[10px] text-stone-500">
                                     <Camera className="h-3 w-3" />
-                                    {photoCountByStaffId[s.id] ?? 0} фото
+                                    {t('photoCount', { count: photoCountByStaffId[s.id] ?? 0 })}
                                 </p>
-                                {!s.schedule && <p className="text-[10px] text-amber-600 font-semibold">Общее расписание</p>}
+                                {!s.schedule && <p className="text-[10px] text-amber-600 font-semibold">{t('generalSchedule')}</p>}
                             </div>
                         </div>
                         <div className="absolute right-3 top-3 flex items-center">
@@ -149,8 +151,8 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
                                 onClick={(e) => { e.stopPropagation(); handleDelete(s.id); }}
                                 disabled={loading}
                                 className="text-stone-300 transition hover:text-red-500 p-2"
-                                aria-label="Удалить мастера"
-                                title="Удалить мастера"
+                                aria-label={t('deleteStaff')}
+                                title={t('deleteStaff')}
                             >
                                 <Trash2 className="h-4 w-4" />
                             </button>
@@ -160,7 +162,7 @@ export function StaffSection({ staff, services = [] }: StaffSectionProps) {
 
                 {staff.length === 0 && !isAdding && (
                     <div className="col-span-full py-10 text-center text-sm text-stone-400">
-                        В вашем салоне еще нет добавленных мастеров.
+                        {t('empty')}
                     </div>
                 )}
             </div>

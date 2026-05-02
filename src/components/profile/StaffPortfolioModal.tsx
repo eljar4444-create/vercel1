@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { X, User, Star } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Staff } from './StaffSection';
 
 export interface StaffModalService {
@@ -23,33 +24,43 @@ interface StaffPortfolioModalProps {
 
 type TabId = 'about' | 'services' | 'portfolio' | 'reviews';
 
-const TABS: { id: TabId; label: string }[] = [
-    { id: 'about', label: 'О мастере' },
-    { id: 'services', label: 'Услуги' },
-    { id: 'portfolio', label: 'Портфолио' },
-    { id: 'reviews', label: 'Отзывы' },
-];
-
 const MOCK_REVIEWS = [
-    { id: 'r1', name: 'Анна', date: '12 апреля', rating: 5, text: 'Потрясающий мастер. Всё сделано идеально, салон уютный, атмосфера расслабленная.' },
-    { id: 'r2', name: 'Мария', date: '5 апреля', rating: 5, text: 'Очень внимательная к деталям, результат превзошёл ожидания. Вернусь точно.' },
-    { id: 'r3', name: 'Елена', date: '28 марта', rating: 5, text: 'Рекомендую всем. Профессионал своего дела.' },
-];
-
-function formatPrice(price: string) {
-    const n = Number(price);
-    return n === 0 ? 'по договорённости' : `€${n.toFixed(0)}`;
-}
-
-function formatDuration(min: number) {
-    return min === 0 ? 'по договорённости' : `${min} мин`;
-}
+    {
+        id: 'r1',
+        nameKey: 'modals.staffPortfolio.mockReviews.r1.name',
+        dateKey: 'modals.staffPortfolio.mockReviews.r1.date',
+        textKey: 'modals.staffPortfolio.mockReviews.r1.text',
+        rating: 5,
+    },
+    {
+        id: 'r2',
+        nameKey: 'modals.staffPortfolio.mockReviews.r2.name',
+        dateKey: 'modals.staffPortfolio.mockReviews.r2.date',
+        textKey: 'modals.staffPortfolio.mockReviews.r2.text',
+        rating: 5,
+    },
+    {
+        id: 'r3',
+        nameKey: 'modals.staffPortfolio.mockReviews.r3.name',
+        dateKey: 'modals.staffPortfolio.mockReviews.r3.date',
+        textKey: 'modals.staffPortfolio.mockReviews.r3.text',
+        rating: 5,
+    },
+] as const;
 
 export function StaffPortfolioModal({ staff, salonSlug, isOpen, onClose, services = [] }: StaffPortfolioModalProps) {
     const router = useRouter();
+    const t = useTranslations('salon');
     const [activeTab, setActiveTab] = useState<TabId>('about');
 
     if (!isOpen) return null;
+
+    const tabs: { id: TabId; label: string }[] = [
+        { id: 'about', label: t('modals.staffPortfolio.tabs.about') },
+        { id: 'services', label: t('modals.staffPortfolio.tabs.services') },
+        { id: 'portfolio', label: t('modals.staffPortfolio.tabs.portfolio') },
+        { id: 'reviews', label: t('modals.staffPortfolio.tabs.reviews') },
+    ];
 
     const rating = typeof staff.rating === 'number' ? staff.rating : 5.0;
     const reviewCount = 8;
@@ -73,7 +84,7 @@ export function StaffPortfolioModal({ staff, salonSlug, isOpen, onClose, service
             >
                 <button
                     onClick={onClose}
-                    aria-label="Закрыть"
+                    aria-label={t('modals.close')}
                     className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-stone-100 text-stone-500 transition-colors hover:bg-stone-200"
                 >
                     <X className="h-5 w-5" />
@@ -94,14 +105,14 @@ export function StaffPortfolioModal({ staff, salonSlug, isOpen, onClose, service
                     <p className="mt-1 inline-flex items-center justify-center gap-1 text-sm text-gray-500">
                         <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                         <span className="font-medium text-gray-700">{rating.toFixed(1)}</span>
-                        <span>({reviewCount} отзывов)</span>
+                        <span>({t('service.reviewsPlural', { count: reviewCount })})</span>
                     </p>
                 </div>
 
                 {/* Scrollable body — tabs are sticky within this container */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
                     <div className="flex justify-center gap-2 mt-6 border-b border-gray-100 pb-4 sticky top-0 bg-white z-10 px-4">
-                        {TABS.map((tab) => {
+                        {tabs.map((tab) => {
                             const isActive = activeTab === tab.id;
                             return (
                                 <button
@@ -140,7 +151,7 @@ export function StaffPortfolioModal({ staff, salonSlug, isOpen, onClose, service
                         onClick={handleBookStaff}
                         className="pointer-events-auto w-full rounded-full bg-emerald-800 py-4 text-center text-sm font-semibold tracking-wide text-white shadow-lg shadow-emerald-900/20 transition-all hover:bg-emerald-700 active:scale-95"
                     >
-                        Записаться к мастеру
+                        {t('modals.staffPortfolio.ctaBookStaff')}
                     </button>
                 </div>
             </div>
@@ -149,30 +160,31 @@ export function StaffPortfolioModal({ staff, salonSlug, isOpen, onClose, service
 }
 
 function AboutTab({ staff }: { staff: Staff }) {
+    const t = useTranslations('salon');
     const tags = staff.tags ?? [];
     return (
         <div className="flex flex-col gap-6">
             <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 text-center">
                     <p className="text-2xl font-bold text-gray-900">430</p>
-                    <p className="mt-1 text-xs text-gray-500">Выполнено заказов</p>
+                    <p className="mt-1 text-xs text-gray-500">{t('modals.staffPortfolio.stats.completedOrders')}</p>
                 </div>
                 <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4 text-center">
                     <p className="text-2xl font-bold text-gray-900">124</p>
-                    <p className="mt-1 text-xs text-gray-500">Клиентов</p>
+                    <p className="mt-1 text-xs text-gray-500">{t('modals.staffPortfolio.stats.clients')}</p>
                 </div>
             </div>
 
             {staff.specialty && (
                 <div>
-                    <h3 className="mb-2 text-sm font-semibold text-gray-700">Специализация</h3>
+                    <h3 className="mb-2 text-sm font-semibold text-gray-700">{t('modals.staffPortfolio.specialty')}</h3>
                     <p className="text-sm text-gray-500">{staff.specialty}</p>
                 </div>
             )}
 
             {tags.length > 0 && (
                 <div>
-                    <h3 className="mb-3 text-sm font-semibold text-gray-700">Интересы</h3>
+                    <h3 className="mb-3 text-sm font-semibold text-gray-700">{t('modals.staffPortfolio.interests')}</h3>
                     <div className="flex flex-wrap gap-2">
                         {tags.map((tag) => (
                             <span
@@ -196,8 +208,17 @@ function ServicesTab({
     services: StaffModalService[];
     onSelect: (id: number) => void;
 }) {
+    const t = useTranslations('salon');
+    const formatPrice = (price: string) => {
+        const n = Number(price);
+        return n === 0 ? t('price.onRequest') : `€${n.toFixed(0)}`;
+    };
+    const formatDuration = (min: number) => {
+        return min === 0 ? t('service.durationOnRequest') : t('service.durationMin', { count: min });
+    };
+
     if (services.length === 0) {
-        return <p className="py-10 text-center text-sm text-gray-400">Нет услуг для отображения.</p>;
+        return <p className="py-10 text-center text-sm text-gray-400">{t('modals.staffPortfolio.servicesEmpty')}</p>;
     }
     return (
         <ul className="flex flex-col divide-y divide-gray-100">
@@ -214,7 +235,7 @@ function ServicesTab({
                             onClick={() => onSelect(service.id)}
                             className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
                         >
-                            Выбрать
+                            {t('service.select')}
                         </button>
                     </div>
                 </li>
@@ -224,13 +245,14 @@ function ServicesTab({
 }
 
 function PortfolioTab({ photos, staffName }: { photos: string[]; staffName: string }) {
+    const t = useTranslations('salon');
     if (photos.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-10 text-center text-gray-400">
                 <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100 text-gray-300">
                     <User className="h-7 w-7" />
                 </div>
-                <p className="text-sm">У данного мастера пока нет загруженных работ.</p>
+                <p className="text-sm">{t('modals.staffPortfolio.portfolioEmpty')}</p>
             </div>
         );
     }
@@ -240,7 +262,7 @@ function PortfolioTab({ photos, staffName }: { photos: string[]; staffName: stri
                 <div key={idx} className="relative aspect-square overflow-hidden rounded-xl bg-gray-100">
                     <Image
                         src={photo}
-                        alt={`Работа мастера ${staffName}`}
+                        alt={t('modals.staffPortfolio.portfolioAlt', { name: staffName })}
                         fill
                         sizes="(max-width: 640px) 50vw, 25vw"
                         className="object-cover"
@@ -252,6 +274,7 @@ function PortfolioTab({ photos, staffName }: { photos: string[]; staffName: stri
 }
 
 function ReviewsTab({ rating, reviewCount }: { rating: number; reviewCount: number }) {
+    const t = useTranslations('salon');
     return (
         <div className="flex flex-col gap-5">
             <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4">
@@ -264,8 +287,8 @@ function ReviewsTab({ rating, reviewCount }: { rating: number; reviewCount: numb
                     </div>
                 </div>
                 <div className="text-sm">
-                    <p className="font-medium text-gray-700">На основе {reviewCount} отзывов</p>
-                    <p className="mt-0.5 text-xs text-gray-400">от проверенных клиентов</p>
+                    <p className="font-medium text-gray-700">{t('modals.staffPortfolio.reviewsSummary', { count: reviewCount })}</p>
+                    <p className="mt-0.5 text-xs text-gray-400">{t('modals.staffPortfolio.verifiedClients')}</p>
                 </div>
             </div>
             <ul className="flex flex-col gap-4">
@@ -276,8 +299,8 @@ function ReviewsTab({ rating, reviewCount }: { rating: number; reviewCount: numb
                                 <User className="h-5 w-5" />
                             </div>
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-semibold text-gray-900">{review.name}</p>
-                                <p className="text-xs text-gray-400">{review.date}</p>
+                                <p className="truncate text-sm font-semibold text-gray-900">{t(review.nameKey)}</p>
+                                <p className="text-xs text-gray-400">{t(review.dateKey)}</p>
                             </div>
                             <div className="flex items-center gap-0.5">
                                 {Array.from({ length: review.rating }).map((_, i) => (
@@ -285,7 +308,7 @@ function ReviewsTab({ rating, reviewCount }: { rating: number; reviewCount: numb
                                 ))}
                             </div>
                         </div>
-                        <p className="mt-3 text-sm leading-relaxed text-gray-600">{review.text}</p>
+                        <p className="mt-3 text-sm leading-relaxed text-gray-600">{t(review.textKey)}</p>
                     </li>
                 ))}
             </ul>

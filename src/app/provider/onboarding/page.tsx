@@ -2,11 +2,13 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { ProviderOnboardingForm } from '@/components/provider/ProviderOnboardingForm';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ProviderOnboardingPage() {
     const session = await auth();
+    const t = await getTranslations('dashboard.provider.providerOnboardingPage');
 
     if (!session?.user?.id || !session.user.email) {
         redirect('/auth/login');
@@ -40,9 +42,9 @@ export default async function ProviderOnboardingPage() {
             <div className="mx-auto w-full max-w-lg">
                 <div className="mb-5 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-5 text-white shadow-lg">
                     <p className="text-xs uppercase tracking-[0.18em] text-gray-300">Provider onboarding</p>
-                    <h1 className="mt-2 text-2xl font-bold">Создание кабинета мастера</h1>
+                    <h1 className="mt-2 text-2xl font-bold">{t('title')}</h1>
                     <p className="mt-2 text-sm text-gray-300">
-                        Заполните базовые данные, чтобы открыть дашборд и начать прием заявок.
+                        {t('subtitle')}
                     </p>
                 </div>
 

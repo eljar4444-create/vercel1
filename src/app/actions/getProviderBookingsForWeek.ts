@@ -56,6 +56,8 @@ export async function getProviderBookingsForWeek(profileId: number, weekStart: s
                     gte: startDate,
                     lt: endDate,
                 },
+                // Hide LOCKED bookings — transient system state
+                status: { not: 'LOCKED' },
             },
             include: {
                 user: {

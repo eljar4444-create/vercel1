@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { BookingRow } from '@/components/dashboard/BookingRow';
 import { updateBookingStatus } from '@/app/actions/updateBookingStatus';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 export type SerializedBooking = {
     id: number;
@@ -32,6 +33,7 @@ function optimisticReducer(state: SerializedBooking[], action: OptimisticAction)
 }
 
 export function BookingListClient({ bookings, providerId }: BookingListClientProps) {
+    const t = useTranslations('dashboard.provider.bookingRow');
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [optimisticBookings, addOptimistic] = useOptimistic(bookings, optimisticReducer);
@@ -42,14 +44,14 @@ export function BookingListClient({ bookings, providerId }: BookingListClientPro
             try {
                 const result = await updateBookingStatus(bookingId, newStatus);
                 if (!result.success) {
-                    toast.error(result.error ?? 'Не удалось обновить статус');
+                    toast.error(result.error ?? t('updateError'));
                     router.refresh();
                     return;
                 }
                 router.refresh();
             } catch (err) {
                 console.error('updateBookingStatus failed:', err);
-                toast.error('Не удалось обновить статус');
+                toast.error(t('updateError'));
                 router.refresh();
             }
         });

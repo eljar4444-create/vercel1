@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Check, ChevronsUpDown, Loader2, LocateFixed } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -10,6 +10,7 @@ import {
     type GermanCitySelection,
 } from '@/lib/german-city-options';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface CityComboboxProps {
     name: string;
@@ -26,8 +27,10 @@ export function CityCombobox({
     onValueChange,
     onCitySelect,
     onZipCodeDetect,
-    placeholder = 'Начните вводить ваш город...',
+    placeholder,
 }: CityComboboxProps) {
+    const t = useTranslations('forms.cityCombobox');
+    const listboxId = useId();
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [open, setOpen] = useState(false);
     const [isGeoLoading, setIsGeoLoading] = useState(false);
@@ -102,11 +105,11 @@ export function CityCombobox({
         if (direct) return direct;
 
         const fallbackMap: Record<string, string> = {
-            cologne: 'кёльн',
-            munich: 'мюнхен',
-            nuremberg: 'нюрнберг',
-            frankfurt: 'франкфурт',
-            dusseldorf: 'дюссельдорф',
+            cologne: 'Köln',
+            munich: 'München',
+            nuremberg: 'Nürnberg',
+            frankfurt: 'Frankfurt am Main',
+            dusseldorf: 'Düsseldorf',
         };
         const mapped = fallbackMap[normalized];
         if (mapped) {
@@ -153,7 +156,7 @@ export function CityCombobox({
         event.stopPropagation();
 
         if (!navigator.geolocation || isGeoLoading) {
-            toast('Не удалось определить местоположение. Пожалуйста, выберите город из списка вручную.');
+            toast(t('geoFailed'));
             return;
         }
 
@@ -195,7 +198,7 @@ export function CityCombobox({
 
             const matchedCity = resolveCityFromGeolocation(String(rawCity));
             if (!matchedCity) {
-                toast('Не удалось определить местоположение. Пожалуйста, выберите город из списка вручную.');
+                toast(t('geoFailed'));
                 return;
             }
 
@@ -208,9 +211,9 @@ export function CityCombobox({
             if (postalCode) {
                 onZipCodeDetect?.(postalCode);
             }
-            toast.success(`Определен город: ${matchedCity}`);
+            toast.success(t('geoResolved', { city: matchedCity }));
         } catch (error) {
-            toast('Не удалось определить местоположение. Пожалуйста, выберите город из списка вручную.');
+            toast(t('geoFailed'));
         } finally {
             setIsGeoLoading(false);
         }
@@ -224,6 +227,8 @@ export function CityCombobox({
                     type="text"
                     role="combobox"
                     aria-expanded={open}
+                    aria-controls={listboxId}
+                    aria-haspopup="listbox"
                     aria-autocomplete="list"
                     value={query}
                     onChange={(event) => handleInputChange(event.target.value)}
@@ -255,17 +260,23 @@ export function CityCombobox({
                             setOpen(false);
                         }
                     }}
-                    placeholder={placeholder}
+                    placeholder={placeholder ?? t('placeholder')}
                     className="h-11 w-full rounded-xl border border-gray-300 bg-white px-3 pr-20 text-sm text-gray-900 outline-none transition focus:border-gray-900"
                 />
                 {open ? (
-                    <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
+                    <div
+                        id={listboxId}
+                        role="listbox"
+                        className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
+                    >
                         {filteredCities.length ? (
                             <div className="max-h-64 overflow-y-auto py-1">
                                 {filteredCities.map((city, index) => (
                                     <button
                                         key={city.value}
                                         type="button"
+                                        role="option"
+                                        aria-selected={normalizeGermanCityName(value) === normalizeGermanCityName(city.germanName)}
                     onMouseDown={(event) => {
                         event.preventDefault();
                         selectCity(city);
@@ -297,7 +308,7 @@ export function CityCombobox({
                             </div>
                         ) : (
                             <div className="px-3 py-3 text-sm text-gray-500">
-                                Город не найден. Выберите ближайший крупный город
+                                {t('notFound')}
                             </div>
                         )}
                     </div>
@@ -307,8 +318,8 @@ export function CityCombobox({
                         type="button"
                         onClick={handleGeolocation}
                         disabled={isGeoLoading}
-                        title="Определить мой город"
-                        aria-label="Определить мой город"
+                        title={t('detectTitle')}
+                        aria-label={t('detectTitle')}
                         className="pointer-events-auto inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-200 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {isGeoLoading ? (
@@ -320,7 +331,7 @@ export function CityCombobox({
                     <button
                         type="button"
                         onClick={() => setOpen((current) => !current)}
-                        aria-label="Открыть список городов"
+                        aria-label={t('openList')}
                         className="pointer-events-auto inline-flex h-7 w-7 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
                     >
                         <ChevronsUpDown className="h-4 w-4 shrink-0" />

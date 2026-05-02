@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import {
     LogOut, LayoutDashboard, Shield, User, MessageCircle, Settings,
@@ -42,15 +43,24 @@ export function getContinueOnboardingHref(user?: AvatarDropdownUser | null) {
     return type ? `/onboarding?type=${type}` : '/onboarding';
 }
 
-export function getRoleLabel(user?: AvatarDropdownUser | null) {
-    if (user?.role === 'ADMIN') return 'Администратор';
-    if (user?.profileStatus === 'DRAFT') return 'Черновик';
-    if (user?.onboardingCompleted === false && normalizeOnboardingType(user?.onboardingType)) return 'Регистрация...';
-    if (user?.profileId) return 'Мастер';
-    return 'Клиент';
+type RoleLabelKey = 'admin' | 'draft' | 'registering' | 'master' | 'client';
+
+export function getRoleLabelKey(user?: AvatarDropdownUser | null): RoleLabelKey {
+    if (user?.role === 'ADMIN') return 'admin';
+    if (user?.profileStatus === 'DRAFT') return 'draft';
+    if (user?.onboardingCompleted === false && normalizeOnboardingType(user?.onboardingType)) return 'registering';
+    if (user?.profileId) return 'master';
+    return 'client';
+}
+
+export function useRoleLabel(user?: AvatarDropdownUser | null): string {
+    const t = useTranslations('userMenu.role');
+    return t(getRoleLabelKey(user));
 }
 
 export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
+    const t = useTranslations('userMenu');
+    const tHeader = useTranslations('header');
     const [resolvedProfileId, setResolvedProfileId] = useState<number | null | undefined>(propUser?.profileId);
     const [resolvedProfileSlug, setResolvedProfileSlug] = useState<string | null | undefined>(propUser?.profileSlug);
     const [resolvedProfileStatus, setResolvedProfileStatus] = useState<string | null | undefined>(propUser?.profileStatus);
@@ -82,6 +92,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
 
     const hasIncompleteOnboarding = hasIncompleteProviderOnboarding(resolvedUser);
     const continueOnboardingHref = getContinueOnboardingHref(resolvedUser);
+    const roleLabel = t(`role.${getRoleLabelKey(resolvedUser)}`);
 
     useEffect(() => {
         if (!propUser || (!resolvedProfileId && !hasIncompleteOnboarding)) return;
@@ -116,10 +127,10 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
 
     const dashboardSubLinks = isProvider
         ? [
-            { href: `${dashboardBase}?section=bookings`, label: 'Записи', icon: CalendarDays },
-            { href: `${dashboardBase}?section=analytics`, label: 'Статистика', icon: BarChart2 },
-            { href: `${dashboardBase}?section=services`, label: 'Услуги', icon: Briefcase },
-            { href: `${dashboardBase}?section=schedule`, label: 'Расписание', icon: Clock },
+            { href: `${dashboardBase}?section=bookings`,  label: t('section.bookings'),  icon: CalendarDays },
+            { href: `${dashboardBase}?section=analytics`, label: t('section.analytics'), icon: BarChart2 },
+            { href: `${dashboardBase}?section=services`,  label: t('section.services'),  icon: Briefcase },
+            { href: `${dashboardBase}?section=schedule`,  label: t('section.schedule'),  icon: Clock },
         ]
         : [];
 
@@ -134,7 +145,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                 <button
                     type="button"
                     className="rounded-full border border-gray-200 bg-white p-0.5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
-                    aria-label="Открыть меню пользователя"
+                    aria-label={t('openLabel')}
                 >
                     <Avatar className="h-9 w-9">
                         <AvatarImage src={propUser.image || undefined} alt={propUser.name || 'User'} />
@@ -149,12 +160,12 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                 {/* User info header */}
                 <div className="bg-gradient-to-b from-gray-50 to-white p-4">
                     <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-semibold text-gray-900">{propUser.name || 'Пользователь'}</p>
+                        <p className="truncate text-sm font-semibold text-gray-900">{propUser.name || tHeader('userFallback')}</p>
                         <Badge variant="outline" className="border-gray-200 bg-white text-[10px] font-medium text-gray-600">
-                            {getRoleLabel(resolvedUser)}
+                            {roleLabel}
                         </Badge>
                     </div>
-                    <p className="truncate text-xs text-gray-500">{propUser.email || 'Без email'}</p>
+                    <p className="truncate text-xs text-gray-500">{propUser.email || tHeader('noEmail')}</p>
                 </div>
 
                 <div className="h-px bg-gray-100" />
@@ -167,7 +178,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                             className="mb-1 flex items-center gap-2 rounded-lg bg-stone-50 px-3 py-2 text-sm font-medium text-stone-900 transition-colors hover:bg-stone-100"
                         >
                             <Settings className="h-4 w-4 text-stone-500" />
-                            Продолжить настройку профиля
+                            {tHeader('continueOnboarding')}
                         </Link>
                     )}
 
@@ -176,7 +187,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                         <>
                             <Link href="/admin" onClick={closeAll} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50">
                                 <Shield className="h-4 w-4 text-gray-400" />
-                                Панель управления
+                                {tHeader('adminPanel')}
                             </Link>
                         </>
                     )}
@@ -191,13 +202,13 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                                     className="flex flex-1 items-center gap-2 px-3 py-2 text-sm text-gray-700"
                                 >
                                     <LayoutDashboard className="h-4 w-4 text-gray-400" />
-                                    Кабинет мастера
+                                    {tHeader('masterCabinet')}
                                 </Link>
                                 <button
                                     type="button"
                                     onClick={() => setIsDashboardOpen((prev) => !prev)}
                                     className="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors mr-1"
-                                    aria-label="Показать разделы кабинета"
+                                    aria-label={t('dashboardSectionsLabel')}
                                 >
                                     <ChevronDown
                                         className={`h-4 w-4 transition-transform duration-200 ${isDashboardOpen ? 'rotate-180' : ''}`}
@@ -231,18 +242,18 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                     {!isProvider && !isAdmin && (
                         <Link href="/dashboard" onClick={closeAll} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50">
                             <LayoutDashboard className="h-4 w-4 text-gray-400" />
-                            Мой кабинет
+                            {tHeader('myCabinet')}
                         </Link>
                     )}
 
                     {/* Common links */}
                     <Link href="/account/settings" onClick={closeAll} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50">
                         <Settings className="h-4 w-4 text-gray-400" />
-                        Настройки аккаунта
+                        {tHeader('accountSettings')}
                     </Link>
                     <Link href="/chat" onClick={closeAll} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50">
                         <MessageCircle className="h-4 w-4 text-gray-400" />
-                        Чат
+                        {tHeader('chat')}
                     </Link>
                 </div>
 
@@ -254,7 +265,7 @@ export function AvatarDropdown({ user: propUser }: AvatarDropdownProps) {
                         className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50"
                     >
                         <LogOut className="h-4 w-4" />
-                        Выйти
+                        {tHeader('logout')}
                     </button>
                 </div>
             </PopoverContent>

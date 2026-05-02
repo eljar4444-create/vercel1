@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Loader2, LocateFixed, MapPin, Search } from 'lucide-react';
 import {
     SelectRoot, SelectTrigger, SelectValue,
@@ -37,6 +38,7 @@ export function SearchFiltersForm({
     radiusFilter = '10',
 }: SearchFiltersFormProps) {
     const router = useRouter();
+    const t = useTranslations('search.filtersForm');
     const wrapperRef = useRef<HTMLDivElement>(null);
     const serviceInputRef = useRef<HTMLInputElement>(null);
     const cityInputRef = useRef<HTMLInputElement>(null);
@@ -198,8 +200,9 @@ export function SearchFiltersForm({
         }, 50);
     };
 
+    const allServicesLabel = t('serviceCollapsed');
     const handleSelectCategory = (label: string) => {
-        const next = label === 'Все услуги' ? '' : label;
+        const next = label === allServicesLabel ? '' : label;
         setQuery(next);
         setQueryFocused(false);
         navigate(next, city, radius);
@@ -240,7 +243,7 @@ export function SearchFiltersForm({
                     if (directResolved) {
                         setCity(directResolved);
                         setCityOpen(false);
-                        toast.success(`Определен город: ${directResolved}`);
+                        toast.success(t('cityResolved', { city: directResolved }));
                         return;
                     }
                 }
@@ -260,14 +263,14 @@ export function SearchFiltersForm({
             const rawCity = addr.city || addr.town || addr.municipality || addr.county || '';
             const resolved = resolveGermanCity(String(rawCity));
             if (!resolved) {
-                toast.error('Ваш город не найден в базе. Выберите ближайший крупный город вручную');
+                toast.error(t('cityNotFound'));
                 return;
             }
             setCity(resolved);
             setCityOpen(false);
-            toast.success(`Определен город: ${resolved}`);
+            toast.success(t('cityResolved', { city: resolved }));
         } catch {
-            toast.error('Не удалось определить город. Введите вручную');
+            toast.error(t('geoFailed'));
         } finally {
             setIsGeoLoading(false);
         }
@@ -302,7 +305,7 @@ export function SearchFiltersForm({
                                 isExpanded ? 'opacity-0' : 'opacity-100'
                             )}
                         >
-                            {query || 'Все услуги'}
+                            {query || t('serviceCollapsed')}
                         </span>
 
                         {/* Expanded: search icon — fades in */}
@@ -321,7 +324,7 @@ export function SearchFiltersForm({
                             onFocus={() => { setQueryFocused(true); setCityOpen(false); }}
                             onChange={(e) => { setQuery(e.target.value); setQueryFocused(true); }}
                             onClick={(e) => e.stopPropagation()}
-                            placeholder="Маникюр, стрижка, массаж..."
+                            placeholder={t('servicePlaceholder')}
                             tabIndex={isExpanded ? 0 : -1}
                             className={cn(
                                 'mx-2 h-full w-full bg-transparent text-[16px] md:text-sm font-medium text-gray-900 placeholder:text-gray-400 outline-none transition-opacity duration-200',
@@ -342,7 +345,7 @@ export function SearchFiltersForm({
                                 isExpanded ? 'opacity-0' : 'opacity-100'
                             )}
                         >
-                            {city || 'Местоположение'}
+                            {city || t('locationCollapsed')}
                         </span>
 
                         {/* Expanded: pin icon — fades in */}
@@ -361,7 +364,7 @@ export function SearchFiltersForm({
                             onFocus={() => { setCityOpen(true); setQueryFocused(false); }}
                             onChange={(e) => { setCity(e.target.value); setCityOpen(true); }}
                             onClick={(e) => e.stopPropagation()}
-                            placeholder="Ваш город"
+                            placeholder={t('cityPlaceholder')}
                             tabIndex={isExpanded ? 0 : -1}
                             className={cn(
                                 'ml-2 h-full w-full bg-transparent pr-8 text-[16px] md:text-sm font-medium text-gray-900 placeholder:text-gray-400 outline-none transition-opacity duration-200',
@@ -375,7 +378,7 @@ export function SearchFiltersForm({
                             onClick={(e) => { e.stopPropagation(); handleGeo(); }}
                             tabIndex={isExpanded ? 0 : -1}
                             disabled={isGeoLoading}
-                            aria-label="Определить мой город"
+                            aria-label={t('geoAria')}
                             className={cn(
                                 'absolute right-3 flex h-7 w-7 items-center justify-center rounded-md transition-all duration-200',
                                 isExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none',
@@ -398,7 +401,7 @@ export function SearchFiltersForm({
                                 navigate(query, city, val);
                             }}
                         >
-                            <SelectTrigger aria-label="Радиус поиска" className="px-3 text-sm">
+                            <SelectTrigger aria-label={t('radiusAria')} className="px-3 text-sm">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -418,7 +421,7 @@ export function SearchFiltersForm({
                      */}
                     <button
                         type={isExpanded ? 'submit' : 'button'}
-                        aria-label="Найти"
+                        aria-label={t('submit')}
                         onClick={!isExpanded
                             ? (e) => { e.stopPropagation(); navigate(query, city, radius); }
                             : undefined
@@ -444,7 +447,7 @@ export function SearchFiltersForm({
                                 isExpanded ? 'opacity-100 delay-100' : 'opacity-0'
                             )}
                         >
-                            Найти
+                            {t('submit')}
                         </span>
                     </button>
                 </div>
@@ -495,19 +498,21 @@ function ServiceDropdown({
     onSelectCategory,
     onSelectService,
 }: ServiceDropdownProps) {
+    const t = useTranslations('search.filtersForm');
+    const allServicesLabel = t('serviceCollapsed');
     return (
         <div className="absolute left-0 top-full z-[70] mt-2 w-full overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl antialiased transform-gpu">
             {/* "Все услуги" row */}
             <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => onSelectCategory('Все услуги')}
+                onClick={() => onSelectCategory(allServicesLabel)}
                 className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-3 text-left text-sm font-medium text-gray-800 transition-colors hover:bg-gray-50"
             >
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50">
                     <Search className="h-4 w-4 text-violet-500" />
                 </span>
-                Все услуги
+                {allServicesLabel}
             </button>
 
             {/* When user typed → show matching services */}
@@ -534,7 +539,7 @@ function ServiceDropdown({
                 <>
                     <div className="px-4 pb-1.5 pt-3">
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                            Топ-категории
+                            {t('topCategories')}
                         </p>
                     </div>
                     <ul className="max-h-72 overflow-y-auto pb-2">

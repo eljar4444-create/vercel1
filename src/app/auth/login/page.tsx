@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { saveToken } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 
 /* ── SVG Icons ──────────────────────────────────────────── */
 
@@ -69,6 +70,7 @@ function SpinnerIcon() {
 /* ── Auth Content ───────────────────────────────────────── */
 
 function AuthContent() {
+    const t = useTranslations('auth.login');
     const searchParams = useSearchParams();
     const router = useRouter();
     const role = searchParams.get('role');
@@ -94,13 +96,13 @@ function AuthContent() {
 
     const errorMessage =
         errorCode === 'OAuthAccountNotLinked'
-            ? 'Этот email уже используется другим способом входа. Войдите тем же способом, что и при регистрации.'
+            ? t('errors.oauthAccountNotLinked')
             : errorCode === 'OAuthCallback' || errorCode === 'Callback'
-                ? 'Ошибка входа через Google. Проверьте настройки OAuth.'
+                ? t('errors.oauthCallback')
                 : errorCode === 'Configuration'
-                    ? 'Ошибка настройки авторизации. Добавьте в .env переменную AUTH_SECRET.'
+                    ? t('errors.configuration')
                     : errorCode
-                        ? `Ошибка входа: ${errorCode}`
+                        ? t('errors.genericSignIn', { code: errorCode })
                         : null;
 
     const persistProviderIntent = () => {
@@ -146,7 +148,7 @@ function AuthContent() {
                 if (!res.ok) {
                     const msg = typeof data.error === 'string'
                         ? data.error
-                        : 'Ошибка регистрации. Проверьте данные.';
+                        : t('errors.registrationFallback');
                     setFormError(msg);
                     return;
                 }
@@ -167,11 +169,11 @@ function AuthContent() {
                 });
 
                 if (signInResult?.error) {
-                    setFormError('Не удалось создать сессию. Попробуйте войти ещё раз.');
+                    setFormError(t('errors.sessionCreate'));
                     return;
                 }
 
-                setSuccessMessage('Аккаунт создан! Перенаправление...');
+                setSuccessMessage(t('success.accountCreated'));
                 router.replace(signInResult?.url ?? postAuthRedirect);
                 router.refresh();
             } else {
@@ -185,7 +187,7 @@ function AuthContent() {
                 const data = await res.json();
 
                 if (!res.ok) {
-                    setFormError(data.error || 'Неверный email или пароль.');
+                    setFormError(data.error || t('errors.invalidCredentials'));
                     return;
                 }
 
@@ -205,16 +207,16 @@ function AuthContent() {
                 });
 
                 if (signInResult?.error) {
-                    setFormError('Не удалось создать сессию. Попробуйте снова.');
+                    setFormError(t('errors.sessionCreateRetry'));
                     return;
                 }
 
-                setSuccessMessage('Вход выполнен! Перенаправление...');
+                setSuccessMessage(t('success.loggedIn'));
                 router.replace(signInResult?.url ?? postAuthRedirect);
                 router.refresh();
             }
         } catch {
-            setFormError('Ошибка сервера. Попробуйте позже.');
+            setFormError(t('errors.server'));
         } finally {
             setLoading(false);
         }
@@ -224,22 +226,22 @@ function AuthContent() {
     const heading = showEmailForm
         ? isRegisterMode
             ? isProvider
-                ? 'Создайте профиль мастера'
-                : 'Создать аккаунт'
-            : 'Войти по Email'
+                ? t('heading.providerRegister')
+                : t('heading.register')
+            : t('heading.emailLogin')
         : isProvider
-            ? 'Создайте профиль мастера'
-            : 'Вход';
+            ? t('heading.providerRegister')
+            : t('heading.login');
 
     const subheading = showEmailForm
         ? isRegisterMode
             ? isProvider
-                ? 'Зарегистрируйтесь, чтобы начать принимать клиентов'
-                : 'Заполните данные для регистрации'
-            : 'Введите email и пароль'
+                ? t('subheading.providerRegister')
+                : t('subheading.register')
+            : t('subheading.emailLogin')
         : isProvider
-            ? 'Зарегистрируйтесь, чтобы начать принимать клиентов'
-            : 'Авторизуйтесь, чтобы продолжить';
+            ? t('subheading.providerRegister')
+            : t('subheading.login');
 
     return (
         <div className="min-h-screen grid md:grid-cols-2">
@@ -268,7 +270,7 @@ function AuthContent() {
                     {/* Provider type badge */}
                     {isProvider && (
                         <div className="mt-4 inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">
-                            {providerType === 'SALON' ? '🏢 Салон' : '✂️ Частный мастер'}
+                            {providerType === 'SALON' ? t('badge.salon') : t('badge.individual')}
                         </div>
                     )}
 
@@ -309,7 +311,7 @@ function AuthContent() {
                                     "
                                 >
                                     <AppleIcon />
-                                    Продолжить с Apple
+                                    {t('buttons.continueApple')}
                                 </button>
 
                                 {/* Google */}
@@ -325,14 +327,14 @@ function AuthContent() {
                                     "
                                 >
                                     <GoogleIcon />
-                                    Продолжить с Google
+                                    {t('buttons.continueGoogle')}
                                 </button>
                             </div>
 
                             {/* Separator */}
                             <div className="mt-6 w-full flex items-center gap-4">
                                 <div className="flex-1 h-px bg-gray-200" />
-                                <span className="text-xs text-gray-400 font-medium">ИЛИ</span>
+                                <span className="text-xs text-gray-400 font-medium">{t('buttons.or')}</span>
                                 <div className="flex-1 h-px bg-gray-200" />
                             </div>
 
@@ -348,7 +350,7 @@ function AuthContent() {
                                 "
                             >
                                 <EmailIcon />
-                                Продолжить с Email
+                                {t('buttons.continueEmail')}
                             </button>
                         </>
                     ) : (
@@ -358,7 +360,7 @@ function AuthContent() {
                                 {isRegisterMode && (
                                     <div>
                                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1.5">
-                                            Имя
+                                            {t('labels.name')}
                                         </label>
                                         <input
                                             id="name"
@@ -367,7 +369,7 @@ function AuthContent() {
                                             onChange={(e) => setName(e.target.value)}
                                             required
                                             minLength={2}
-                                            placeholder="Ваше имя"
+                                            placeholder={t('placeholders.name')}
                                             className="
                                                 w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50
                                                 text-gray-900 text-[15px] placeholder:text-gray-400
@@ -380,7 +382,7 @@ function AuthContent() {
 
                                 {/* Honeypot - Visually hidden to humans, but bots will try to fill it */}
                                 <div className="absolute opacity-0 -z-50 h-0 w-0 overflow-hidden" aria-hidden="true">
-                                    <label htmlFor="website_url">Website URL</label>
+                                    <label htmlFor="website_url">{t('labels.websiteUrl')}</label>
                                     <input
                                         id="website_url"
                                         name="website_url"
@@ -394,7 +396,7 @@ function AuthContent() {
 
                                 <div>
                                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
-                                        Email
+                                        {t('labels.email')}
                                     </label>
                                     <input
                                         id="email"
@@ -402,7 +404,7 @@ function AuthContent() {
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
-                                        placeholder="name@example.com"
+                                        placeholder={t('placeholders.email')}
                                         className="
                                             w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50
                                             text-gray-900 text-[15px] placeholder:text-gray-400
@@ -414,7 +416,7 @@ function AuthContent() {
 
                                 <div>
                                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
-                                        Пароль
+                                        {t('labels.password')}
                                     </label>
                                     <div className="relative">
                                         <input
@@ -424,7 +426,7 @@ function AuthContent() {
                                             onChange={(e) => setPassword(e.target.value)}
                                             required
                                             minLength={6}
-                                            placeholder={isRegisterMode ? 'Минимум 6 символов' : 'Ваш пароль'}
+                                            placeholder={isRegisterMode ? t('placeholders.passwordRegister') : t('placeholders.passwordLogin')}
                                             className="
                                                 w-full h-12 px-4 pr-12 rounded-xl border border-gray-200 bg-gray-50
                                                 text-gray-900 text-[15px] placeholder:text-gray-400
@@ -457,14 +459,14 @@ function AuthContent() {
                                     {loading ? (
                                         <SpinnerIcon />
                                     ) : (
-                                        isRegisterMode ? 'Создать аккаунт' : 'Войти'
+                                        isRegisterMode ? t('buttons.submitRegister') : t('buttons.submitLogin')
                                     )}
                                 </button>
                             </form>
 
                             {/* Toggle login / register */}
                             <p className="mt-5 text-sm text-gray-500 text-center">
-                                {isRegisterMode ? 'Уже есть аккаунт?' : 'Нет аккаунта?'}{' '}
+                                {isRegisterMode ? t('toggle.hasAccount') : t('toggle.noAccount')}{' '}
                                 <button
                                     type="button"
                                     onClick={() => {
@@ -474,14 +476,14 @@ function AuthContent() {
                                     }}
                                     className="text-gray-900 font-medium hover:underline underline-offset-2 transition-colors"
                                 >
-                                    {isRegisterMode ? 'Войти' : 'Зарегистрироваться'}
+                                    {isRegisterMode ? t('toggle.login') : t('toggle.register')}
                                 </button>
                             </p>
 
                             {/* Separator */}
                             <div className="mt-5 w-full flex items-center gap-4">
                                 <div className="flex-1 h-px bg-gray-200" />
-                                <span className="text-xs text-gray-400 font-medium">ИЛИ</span>
+                                <span className="text-xs text-gray-400 font-medium">{t('buttons.or')}</span>
                                 <div className="flex-1 h-px bg-gray-200" />
                             </div>
 
@@ -498,20 +500,20 @@ function AuthContent() {
                                     transition-colors underline underline-offset-2
                                 "
                             >
-                                ← Назад к другим способам входа
+                                {t('buttons.backToOAuth')}
                             </button>
                         </>
                     )}
 
                     {/* Legal footer */}
                     <p className="mt-8 text-xs text-gray-400 text-center leading-relaxed max-w-[320px]">
-                        Продолжая, вы соглашаетесь с нашими{' '}
+                        {t('legal.prefix')}{' '}
                         <Link href="/agb" className="text-gray-500 underline underline-offset-2 hover:text-gray-700 transition-colors">
-                            AGB
+                            {t('legal.agb')}
                         </Link>{' '}
-                        и{' '}
+                        {t('legal.and')}{' '}
                         <Link href="/datenschutz" className="text-gray-500 underline underline-offset-2 hover:text-gray-700 transition-colors">
-                            Datenschutz
+                            {t('legal.datenschutz')}
                         </Link>
                         .
                     </p>
@@ -522,7 +524,7 @@ function AuthContent() {
             <div className="hidden md:block relative">
                 <Image
                     src="/auth-hero.png"
-                    alt="Премиальный бьюти-салон"
+                    alt={t('heroAlt')}
                     fill
                     className="object-cover"
                     priority

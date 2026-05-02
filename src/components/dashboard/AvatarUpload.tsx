@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { Camera, Loader2, UserCircle } from 'lucide-react';
 import { uploadAvatar } from '@/app/actions/uploadAvatar';
+import { useTranslations } from 'next-intl';
 
 interface AvatarUploadProps {
     profileId: number;
@@ -11,6 +12,7 @@ interface AvatarUploadProps {
 }
 
 export function AvatarUpload({ profileId, profileName, currentImageUrl }: AvatarUploadProps) {
+    const t = useTranslations('dashboard.provider.avatarUpload');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl);
@@ -37,7 +39,7 @@ export function AvatarUpload({ profileId, profileName, currentImageUrl }: Avatar
             setPreviewUrl(result.url);
         } else {
             setPreviewUrl(currentImageUrl);
-            setError(result.error || 'Ошибка загрузки');
+            setError(result.error || t('uploadError'));
         }
     };
 
@@ -46,7 +48,7 @@ export function AvatarUpload({ profileId, profileName, currentImageUrl }: Avatar
             className={`relative w-20 h-20 flex-shrink-0 block group cursor-pointer hover:opacity-80 transition-opacity ${
                 isUploading ? 'pointer-events-none' : ''
             }`}
-            title="Изменить фото"
+            title={t('changePhoto')}
         >
             <div className="w-full h-full rounded-full overflow-hidden border-2 border-gray-100 bg-gray-100 flex items-center justify-center">
                 {previewUrl ? (

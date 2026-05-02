@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 import { BEAUTY_SERVICES, getBeautyServicePath } from '@/lib/constants/services-taxonomy';
 import { PortfolioUploadInline, type PendingPhoto } from './PortfolioUploadInline';
+import { useTranslations } from 'next-intl';
 
 export interface StaffOption {
     id: string;
@@ -49,6 +50,7 @@ export function AddServiceForm({
     availableStaff,
     onSaved,
 }: AddServiceFormProps) {
+    const t = useTranslations('dashboard.provider.servicesUi');
     const isEditing = Boolean(serviceId);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export function AddServiceForm({
         return list ? [...list] : [];
     }, [selectedCategory, selectedSubcategory]);
 
-    // Если в подкатегории одна услуга (например «Консультация») — подставляем её сразу, без второго выбора
+    // If a subcategory has one service, select it immediately and skip the second choice.
     useEffect(() => {
         if (serviceOptions.length === 1 && selectedService !== serviceOptions[0]) {
             setSelectedService(serviceOptions[0]);
@@ -120,20 +122,20 @@ export function AddServiceForm({
 
         if (!selectedService) {
             setIsSubmitting(false);
-            setError('Выберите услугу из справочника.');
+            setError(t('errors.selectService'));
             return;
         }
 
         if (hasStaffOptions && selectedStaffIds.length === 0) {
             setIsSubmitting(false);
-            setStaffError('Выберите хотя бы одного мастера.');
+            setStaffError(t('errors.selectStaff'));
             return;
         }
 
         if (!byAgreement) {
             if (!description.trim()) {
                 setIsSubmitting(false);
-                setError('Добавьте описание услуги.');
+                setError(t('errors.description'));
                 return;
             }
 
@@ -142,7 +144,7 @@ export function AddServiceForm({
 
             if (Number.isNaN(parsedPrice) || Number.isNaN(parsedDuration) || parsedPrice < 0 || parsedDuration < 0) {
                 setIsSubmitting(false);
-                setError('Цена и длительность заполнены некорректно.');
+                setError(t('errors.priceDuration'));
                 return;
             }
         }
@@ -194,8 +196,8 @@ export function AddServiceForm({
             } else if (profileId != null) {
                 const result = await addService(formData);
                 if (!result.success) {
-                    setError(result.error || 'Ошибка');
-                    toast.error(result.error || 'Ошибка при добавлении услуги');
+                    setError(result.error || t('errors.generic'));
+                    toast.error(result.error || t('errors.add'));
                     setIsSubmitting(false);
                     return;
                 }
@@ -217,8 +219,8 @@ export function AddServiceForm({
                 return;
             }
 
-            setError(submitError?.message || 'Ошибка');
-            toast.error(submitError?.message || 'Ошибка при сохранении услуги');
+            setError(submitError?.message || t('errors.generic'));
+            toast.error(submitError?.message || t('errors.save'));
             setIsSubmitting(false);
             return;
         }
@@ -235,7 +237,7 @@ export function AddServiceForm({
             setPrice('');
             setDuration('');
             setByAgreement(false);
-            toast.success('Услуга добавлена');
+            toast.success(t('added'));
         }
     };
 
@@ -244,7 +246,7 @@ export function AddServiceForm({
             <div className={compact || (profileId != null && !isEditing) ? '' : 'bg-transparent w-full max-w-lg'}>
                 {!compact && (profileId == null || isEditing) && (
                     <h1 className="text-2xl font-bold mb-2 text-center text-gray-900">
-                        {isEditing ? 'Редактировать услугу' : 'Какую услугу вы хотите предложить?'}
+                        {isEditing ? t('editService') : t('createTitle')}
                     </h1>
                 )}
 
@@ -266,7 +268,7 @@ export function AddServiceForm({
                         }}
                         className="w-full h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:border-gray-900 transition-colors"
                     >
-                        <option value="" disabled>Выберите категорию</option>
+                        <option value="" disabled>{t('selectCategory')}</option>
                         {categoryOptions.map((category) => (
                             <option key={category} value={category}>
                                 {category}
@@ -285,7 +287,7 @@ export function AddServiceForm({
                         className="w-full h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:border-gray-900 transition-colors disabled:opacity-60"
                     >
                         <option value="" disabled>
-                            {selectedCategory ? 'Выберите подкатегорию' : 'Сначала выберите категорию'}
+                            {selectedCategory ? t('selectSubcategory') : t('selectCategoryFirst')}
                         </option>
                         {subcategoryOptions.map((subcategory) => (
                             <option key={subcategory} value={subcategory}>
@@ -304,7 +306,7 @@ export function AddServiceForm({
                             className="w-full h-10 px-3 bg-transparent border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:border-gray-900 transition-colors disabled:opacity-60"
                         >
                             <option value="" disabled>
-                                Выберите конкретную услугу
+                                {t('selectExactService')}
                             </option>
                             {serviceOptions.map((service) => (
                                 <option key={service} value={service}>
@@ -313,7 +315,7 @@ export function AddServiceForm({
                             ))}
                         </select>
                     ) : serviceOptions.length === 1 ? (
-                        <p className="text-sm text-slate-600 py-1">Услуга: <span className="font-medium">{serviceOptions[0]}</span></p>
+                        <p className="text-sm text-slate-600 py-1">{t('serviceLabel')}: <span className="font-medium">{serviceOptions[0]}</span></p>
                     ) : null}
 
                     <div className="flex flex-col gap-2">
@@ -323,7 +325,7 @@ export function AddServiceForm({
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                placeholder="Цена, €"
+                                placeholder={t('pricePlaceholder')}
                                 disabled={byAgreement}
                                 value={price}
                                 onChange={(e) => setPrice(e.target.value)}
@@ -333,7 +335,7 @@ export function AddServiceForm({
                                 name="duration"
                                 type="number"
                                 min="0"
-                                placeholder="Мин"
+                                placeholder={t('minutesPlaceholder')}
                                 disabled={byAgreement}
                                 value={duration}
                                 onChange={(e) => setDuration(e.target.value)}
@@ -348,17 +350,17 @@ export function AddServiceForm({
                                         : 'border-gray-300 text-gray-700 hover:border-gray-900'
                                 }`}
                             >
-                                по договорённости
+                                {t('byAgreement')}
                             </button>
                         </div>
-                        <p className="text-xs text-gray-500">Цена и время необязательны. Нажмите «по договорённости», если не указываете.</p>
+                        <p className="text-xs text-gray-500">{t('priceHint')}</p>
                     </div>
 
                     <textarea
                         name="description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Описание услуги (что входит в процедуру, материалы, особенности)"
+                        placeholder={t('descriptionPlaceholder')}
                         rows={profileId != null && !isEditing ? 3 : 5}
                         className="w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors resize-none"
                     />
@@ -366,7 +368,7 @@ export function AddServiceForm({
                     {hasStaffOptions && (
                         <div className="flex flex-col gap-2">
                             <label className="text-sm font-medium text-gray-700" id="staff-assignment-label">
-                                Назначить мастеров <span className="text-red-500">*</span>
+                                {t('assignStaff')} <span className="text-red-500">*</span>
                             </label>
                             <div className={`flex flex-wrap gap-2 rounded-md p-1 transition-colors ${staffError ? 'border border-red-300' : ''}`}>
                                 {availableStaff!.map((member) => {
@@ -407,7 +409,7 @@ export function AddServiceForm({
                                 </p>
                             ) : (
                                 <p className="text-xs text-gray-500">
-                                    Выберите специалистов, которые выполняют эту услугу. Клиенты увидят их в карточке услуги.
+                                    {t('assignStaffHint')}
                                 </p>
                             )}
                         </div>
@@ -426,7 +428,7 @@ export function AddServiceForm({
                                 <div className="flex items-center gap-2 border-l-2 border-gray-300 px-3 py-2.5">
                                     <Camera className="h-3.5 w-3.5 text-gray-400" />
                                     <p className="text-xs text-gray-400">
-                                        Выберите мастера, чтобы добавить примеры работ
+                                        {t('selectStaffForPhotos')}
                                     </p>
                                 </div>
                             );
@@ -438,11 +440,11 @@ export function AddServiceForm({
                                 <div className="flex items-center gap-2">
                                     <Camera className="h-3.5 w-3.5 text-gray-500" />
                                     <label className="text-sm font-medium text-gray-700">
-                                        Примеры работ
+                                        {t('portfolioExamples')}
                                     </label>
                                 </div>
                                 <p className="text-xs text-gray-500">
-                                    Добавьте фото результатов по этой услуге.{hasStaffOptions ? ' Они будут привязаны к выбранным мастерам.' : ''}
+                                    {t('portfolioHint')}{hasStaffOptions ? ` ${t('portfolioStaffHint')}` : ''}
                                 </p>
                                 <PortfolioUploadInline
                                     serviceId={isEditing && serviceId ? parseInt(serviceId, 10) : undefined}
@@ -465,14 +467,14 @@ export function AddServiceForm({
                         ) : (
                             <Plus className="w-4 h-4" />
                         )}
-                        {isEditing ? 'Сохранить изменения' : 'Добавить услугу'}
+                        {isEditing ? t('saveChanges') : t('addService')}
                     </button>
                 </form>
 
                 {returnHref && !compact && (
                     <div className="mt-6 text-center">
                         <Link href={returnHref} className="text-sm text-gray-500 hover:text-black transition-colors">
-                            Вернуться в кабинет
+                            {t('backToDashboard')}
                         </Link>
                     </div>
                 )}

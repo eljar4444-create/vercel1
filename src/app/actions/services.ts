@@ -6,6 +6,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { isBeautyServiceTitle } from '@/lib/constants/services-taxonomy';
 import { requireProviderProfile } from '@/lib/auth-helpers';
+import { DEFAULT_LOCALE } from '@/i18n/config';
 
 function parseImages(rawImages: FormDataEntryValue | null): string[] {
     if (!rawImages || typeof rawImages !== 'string') return [];
@@ -109,6 +110,14 @@ export async function createService(prevState: any, formData: FormData) {
                 price,
                 duration_min: durationMin,
                 profile_id: profile.id,
+                translations: {
+                    create: {
+                        locale: DEFAULT_LOCALE,
+                        title,
+                        description,
+                        translationSource: 'original',
+                    },
+                },
                 ...(ownedStaffIds.length
                     ? { staff: { connect: ownedStaffIds.map((id) => ({ id })) } }
                     : {}),
@@ -228,6 +237,27 @@ export async function updateService(serviceId: string, prevState: any, formData:
                 images,
                 price,
                 duration_min: durationMin,
+                translations: {
+                    upsert: {
+                        where: {
+                            serviceId_locale: {
+                                serviceId: serviceIdInt,
+                                locale: DEFAULT_LOCALE,
+                            },
+                        },
+                        create: {
+                            locale: DEFAULT_LOCALE,
+                            title,
+                            description,
+                            translationSource: 'original',
+                        },
+                        update: {
+                            title,
+                            description,
+                            translationSource: 'original',
+                        },
+                    },
+                },
                 ...(staffIdsProvided
                     ? { staff: { set: ownedStaffIds.map((id) => ({ id })) } }
                     : {}),
@@ -333,6 +363,14 @@ export async function addService(formData: FormData) {
                 images,
                 price,
                 duration_min: duration,
+                translations: {
+                    create: {
+                        locale: DEFAULT_LOCALE,
+                        title,
+                        description,
+                        translationSource: 'original',
+                    },
+                },
                 ...(ownedStaffIds.length
                     ? { staff: { connect: ownedStaffIds.map((id) => ({ id })) } }
                     : {}),

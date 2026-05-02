@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { useDebounce } from '@/hooks/useDebounce';
 import { findGermanCitySelection } from '@/lib/german-city-options';
+import { useTranslations } from 'next-intl';
 
 const MIN_QUERY_LENGTH = 3;
 
@@ -36,9 +37,10 @@ export function StreetAddressAutocomplete({
     isValidated,
     onValueChange,
     onSuggestionSelect,
-    placeholder = 'Начните вводить улицу',
+    placeholder,
     className,
 }: StreetAddressAutocompleteProps) {
+    const t = useTranslations('forms.streetAddress');
     const wrapperRef = useRef<HTMLDivElement>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +73,7 @@ export function StreetAddressAutocomplete({
         if (!selectedCity) {
             setIsLoading(false);
             setResults([]);
-            setSearchError('Сначала выберите город из списка.');
+            setSearchError(t('cityRequired'));
             return;
         }
 
@@ -114,7 +116,7 @@ export function StreetAddressAutocomplete({
 
                 console.error('[StreetAddressAutocomplete] search failed:', error);
                 setResults([]);
-                setSearchError('Не удалось загрузить улицы. Попробуйте еще раз.');
+                setSearchError(t('loadError'));
             } finally {
                 setIsLoading(false);
             }
@@ -123,7 +125,7 @@ export function StreetAddressAutocomplete({
         void loadResults();
 
         return () => controller.abort();
-    }, [city, debouncedQuery, disabled, isOpen]);
+    }, [city, debouncedQuery, disabled, isOpen, t]);
 
     const query = value.trim();
     const showDropdown = !disabled && isOpen && Boolean(query);
@@ -141,7 +143,7 @@ export function StreetAddressAutocomplete({
                     onValueChange(event.target.value);
                     if (!disabled) setIsOpen(true);
                 }}
-                placeholder={placeholder}
+                placeholder={placeholder ?? t('placeholder')}
                 disabled={disabled}
                 autoComplete="off"
                 className={cn('h-11 rounded-xl border-gray-300 bg-white pr-10 text-sm disabled:bg-gray-50', className)}
@@ -161,7 +163,7 @@ export function StreetAddressAutocomplete({
                 <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
                     {showMinLengthHint ? (
                         <div className="px-3 py-3 text-sm text-gray-500">
-                            Введите минимум 3 символа для поиска улицы.
+                            {t('minLength')}
                         </div>
                     ) : null}
 
@@ -173,7 +175,7 @@ export function StreetAddressAutocomplete({
 
                     {!showMinLengthHint && !searchError && !isLoading && results.length === 0 ? (
                         <div className="px-3 py-3 text-sm text-gray-500">
-                            Улицы не найдены. Уточните запрос.
+                            {t('notFound')}
                         </div>
                     ) : null}
 

@@ -1,12 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
 import { DateScroll } from '../DateScroll';
 import { TimeGrid } from '../TimeGrid';
 import { OrderSummary } from '../OrderSummary';
+import { renderWithIntl } from './test-utils';
 
 describe('Booking UI Components - Snapshots', () => {
     it('matches snapshot for DateScroll', () => {
-        const { container } = render(
+        const { container } = renderWithIntl(
             <DateScroll
                 weekStart={new Date('2024-10-06T00:00:00Z')}
                 selectedDateKey="2024-10-06"
@@ -21,7 +21,7 @@ describe('Booking UI Components - Snapshots', () => {
     });
 
     it('matches snapshot for TimeGrid', () => {
-        const { container } = render(
+        const { container } = renderWithIntl(
             <TimeGrid
                 slots={['10:00', '12:00', '15:30']}
                 selectedTime="12:00"
@@ -32,7 +32,7 @@ describe('Booking UI Components - Snapshots', () => {
     });
 
     it('matches snapshot for OrderSummary (Glassmorphism)', () => {
-        const { container } = render(
+        const { container } = renderWithIntl(
             <OrderSummary
                 service={{
                     title: 'Глубокое увлажнение',

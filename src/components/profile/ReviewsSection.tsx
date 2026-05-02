@@ -1,6 +1,7 @@
 'use client';
 
 import { Star } from 'lucide-react';
+import { useTranslations, useLocale } from 'next-intl';
 
 export interface ReviewProps {
     id: string;
@@ -11,10 +12,11 @@ export interface ReviewProps {
 }
 
 export function ReviewsSection({ reviews }: { reviews: ReviewProps[] }) {
+    const t = useTranslations('salon');
     return (
         <section className="rounded-3xl bg-booking-card p-6 shadow-soft-out">
             <h2 className="text-xl font-serif font-semibold text-booking-textMain">
-                Отзывы клиентов
+                {t('section.reviews')}
             </h2>
 
             {reviews && reviews.length > 0 ? (
@@ -27,7 +29,7 @@ export function ReviewsSection({ reviews }: { reviews: ReviewProps[] }) {
                 <div className="mt-6 flex flex-col items-center gap-3 rounded-2xl bg-booking-bg py-12 text-center">
                     <Star className="h-8 w-8 text-booking-textMuted/40" />
                     <p className="text-sm text-booking-textMuted">
-                        Пока нет отзывов. Станьте первым, кто оценит работу мастера!
+                        {t('section.reviewsEmpty')}
                     </p>
                 </div>
             )}
@@ -36,6 +38,8 @@ export function ReviewsSection({ reviews }: { reviews: ReviewProps[] }) {
 }
 
 function ReviewCard({ review }: { review: ReviewProps }) {
+    const t = useTranslations('salon');
+    const locale = useLocale();
     const initials =
         review.clientName
             ?.split(' ')
@@ -44,7 +48,7 @@ function ReviewCard({ review }: { review: ReviewProps }) {
             .slice(0, 2)
             .toUpperCase() || 'U';
 
-    const date = new Date(review.createdAt).toLocaleDateString('ru-RU', {
+    const date = new Date(review.createdAt).toLocaleDateString(locale, {
         month: 'long',
         year: 'numeric',
     });
@@ -58,11 +62,11 @@ function ReviewCard({ review }: { review: ReviewProps }) {
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-sm font-semibold text-booking-textMain truncate">
-                            {review.clientName || 'Пользователь'}
+                            {review.clientName || t('fallback.clientNameAlt')}
                         </span>
                         <span className="text-xs text-booking-textMuted shrink-0">{date}</span>
                     </div>
-                    <div className="mt-1 flex gap-0.5" aria-label={`Рейтинг: ${review.rating} из 5`}>
+                    <div className="mt-1 flex gap-0.5" aria-label={t('rating.aria', { rating: review.rating })}>
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                                 key={star}

@@ -5,6 +5,7 @@ import { Upload, Loader2, Trash2, GripVertical } from 'lucide-react';
 import { Reorder } from 'framer-motion';
 import { uploadInteriorPhotos, deletePortfolioPhoto, reorderInteriorPhotos } from '@/app/actions/portfolio-photos';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 export interface InteriorPhoto {
     id: string;
@@ -19,6 +20,7 @@ interface InteriorPhotosSectionProps {
 const MAX_PHOTOS = 12;
 
 export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionProps) {
+    const t = useTranslations('dashboard.provider.media');
     const [photos, setPhotos] = useState<InteriorPhoto[]>(initialPhotos);
     const [isUploading, setIsUploading] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
         if (!files || files.length === 0) return;
 
         if (photos.length + files.length > MAX_PHOTOS) {
-            toast.error(`Максимум ${MAX_PHOTOS} фото интерьера. Сейчас: ${photos.length}.`);
+            toast.error(t('maxInteriorPhotos', { max: MAX_PHOTOS, current: photos.length }));
             e.target.value = '';
             return;
         }
@@ -45,14 +47,14 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
                 setPhotos((prev) => [...prev, ...result.photos]);
                 toast.success(
                     result.photos.length === 1
-                        ? 'Фото загружено'
-                        : `${result.photos.length} фото загружено`
+                        ? t('photoUploaded')
+                        : t('photosUploaded', { count: result.photos.length })
                 );
             } else {
                 toast.error(result.error);
             }
         } catch {
-            toast.error('Ошибка загрузки фото');
+            toast.error(t('photoUploadError'));
         } finally {
             setIsUploading(false);
             e.target.value = '';
@@ -60,19 +62,19 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
     };
 
     const handleDelete = async (photoId: string) => {
-        if (!window.confirm('Удалить это фото?')) return;
+        if (!window.confirm(t('deletePhotoConfirm'))) return;
 
         setDeletingId(photoId);
         try {
             const result = await deletePortfolioPhoto(photoId);
             if (result.success) {
                 setPhotos((prev) => prev.filter((p) => p.id !== photoId));
-                toast.success('Фото удалено');
+                toast.success(t('photoDeleted'));
             } else {
                 toast.error(result.error);
             }
         } catch {
-            toast.error('Ошибка удаления');
+            toast.error(t('photoDeleteError'));
         } finally {
             setDeletingId(null);
         }
@@ -107,7 +109,7 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
                         >
                             <img
                                 src={photo.url}
-                                alt="Интерьер"
+                                alt={t('interiorAlt')}
                                 className="h-full w-full object-cover"
                                 draggable={false}
                             />
@@ -120,7 +122,7 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
                                 onClick={() => handleDelete(photo.id)}
                                 disabled={deletingId === photo.id}
                                 className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-black/65 text-white opacity-0 transition group-hover:opacity-100 disabled:opacity-50"
-                                aria-label="Удалить фото"
+                                aria-label={t('deletePhoto')}
                             >
                                 {deletingId === photo.id ? (
                                     <Loader2 className="h-3 w-3 animate-spin" />
@@ -134,9 +136,9 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
             ) : (
                 <div className="border border-dashed border-gray-300 bg-transparent py-10 text-center">
                     <Upload className="mx-auto mb-2 h-8 w-8 text-gray-300" />
-                    <p className="text-sm text-gray-500">Добавьте фото вашего интерьера</p>
+                    <p className="text-sm text-gray-500">{t('interiorEmptyTitle')}</p>
                     <p className="mt-1 text-xs text-gray-400">
-                        Покажите атмосферу вашего салона — до {MAX_PHOTOS} фото
+                        {t('interiorEmptyBody', { max: MAX_PHOTOS })}
                     </p>
                 </div>
             )}
@@ -154,7 +156,7 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
                     ) : (
                         <Upload className="h-4 w-4" />
                     )}
-                    Добавить фото
+                    {t('addPhoto')}
                     <input
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
@@ -165,7 +167,7 @@ export function InteriorPhotosSection({ initialPhotos }: InteriorPhotosSectionPr
                     />
                 </label>
                 <span className="text-xs text-gray-400">
-                    {photos.length}/{MAX_PHOTOS} фото
+                    {t('photoCounter', { current: photos.length, max: MAX_PHOTOS })}
                 </span>
             </div>
         </div>

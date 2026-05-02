@@ -11,6 +11,7 @@ import { updateBasicInfo, uploadProfilePhoto } from '@/app/actions/profile';
 import { deleteUserAccount } from '@/app/actions/deleteAccount';
 import { Camera, User as UserIcon, ArrowLeft, BellRing, ShieldAlert, ChevronDown, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface User {
     id: string;
@@ -26,15 +27,16 @@ interface AccountSettingsViewProps {
 }
 
 export function AccountSettingsView({ user }: AccountSettingsViewProps) {
+    const t = useTranslations('dashboard.accountSettings');
     const { update: updateSession } = useSession();
 
     const sections = useMemo(
         () => [
-            { id: 'profile', label: 'Мой профиль', icon: UserIcon },
-            { id: 'notifications', label: 'Уведомления', icon: BellRing },
-            { id: 'security', label: 'Безопасность', icon: ShieldAlert },
+            { id: 'profile', label: t('sections.profile'), icon: UserIcon },
+            { id: 'notifications', label: t('sections.notifications'), icon: BellRing },
+            { id: 'security', label: t('sections.security'), icon: ShieldAlert },
         ] as const,
-        []
+        [t]
     );
 
     const [activeSection, setActiveSection] = useState<(typeof sections)[number]['id']>('profile');
@@ -81,10 +83,10 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
         try {
             await updateBasicInfo(formData);
             window.localStorage.setItem(`client-phone:${user.id}`, phone);
-            toast.success('Профиль обновлен');
+            toast.success(t('toasts.profileUpdated'));
             router.refresh();
         } catch {
-            toast.error('Ошибка при сохранении');
+            toast.error(t('toasts.saveError'));
         } finally {
             setIsSaving(false);
         }
@@ -104,11 +106,11 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
             const result = await uploadProfilePhoto(formData);
             if (!result.success) {
                 setAvatarPreview(user.image);
-                toast.error(result.error || 'Ошибка загрузки фото');
+                toast.error(result.error || t('toasts.photoUploadError'));
                 return;
             }
 
-            toast.success('Фото обновлено');
+            toast.success(t('toasts.photoUpdated'));
 
             // Update local preview with permanent URL
             if (result.imageUrl) {
@@ -121,7 +123,7 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
         } catch {
             // Revert preview on error
             setAvatarPreview(user.image);
-            toast.error('Ошибка загрузки фото');
+            toast.error(t('toasts.photoUploadError'));
         }
     }
 
@@ -133,16 +135,16 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
         e.preventDefault();
 
         if (!currentPassword || !newPassword || !confirmPassword) {
-            toast.error('Заполните все поля для смены пароля');
+            toast.error(t('toasts.passwordFieldsRequired'));
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            toast.error('Новый пароль и подтверждение не совпадают');
+            toast.error(t('toasts.passwordMismatch'));
             return;
         }
 
-        toast.success('Смена пароля будет подключена в следующем обновлении');
+        toast.success(t('toasts.passwordSoon'));
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
@@ -177,10 +179,10 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                     className="inline-flex items-center gap-2 rounded-md px-2 py-1 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
                 >
                     <ArrowLeft className="h-4 w-4" />
-                    Назад в кабинет
+                    {t('back')}
                 </Link>
-                <h1 className="mt-3 text-2xl font-bold text-gray-900">Настройки аккаунта</h1>
-                <p className="mt-1 text-sm text-gray-500">Управляйте профилем, уведомлениями и безопасностью.</p>
+                <h1 className="mt-3 text-2xl font-bold text-gray-900">{t('title')}</h1>
+                <p className="mt-1 text-sm text-gray-500">{t('subtitle')}</p>
             </div>
 
             <div className="md:hidden">
@@ -243,24 +245,24 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                         <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} />
                                     </label>
                                 </div>
-                                <h2 className="mb-1 text-lg font-semibold text-gray-900">{user.name || 'Пользователь'}</h2>
+                                <h2 className="mb-1 text-lg font-semibold text-gray-900">{user.name || t('userFallback')}</h2>
                                 <p className="text-sm text-gray-500">{user.email}</p>
                             </div>
 
                             <form onSubmit={handleSave} className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
                                 <h3 className="mb-6 flex items-center gap-2 text-xl font-bold text-gray-900">
                                     <UserIcon className="h-6 w-6 text-orange-500" />
-                                    Мой профиль
+                                    {t('profile.title')}
                                 </h3>
 
                                 <div className="space-y-5">
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Имя</label>
+                                        <label className="mb-2 block text-sm font-medium text-gray-700">{t('profile.name')}</label>
                                         <Input
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             className="h-11"
-                                            placeholder="Иван Иванов"
+                                            placeholder={t('profile.namePlaceholder')}
                                         />
                                     </div>
                                     <div>
@@ -268,7 +270,7 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                         <Input value={user.email || ''} readOnly className="h-11 cursor-not-allowed bg-gray-50 text-gray-500" />
                                     </div>
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Номер телефона</label>
+                                        <label className="mb-2 block text-sm font-medium text-gray-700">{t('profile.phone')}</label>
                                         <Input
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
@@ -277,19 +279,19 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                         />
                                     </div>
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">О себе</label>
+                                        <label className="mb-2 block text-sm font-medium text-gray-700">{t('profile.bio')}</label>
                                         <Textarea
                                             value={bio}
                                             onChange={(e) => setBio(e.target.value)}
                                             className="min-h-[120px]"
-                                            placeholder="Расскажите немного о себе..."
+                                            placeholder={t('profile.bioPlaceholder')}
                                         />
                                     </div>
                                 </div>
 
                                 <div className="mt-6 flex justify-end">
                                     <Button type="submit" disabled={isSaving} className="bg-gray-900 text-white hover:bg-gray-800">
-                                        {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
+                                        {isSaving ? t('saving') : t('profile.save')}
                                     </Button>
                                 </div>
                             </form>
@@ -298,16 +300,16 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
 
                     {activeSection === 'notifications' && (
                         <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
-                            <h3 className="mb-1 text-xl font-bold text-gray-900">Уведомления</h3>
+                            <h3 className="mb-1 text-xl font-bold text-gray-900">{t('notifications.title')}</h3>
                             <p className="mb-6 text-sm text-gray-500">
-                                Управляйте тем, какие уведомления вы хотите получать.
+                                {t('notifications.subtitle')}
                             </p>
 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
                                     <div>
-                                        <p className="text-sm font-semibold text-gray-900">Напоминания о записях</p>
-                                        <p className="text-xs text-gray-500">Email/SMS перед визитом</p>
+                                        <p className="text-sm font-semibold text-gray-900">{t('notifications.remindersTitle')}</p>
+                                        <p className="text-xs text-gray-500">{t('notifications.remindersBody')}</p>
                                     </div>
                                     <NotificationToggle
                                         value={notifications.reminders}
@@ -316,8 +318,8 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                 </div>
                                 <div className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
                                     <div>
-                                        <p className="text-sm font-semibold text-gray-900">Сообщения в чате</p>
-                                        <p className="text-xs text-gray-500">Уведомлять о новых сообщениях</p>
+                                        <p className="text-sm font-semibold text-gray-900">{t('notifications.chatTitle')}</p>
+                                        <p className="text-xs text-gray-500">{t('notifications.chatBody')}</p>
                                     </div>
                                     <NotificationToggle
                                         value={notifications.chat}
@@ -326,8 +328,8 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                 </div>
                                 <div className="flex items-center justify-between rounded-xl border border-gray-100 p-4">
                                     <div>
-                                        <p className="text-sm font-semibold text-gray-900">Системные уведомления</p>
-                                        <p className="text-xs text-gray-500">Изменения статуса аккаунта</p>
+                                        <p className="text-sm font-semibold text-gray-900">{t('notifications.systemTitle')}</p>
+                                        <p className="text-xs text-gray-500">{t('notifications.systemBody')}</p>
                                     </div>
                                     <NotificationToggle
                                         value={notifications.system}
@@ -341,14 +343,14 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                     {activeSection === 'security' && (
                         <div className="space-y-6">
                             <form onSubmit={handleChangePassword} className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
-                                <h3 className="mb-1 text-xl font-bold text-gray-900">Смена пароля</h3>
+                                <h3 className="mb-1 text-xl font-bold text-gray-900">{t('security.passwordTitle')}</h3>
                                 <p className="mb-6 text-sm text-gray-500">
-                                    Используйте сложный пароль, чтобы защитить ваш аккаунт.
+                                    {t('security.passwordBody')}
                                 </p>
 
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Текущий пароль</label>
+                                        <label className="mb-2 block text-sm font-medium text-gray-700">{t('security.currentPassword')}</label>
                                         <Input
                                             type="password"
                                             value={currentPassword}
@@ -356,7 +358,7 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                         />
                                     </div>
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Новый пароль</label>
+                                        <label className="mb-2 block text-sm font-medium text-gray-700">{t('security.newPassword')}</label>
                                         <Input
                                             type="password"
                                             value={newPassword}
@@ -364,7 +366,7 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                         />
                                     </div>
                                     <div>
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Подтверждение</label>
+                                        <label className="mb-2 block text-sm font-medium text-gray-700">{t('security.confirmPassword')}</label>
                                         <Input
                                             type="password"
                                             value={confirmPassword}
@@ -375,22 +377,22 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
 
                                 <div className="mt-6 flex justify-end">
                                     <Button type="submit" className="bg-gray-900 text-white hover:bg-gray-800">
-                                        Обновить пароль
+                                        {t('security.updatePassword')}
                                     </Button>
                                 </div>
                             </form>
 
                             <div className="rounded-3xl border border-red-200 bg-red-50/70 p-6">
-                                <h4 className="text-base font-semibold text-red-700">Опасная зона</h4>
+                                <h4 className="text-base font-semibold text-red-700">{t('security.dangerTitle')}</h4>
                                 <p className="mt-2 text-sm text-red-700/90">
-                                    Удаление аккаунта приведет к безвозвратной потере ваших данных.
+                                    {t('security.dangerBody')}
                                 </p>
                                 <Button
                                     variant="destructive"
                                     className="mt-4"
                                     onClick={() => setShowDeleteModal(true)}
                                 >
-                                    Удалить аккаунт
+                                    {t('security.deleteAccount')}
                                 </Button>
                             </div>
 
@@ -402,11 +404,10 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                             <AlertTriangle className="h-6 w-6 text-red-600" />
                                         </div>
                                         <h3 className="text-center text-lg font-semibold text-gray-900">
-                                            Удалить аккаунт?
+                                            {t('deleteModal.title')}
                                         </h3>
                                         <p className="mt-2 text-center text-sm text-gray-500">
-                                            Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо, и все
-                                            ваши данные будут удалены навсегда.
+                                            {t('deleteModal.body')}
                                         </p>
                                         <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
                                             <Button
@@ -418,22 +419,22 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                                     try {
                                                         const result = await deleteUserAccount();
                                                         if (result.success) {
-                                                            toast.success('Аккаунт удалён');
+                                                            toast.success(t('toasts.accountDeleted'));
                                                             signOut({ callbackUrl: '/' });
                                                         } else {
-                                                            toast.error(result.error || 'Ошибка при удалении');
+                                                            toast.error(result.error || t('toasts.deleteError'));
                                                             setIsDeleting(false);
                                                         }
                                                     } catch {
-                                                        toast.error('Ошибка при удалении аккаунта');
+                                                        toast.error(t('toasts.deleteError'));
                                                         setIsDeleting(false);
                                                     }
                                                 }}
                                             >
                                                 {isDeleting ? (
-                                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Удаление...</>
+                                                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('deleteModal.deleting')}</>
                                                 ) : (
-                                                    'Да, удалить аккаунт'
+                                                    t('deleteModal.confirm')
                                                 )}
                                             </Button>
                                             <Button
@@ -442,7 +443,7 @@ export function AccountSettingsView({ user }: AccountSettingsViewProps) {
                                                 disabled={isDeleting}
                                                 onClick={() => setShowDeleteModal(false)}
                                             >
-                                                Отмена
+                                                {t('deleteModal.cancel')}
                                             </Button>
                                         </div>
                                     </div>

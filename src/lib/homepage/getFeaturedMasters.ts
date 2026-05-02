@@ -1,5 +1,6 @@
 import 'server-only';
 import prisma from '@/lib/prisma';
+import { localizeCategoryName, localizeService } from '@/lib/localized';
 
 export type ProviderType = 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
 
@@ -17,7 +18,7 @@ export interface FeaturedMaster {
     services: { title: string; price: number; durationMin: number }[];
 }
 
-export async function getFeaturedMasters(limit: number = 8): Promise<FeaturedMaster[]> {
+export async function getFeaturedMasters(limit: number = 8, locale: string = 'ru'): Promise<FeaturedMaster[]> {
     try {
         const masters = await prisma.profile.findMany({
             where: {
@@ -28,9 +29,17 @@ export async function getFeaturedMasters(limit: number = 8): Promise<FeaturedMas
             take: limit,
             include: {
                 reviews: { select: { rating: true } },
-                category: { select: { name: true } },
+                category: { select: { name: true, translations: { select: { locale: true, name: true } } } },
                 user: { select: { image: true } },
-                services: { select: { title: true, price: true, duration_min: true }, take: 2 },
+                services: {
+                    select: {
+                        title: true,
+                        price: true,
+                        duration_min: true,
+                        translations: { select: { locale: true, title: true, description: true } },
+                    },
+                    take: 2,
+                },
                 photos: {
                     where: { serviceId: null, staffId: null },
                     orderBy: { position: 'asc' },
@@ -66,18 +75,21 @@ export async function getFeaturedMasters(limit: number = 8): Promise<FeaturedMas
                 id: master.id,
                 slug: master.slug,
                 name: master.name,
-                category: master.category?.name || 'Бьюти-мастер',
+                category: master.category ? localizeCategoryName(master.category, locale) : 'Beauty Pro',
                 city: master.city,
                 isVerified: master.is_verified,
                 providerType: master.provider_type as ProviderType,
                 avgRating,
                 reviewCount: master.reviews.length,
                 workPhotoUrl,
-                services: master.services.map((s) => ({
-                    title: s.title,
-                    price: Number(s.price),
-                    durationMin: s.duration_min,
-                })),
+                services: master.services.map((rawService) => {
+                    const service = localizeService(rawService, locale);
+                    return {
+                        title: service.title,
+                        price: Number(service.price),
+                        durationMin: service.duration_min,
+                    };
+                }),
             };
         });
     } catch (e) {

@@ -10,17 +10,15 @@ import {
     isWithinInterval,
     parseISO,
 } from 'date-fns';
-import { ru } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getProviderBookingsForWeek } from '@/app/actions/getProviderBookingsForWeek';
 import { BookingDetailsModal, type BookingForModal } from '@/components/dashboard/BookingDetailsModal';
+import { useLocale, useTranslations } from 'next-intl';
 
 const HOUR_START = 8;
 const HOUR_END = 21;
 const SLOT_MINUTES = 30;
 const ROW_HEIGHT_PX = 26;
-
-const DAY_LABELS_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 const STATUS_CARD_STYLES: Record<string, { bg: string; text: string; border: string }> = {
     PENDING:   { bg: 'bg-amber-400',   text: 'text-amber-950', border: 'border-amber-500' },
@@ -38,11 +36,6 @@ function toWeekStartKey(date: Date): string {
     return format(date, 'yyyy-MM-dd');
 }
 
-function getDayIndex(d: Date): number {
-    const day = d.getDay();
-    return day === 0 ? 6 : day - 1;
-}
-
 const COL_TEMPLATE = '44px repeat(7, minmax(0, 1fr))';
 
 interface ProviderCalendarProps {
@@ -50,6 +43,8 @@ interface ProviderCalendarProps {
 }
 
 export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
+    const t = useTranslations('dashboard.provider.calendar');
+    const locale = useLocale();
     const [weekStart, setWeekStart] = useState<Date>(getDefaultWeekStart);
     const [bookings, setBookings] = useState<BookingForModal[]>([]);
     const [loading, setLoading] = useState(true);
@@ -76,10 +71,10 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
         if (result.success) {
             setBookings(result.bookings as BookingForModal[]);
         } else {
-            setError(result.error ?? 'Ошибка загрузки');
+            setError(result.error ?? t('loadError'));
             setBookings([]);
         }
-    }, [profileId, weekStartKey]);
+    }, [profileId, t, weekStartKey]);
 
     useEffect(() => { loadBookings(); }, [loadBookings]);
 
@@ -113,7 +108,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
     const openModal  = (b: BookingForModal) => { setSelectedBooking(b); setModalOpen(true); };
     const closeModal = () => { setModalOpen(false); setSelectedBooking(null); };
 
-    const weekRangeLabel = `${format(weekDays[0], 'd MMM', { locale: ru })} — ${format(weekDays[6], 'd MMM yyyy', { locale: ru })}`;
+    const weekRangeLabel = `${new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short' }).format(weekDays[0])} — ${new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(weekDays[6])}`;
 
     // Build processed bookings per day
     const buildDayBookings = (day: Date) => {
@@ -172,28 +167,28 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
                         type="button"
                         onClick={goPrevWeek}
                         className="flex h-10 items-center gap-1.5 rounded-full border border-gray-300 bg-transparent px-3 text-stone-700 transition hover:border-gray-900"
-                        aria-label="Предыдущая неделя"
-                        title="Предыдущая неделя"
+                        aria-label={t('previousWeek')}
+                        title={t('previousWeek')}
                     >
                         <ChevronLeft className="h-5 w-5 shrink-0" />
-                        <span className="hidden sm:inline text-sm font-medium">Назад</span>
+                        <span className="hidden sm:inline text-sm font-medium">{t('back')}</span>
                     </button>
                     <button
                         type="button"
                         onClick={goToday}
                         className="rounded-full border border-gray-300 bg-transparent px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-gray-900"
-                        title="Текущая неделя"
+                        title={t('currentWeek')}
                     >
-                        Сегодня
+                        {t('today')}
                     </button>
                     <button
                         type="button"
                         onClick={goNextWeek}
                         className="flex h-10 items-center gap-1.5 rounded-full border border-gray-300 bg-transparent px-3 text-stone-700 transition hover:border-gray-900"
-                        aria-label="Следующая неделя"
-                        title="Следующая неделя"
+                        aria-label={t('nextWeek')}
+                        title={t('nextWeek')}
                     >
-                        <span className="hidden sm:inline text-sm font-medium">Вперёд</span>
+                        <span className="hidden sm:inline text-sm font-medium">{t('forward')}</span>
                         <ChevronRight className="h-5 w-5 shrink-0" />
                     </button>
                 </div>
@@ -204,7 +199,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
             )}
 
             {loading && (
-                <div className="flex items-center justify-center py-10 text-xs text-stone-400">Загрузка...</div>
+                <div className="flex items-center justify-center py-10 text-xs text-stone-400">{t('loading')}</div>
             )}
 
             {!loading && (
@@ -226,7 +221,7 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
                                         key={day.toISOString()}
                                         className={`flex flex-col items-center justify-center py-2 text-xs font-semibold gap-0.5 border-l border-stone-100 ${isToday ? 'bg-slate-900 text-white' : 'bg-stone-50/60 text-stone-500'}`}
                                     >
-                                        <span>{DAY_LABELS_SHORT[getDayIndex(day)]}</span>
+                                        <span>{new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day)}</span>
                                         <span className={`text-[11px] font-bold ${isToday ? 'text-amber-300' : 'text-slate-700'}`}>
                                             {format(day, 'd')}
                                         </span>
@@ -330,10 +325,10 @@ export function ProviderCalendar({ profileId }: ProviderCalendarProps) {
             {/* ── Legend ── */}
             <div className="flex flex-wrap items-center gap-3 border-t border-stone-100 px-4 py-2.5 text-[11px] text-stone-400">
                 {[
-                    { color: 'bg-amber-400', label: 'Ожидает' },
-                    { color: 'bg-emerald-500', label: 'Подтверждена' },
-                    { color: 'bg-rose-200', label: 'Отменена' },
-                    { color: 'bg-slate-300', label: 'Завершена' },
+                    { color: 'bg-amber-400', label: t('status.pending') },
+                    { color: 'bg-emerald-500', label: t('status.confirmed') },
+                    { color: 'bg-rose-200', label: t('status.cancelled') },
+                    { color: 'bg-slate-300', label: t('status.completed') },
                 ].map(item => (
                     <span key={item.label} className="flex items-center gap-1.5">
                         <span className={`h-2.5 w-2.5 rounded-sm ${item.color}`} />

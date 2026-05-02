@@ -8,8 +8,11 @@ import { DateScroll } from '@/components/booking-ui/DateScroll';
 import { TimeGrid } from '@/components/booking-ui/TimeGrid';
 import { UserForm } from '@/components/booking-ui/UserForm';
 import { OrderSummary } from '@/components/booking-ui/OrderSummary';
-import { getWeekAvailableSlots, createBooking } from '@/app/actions/booking';
+import { OtpModal } from '@/components/booking-ui/OtpModal';
+import { getWeekAvailableSlots } from '@/app/actions/booking';
+import { useBookingOtp } from '@/hooks/useBookingOtp';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface BookingStandaloneProps {
     profile: {
@@ -31,6 +34,7 @@ interface BookingStandaloneProps {
 
 export function BookingStandalone({ profile, service, sessionUser, initialStaffId }: BookingStandaloneProps) {
     const router = useRouter();
+    const t = useTranslations('booking');
     const today = useMemo(() => {
         const d = new Date();
         d.setHours(0, 0, 0, 0);
@@ -54,14 +58,29 @@ export function BookingStandalone({ profile, service, sessionUser, initialStaffI
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState(sessionUser?.email || '');
     const [comment, setComment] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [autoAdvanced, setAutoAdvanced] = useState(0);
+
+    // Shared OTP booking flow
+    const {
+        isSubmitting,
+        showOtpModal,
+        otpSessionId,
+        otpExpiresAt,
+        turnstileRef,
+        submitBooking,
+        handleOtpSuccess,
+        handleOtpExpired,
+        handleOtpClose: baseOtpClose,
+        resetOtp,
+    } = useBookingOtp({
+        onNavigateAfterClose: () => router.push('/my-bookings'),
+    });
 
     // Provide a fallback service if one isn't passed (e.g. they came without search params)
     const effectiveService = service || {
         id: 0,
-        title: 'Консультация',
-        price: 'Бесплатно',
+        title: t('fallbackService.title'),
+        price: t('fallbackService.price'),
         duration_min: 60,
     };
 
@@ -157,37 +176,20 @@ export function BookingStandalone({ profile, service, sessionUser, initialStaffI
     const staffRef = profile.staff.find(s => s.id === selectedStaffId);
     const staffName = staffRef?.name;
 
-    const canSubmit = !!(selectedDate && selectedTime && name && phone);
+    const canSubmit = !!(selectedDate && selectedTime && name && phone && email);
 
     const handleSubmit = async () => {
-        if (!process.env.NEXT_PUBLIC_ALLOW_UNAUTHENTICATED_BOOKINGS && !sessionUser && !phone) {
-            toast.error('Необходима авторизация или указание телефона');
-            return;
-        }
-        setIsSubmitting(true);
-        try {
-            const result = await createBooking({
-                profileId: profile.id,
-                staffId: selectedStaffId,
-                serviceId: service ? service.id : null,
-                serviceDuration: effectiveService.duration_min,
-                date: selectedDate,
-                time: selectedTime,
-                userName: name,
-                userPhone: phone,
-            });
-
-            if (result.success) {
-                toast.success('Успешно! Вы записаны.');
-                router.push(`/my-bookings`);
-            } else {
-                toast.error(result.error || 'Ошибка записи');
-            }
-        } catch (_) {
-            toast.error('Ошибка сервера');
-        } finally {
-            setIsSubmitting(false);
-        }
+        await submitBooking({
+            profileId: profile.id,
+            staffId: selectedStaffId,
+            serviceId: service ? service.id : null,
+            serviceDuration: effectiveService.duration_min,
+            date: selectedDate,
+            time: selectedTime,
+            userName: name,
+            userPhone: phone,
+            userEmail: email,
+        });
     };
 
     // Mobile stack & grid layout
@@ -196,23 +198,27 @@ export function BookingStandalone({ profile, service, sessionUser, initialStaffI
             
             <header className="mb-10 text-center md:text-left">
                 <h1 className="text-4xl md:text-5xl font-sans font-semibold text-booking-textMain tracking-tight mb-3">
-                    Оформление записи
+                    {t('page.title')}
                 </h1>
                 <p className="text-base text-booking-textMuted max-w-2xl leading-relaxed">
-                    Выберите удобную дату и время для визита в <span className="font-medium text-booking-textMain">{profile.name}</span>.
+                    {t.rich('page.subtitle', {
+                        name: profile.name,
+                        strong: (chunks) => <span className="font-medium text-booking-textMain">{chunks}</span>,
+                    })}
                 </p>
             </header>
 
             {profile.staff && profile.staff.length > 0 && (
                 <section className="mb-10">
                     <h2 className="text-sm font-semibold uppercase tracking-wider text-booking-textMuted mb-5">
-                        Выберите мастера
+                        {t('staff.title')}
                     </h2>
                     <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide">
                         <StaffPick
                             selected={selectedStaffId === null}
                             onClick={() => { setSelectedStaffId(null); setSelectedDate(''); setSelectedTime(''); }}
-                            name="Любой"
+                            name={t('staff.any')}
+                            isAny
                         />
                         {profile.staff.map(staff => (
                             <StaffPick
@@ -271,6 +277,22 @@ export function BookingStandalone({ profile, service, sessionUser, initialStaffI
                     />
                 </div>
             </div>
+
+            {/* Invisible Turnstile widget */}
+            <div ref={turnstileRef} />
+
+            {/* OTP Verification Modal */}
+            {showOtpModal && otpSessionId && (
+                <OtpModal
+                    isOpen={showOtpModal}
+                    onClose={baseOtpClose}
+                    otpSessionId={otpSessionId}
+                    email={email}
+                    expiresAt={otpExpiresAt || ''}
+                    onSuccess={handleOtpSuccess}
+                    onExpired={handleOtpExpired}
+                />
+            )}
             
         </div>
     );
@@ -281,13 +303,15 @@ function StaffPick({
     onClick,
     name,
     avatarUrl,
+    isAny = false,
 }: {
     selected: boolean;
     onClick: () => void;
     name: string;
     avatarUrl?: string | null;
+    isAny?: boolean;
 }) {
-    const initials = name === 'Любой' ? '∗' : name.charAt(0).toUpperCase();
+    const initials = isAny ? '∗' : name.charAt(0).toUpperCase();
     return (
         <button
             type="button"

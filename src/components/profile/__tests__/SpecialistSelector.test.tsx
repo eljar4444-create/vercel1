@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
+import { renderWithIntl } from './test-utils';
 
 vi.mock('framer-motion', () => ({
     AnimatePresence: ({ children }: any) => <>{children}</>,
@@ -28,14 +29,14 @@ describe('SpecialistSelector', () => {
     beforeEach(() => vi.clearAllMocks());
 
     it('does not render when open=false', () => {
-        const { container } = render(
+        const { container } = renderWithIntl(
             <SpecialistSelector open={false} onClose={vi.fn()} serviceTitle="Балаяж" specialists={specialists} onSelect={vi.fn()} />
         );
         expect(container.querySelector('[role="dialog"]')).toBeNull();
     });
 
     it('renders title and service name when open', () => {
-        render(
+        renderWithIntl(
             <SpecialistSelector open={true} onClose={vi.fn()} serviceTitle="Балаяж" specialists={specialists} onSelect={vi.fn()} />
         );
         expect(screen.getByText('Выберите специалиста')).toBeTruthy();
@@ -43,7 +44,7 @@ describe('SpecialistSelector', () => {
     });
 
     it('renders specialist cards with name, specialty, rating', () => {
-        render(
+        renderWithIntl(
             <SpecialistSelector open={true} onClose={vi.fn()} serviceTitle="Балаяж" specialists={specialists} onSelect={vi.fn()} />
         );
         expect(screen.getByText('Анна')).toBeTruthy();
@@ -54,7 +55,7 @@ describe('SpecialistSelector', () => {
     });
 
     it('renders "Любой свободный специалист" option', () => {
-        render(
+        renderWithIntl(
             <SpecialistSelector open={true} onClose={vi.fn()} serviceTitle="Балаяж" specialists={specialists} onSelect={vi.fn()} />
         );
         expect(screen.getByText('Любой свободный специалист')).toBeTruthy();
@@ -63,7 +64,7 @@ describe('SpecialistSelector', () => {
     it('calls onSelect with specialist id and closes on click', () => {
         const onSelect = vi.fn();
         const onClose = vi.fn();
-        render(
+        renderWithIntl(
             <SpecialistSelector open={true} onClose={onClose} serviceTitle="Балаяж" specialists={specialists} onSelect={onSelect} />
         );
         fireEvent.click(screen.getByText('Анна'));
@@ -73,7 +74,7 @@ describe('SpecialistSelector', () => {
 
     it('calls onSelect with null for "Любой свободный"', () => {
         const onSelect = vi.fn();
-        render(
+        renderWithIntl(
             <SpecialistSelector open={true} onClose={vi.fn()} serviceTitle="Балаяж" specialists={specialists} onSelect={onSelect} />
         );
         fireEvent.click(screen.getByText('Любой свободный специалист'));
@@ -81,7 +82,7 @@ describe('SpecialistSelector', () => {
     });
 
     it('highlights pre-selected specialist', () => {
-        const { container } = render(
+        const { container } = renderWithIntl(
             <SpecialistSelector
                 open={true}
                 onClose={vi.fn()}
@@ -98,7 +99,7 @@ describe('SpecialistSelector', () => {
 
     it('calls onClose when Закрыть is clicked', () => {
         const onClose = vi.fn();
-        render(
+        renderWithIntl(
             <SpecialistSelector open={true} onClose={onClose} serviceTitle="Балаяж" specialists={specialists} onSelect={vi.fn()} />
         );
         fireEvent.click(screen.getByLabelText('Закрыть'));

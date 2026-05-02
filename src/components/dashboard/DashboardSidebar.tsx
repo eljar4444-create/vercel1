@@ -12,6 +12,7 @@ import {
     UserCircle2,
     ChevronDown,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 type SectionKey =
     | 'bookings'
@@ -46,25 +47,26 @@ export function DashboardSidebar({
     isSalonProvider,
     profileSlug,
 }: DashboardSidebarProps) {
+    const t = useTranslations('dashboard.provider.sidebar');
     const isOnProfileSubItem = PROFILE_SUB_KEYS.has(currentSection);
     const [isProfileOpen, setIsProfileOpen] = useState(isOnProfileSubItem);
 
     const mainNavItems = [
-        { key: 'bookings' as const, label: 'Записи', icon: CalendarDays },
-        { key: 'clients' as const, label: 'Клиенты', icon: Contact },
-        { key: 'reviews' as const, label: 'Отзывы', icon: Star },
-        { key: 'analytics' as const, label: 'Статистика', icon: BarChart2 },
+        { key: 'bookings' as const, label: t('bookings'), icon: CalendarDays },
+        { key: 'clients' as const, label: t('clients'), icon: Contact },
+        { key: 'reviews' as const, label: t('reviews'), icon: Star },
+        { key: 'analytics' as const, label: t('analytics'), icon: BarChart2 },
         ...(isSalonProvider
-            ? ([{ key: 'staff' as const, label: 'Сотрудники', icon: Users }] as const)
+            ? ([{ key: 'staff' as const, label: t('staff'), icon: Users }] as const)
             : []),
     ];
 
     const profileSubItems = [
-        { key: 'profile-general' as const, label: 'Основное' },
-        { key: 'services' as const, label: 'Услуги' },
-        { key: 'schedule' as const, label: 'Расписание' },
-        { key: 'profile-location' as const, label: 'Локация' },
-        { key: 'profile-notifications' as const, label: 'Уведомления' },
+        { key: 'profile-general' as const, label: t('profileGeneral') },
+        { key: 'services' as const, label: t('services') },
+        { key: 'schedule' as const, label: t('schedule') },
+        { key: 'profile-location' as const, label: t('location') },
+        { key: 'profile-notifications' as const, label: t('notifications') },
     ];
 
     return (
@@ -74,7 +76,7 @@ export function DashboardSidebar({
                     <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">
                         SVOI.DE
                     </p>
-                    <h2 className="mt-1 text-sm font-bold text-slate-800">Кабинет мастера</h2>
+                    <h2 className="mt-1 text-sm font-bold text-slate-800">{t('providerDashboard')}</h2>
                 </div>
 
                 <nav className="space-y-0.5">
@@ -89,7 +91,7 @@ export function DashboardSidebar({
                         }`}
                     >
                         <UserCircle2 className="h-4 w-4 shrink-0" />
-                        <span className="flex-1 text-left">Профиль</span>
+                        <span className="flex-1 text-left">{t('profile')}</span>
                         <ChevronDown
                             className={`h-4 w-4 shrink-0 text-stone-400 transition-transform duration-300 ${
                                 isProfileOpen ? 'rotate-180' : ''
@@ -158,7 +160,7 @@ export function DashboardSidebar({
                     className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-stone-500 transition hover:text-slate-800"
                 >
                     <Eye className="h-4 w-4 shrink-0" />
-                    Посмотреть профиль
+                    {t('viewProfile')}
                 </Link>
             </div>
         </aside>

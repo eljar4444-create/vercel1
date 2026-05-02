@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import Image from 'next/image';
 import { Star } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { DeepDiveModal, type DeepDivePhoto } from './DeepDiveModal';
 
 export interface SpecialistCardProps {
@@ -24,6 +25,7 @@ export function SpecialistCard({
     reviewCount,
     photos,
 }: SpecialistCardProps) {
+    const t = useTranslations('salon');
     const [isDeepDiveOpen, setIsDeepDiveOpen] = useState(false);
 
     const openDeepDive = useCallback(() => setIsDeepDiveOpen(true), []);
@@ -77,7 +79,7 @@ export function SpecialistCard({
                         onClick={openDeepDive}
                         className="mt-auto text-xs font-medium text-booking-primary underline underline-offset-2 transition hover:text-booking-primaryHover"
                     >
-                        {photos.length} {photos.length === 1 ? 'фото' : 'фото'}
+                        {t('service.photosPlural', { count: photos.length })}
                     </button>
                 ) : (
                     <div className="mt-auto items-center justify-center h-4">
@@ -91,7 +93,7 @@ export function SpecialistCard({
                 <DeepDiveModal
                     open={isDeepDiveOpen}
                     onClose={closeDeepDive}
-                    title={`Работы ${name}`}
+                    title={t('gallery.portfolioAlt', { name })}
                     photos={photos}
                 />
             )}

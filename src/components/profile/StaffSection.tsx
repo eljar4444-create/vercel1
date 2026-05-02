@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { Star, User } from 'lucide-react';
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { StaffPortfolioModal, type StaffModalService } from './StaffPortfolioModal';
 
 export interface Staff {
@@ -24,6 +25,7 @@ export interface StaffSectionProps {
 }
 
 export function StaffSection({ staff, salonSlug, services = [] }: StaffSectionProps) {
+    const t = useTranslations('salon');
     const activeStaff = staff.filter((s) => s.isActive !== false);
     const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
 
@@ -32,7 +34,7 @@ export function StaffSection({ staff, salonSlug, services = [] }: StaffSectionPr
     return (
         <section className="flex h-full flex-col">
             <h2 className="text-xl font-semibold text-stone-800 mb-5">
-                Специалисты
+                {t('section.teamMembers')}
             </h2>
 
             <div className="grid flex-1 grid-cols-1 sm:grid-cols-2 gap-6">
@@ -55,6 +57,7 @@ export function StaffSection({ staff, salonSlug, services = [] }: StaffSectionPr
 }
 
 function ExpertCard({ member, onClick }: { member: Staff; onClick: () => void }) {
+    const t = useTranslations('salon');
     const rating = typeof member.rating === 'number' ? member.rating : null;
     const tags = (member.tags ?? []).slice(0, 4);
 
@@ -124,7 +127,7 @@ function ExpertCard({ member, onClick }: { member: Staff; onClick: () => void })
                 className="mt-auto pt-5"
             >
                 <span className="inline-flex items-center gap-1 text-xs font-medium tracking-wide text-gray-500 transition-colors duration-300 group-hover:text-gray-900">
-                    Портфолио <span className="text-base leading-none">↗</span>
+                    {t('section.portfolio')} <span className="text-base leading-none">↗</span>
                 </span>
             </button>
         </div>

@@ -4,37 +4,42 @@ import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { BookingStatus } from '@prisma/client';
 import { upsertClientOnBookingCreated } from '@/lib/client/upsert';
+import { localeFromRequest, safeParseWithLocale } from '@/i18n/zod';
+import { getTranslations } from 'next-intl/server';
 
 const ManualBookingSchema = z.object({
     profileId: z.number().int().positive(),
     serviceId: z.number().int().positive(),
     staffId: z.string().min(1).optional().nullable(),
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Дата в формате YYYY-MM-DD'),
-    time: z.string().regex(/^\d{2}:\d{2}$/, 'Время в формате HH:MM'),
-    clientName: z.string().trim().min(1, 'Имя клиента обязательно').max(120),
-    clientPhone: z.string().trim().min(3, 'Телефон обязателен').max(40),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    time: z.string().regex(/^\d{2}:\d{2}$/),
+    clientName: z.string().trim().min(1).max(120),
+    clientPhone: z.string().trim().min(3).max(40),
     note: z.string().trim().max(500).optional().nullable(),
 });
 
 export async function POST(request: Request) {
+    const locale = localeFromRequest(request);
+    const t = await getTranslations({ locale, namespace: 'forms.api' });
+
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (session.user.isBanned) {
-        return NextResponse.json({ error: 'Ваш аккаунт заблокирован.' }, { status: 403 });
+        return NextResponse.json({ error: t('banned') }, { status: 403 });
     }
 
     let payload: unknown;
     try {
         payload = await request.json();
     } catch {
-        return NextResponse.json({ error: 'Некорректный JSON' }, { status: 400 });
+        return NextResponse.json({ error: t('invalidJson') }, { status: 400 });
     }
 
-    const parsed = ManualBookingSchema.safeParse(payload);
+    const parsed = await safeParseWithLocale(ManualBookingSchema, payload, locale);
     if (!parsed.success) {
-        const msg = parsed.error.issues[0]?.message ?? 'Некорректные данные';
+        const msg = parsed.error.issues[0]?.message ?? t('invalidData');
         return NextResponse.json({ error: msg }, { status: 400 });
     }
     const input = parsed.data;
@@ -44,7 +49,7 @@ export async function POST(request: Request) {
         select: { id: true, user_id: true },
     });
     if (!profile) {
-        return NextResponse.json({ error: 'Профиль не найден' }, { status: 404 });
+        return NextResponse.json({ error: t('profileNotFound') }, { status: 404 });
     }
 
     const ownsByUserId = profile.user_id && profile.user_id === session.user.id;
@@ -58,7 +63,7 @@ export async function POST(request: Request) {
         select: { id: true, profile_id: true },
     });
     if (!service || service.profile_id !== profile.id) {
-        return NextResponse.json({ error: 'Услуга не найдена' }, { status: 404 });
+        return NextResponse.json({ error: t('serviceNotFound') }, { status: 404 });
     }
 
     if (input.staffId) {
@@ -67,13 +72,13 @@ export async function POST(request: Request) {
             select: { profileId: true },
         });
         if (!staff || staff.profileId !== profile.id) {
-            return NextResponse.json({ error: 'Сотрудник не найден' }, { status: 404 });
+            return NextResponse.json({ error: t('staffNotFound') }, { status: 404 });
         }
     }
 
     const dateObj = new Date(`${input.date}T00:00:00.000Z`);
     if (Number.isNaN(dateObj.getTime())) {
-        return NextResponse.json({ error: 'Некорректная дата' }, { status: 400 });
+        return NextResponse.json({ error: t('invalidDate') }, { status: 400 });
     }
 
     const conflict = await prisma.booking.findFirst({
@@ -88,7 +93,7 @@ export async function POST(request: Request) {
     });
     if (conflict) {
         return NextResponse.json(
-            { error: 'Этот слот уже занят' },
+            { error: t('slotTaken') },
             { status: 409 },
         );
     }
@@ -123,9 +128,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, bookingId: booking.id }, { status: 201 });
     } catch (error: any) {
         if (error?.code === 'P2002') {
-            return NextResponse.json({ error: 'Этот слот уже занят' }, { status: 409 });
+            return NextResponse.json({ error: t('slotTaken') }, { status: 409 });
         }
         console.error('manual booking create error:', error);
-        return NextResponse.json({ error: 'Ошибка сервера' }, { status: 500 });
+        return NextResponse.json({ error: t('serverError') }, { status: 500 });
     }
 }

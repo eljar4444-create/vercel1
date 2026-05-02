@@ -4,8 +4,10 @@ import { auth } from '@/auth';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { AddServiceForm } from '@/components/dashboard/AddServiceForm';
+import { getTranslations } from 'next-intl/server';
 
 export default async function EditServicePage({ params }: { params: { id: string } }) {
+    const t = await getTranslations('dashboard.provider.servicesUi');
     const session = await auth();
 
     if (!session?.user?.email) {
@@ -42,7 +44,7 @@ export default async function EditServicePage({ params }: { params: { id: string
         <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
             <div className="container mx-auto px-4 py-8">
                 <Link href="/dashboard?section=services" className="text-blue-600 hover:underline mb-6 inline-block">
-                    &larr; Назад к профилю
+                    &larr; {t('backToDashboard')}
                 </Link>
 
                 <AddServiceForm

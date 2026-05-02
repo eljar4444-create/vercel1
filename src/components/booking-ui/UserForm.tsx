@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 export function UserForm({
     name,
     setName,
@@ -15,21 +17,22 @@ export function UserForm({
     email: string; setEmail: (v: string) => void;
     comment: string; setComment: (v: string) => void;
 }) {
+    const t = useTranslations('booking');
     const inputClass =
         'w-full h-11 bg-white border border-booking-border rounded-lg px-3 text-sm text-booking-textMain placeholder:text-booking-textMuted/70 outline-none transition-colors focus:border-booking-primary';
 
     return (
         <section className="mb-10 lg:mb-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-booking-textMuted mb-4">
-                Ваши данные
+                {t('form.title')}
             </h2>
             <div className="rounded-2xl border border-booking-border bg-white p-5 sm:p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-booking-textMain">Имя</label>
+                        <label className="text-xs font-medium text-booking-textMain">{t('form.name')}</label>
                         <input
                             type="text"
-                            placeholder="Александра"
+                            placeholder={t('form.namePlaceholder')}
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className={inputClass}
@@ -37,7 +40,7 @@ export function UserForm({
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-booking-textMain">Телефон</label>
+                        <label className="text-xs font-medium text-booking-textMain">{t('form.phone')}</label>
                         <input
                             type="tel"
                             placeholder="+49 (999) 000-00-00"
@@ -50,7 +53,7 @@ export function UserForm({
 
                 <div className="space-y-1.5">
                     <label className="text-xs font-medium text-booking-textMain">
-                        Email <span className="font-normal text-booking-textMuted">(необязательно)</span>
+                        {t('form.email')} <span className="text-red-400">*</span>
                     </label>
                     <input
                         type="email"
@@ -63,10 +66,10 @@ export function UserForm({
 
                 <div className="space-y-1.5">
                     <label className="text-xs font-medium text-booking-textMain">
-                        Комментарий <span className="font-normal text-booking-textMuted">(необязательно)</span>
+                        {t('form.comment')} <span className="font-normal text-booking-textMuted">{t('form.optional')}</span>
                     </label>
                     <textarea
-                        placeholder="Пожелания или особенности..."
+                        placeholder={t('form.commentPlaceholder')}
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         className="w-full min-h-[96px] bg-white border border-booking-border rounded-lg p-3 text-sm text-booking-textMain placeholder:text-booking-textMuted/70 outline-none transition-colors focus:border-booking-primary resize-vertical"

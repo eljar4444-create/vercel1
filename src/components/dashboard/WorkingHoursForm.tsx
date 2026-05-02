@@ -6,6 +6,7 @@ import { updateSchedule } from '@/app/actions/updateSchedule';
 import type { TimeInterval, WorkingDaySchedule } from '@/lib/scheduling';
 import { timeToMinutes, minutesToTime, validateIntervals } from '@/lib/scheduling';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 type WorkingHoursFormProps = {
     profileId: number;
@@ -16,15 +17,7 @@ type WorkingHoursFormProps = {
 
 type DayScheduleMap = Record<number, TimeInterval[]>;
 
-const DAYS = [
-    { id: 1, label: 'Пн' },
-    { id: 2, label: 'Вт' },
-    { id: 3, label: 'Ср' },
-    { id: 4, label: 'Чт' },
-    { id: 5, label: 'Пт' },
-    { id: 6, label: 'Сб' },
-    { id: 0, label: 'Вс' },
-];
+const DAY_IDS = [1, 2, 3, 4, 5, 6, 0];
 
 const DEFAULT_INTERVAL: TimeInterval = {
     start: '10:00',
@@ -32,8 +25,8 @@ const DEFAULT_INTERVAL: TimeInterval = {
 };
 
 function buildInitialMap(days: WorkingDaySchedule[]): DayScheduleMap {
-    return DAYS.reduce<DayScheduleMap>((acc, day) => {
-        acc[day.id] = days.find((item) => item.day === day.id)?.intervals ?? [];
+    return DAY_IDS.reduce<DayScheduleMap>((acc, dayId) => {
+        acc[dayId] = days.find((item) => item.day === dayId)?.intervals ?? [];
         return acc;
     }, {} as DayScheduleMap);
 }
@@ -57,6 +50,16 @@ function createNextInterval(existing: TimeInterval[]): TimeInterval {
 }
 
 export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFormProps) {
+    const t = useTranslations('dashboard.provider.workingHours');
+    const DAYS = useMemo(() => [
+        { id: 1, label: t('days.mon') },
+        { id: 2, label: t('days.tue') },
+        { id: 3, label: t('days.wed') },
+        { id: 4, label: t('days.thu') },
+        { id: 5, label: t('days.fri') },
+        { id: 6, label: t('days.sat') },
+        { id: 0, label: t('days.sun') },
+    ], [t]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -64,7 +67,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
 
     const activeDaysCount = useMemo(
         () => DAYS.filter((day) => (scheduleByDay[day.id] ?? []).length > 0).length,
-        [scheduleByDay],
+        [DAYS, scheduleByDay],
     );
 
     const toggleDay = (day: number) => {
@@ -134,7 +137,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
 
         if (days.length === 0) {
             setIsSubmitting(false);
-            setError('Выберите хотя бы один рабочий день и задайте интервал.');
+            setError(t('selectDayError'));
             return;
         }
 
@@ -142,7 +145,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
             const intervalError = validateIntervals(day.intervals);
             if (intervalError) {
                 setIsSubmitting(false);
-                setError(`${DAYS.find((item) => item.id === day.day)?.label || 'День'}: ${intervalError}`);
+                setError(`${DAYS.find((item) => item.id === day.day)?.label || t('dayFallback')}: ${intervalError}`);
                 return;
             }
         }
@@ -156,11 +159,11 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
 
         if (result.success) {
             setSaved(true);
-            toast.success('Расписание сохранено');
+            toast.success(t('saved'));
             setTimeout(() => setSaved(false), 2500);
         } else {
-            setError(result.error || 'Не удалось сохранить расписание.');
-            toast.error(result.error || 'Не удалось сохранить расписание');
+            setError(result.error || t('saveError'));
+            toast.error(result.error || t('saveErrorShort'));
         }
     };
 
@@ -175,26 +178,26 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
             {saved && (
                 <div className="flex items-center gap-2 border-l-2 border-green-500 px-3 py-2 text-xs text-green-700">
                     <CheckCircle className="h-3.5 w-3.5 flex-shrink-0" />
-                    Расписание сохранено
+                    {t('saved')}
                 </div>
             )}
 
             <div className="border-l-2 border-gray-300 pl-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Пресеты времени</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{t('presets')}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
                     <button
                         type="button"
                         onClick={() => applyPreset('09:00', '18:00')}
                         className="rounded-full border border-gray-300 bg-transparent px-4 py-1.5 text-sm font-medium text-gray-700 hover:border-gray-900 transition-colors"
                     >
-                        Стандарт: 09:00 - 18:00
+                        {t('standardPreset')}
                     </button>
                     <button
                         type="button"
                         onClick={() => applyPreset('10:00', '20:00')}
                         className="rounded-full border border-gray-300 bg-transparent px-4 py-1.5 text-sm font-medium text-gray-700 hover:border-gray-900 transition-colors"
                     >
-                        Вечерний: 10:00 - 20:00
+                        {t('eveningPreset')}
                     </button>
                 </div>
             </div>
@@ -227,7 +230,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                                                     <div className="grid flex-1 grid-cols-2 gap-2">
                                                         <div>
                                                             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                                С
+                                                                {t('from')}
                                                             </label>
                                                             <input
                                                                 type="time"
@@ -239,7 +242,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                                                         </div>
                                                         <div>
                                                             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                                                До
+                                                                {t('to')}
                                                             </label>
                                                             <input
                                                                 type="time"
@@ -256,7 +259,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                                                             type="button"
                                                             onClick={() => removeInterval(day.id, index)}
                                                             className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-300 bg-transparent text-gray-400 transition-colors hover:border-red-500 hover:text-red-500"
-                                                            aria-label="Удалить интервал"
+                                                            aria-label={t('deleteInterval')}
                                                         >
                                                             <X className="h-4 w-4" />
                                                         </button>
@@ -272,11 +275,11 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                                                 className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 transition hover:text-gray-900"
                                             >
                                                 <Plus className="h-4 w-4" />
-                                                Добавить интервал
+                                                {t('addInterval')}
                                             </button>
                                         </>
                                     ) : (
-                                        <p className="pt-2 text-sm text-gray-400">Выходной день</p>
+                                        <p className="pt-2 text-sm text-gray-400">{t('dayOff')}</p>
                                     )}
                                 </div>
                             </div>
@@ -291,7 +294,7 @@ export function WorkingHoursForm({ profileId, initialSchedule }: WorkingHoursFor
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-gray-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-gray-700 disabled:opacity-60"
             >
                 {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Clock3 className="h-4 w-4" />}
-                Сохранить часы работы
+                {t('saveHours')}
             </button>
         </form>
     );

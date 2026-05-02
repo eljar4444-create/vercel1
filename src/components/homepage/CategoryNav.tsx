@@ -1,39 +1,43 @@
 'use client';
 
 import Image from 'next/image';
-
-const CATEGORIES = [
-    {
-        id: 'hair',
-        title: 'ВОЛОСЫ',
-        href: '/search?q=Стрижка',
-        imageSrc: '/categories/cat_hair.png',
-        subServices: ['Окрашивание', 'Стрижка', 'Укладка'],
-    },
-    {
-        id: 'nails',
-        title: 'НОГТИ',
-        href: '/search?q=Маникюр',
-        imageSrc: '/categories/cat_nails.png',
-        subServices: ['Маникюр', 'Педикюр', 'Наращивание'],
-    },
-    {
-        id: 'face',
-        title: 'ЛИЦО',
-        href: '/search?q=Брови',
-        imageSrc: '/categories/cat_face.png',
-        subServices: ['Брови', 'Ресницы', 'Уход за кожей'],
-    },
-    {
-        id: 'body',
-        title: 'ТЕЛО И ОБРАЗ',
-        href: '/search?q=Массаж',
-        imageSrc: '/categories/cat_body.png',
-        subServices: ['Макияж', 'Массаж', 'Депиляция'],
-    },
-];
+import { useTranslations } from 'next-intl';
 
 export default function CategoryNav() {
+    const t = useTranslations('home.categoryNav');
+    const tCat = useTranslations('home.categories');
+
+    const CATEGORIES = [
+        {
+            id: 'hair',
+            title: tCat('hair.title'),
+            href: '/search?q=Стрижка',
+            imageSrc: '/categories/cat_hair.png',
+            subServices: [tCat('hair.service1'), tCat('hair.service2'), tCat('hair.service3')],
+        },
+        {
+            id: 'nails',
+            title: tCat('nails.title'),
+            href: '/search?q=Маникюр',
+            imageSrc: '/categories/cat_nails.png',
+            subServices: [tCat('nails.service1'), tCat('nails.service2'), tCat('nails.service3')],
+        },
+        {
+            id: 'face',
+            title: tCat('face.title'),
+            href: '/search?q=Брови',
+            imageSrc: '/categories/cat_face.png',
+            subServices: [tCat('face.service1'), tCat('face.service2'), tCat('face.service3')],
+        },
+        {
+            id: 'body',
+            title: tCat('body.title'),
+            href: '/search?q=Массаж',
+            imageSrc: '/categories/cat_body.png',
+            subServices: [tCat('body.service1'), tCat('body.service2'), tCat('body.service3')],
+        },
+    ];
+
     const handleFastTravel = (text: string) => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         const event = new CustomEvent('smart-search-trigger', { detail: { service: text } });
@@ -46,16 +50,16 @@ export default function CategoryNav() {
                 {/* Section Header */}
                 <div className="flex flex-col items-center text-center mb-16 relative">
                     <span className="text-xs font-bold uppercase tracking-[0.2em] text-booking-primary mb-3 block">
-                        Откройте для себя
+                        {t('eyebrow')}
                     </span>
                     <h2 className="text-4xl md:text-5xl font-bold tracking-tighter text-booking-textMain">
-                        Популярные услуги
+                        {t('title')}
                     </h2>
                     <a
                         href="/search"
                         className="hidden md:block absolute right-0 bottom-2 border-b-2 border-booking-primary pb-1 text-xs font-bold uppercase tracking-widest text-booking-textMain hover:text-booking-primary transition-colors"
                     >
-                        Все категории
+                        {t('allCategories')}
                     </a>
                 </div>
 

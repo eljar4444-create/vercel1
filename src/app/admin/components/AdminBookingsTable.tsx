@@ -1,8 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
 import {
     Table,
     TableBody,
@@ -17,6 +14,7 @@ import {
     AvatarImage,
 } from "@/components/ui/avatar";
 import { Calendar, Clock, DollarSign, BookOpen } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 type AugmentedBooking = any;
 
@@ -30,13 +28,31 @@ function getInitials(name: string | null | undefined): string {
         .slice(0, 2);
 }
 
+function statusLabel(t: ReturnType<typeof useTranslations<"dashboard.admin.bookingsTable">>, status: string) {
+    switch (status) {
+        case "PENDING":
+            return t("status.pending");
+        case "CONFIRMED":
+            return t("status.confirmed");
+        case "COMPLETED":
+            return t("status.completed");
+        case "CANCELED":
+            return t("status.cancelled");
+        case "NO_SHOW":
+            return t("status.noShow");
+        default:
+            return status;
+    }
+}
+
 function StatusBadge({ status }: { status: string }) {
+    const t = useTranslations("dashboard.admin.bookingsTable");
     const statusMap: Record<string, { label: string; classes: string }> = {
-        PENDING: { label: "Ожидает", classes: "bg-yellow-50 text-yellow-700 border border-yellow-200" },
-        CONFIRMED: { label: "Подтверждено", classes: "bg-blue-50 text-blue-700 border border-blue-200" },
-        COMPLETED: { label: "Завершено", classes: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
-        CANCELED: { label: "Отменено", classes: "bg-red-50 text-red-700 border border-red-200" },
-        NO_SHOW: { label: "Не пришёл", classes: "bg-slate-50 text-slate-600 border border-slate-200" },
+        PENDING: { label: statusLabel(t, "PENDING"), classes: "bg-yellow-50 text-yellow-700 border border-yellow-200" },
+        CONFIRMED: { label: statusLabel(t, "CONFIRMED"), classes: "bg-blue-50 text-blue-700 border border-blue-200" },
+        COMPLETED: { label: statusLabel(t, "COMPLETED"), classes: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+        CANCELED: { label: statusLabel(t, "CANCELED"), classes: "bg-red-50 text-red-700 border border-red-200" },
+        NO_SHOW: { label: statusLabel(t, "NO_SHOW"), classes: "bg-slate-50 text-slate-600 border border-slate-200" },
     };
 
     const config = statusMap[status] || { label: status, classes: "bg-gray-50 text-gray-700 border border-gray-200" };
@@ -49,28 +65,36 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function AdminBookingsTable({ bookings }: { bookings: AugmentedBooking[] }) {
+    const t = useTranslations("dashboard.admin.bookingsTable");
+    const locale = useLocale();
+    const dateFormatter = new Intl.DateTimeFormat(locale, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+
     return (
         <div className="overflow-x-auto rounded-xl">
             <Table>
                 <TableHeader>
                     <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-100">
                         <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Дата / Время
+                            {t("columns.dateTime")}
                         </TableHead>
                         <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Услуга
+                            {t("columns.service")}
                         </TableHead>
                         <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Клиент
+                            {t("columns.client")}
                         </TableHead>
                         <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Мастер
+                            {t("columns.provider")}
                         </TableHead>
                         <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Сумма
+                            {t("columns.amount")}
                         </TableHead>
                         <TableHead className="py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Статус
+                            {t("columns.status")}
                         </TableHead>
                     </TableRow>
                 </TableHeader>
@@ -79,15 +103,15 @@ export default function AdminBookingsTable({ bookings }: { bookings: AugmentedBo
                         <TableRow>
                             <TableCell colSpan={6} className="py-12 text-center text-gray-400">
                                 <BookOpen className="mx-auto mb-2 h-8 w-8 text-gray-200" />
-                                Нет записей
+                                {t("empty")}
                             </TableCell>
                         </TableRow>
                     ) : (
                         bookings.map((booking) => {
                             const clientAvatar = booking.user?.image;
-                            const clientName = booking.user_name || booking.user?.name || "Без имени";
+                            const clientName = booking.user_name || booking.user?.name || t("unnamed");
                             const masterAvatar = booking.profile?.image_url || booking.profile?.user?.image;
-                            const masterName = booking.profile?.name || "Без имени";
+                            const masterName = booking.profile?.name || t("unnamed");
 
                             return (
                                 <TableRow
@@ -98,7 +122,7 @@ export default function AdminBookingsTable({ bookings }: { bookings: AugmentedBo
                                         <div className="flex flex-col gap-1">
                                             <div className="flex items-center gap-1.5 text-sm font-medium text-gray-900">
                                                 <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                                                {format(new Date(booking.date), "dd MMM yyyy", { locale: ru })}
+                                                {dateFormatter.format(new Date(booking.date))}
                                             </div>
                                             <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                                 <Clock className="h-3 w-3 text-gray-400" />
@@ -109,7 +133,7 @@ export default function AdminBookingsTable({ bookings }: { bookings: AugmentedBo
 
                                     <TableCell className="py-3.5">
                                         <div className="font-medium text-gray-900 text-sm">
-                                            {booking.service?.title || "Услуга удалена"}
+                                            {booking.service?.title || t("serviceDeleted")}
                                         </div>
                                     </TableCell>
 

@@ -7,28 +7,24 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { signOut } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 import {
     AvatarDropdown,
     getContinueOnboardingHref,
-    getRoleLabel,
     hasIncompleteProviderOnboarding,
+    useRoleLabel,
 } from '@/components/AvatarDropdown';
 import { Menu, X, MessageCircle, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { SearchFiltersForm } from '@/components/search/SearchFiltersForm';
 
-const QUICK_BEAUTY_LINKS = [
-    { label: 'Услуги', href: '/#services' },
-    { label: 'Мастера', href: '/#masters' },
-    { label: 'О нас', href: '/about' },
-];
-
 type HeaderProps = {
     variant?: 'default' | 'minimal';
 };
 
 export function Header({ variant = 'default' }: HeaderProps) {
+    const t = useTranslations('header');
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const { data: session } = useSession(); // removed status
@@ -50,6 +46,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
     const user = session?.user;
     const hasIncompleteOnboarding = hasIncompleteProviderOnboarding(user);
     const continueOnboardingHref = getContinueOnboardingHref(user);
+    const roleLabel = useRoleLabel(user);
     const initials =
         user?.name
             ?.split(' ')
@@ -58,13 +55,13 @@ export function Header({ variant = 'default' }: HeaderProps) {
             .slice(0, 2)
             .toUpperCase() || 'U';
 
+    const quickBeautyLinks = [
+        { label: t('nav.services'), href: '/#services' },
+        { label: t('nav.masters'), href: '/#masters' },
+        { label: t('nav.about'), href: '/about' },
+    ];
 
     if (isAuthPage || isBecomeProPage) return null;
-
-    // REUSABLE AVATAR DROPDOWN
-    // ... (Avatar render logic can stay, but need to check if AvatarDropdown uses legacy stuff)
-    // Actually, AvatarDropdown is imported, let's keep using it if it's safe.
-
 
     const isHomepage = pathname === '/';
 
@@ -112,9 +109,9 @@ export function Header({ variant = 'default' }: HeaderProps) {
                     <nav className={cn(
                         "hidden lg:flex items-center shrink-0 gap-10"
                     )}>
-                        {QUICK_BEAUTY_LINKS.map((item) => (
+                        {quickBeautyLinks.map((item) => (
                             <Link
-                                key={item.label}
+                                key={item.href}
                                 href={item.href}
                                 className="text-xs uppercase tracking-widest font-semibold transition-colors duration-300 whitespace-nowrap text-white/70 hover:text-white"
                             >
@@ -132,7 +129,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                 href="/auth/login"
                                 className="inline-flex h-9 items-center rounded-xl px-3 text-sm font-medium text-gray-400 transition-colors hover:text-white whitespace-nowrap"
                             >
-                                Войти
+                                {t('login')}
                             </Link>
                         </div>
                     ) : user ? (
@@ -140,7 +137,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                             {!isOnboardingPage ? (
                                 <Link
                                     href="/chat"
-                                    aria-label="Открыть чат"
+                                    aria-label={t('openChat')}
                                     className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/20"
                                 >
                                     <MessageCircle className="h-4 w-4" />
@@ -154,13 +151,13 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                 href="/auth/login"
                                 className="text-xs uppercase tracking-widest font-semibold transition-all whitespace-nowrap text-gray-400 hover:text-white"
                             >
-                                Войти
+                                {t('login')}
                             </Link>
                             <Link
                                 href="/become-pro"
                                 className="px-6 py-2.5 rounded-md text-xs uppercase tracking-widest font-bold transition-all whitespace-nowrap bg-booking-primary text-white hover:brightness-110"
                             >
-                                Стать мастером
+                                {t('becomePro')}
                             </Link>
                         </div>
                     )}
@@ -168,7 +165,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                     {!isMinimal && !isOnboardingPage ? (
                         <button
                             type="button"
-                            aria-label={mobileMenuOpen ? 'Закрыть меню' : 'Открыть меню'}
+                            aria-label={mobileMenuOpen ? t('closeMenu') : t('openMenu')}
                             onClick={() => setMobileMenuOpen((prev) => !prev)}
                             className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/20 text-white transition-colors hover:bg-white/10 lg:hidden"
                         >
@@ -186,7 +183,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                             onClick={() => setMobileMenuOpen(false)}
                             className="block rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white"
                         >
-                            Поиск
+                            {t('search')}
                         </Link>
                         {!user && (
                             <Link
@@ -194,7 +191,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                 onClick={() => setMobileMenuOpen(false)}
                                 className="block rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white"
                             >
-                                Для мастеров
+                                {t('forMasters')}
                             </Link>
                         )}
                         {user && (
@@ -204,7 +201,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                 className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white"
                             >
                                 <MessageCircle className="h-4 w-4 text-gray-500" />
-                                Чат
+                                {t('chat')}
                             </Link>
                         )}
 
@@ -220,11 +217,11 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-semibold text-white">{user.name || 'Пользователь'}</p>
-                                        <p className="truncate text-xs text-gray-500">{user.email || 'Без email'}</p>
+                                        <p className="truncate text-sm font-semibold text-white">{user.name || t('userFallback')}</p>
+                                        <p className="truncate text-xs text-gray-500">{user.email || t('noEmail')}</p>
                                     </div>
                                     <Badge variant="outline" className="border-white/20 bg-white/5 text-[10px] font-medium text-gray-400">
-                                        {getRoleLabel(user)}
+                                        {roleLabel}
                                     </Badge>
                                 </div>
 
@@ -234,7 +231,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="block rounded-md bg-white/5 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white"
                                     >
-                                        Продолжить настройку профиля
+                                        {t('continueOnboarding')}
                                     </Link>
                                 )}
                                 {user.role === 'ADMIN' && (
@@ -243,7 +240,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="block rounded-md px-3 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white"
                                     >
-                                        Панель управления
+                                        {t('adminPanel')}
                                     </Link>
                                 )}
                                 {user.profileId && !hasIncompleteOnboarding && (
@@ -252,7 +249,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="block rounded-md px-3 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white"
                                     >
-                                        Кабинет мастера
+                                        {t('masterCabinet')}
                                     </Link>
                                 )}
                                 {(!user.profileId || hasIncompleteOnboarding) && user.role !== 'ADMIN' && (
@@ -261,7 +258,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="block rounded-md px-3 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white"
                                     >
-                                        Мой кабинет
+                                        {t('myCabinet')}
                                     </Link>
                                 )}
                                 <Link
@@ -269,7 +266,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="block rounded-md px-3 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white"
                                 >
-                                    Настройки аккаунта
+                                    {t('accountSettings')}
                                 </Link>
 
                                 <button
@@ -281,7 +278,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                     className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-400 hover:bg-red-900/20"
                                 >
                                     <LogOut className="h-4 w-4" />
-                                    Выйти
+                                    {t('logout')}
                                 </button>
                             </div>
                         ) : (
@@ -291,7 +288,7 @@ export function Header({ variant = 'default' }: HeaderProps) {
                                     onClick={() => setMobileMenuOpen(false)}
                                     className="flex w-full items-center justify-center h-10 rounded-xl bg-white/10 border border-white/20 text-sm font-medium text-white transition-colors hover:bg-white/20"
                                 >
-                                    Для клиента
+                                    {t('forClient')}
                                 </Link>
                             </div>
                         )}

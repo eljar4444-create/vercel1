@@ -3,7 +3,6 @@
 
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
 import { CalendarDays, Loader2, MessageSquare, Send, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import {
     sendMessage,
 } from '@/app/actions/chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useLocale, useTranslations } from 'next-intl';
 
 type ConversationItem = {
     id: string;
@@ -63,12 +63,21 @@ function getInitials(name?: string | null) {
     return parts.slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || 'U';
 }
 
+function formatBookingDate(date: string, locale: string) {
+    return new Intl.DateTimeFormat(locale, {
+        day: 'numeric',
+        month: 'long',
+    }).format(new Date(date));
+}
+
 export function MessengerClient({
     initialConversations,
     initialConversationId,
     currentUserId,
     initialBookingContext,
 }: MessengerClientProps) {
+    const t = useTranslations('dashboard.chat');
+    const locale = useLocale();
     const [conversations, setConversations] = useState(initialConversations);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
         initialConversationId || initialConversations[0]?.id || null
@@ -165,21 +174,21 @@ export function MessengerClient({
 
         if (bookingContext.status === 'CONFIRMED') {
             return {
-                label: 'Подтверждено',
+                label: t('status.confirmed'),
                 className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
             };
         }
 
         if (bookingContext.status === 'PENDING') {
             return {
-                label: 'Ожидает подтверждения',
+                label: t('status.pending'),
                 className: 'border-amber-200 bg-amber-50 text-amber-700',
             };
         }
 
         if (bookingContext.status === 'CANCELED') {
             return {
-                label: 'Отменено',
+                label: t('status.cancelled'),
                 className: 'border-rose-200 bg-rose-50 text-rose-700',
             };
         }
@@ -188,22 +197,22 @@ export function MessengerClient({
             label: bookingContext.status,
             className: 'border-slate-200 bg-slate-100 text-slate-700',
         };
-    }, [bookingContext]);
+    }, [bookingContext, t]);
 
     return (
         <div className="min-h-[calc(100dvh-80px)] bg-transparent px-4 py-6 md:px-6 md:py-8">
             <div className="mx-auto flex min-h-[calc(100dvh-128px)] w-full max-w-6xl flex-col gap-5 lg:max-h-[780px] lg:flex-row">
                 <aside className="flex w-full shrink-0 flex-col overflow-hidden rounded-[28px] border border-stone-200/80 bg-[rgba(245,242,235,0.78)] backdrop-blur-sm lg:min-h-0 lg:w-[320px] xl:w-[348px]">
                     <div className="border-b border-stone-200 px-5 py-5">
-                        <h2 className="text-lg font-bold text-stone-900">Чаты</h2>
-                        <p className="text-xs text-stone-500">Личные сообщения с клиентами и мастерами</p>
+                        <h2 className="text-lg font-bold text-stone-900">{t('title')}</h2>
+                        <p className="text-xs text-stone-500">{t('subtitle')}</p>
                     </div>
 
                     <div className="min-h-0 flex-1 overflow-y-auto">
                         {conversations.length === 0 ? (
                             <div className="p-8 text-center text-stone-500">
                                 <MessageSquare className="mx-auto mb-2 h-10 w-10 text-stone-300" />
-                                <p className="text-sm">Диалогов пока нет</p>
+                                <p className="text-sm">{t('emptyConversations')}</p>
                             </div>
                         ) : (
                             <div>
@@ -225,7 +234,7 @@ export function MessengerClient({
                                             {conversation.interlocutor.image ? (
                                                 <img
                                                     src={conversation.interlocutor.image}
-                                                    alt={conversation.interlocutor.name || 'User'}
+                                                    alt={conversation.interlocutor.name || t('userFallback')}
                                                     className="h-9 w-9 rounded-full object-cover"
                                                 />
                                             ) : (
@@ -239,7 +248,7 @@ export function MessengerClient({
                                                         conversation.unreadCount > 0 ? 'font-semibold' : 'font-medium'
                                                     )}
                                                 >
-                                                        {conversation.interlocutor.name || 'Собеседник'}
+                                                        {conversation.interlocutor.name || t('interlocutorFallback')}
                                                     </p>
                                                 <div className="flex items-center gap-2">
                                                     {conversation.unreadCount > 0 && (
@@ -248,7 +257,7 @@ export function MessengerClient({
                                                         </span>
                                                     )}
                                                     <span className="text-[10px] text-stone-400">
-                                                        {format(new Date(conversation.lastMessageAt), 'HH:mm', { locale: ru })}
+                                                        {format(new Date(conversation.lastMessageAt), 'HH:mm')}
                                                     </span>
                                                 </div>
                                                 </div>
@@ -269,15 +278,15 @@ export function MessengerClient({
                                 <Avatar className="h-9 w-9">
                                     <AvatarImage
                                         src={selectedConversation.interlocutor.image || undefined}
-                                        alt={selectedConversation.interlocutor.name || 'Собеседник'}
+                                        alt={selectedConversation.interlocutor.name || t('interlocutorFallback')}
                                     />
                                     <AvatarFallback>{getInitials(selectedConversation.interlocutor.name)}</AvatarFallback>
                                 </Avatar>
                                 <div className="min-w-0">
                                     <p className="truncate text-sm font-semibold text-stone-900">
-                                        {selectedConversation.interlocutor.name || 'Собеседник'}
+                                        {selectedConversation.interlocutor.name || t('interlocutorFallback')}
                                     </p>
-                                    <p className="truncate text-xs text-stone-500">{selectedConversation.interlocutor.subtitle || 'Диалог'}</p>
+                                    <p className="truncate text-xs text-stone-500">{selectedConversation.interlocutor.subtitle || t('dialogFallback')}</p>
                                 </div>
                             </div>
 
@@ -288,7 +297,7 @@ export function MessengerClient({
                                             <p className="flex items-center gap-2 truncate font-medium text-stone-800">
                                                 <CalendarDays className="h-4 w-4 shrink-0 text-stone-500" />
                                                 <span className="truncate">
-                                                    {bookingContext.serviceTitle} • {format(new Date(bookingContext.date), 'd MMMM', { locale: ru })} в {bookingContext.time}
+                                                    {bookingContext.serviceTitle} • {t('bookingDateTime', { date: formatBookingDate(bookingContext.date, locale), time: bookingContext.time })}
                                                 </span>
                                             </p>
                                         </div>
@@ -299,7 +308,7 @@ export function MessengerClient({
                                         ) : null}
                                     </>
                                 ) : (
-                                    <p className="text-xs text-stone-500">Нет связанной записи для этого диалога</p>
+                                    <p className="text-xs text-stone-500">{t('noBooking')}</p>
                                 )}
                             </div>
 
@@ -310,7 +319,7 @@ export function MessengerClient({
                                     </div>
                                 ) : messages.length === 0 ? (
                                     <div className="flex h-full items-center justify-center text-sm text-stone-500">
-                                        Начните диалог первым сообщением
+                                        {t('emptyMessages')}
                                     </div>
                                 ) : (
                                     <div className="space-y-3.5">
@@ -328,7 +337,7 @@ export function MessengerClient({
                                                     >
                                                         <p className="whitespace-pre-wrap break-words">{message.content}</p>
                                                         <p className="mt-1.5 text-xs text-stone-500/80">
-                                                            {format(new Date(message.createdAt), 'dd.MM HH:mm', { locale: ru })}
+                                                            {format(new Date(message.createdAt), 'dd.MM HH:mm')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -343,7 +352,7 @@ export function MessengerClient({
                                     <input
                                         value={newMessage}
                                         onChange={(event) => setNewMessage(event.target.value)}
-                                        placeholder="Введите сообщение..."
+                                        placeholder={t('messagePlaceholder')}
                                         className="h-11 flex-1 rounded-full border border-stone-200 bg-transparent px-4 text-sm text-stone-900 outline-none transition placeholder:text-stone-400 focus:border-stone-400"
                                     />
                                     <Button
@@ -358,7 +367,7 @@ export function MessengerClient({
                         </>
                     ) : (
                         <div className="flex h-full items-center justify-center px-6 text-center text-stone-500">
-                            Выберите диалог слева
+                            {t('selectDialog')}
                         </div>
                     )}
                 </section>

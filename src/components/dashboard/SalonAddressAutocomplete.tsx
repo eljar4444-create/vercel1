@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, Loader2, Lock, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 const MIN_QUERY_LENGTH = 3;
 
@@ -34,6 +35,7 @@ export function SalonAddressAutocomplete({
     onSuggestionSelect,
     className,
 }: SalonAddressAutocompleteProps) {
+    const t = useTranslations('dashboard.provider.addressAutocomplete');
     const wrapperRef = useRef<HTMLDivElement>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -68,7 +70,7 @@ export function SalonAddressAutocomplete({
         if (!selectedCity) {
             setIsLoading(false);
             setResults([]);
-            setSearchError('Сначала выберите город.');
+            setSearchError(t('cityRequired'));
             return;
         }
 
@@ -107,7 +109,7 @@ export function SalonAddressAutocomplete({
 
                 console.error('[SalonAddressAutocomplete] search failed:', error);
                 setResults([]);
-                setSearchError('Не удалось загрузить адреса. Попробуйте еще раз.');
+                setSearchError(t('loadError'));
                 setIsLoading(false);
             } finally {
                 setIsLoading(false);
@@ -118,7 +120,7 @@ export function SalonAddressAutocomplete({
             controller.abort();
             window.clearTimeout(timeoutId);
         };
-    }, [city, disabled, isOpen, value]);
+    }, [city, disabled, isOpen, t, value]);
 
     const query = value.trim();
     const showDropdown = !disabled && isOpen && Boolean(query);
@@ -137,7 +139,7 @@ export function SalonAddressAutocomplete({
                     if (!disabled) setIsOpen(true);
                 }}
                 disabled={disabled}
-                placeholder="Начните вводить улицу и номер дома"
+                placeholder={t('placeholder')}
                 autoComplete="off"
                 className={cn('h-10 bg-gray-50 pr-10 text-sm', className)}
             />
@@ -158,7 +160,7 @@ export function SalonAddressAutocomplete({
                 <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
                     {showMinLengthHint ? (
                         <div className="px-3 py-3 text-sm text-gray-500">
-                            Введите минимум 3 символа для поиска адреса.
+                            {t('minLength')}
                         </div>
                     ) : null}
 
@@ -170,7 +172,7 @@ export function SalonAddressAutocomplete({
 
                     {!showMinLengthHint && !searchError && !isLoading && results.length === 0 ? (
                         <div className="px-3 py-3 text-sm text-gray-500">
-                            Адреса не найдены. Уточните улицу или номер дома.
+                            {t('notFound')}
                         </div>
                     ) : null}
 

@@ -2,8 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMemo } from 'react';
-
-const DAY_LABEL_FORMATTER = new Intl.DateTimeFormat('ru-RU', { weekday: 'short' });
+import { useLocale, useTranslations } from 'next-intl';
 
 export function DateScroll({
     weekStart,
@@ -22,6 +21,12 @@ export function DateScroll({
     onNextWeek: () => void;
     today: Date;
 }) {
+    const locale = useLocale();
+    const t = useTranslations('booking');
+    const dayLabelFormatter = useMemo(
+        () => new Intl.DateTimeFormat(locale, { weekday: 'short' }),
+        [locale]
+    );
     const weekDates = useMemo(() => {
         return Array.from({ length: 7 }, (_, i) => {
             const d = new Date(weekStart);
@@ -37,13 +42,13 @@ export function DateScroll({
         return `${y}-${m}-${day}`;
     };
 
-    const monthName = weekStart.toLocaleString('ru-RU', { month: 'long', year: 'numeric' });
+    const monthName = weekStart.toLocaleString(locale, { month: 'long', year: 'numeric' });
     const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
     return (
         <section className="mb-8">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-booking-textMuted mb-4">
-                Дата
+                {t('date.title')}
             </h2>
 
             <div className="rounded-2xl border border-booking-border bg-white p-5 sm:p-6">
@@ -55,7 +60,7 @@ export function DateScroll({
                             onClick={onPrevWeek}
                             disabled={weekStart <= today}
                             className="h-9 w-9 flex items-center justify-center rounded-lg border border-booking-border text-booking-textMain transition-colors hover:bg-booking-bg disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                            aria-label="Предыдущая неделя"
+                            aria-label={t('date.prevWeek')}
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </button>
@@ -63,7 +68,7 @@ export function DateScroll({
                             type="button"
                             onClick={onNextWeek}
                             className="h-9 w-9 flex items-center justify-center rounded-lg border border-booking-border text-booking-textMain transition-colors hover:bg-booking-bg"
-                            aria-label="Следующая неделя"
+                            aria-label={t('date.nextWeek')}
                         >
                             <ChevronRight className="w-4 h-4" />
                         </button>
@@ -76,7 +81,7 @@ export function DateScroll({
                             key={'header-' + day.toISOString()}
                             className="text-center text-[11px] font-medium text-booking-textMuted uppercase tracking-wider pb-2"
                         >
-                            {DAY_LABEL_FORMATTER.format(day)}
+                            {dayLabelFormatter.format(day)}
                         </div>
                     ))}
 

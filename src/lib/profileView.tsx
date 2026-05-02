@@ -6,6 +6,9 @@ import { GERMAN_CITIES } from '@/constants/germanCities';
 import { ProfileClient } from '@/components/ProfileClient';
 import { parseSchedule } from '@/lib/scheduling';
 import { LANGUAGES, normalizeProviderLanguage } from '@/lib/provider-languages';
+import { getTranslations, getLocale } from 'next-intl/server';
+import { absoluteUrlForLocale, resolveLocale } from '@/i18n/canonical';
+import { localizeCategoryName, localizeProfileBio, localizeService } from '@/lib/localized';
 
 const SCHEMA_DAY_NAMES = [
     'Sunday',
@@ -67,6 +70,12 @@ const PROFILE_VIEW_SELECT = {
     gallery: true,
     studioImages: true,
     bio: true,
+    translations: {
+        select: {
+            locale: true,
+            bio: true,
+        },
+    },
     phone: true,
     latitude: true,
     longitude: true,
@@ -75,12 +84,26 @@ const PROFILE_VIEW_SELECT = {
     attributes: true,
     schedule: true,
     status: true,
-    category: { select: { id: true, name: true, slug: true } },
+    category: {
+        select: {
+            id: true,
+            name: true,
+            slug: true,
+            translations: { select: { locale: true, name: true } },
+        },
+    },
     services: {
         select: {
             id: true,
             title: true,
             description: true,
+            translations: {
+                select: {
+                    locale: true,
+                    title: true,
+                    description: true,
+                },
+            },
             images: true,
             price: true,
             duration_min: true,
@@ -172,8 +195,13 @@ export async function PublicProfileView({
     const averageRating = reviewStats._avg.rating ? Number(reviewStats._avg.rating.toFixed(1)) : 5.0;
     const reviewCount = reviewStats._count.id || 0;
 
-    const services = profile.services || [];
-    const topService = services.length > 0 ? services[0].title : profile.category?.name || 'Мастер красоты';
+    const t = await getTranslations('salon');
+    const locale = resolveLocale(await getLocale());
+
+    const services = (profile.services || []).map((service) => localizeService(service, locale));
+    const localizedCategoryName = profile.category ? localizeCategoryName(profile.category, locale) : null;
+    const localizedBio = localizeProfileBio(profile, locale);
+    const topService = services.length > 0 ? services[0].title : localizedCategoryName || t('fallback.topService');
     const prices = services.map((s) => Number(s.price)).filter((p) => Number.isFinite(p) && p > 0);
     const minPrice = prices.length > 0 ? Math.min(...prices) : undefined;
     const maxPrice = prices.length > 0 ? Math.max(...prices) : undefined;
@@ -181,7 +209,7 @@ export async function PublicProfileView({
         minPrice !== undefined && maxPrice !== undefined
             ? `€${minPrice.toFixed(0)} - €${maxPrice.toFixed(0)}`
             : null;
-    const bioText = (profile.bio || '').trim();
+    const bioText = (localizedBio || '').trim();
 
     const schemaType: string | string[] =
         profile.provider_type === 'SALON'
@@ -220,7 +248,7 @@ export async function PublicProfileView({
         ...(services.length > 0 && {
             hasOfferCatalog: {
                 '@type': 'OfferCatalog',
-                name: 'Услуги',
+                name: t('jsonLd.offerCatalogName'),
                 itemListElement: services
                     .map((s) => ({
                         '@type': 'Offer',
@@ -236,7 +264,7 @@ export async function PublicProfileView({
             latitude: mapCoordinates.lat,
             longitude: mapCoordinates.lng,
         },
-        url: `https://www.svoi.de/salon/${profile.slug}`,
+        url: absoluteUrlForLocale(locale, `/salon/${profile.slug}`),
     };
 
     const serialized = {
@@ -252,7 +280,7 @@ export async function PublicProfileView({
             ...(profile.photos?.map((p) => p.url) ?? []),
             ...(profile.studioImages ?? []),
         ],
-        bio: profile.bio,
+        bio: localizedBio,
         phone: profile.phone,
         languages: profileLanguages,
         is_verified: profile.is_verified,
@@ -264,9 +292,9 @@ export async function PublicProfileView({
         longitude: mapCoordinates.lng,
         attributes: profile.attributes,
         category: profile.category
-            ? { id: profile.category.id, name: profile.category.name, slug: profile.category.slug }
+            ? { id: profile.category.id, name: localizedCategoryName ?? profile.category.name, slug: profile.category.slug }
             : null,
-        services: profile.services.map((s) => ({
+        services: services.map((s) => ({
             id: s.id,
             title: s.title,
             description: s.description,
@@ -284,7 +312,7 @@ export async function PublicProfileView({
                 rating: r.rating,
                 createdAt:
                     r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
-                clientName: r.client?.name ?? 'Клиент',
+                clientName: r.client?.name ?? t('fallback.clientName'),
             })) ?? [],
         staff:
             profile.staff?.map((s) => ({
@@ -303,7 +331,7 @@ export async function PublicProfileView({
         <>
             {isPreview && (
                 <div className="sticky top-0 z-50 w-full bg-amber-100 border-b border-amber-300 px-4 py-2.5 text-center text-sm text-amber-900 shadow-sm">
-                    Это режим предпросмотра. Клиенты видят вашу опубликованную версию по основной ссылке.
+                    {t('preview.banner')}
                 </div>
             )}
             {!isPreview && (

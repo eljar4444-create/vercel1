@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Star, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { LiveQuickSlots } from '@/components/search/LiveQuickSlots';
 import { FavoriteButton } from '@/components/client/FavoriteButton';
 import type { QuickSlotsResponse } from '@/app/actions/getQuickSlots';
@@ -23,6 +24,7 @@ interface SearchResultListItemProps {
         city: string;
         address?: string | null;
         image_url?: string | null;
+        gallery?: string[];
         services: SearchResultService[];
     };
     initialIsFavorited?: boolean;
@@ -48,6 +50,8 @@ export function SearchResultListItem({
     prefetchedSlots,
     priority = false,
 }: SearchResultListItemProps) {
+    const t = useTranslations('search');
+    const tSalon = useTranslations('salon');
     const isSalonView = (profileType ?? (profile.provider_type === 'SALON' ? 'SALON' : 'FREELANCER')) === 'SALON';
     const visibleAddress = profile.provider_type === 'SALON'
         ? [profile.address, profile.city].filter(Boolean).join(', ')
@@ -61,8 +65,8 @@ export function SearchResultListItem({
     const primaryService = profile.services[0];
     const profileHref = `/salon/${profile.slug}`;
     const titleSuffix = primaryService
-        ? ` — ${primaryService.title} в ${profile.city}`
-        : ` в ${profile.city}`;
+        ? t('titleSuffixWithService', { service: primaryService.title, city: profile.city })
+        : t('titleSuffixCity', { city: profile.city });
 
     return (
         <article
@@ -72,28 +76,34 @@ export function SearchResultListItem({
         >
             {/* ── Left: Photo ───────────────────────────────────── */}
             <div className={`relative shrink-0 overflow-hidden rounded-xl ${imageWrapperClass}`}>
-                <Link href={profileHref} className="block h-full w-full" aria-label={`Открыть профиль ${profile.name}`}>
+                <Link href={profileHref} className="block h-full w-full" aria-label={t('openProfileAria', { name: profile.name, titleSuffix: '' })}>
                     <FavoriteButton
                         providerProfileId={profile.id}
                         initialIsFavorited={initialIsFavorited}
                         variant="card"
                     />
-                    {profile.image_url ? (
-                        <Image
-                            src={profile.image_url}
-                            alt={`${profile.name} — мастер в ${profile.city}`}
-                            fill
-                            sizes={isSalonView ? '(max-width: 640px) 100vw, 16rem' : '(max-width: 640px) 100vw, 11rem'}
-                            priority={priority}
-                            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                        />
-                    ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1a2e25] via-[#0f1f18] to-[#0a1812]">
-                            <span className="text-3xl font-serif font-medium tracking-wide text-[#C29F52]">
-                                {initials || 'M'}
-                            </span>
-                        </div>
-                    )}
+                    {(() => {
+                        const displayImage = isSalonView && profile.gallery && profile.gallery.length > 0
+                            ? profile.gallery[0]
+                            : profile.image_url;
+                            
+                        return displayImage ? (
+                            <Image
+                                src={displayImage}
+                                alt={t('imageAlt', { name: profile.name, city: profile.city })}
+                                fill
+                                sizes={isSalonView ? '(max-width: 640px) 100vw, 16rem' : '(max-width: 640px) 100vw, 11rem'}
+                                priority={priority}
+                                className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                            />
+                        ) : (
+                            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#1a2e25] via-[#0f1f18] to-[#0a1812]">
+                                <span className="text-3xl font-serif font-medium tracking-wide text-[#C29F52]">
+                                    {initials || 'M'}
+                                </span>
+                            </div>
+                        );
+                    })()}
                 </Link>
             </div>
 
@@ -115,7 +125,7 @@ export function SearchResultListItem({
                     </div>
                     <div
                         className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700"
-                        aria-label="Рейтинг 5.0"
+                        aria-label={t('ratingAria', { rating: '5.0' })}
                     >
                         <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                         5.0
@@ -129,7 +139,7 @@ export function SearchResultListItem({
                             <div key={service.id}>
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="font-medium text-sm text-gray-900 truncate">{service.title}</span>
-                                    <span className="text-gray-400 text-xs shrink-0">• {service.duration_min} мин</span>
+                                    <span className="text-gray-400 text-xs shrink-0">• {tSalon('service.durationMin', { count: service.duration_min })}</span>
                                 </div>
                                 <LiveQuickSlots
                                     profileId={profile.id}
@@ -150,7 +160,7 @@ export function SearchResultListItem({
                             href={profileHref}
                             className="text-[13px] font-medium text-gray-500 hover:text-gray-900 transition-colors flex items-center gap-1"
                         >
-                            смотреть другие услуги <span className="text-lg leading-none">↗</span>
+                            {t('seeOtherServices')} <span className="text-lg leading-none">↗</span>
                         </Link>
                     </div>
                 )}
@@ -161,14 +171,14 @@ export function SearchResultListItem({
                 <Link
                     href={profileHref}
                     className="hidden sm:flex flex-col items-end justify-center shrink-0 w-28 border-l border-gray-300/50 pl-4 ml-2"
-                    aria-label={`Открыть профиль ${profile.name}${titleSuffix}`}
+                    aria-label={t('openProfileAria', { name: profile.name, titleSuffix })}
                 >
-                    <span className="block text-[11px] uppercase tracking-wider text-stone-400">от</span>
+                    <span className="block text-[11px] uppercase tracking-wider text-stone-400">{t('fromPrice')}</span>
                     <span className="block text-2xl font-bold text-gray-900 leading-none mt-0.5">
                         €{primaryService.price}
                     </span>
                     <span className="mt-3 inline-flex items-center gap-0.5 text-sm font-medium text-yellow-700 hover:text-yellow-800 transition-colors">
-                        В профиль
+                        {t('toProfile')}
                         <ChevronRight className="h-4 w-4" />
                     </span>
                 </Link>

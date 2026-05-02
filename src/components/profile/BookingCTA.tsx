@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -44,13 +45,15 @@ export function BookingCTA({
     serviceId,
     staffId,
     specialistCount = 0,
-    label = 'Записаться',
+    label,
     size = 'md',
     onBeforeBook,
     onSelectSpecialist,
     className = '',
 }: BookingCTAProps) {
     const router = useRouter();
+    const t = useTranslations('salon');
+    const resolvedLabel = label ?? t('bookingCta.defaultLabel');
 
     const handleClick = useCallback(() => {
         if (onBeforeBook) {
@@ -83,7 +86,7 @@ export function BookingCTA({
             onClick={handleClick}
             className={`rounded-full bg-booking-primary font-medium text-white shadow-soft-out transition-all hover:bg-booking-primaryHover active:scale-95 ${sizeClasses[size]} ${className}`}
         >
-            {label}
+            {resolvedLabel}
         </button>
     );
 }

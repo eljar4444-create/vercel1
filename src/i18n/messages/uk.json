@@ -1,0 +1,1833 @@
+{
+    "common": {
+        "home": "Головна",
+        "back": "Назад",
+        "backToHome": "На головну",
+        "navigation": "Навігація",
+        "search": "Пошук",
+        "searchAcrossGermany": "Шукати по всій Німеччині",
+        "loading": "Завантаження...",
+        "save": "Зберегти",
+        "cancel": "Скасувати",
+        "close": "Закрити",
+        "more": "Докладніше",
+        "yes": "Так",
+        "no": "Ні"
+    },
+    "seo": {
+        "site": {
+            "title": "Svoi.de — Маркетплейс послуг",
+            "description": "Знайдіть ідеального спеціаліста для будь-якого завдання на Svoi.de"
+        }
+    },
+    "home": {
+        "hero": {
+            "titleLine1": "Свої майстри",
+            "titleLine2": "Свій сервіс",
+            "subtitle": "Знайдіть і забронюйте найкращих б'юті-майстрів"
+        },
+        "searchBar": {
+            "servicePlaceholder": "Назва послуги",
+            "searchButton": "Пошук",
+            "validationToast": "Будь ласка, вкажіть місто та бажану послугу для точного пошуку",
+            "megaMenuEmpty": "Послуги не знайдено",
+            "viewAllServices": "Переглянути всі послуги ➔"
+        },
+        "categoryNav": {
+            "eyebrow": "Відкрийте для себе",
+            "title": "Популярні послуги",
+            "allCategories": "Усі категорії"
+        },
+        "gallery": {
+            "eyebrow": "Вибір SVOI",
+            "titleSalons": "Топ-салони платформи",
+            "titleMasters": "Топ-майстри платформи",
+            "titleSalonsCity": "Салони — {city}",
+            "titleMastersCity": "Майстри — {city}",
+            "subtitle": "Ми перевіряємо кожного майстра на відповідність золотому стандарту якості SVOI.",
+            "toggleFreelancers": "Приватні майстри",
+            "toggleSalons": "Салони",
+            "searching": "Шукаємо...",
+            "loading": "Завантаження...",
+            "showLocal": "Показати майстрів поруч?",
+            "showAll": "Показати всіх майстрів платформи",
+            "noLocal": "У вашому регіоні поки що немає майстрів — перегляньте найкращих спеціалістів платформи.",
+            "prevSalons": "Попередні салони",
+            "nextSalons": "Наступні салони",
+            "emptySalons": "У вашому районі поки що немає доданих салонів. Будьте першими!",
+            "emptyMasters": "У вашому районі поки що немає приватних майстрів. Будьте першими!"
+        },
+        "howItWorks": {
+            "step1": {
+                "title": "Оберіть майстра",
+                "description": "Вивчайте куровані профілі, відгуки та галереї робіт професіоналів найвищого рівня."
+            },
+            "step2": {
+                "title": "Бронювання за 30 секунд",
+                "description": "Безшовна система онлайн-запису дозволяє забронювати візит без зайвих дзвінків."
+            },
+            "step3": {
+                "title": "Стандарти якості",
+                "description": "Ми проводимо суворий аудит кожного майстра щодо гігієни та техніки виконання послуг."
+            }
+        },
+        "jealousy": {
+            "eyebrow": "Для професіоналів",
+            "title": "Хочете такий самий профіль?",
+            "description": "Приєднуйтесь до елітної спільноти майстрів SVOI. Представте свої роботи в цифровому ательє для преміальної аудиторії.",
+            "cta": "Створити власну галерею"
+        },
+        "manifesto": {
+            "titleLine1": "Ми не йдемо на компроміси.",
+            "titleLine2": "І ви не повинні.",
+            "findMaster": "Знайти майстра",
+            "becomePro": "Стати майстром"
+        },
+        "categories": {
+            "hair": {
+                "title": "ВОЛОССЯ",
+                "service1": "Фарбування",
+                "service2": "Стрижка",
+                "service3": "Укладання"
+            },
+            "nails": {
+                "title": "НІГТІ",
+                "service1": "Манікюр",
+                "service2": "Педикюр",
+                "service3": "Нарощування"
+            },
+            "face": {
+                "title": "ОБЛИЧЧЯ",
+                "service1": "Брови",
+                "service2": "Вії",
+                "service3": "Догляд за шкірою"
+            },
+            "body": {
+                "title": "ТІЛО ТА ОБРАЗ",
+                "service1": "Макіяж",
+                "service2": "Масаж",
+                "service3": "Депіляція"
+            }
+        },
+        "masterCard": {
+            "salonFallback": "Салон",
+            "masterFallback": "Майстер"
+        }
+    },
+    "city": {
+        "metaTitle": "Майстри краси у м. {city} — Онлайн-запис | Svoi.de",
+        "metaDescription": "Знайдіть найкращих майстрів краси у {city}. Порівнюйте ціни, переглядайте портфоліо та записуйтеся онлайн на Svoi.de. Безкоштовно та без комісії.",
+        "h1": "Майстри краси у {city}",
+        "foundCount": "{count, plural, one {Знайдено # спеціаліста} few {Знайдено # спеціалістів} many {Знайдено # спеціалістів} other {Знайдено # спеціаліста}}",
+        "noneYet": "Спеціалістів поки що не знайдено",
+        "emptyTitle": "Спеціалістів не знайдено",
+        "emptyBody": "У місті {city} поки що немає зареєстрованих майстрів.",
+        "salons": "Салони",
+        "privateMasters": "Приватні майстри",
+        "breadcrumb": {
+            "home": "Головна"
+        }
+    },
+    "cityCategory": {
+        "metaTitle": "{category} у м. {city} — Онлайн-запис | Svoi.de",
+        "metaDescription": "Шукаєте найкращих майстрів за послугою {category} у {city}? Порівнюйте ціни, переглядайте портфоліо та записуйтеся онлайн на Svoi.de. Безкоштовно та без комісії.",
+        "h1": "{category} у {city}",
+        "emptyBody": "За запитом «{category}» у місті {city} поки що немає майстрів.",
+        "allMastersInCity": "Усі майстри у {city}"
+    },
+    "search": {
+        "metaTitle": "Пошук майстрів — Svoi.de",
+        "metaTitleCity": "Пошук майстрів у {city} — Svoi.de",
+        "metaTitleQuery": "{query} — Пошук майстрів — Svoi.de",
+        "metaTitleQueryCity": "{query} — Пошук майстрів у {city} — Svoi.de",
+        "metaDesc": "Знайдіть найкращих майстрів краси у Німеччині. Онлайн-запис на Svoi.de.",
+        "metaDescCity": "Знайдіть найкращих майстрів краси у місті {city}. Онлайн-запис на Svoi.de.",
+        "metaDescQuery": "Знайдіть найкращих майстрів краси за запитом «{query}» у Німеччині. Онлайн-запис на Svoi.de.",
+        "metaDescQueryCity": "Знайдіть найкращих майстрів краси за запитом «{query}» у місті {city}. Онлайн-запис на Svoi.de.",
+        "loading": "Пошук спеціалістів…",
+        "resultsSpecialists": "{count, plural, one {Знайдено # спеціаліста} few {Знайдено # спеціалістів} many {Знайдено # спеціалістів} other {Знайдено # спеціаліста}}",
+        "resultsSalons": "{count, plural, one {Знайдено # салон} few {Знайдено # салони} many {Знайдено # салонів} other {Знайдено # салона}}",
+        "emptySalons": "Салонів не знайдено",
+        "emptySpecialists": "Спеціалістів не знайдено",
+        "emptyHint": "Спробуйте змістити карту або змінити запит.",
+        "resetFilters": "Скинути фільтри",
+        "toggleFreelancers": "Приватні майстри",
+        "toggleSalons": "Салони",
+        "homeLink": "На головну",
+        "mapUnavailable": "Карта тимчасово недоступна",
+        "mapTooltipCta": "Перейти у профіль",
+        "fromPrice": "від",
+        "toProfile": "У профіль",
+        "seeOtherServices": "переглянути інші послуги",
+        "ratingAria": "Рейтинг {rating}",
+        "openProfileAria": "Відкрити профіль {name}{titleSuffix}",
+        "titleSuffixWithService": " — {service} у {city}",
+        "titleSuffixCity": " у {city}",
+        "imageAlt": "{name} — майстер у {city}",
+        "filtersNavLabel": "Фільтри",
+        "filters": {
+            "title": "Фільтри",
+            "languageHeader": "Мова",
+            "today": "Доступно сьогодні",
+            "homeVisit": "Виїзд додому",
+            "promo": "Акції",
+            "inSalon": "У салоні",
+            "cardPayment": "Оплата карткою / PayPal",
+            "instantBooking": "Миттєве підтвердження",
+            "removeFilter": "Видалити фільтр: {label}"
+        },
+        "filtersForm": {
+            "serviceCollapsed": "Усі послуги",
+            "locationCollapsed": "Місцезнаходження",
+            "servicePlaceholder": "Манікюр, стрижка, масаж...",
+            "cityPlaceholder": "Ваше місто",
+            "geoAria": "Визначити моє місто",
+            "radiusAria": "Радіус пошуку",
+            "submit": "Знайти",
+            "topCategories": "Топ-категорії",
+            "cityResolved": "Визначено місто: {city}",
+            "cityNotFound": "Вашого міста немає в базі. Оберіть найближче велике місто вручну.",
+            "geoFailed": "Не вдалося визначити місто. Введіть вручну."
+        },
+        "quickSlots": {
+            "label": "Швидкі слоти",
+            "uncertain": "Уточнюйте час при бронюванні",
+            "none": "Немає вільних вікон на найближчі 7 днів"
+        }
+    },
+    "salon": {
+        "notFound": "Профіль не знайдено | Svoi.de",
+        "backToSearch": "Назад до пошуку",
+        "ctaBook": "Забронювати",
+        "ctaMessage": "Написати майстру",
+        "chat": {
+            "opening": "Відкриваємо…",
+            "failed": "Не вдалося відкрити чат"
+        },
+        "section": {
+            "aboutSalon": "Про нас",
+            "aboutMaster": "Про майстра",
+            "services": "Послуги",
+            "servicesEmpty": "Список послуг поки порожній.",
+            "servicesDefaultGroup": "Популярні послуги",
+            "portfolio": "Портфоліо",
+            "reviews": "Відгуки клієнтів",
+            "reviewsEmpty": "Поки що немає відгуків. Станьте першим, хто оцінить роботу майстра!",
+            "team": "Команда",
+            "teamMembers": "Спеціалісти",
+            "location": "Адреса",
+            "findUs": "Як нас знайти",
+            "ratingAndReviews": "Рейтинг і відгуки"
+        },
+        "rating": {
+            "quality": "Якість",
+            "cleanliness": "Чистота",
+            "service": "Сервіс",
+            "atmosphere": "Атмосфера",
+            "aria": "Рейтинг: {rating} з 5"
+        },
+        "price": {
+            "from": "Ціна від",
+            "onRequest": "за домовленістю"
+        },
+        "service": {
+            "select": "Обрати",
+            "durationMin": "{count} хв",
+            "durationOnRequest": "за домовленістю",
+            "countPlural": "{count, plural, one {# послуга} few {# послуги} many {# послуг} other {# послуги}}",
+            "reviewsPlural": "{count, plural, one {# відгук} few {# відгуки} many {# відгуків} other {# відгука}}",
+            "photosPlural": "{count, plural, one {# фото} other {# фото}}",
+            "morePhotos": "Ще {label}"
+        },
+        "gallery": {
+            "coverAlt": "{name} — обкладинка",
+            "coverAltN": "{name} — обкладинка {n}",
+            "interiorAlt": "Інтер'єр салону {name} {n}",
+            "portfolioAlt": "Роботи {name}",
+            "viewAllPhotos": "Переглянути всі {count} фото",
+            "closeGallery": "Закрити галерею",
+            "prevPhoto": "Попереднє фото",
+            "nextPhoto": "Наступне фото"
+        },
+        "map": {
+            "openInOsm": "Відкрити в OpenStreetMap"
+        },
+        "hero": {
+            "homeVisit": "Виїзд до {radius} км"
+        },
+        "preview": {
+            "banner": "Це режим попереднього перегляду. Клієнти бачать вашу опубліковану версію за основним посиланням."
+        },
+        "fallback": {
+            "clientName": "Клієнт",
+            "clientNameAlt": "Користувач",
+            "topService": "Майстер краси"
+        },
+        "jsonLd": {
+            "offerCatalogName": "Послуги"
+        },
+        "bookingCta": {
+            "defaultLabel": "Записатися"
+        },
+        "modals": {
+            "close": "Закрити",
+            "deepDive": {
+                "backToGallery": "Назад до галереї"
+            },
+            "craftWall": {
+                "photoAria": "Фото роботи {number}",
+                "showMore": "Показати ще"
+            },
+            "specialistSelector": {
+                "dialogLabel": "Вибір майстра",
+                "title": "Оберіть майстра",
+                "anyAvailable": "Будь-який вільний майстер",
+                "anyAvailableHint": "Ми підберемо найближчого"
+            },
+            "staffPortfolio": {
+                "tabs": {
+                    "about": "Про майстра",
+                    "services": "Послуги",
+                    "portfolio": "Портфоліо",
+                    "reviews": "Відгуки"
+                },
+                "ctaBookStaff": "Записатися до майстра",
+                "stats": {
+                    "completedOrders": "Виконано замовлень",
+                    "clients": "Клієнтів"
+                },
+                "specialty": "Спеціалізація",
+                "interests": "Інтереси",
+                "servicesEmpty": "Немає послуг для відображення.",
+                "portfolioEmpty": "У цього майстра поки немає завантажених робіт.",
+                "portfolioAlt": "Робота майстра {name}",
+                "reviewsSummary": "{count, plural, one {На основі # відгуку} few {На основі # відгуків} many {На основі # відгуків} other {На основі # відгуку}}",
+                "verifiedClients": "від перевірених клієнтів",
+                "mockReviews": {
+                    "r1": {
+                        "name": "Анна",
+                        "date": "12 квітня",
+                        "text": "Чудовий майстер. Усе зроблено ідеально, салон затишний, атмосфера розслаблена."
+                    },
+                    "r2": {
+                        "name": "Марія",
+                        "date": "5 квітня",
+                        "text": "Дуже уважна до деталей, результат перевершив очікування. Точно повернуся."
+                    },
+                    "r3": {
+                        "name": "Олена",
+                        "date": "28 березня",
+                        "text": "Рекомендую всім. Професіонал своєї справи."
+                    }
+                }
+            }
+        }
+    },
+    "booking": {
+        "meta": {
+            "notFound": "Не знайдено",
+            "title": "Запис до {name} | Svoi.de",
+            "description": "Оформлення онлайн-запису. {city}."
+        },
+        "page": {
+            "title": "Оформлення запису",
+            "subtitle": "Оберіть зручну дату й час для візиту до <strong>{name}</strong>."
+        },
+        "fallbackService": {
+            "title": "Консультація",
+            "price": "Безкоштовно"
+        },
+        "staff": {
+            "title": "Оберіть майстра",
+            "any": "Будь-хто"
+        },
+        "date": {
+            "title": "Дата",
+            "prevWeek": "Попередній тиждень",
+            "nextWeek": "Наступний тиждень"
+        },
+        "time": {
+            "title": "Час",
+            "noSlots": "На цей день немає вільного часу"
+        },
+        "form": {
+            "title": "Ваші дані",
+            "name": "Ім'я",
+            "namePlaceholder": "Олександра",
+            "phone": "Телефон",
+            "email": "Email",
+            "comment": "Коментар",
+            "optional": "(необов'язково)",
+            "commentPlaceholder": "Побажання або особливості..."
+        },
+        "summary": {
+            "title": "Ваш запис",
+            "service": "Процедура",
+            "staff": "Майстер",
+            "date": "Дата",
+            "time": "Час",
+            "durationMin": "{count} хв",
+            "total": "Разом",
+            "submitting": "Оформлюємо…",
+            "submit": "Підтвердити й записатися",
+            "terms": "Натискаючи кнопку, ви погоджуєтеся з правилами та обробкою персональних даних.",
+            "cancellationTitle": "Правила скасування",
+            "cancellationBody": "Безкоштовне скасування можливе за 24 години до початку процедури. При скасуванні менш ніж за добу утримується 30% вартості."
+        },
+        "arrival": {
+            "title": "Як підготуватися до візиту",
+            "address": "Точна адреса",
+            "doorCode": "Код домофона",
+            "bellNote": "У який дзвінок дзвонити?",
+            "important": "Важлива інформація"
+        },
+        "otp": {
+            "close": "Закрити",
+            "title": "Підтвердьте email",
+            "sentCode": "Ми надіслали 6-значний код на",
+            "codeValid": "Код дійсний:",
+            "verifying": "Перевіряємо...",
+            "confirm": "Підтвердити",
+            "attemptsLeft": "Залишилось спроб: {count}",
+            "successTitle": "Запис підтверджено!",
+            "successBody": "Майстер зв'яжеться з вами для остаточного підтвердження.",
+            "passwordNudgeTitle": "Хочете пропустити цей крок наступного разу?",
+            "passwordNudgeBody": "Встановіть пароль, щоб зберегти дані й бронювати в один клік.",
+            "passwordPlaceholder": "Мінімум 8 символів",
+            "showPassword": "Показати пароль",
+            "hidePassword": "Приховати пароль",
+            "savingPassword": "Зберігаємо...",
+            "savePassword": "Зберегти пароль",
+            "passwordSaved": "✓ Пароль встановлено! Наступного разу просто увійдіть через email.",
+            "errors": {
+                "enterAllDigits": "Введіть усі 6 цифр",
+                "verify": "Помилка перевірки коду",
+                "passwordMin": "Мінімум 8 символів",
+                "passwordSave": "Помилка збереження"
+            }
+        },
+        "toasts": {
+            "invalidEmail": "Вкажіть коректний email",
+            "turnstileNotReady": "Перевірка безпеки ще не завершена. Зачекайте й спробуйте знову.",
+            "otpSent": "Код підтвердження надіслано на вашу пошту!",
+            "bookingError": "Помилка бронювання",
+            "serverError": "Помилка сервера",
+            "reservationExpired": "Час резервування минув. Спробуйте знову."
+        }
+    },
+    "about": {
+        "meta": {
+            "title": "Про SVOI | Перевірені б'юті-спеціалісти в Німеччині",
+            "description": "SVOI — маркетплейс перевірених б'юті-спеціалістів і салонів у Німеччині з прозорим пошуком та онлайн-записом."
+        }
+    },
+    "guide": {
+        "meta": {
+            "title": "Як працює SVOI | Пошук та онлайн-запис",
+            "description": "Покроковий гід SVOI: як знайти майстра, обрати послугу, записатися онлайн і залишити відгук після візиту."
+        }
+    },
+    "validation": {
+        "zod": {
+            "required": "Заповніть обов'язкове поле.",
+            "invalidType": "Некоректний тип даних. Очікувалось: {expected}.",
+            "invalidEmail": "Вкажіть коректний email.",
+            "invalidUrl": "Вкажіть коректне посилання.",
+            "invalidUuid": "Некоректний ідентифікатор.",
+            "invalidFormat": "Некоректний формат.",
+            "invalidString": "Некоректне значення.",
+            "tooSmallString": "Мінімум {minimum} символів.",
+            "tooBigString": "Максимум {maximum} символів.",
+            "tooSmallNumber": "Значення має бути не менше {minimum}.",
+            "tooBigNumber": "Значення має бути не більше {maximum}.",
+            "tooSmallArray": "Оберіть мінімум {minimum}.",
+            "tooBigArray": "Оберіть максимум {maximum}.",
+            "tooSmall": "Значення занадто мале.",
+            "tooBig": "Значення занадто велике.",
+            "invalidEnum": "Оберіть один із доступних варіантів: {options}.",
+            "unrecognizedKeys": "Невідомі поля: {keys}.",
+            "invalidDate": "Вкажіть коректну дату.",
+            "invalidUnion": "Некоректні дані.",
+            "invalidLiteral": "Очікуване значення: {expected}.",
+            "notMultipleOf": "Значення має бути кратним {multipleOf}.",
+            "custom": "Некоректні дані.",
+            "fallback": "Перевірте введені дані."
+        }
+    },
+    "auth": {
+        "api": {
+            "tooManyRequests": "Забагато спроб. Спробуйте пізніше.",
+            "serverMisconfigured": "Сервер не налаштований для реєстрації. Зверніться до адміністратора.",
+            "registerRateLimited": "Забагато спроб реєстрації з цієї IP-адреси. Спробуйте знову через годину.",
+            "invalidJson": "Некоректний JSON.",
+            "invalidInput": "Перевірте введені дані.",
+            "invalidCredentials": "Неправильний email або пароль.",
+            "emailTaken": "Користувач із таким email уже зареєстрований.",
+            "createAccountError": "Помилка створення акаунта. Спробуйте пізніше.",
+            "internalServerError": "Помилка сервера. Спробуйте пізніше."
+        },
+        "login": {
+            "heading": {
+                "providerRegister": "Створіть профіль майстра",
+                "register": "Створити акаунт",
+                "emailLogin": "Увійти через Email",
+                "login": "Вхід"
+            },
+            "subheading": {
+                "providerRegister": "Зареєструйтеся, щоб почати приймати клієнтів",
+                "register": "Заповніть дані для реєстрації",
+                "emailLogin": "Введіть email і пароль",
+                "login": "Авторизуйтеся, щоб продовжити"
+            },
+            "badge": {
+                "salon": "Салон",
+                "individual": "Приватний майстер"
+            },
+            "errors": {
+                "oauthAccountNotLinked": "Цей email уже використовується іншим способом входу. Увійдіть тим самим способом, що й під час реєстрації.",
+                "oauthCallback": "Помилка входу через Google. Перевірте налаштування OAuth.",
+                "configuration": "Помилка налаштування авторизації. Додайте змінну AUTH_SECRET у .env.",
+                "genericSignIn": "Помилка входу: {code}",
+                "registrationFallback": "Помилка реєстрації. Перевірте дані.",
+                "sessionCreate": "Не вдалося створити сесію. Спробуйте увійти ще раз.",
+                "sessionCreateRetry": "Не вдалося створити сесію. Спробуйте знову.",
+                "invalidCredentials": "Неправильний email або пароль.",
+                "server": "Помилка сервера. Спробуйте пізніше."
+            },
+            "success": {
+                "accountCreated": "Акаунт створено! Перенаправляємо...",
+                "loggedIn": "Вхід виконано! Перенаправляємо..."
+            },
+            "labels": {
+                "name": "Ім'я",
+                "email": "Email",
+                "password": "Пароль",
+                "websiteUrl": "Website URL"
+            },
+            "placeholders": {
+                "name": "Ваше ім'я",
+                "email": "name@example.com",
+                "passwordRegister": "Мінімум 6 символів",
+                "passwordLogin": "Ваш пароль"
+            },
+            "buttons": {
+                "continueApple": "Продовжити з Apple",
+                "continueGoogle": "Продовжити з Google",
+                "or": "АБО",
+                "continueEmail": "Продовжити з Email",
+                "submitRegister": "Створити акаунт",
+                "submitLogin": "Увійти",
+                "backToOAuth": "← Назад до інших способів входу"
+            },
+            "toggle": {
+                "hasAccount": "Вже маєте акаунт?",
+                "noAccount": "Немає акаунта?",
+                "login": "Увійти",
+                "register": "Зареєструватися"
+            },
+            "legal": {
+                "prefix": "Продовжуючи, ви погоджуєтеся з нашими",
+                "agb": "AGB",
+                "and": "і",
+                "datenschutz": "Datenschutz"
+            },
+            "heroAlt": "Преміальний б'юті-салон"
+        }
+    },
+    "forms": {
+        "api": {
+            "banned": "Ваш акаунт заблоковано.",
+            "invalidJson": "Некоректний JSON.",
+            "invalidData": "Некоректні дані.",
+            "profileNotFound": "Профіль не знайдено.",
+            "serviceNotFound": "Послугу не знайдено.",
+            "staffNotFound": "Співробітника не знайдено.",
+            "invalidDate": "Некоректна дата.",
+            "slotTaken": "Цей час уже зайнятий.",
+            "serverError": "Помилка сервера.",
+            "invalidStatus": "Недопустимий статус.",
+            "invalidStatusTransition": "Недопустимий перехід: {from} → {to}",
+            "statusUpdateError": "Помилка оновлення статусу."
+        },
+        "review": {
+            "selectRating": "Будь ласка, оберіть оцінку.",
+            "selectRatingLong": "Будь ласка, оберіть оцінку (від 1 до 5 зірок).",
+            "genericError": "Сталася помилка.",
+            "unexpectedError": "Сталася неочікувана помилка.",
+            "success": "Відгук успішно надіслано!",
+            "ratingPrompt": "Наскільки вам сподобалось?",
+            "commentLabel": "Відгук (необов'язково)",
+            "commentPlaceholder": "Що вам найбільше сподобалося?",
+            "publish": "Опублікувати відгук",
+            "submitting": "Надсилаємо...",
+            "modalTitle": "Оцініть візит до {name}",
+            "modalCommentLabel": "Розкажіть про ваші враження (необов'язково)",
+            "modalCommentPlaceholder": "Що вам особливо сподобалося?",
+            "close": "Закрити",
+            "cancel": "Скасувати",
+            "submit": "Надіслати"
+        },
+        "cancelBooking": {
+            "pending": "Скасовуємо...",
+            "submit": "Скасувати візит",
+            "success": "Запис скасовано",
+            "confirm": "Скасувати запис? Цю дію можна виконати лише до візиту."
+        },
+        "favorite": {
+            "error": "Помилка",
+            "added": "Додано в обране",
+            "removed": "Видалено з обраного",
+            "addAria": "Додати в обране",
+            "shortAddAria": "В обране",
+            "removeAria": "Видалити з обраного"
+        },
+        "location": {
+            "locationFailed": "Не вдалося визначити місцезнаходження.",
+            "cityFailed": "Не вдалося визначити місто.",
+            "locationResolved": "Ваше місцезнаходження: {city}",
+            "locatingPlaceholder": "Визначаємо...",
+            "placeholder": "Введіть ваше місто...",
+            "myLocationTitle": "Моє місцезнаходження",
+            "hint": "Почніть вводити назву для пошуку...",
+            "notFound": "Місто не знайдено",
+            "myLocation": "Моя геолокація",
+            "allCities": "Переглянути всі міста ➔"
+        },
+        "serviceSearch": {
+            "cityRequired": "Будь ласка, вкажіть місто для пошуку майстра.",
+            "subtitle": "Бронювання преміальних б'юті-спеціалістів. Гарантія якості та сувора перевірка кожного майстра SVOI.",
+            "cityQuestion": "У якому місті шукаємо майстра?",
+            "submit": "Знайти майстра"
+        },
+        "loginNotifier": {
+            "userFallback": "Користувач",
+            "welcome": "З поверненням, {name}!"
+        },
+        "proRegistration": {
+            "genericError": "Сталася помилка.",
+            "successTitle": "Заявку прийнято!",
+            "successBody": "Дякуємо! Ми зв'яжемося з вами для активації профілю. Зазвичай це займає 1-2 робочі дні.",
+            "title": "Реєстрація спеціаліста",
+            "subtitle": "Заповніть форму — ми зв'яжемося з вами",
+            "name": "Ім'я / Назва салону",
+            "namePlaceholder": "Олена Петрова або Beauty Studio",
+            "city": "Місто",
+            "category": "Категорія",
+            "selectCategory": "Оберіть категорію",
+            "submitting": "Надсилаємо...",
+            "submit": "Зареєструватися",
+            "terms": "Натискаючи кнопку, ви погоджуєтеся з умовами сервісу"
+        },
+        "providerOnboarding": {
+            "saveError": "Помилка збереження",
+            "genericSaveError": "Помилка збереження.",
+            "cityRequired": "Оберіть місто зі списку",
+            "draftSaved": "Чернетку профілю збережено. Переходимо до кабінету...",
+            "salonTitle": "Реєстрація салону",
+            "individualTitle": "Реєстрація майстра",
+            "greeting": "Привіт, {name}! ",
+            "subtitle": "Заповніть дані, щоб завершити реєстрацію.",
+            "companyData": "Дані компанії",
+            "nameLabel": "Ім'я / Салон",
+            "salonName": "Назва салону",
+            "providerType": "Тип виконавця",
+            "salonOption": "Я представляю салон",
+            "privateOption": "Я приватний майстер",
+            "salonAddress": "Повна адреса салону",
+            "kleinunternehmerTitle": "Я працюю як Kleinunternehmer (§19 UStG)",
+            "kleinunternehmerBody": "Звільнення від ПДВ при обороті до 22.000 € на рік",
+            "addressTitle": "Адреса",
+            "street": "Вулиця і номер будинку",
+            "privateAddressHint": "Ваша точна адреса не буде показана на карті. Клієнти побачать лише приблизну зону вашої роботи.",
+            "zip": "Поштовий індекс",
+            "zipTitle": "Введіть 4-5 цифр",
+            "city": "Місто",
+            "bioLabel": "Про себе / Про салон",
+            "bioPlaceholder": "Розкажіть про свій досвід, підхід до роботи та матеріали, які ви використовуєте...",
+            "saving": "Зберігаємо...",
+            "submit": "Завершити реєстрацію",
+            "createProfile": "Створити профіль майстра"
+        },
+        "cityCombobox": {
+            "placeholder": "Почніть вводити ваше місто...",
+            "geoFailed": "Не вдалося визначити місцезнаходження. Будь ласка, оберіть місто зі списку вручну.",
+            "geoResolved": "Місто визначено: {city}",
+            "notFound": "Місто не знайдено. Оберіть найближче велике місто",
+            "detectTitle": "Визначити моє місто",
+            "openList": "Відкрити список міст"
+        },
+        "streetAddress": {
+            "placeholder": "Почніть вводити вулицю",
+            "cityRequired": "Спочатку оберіть місто зі списку.",
+            "loadError": "Не вдалося завантажити вулиці. Спробуйте ще раз.",
+            "minLength": "Введіть щонайменше 3 символи для пошуку вулиці.",
+            "notFound": "Вулиць не знайдено. Уточніть запит."
+        }
+    },
+    "dashboard": {
+        "accountSettings": {
+            "sections": {
+                "profile": "Мій профіль",
+                "notifications": "Сповіщення",
+                "security": "Безпека"
+            },
+            "toasts": {
+                "profileUpdated": "Профіль оновлено",
+                "saveError": "Помилка збереження",
+                "photoUploadError": "Помилка завантаження фото",
+                "photoUpdated": "Фото оновлено",
+                "passwordFieldsRequired": "Заповніть усі поля для зміни пароля",
+                "passwordMismatch": "Новий пароль і підтвердження не збігаються",
+                "passwordSoon": "Зміна пароля буде доступна в наступному оновленні",
+                "accountDeleted": "Акаунт видалено",
+                "deleteError": "Помилка видалення акаунта"
+            },
+            "back": "Назад до кабінету",
+            "title": "Налаштування акаунта",
+            "subtitle": "Керуйте профілем, сповіщеннями та безпекою.",
+            "userFallback": "Користувач",
+            "saving": "Зберігаємо...",
+            "profile": {
+                "title": "Мій профіль",
+                "name": "Ім'я",
+                "namePlaceholder": "Іван Іванов",
+                "phone": "Номер телефону",
+                "bio": "Про себе",
+                "bioPlaceholder": "Розкажіть трохи про себе...",
+                "save": "Зберегти зміни"
+            },
+            "notifications": {
+                "title": "Сповіщення",
+                "subtitle": "Керуйте тим, які сповіщення ви хочете отримувати.",
+                "remindersTitle": "Нагадування про записи",
+                "remindersBody": "Email/SMS перед візитом",
+                "chatTitle": "Повідомлення в чаті",
+                "chatBody": "Сповіщати про нові повідомлення",
+                "systemTitle": "Системні сповіщення",
+                "systemBody": "Зміни статусу акаунта"
+            },
+            "security": {
+                "passwordTitle": "Зміна пароля",
+                "passwordBody": "Використовуйте складний пароль, щоб захистити акаунт.",
+                "currentPassword": "Поточний пароль",
+                "newPassword": "Новий пароль",
+                "confirmPassword": "Підтвердження",
+                "updatePassword": "Оновити пароль",
+                "dangerTitle": "Небезпечна зона",
+                "dangerBody": "Видалення акаунта призведе до безповоротної втрати ваших даних.",
+                "deleteAccount": "Видалити акаунт"
+            },
+            "deleteModal": {
+                "title": "Видалити акаунт?",
+                "body": "Ви впевнені, що хочете видалити свій акаунт? Цю дію неможливо скасувати, усі ваші дані буде видалено назавжди.",
+                "deleting": "Видаляємо...",
+                "confirm": "Так, видалити акаунт",
+                "cancel": "Скасувати"
+            }
+        },
+        "client": {
+            "status": {
+                "confirmed": "Підтверджено",
+                "cancelled": "Скасовано",
+                "pending": "Очікує"
+            },
+            "quick": {
+                "haircut": "Стрижка",
+                "manicure": "Манікюр",
+                "massage": "Масаж",
+                "cosmetology": "Косметологія"
+            },
+            "hero": {
+                "greeting": "Привіт, {name}! 👋",
+                "welcome": "Ласкаво просимо! 👋"
+            },
+            "next": {
+                "title": "Найближчий запис",
+                "route": "Прокласти маршрут",
+                "message": "Написати майстру"
+            },
+            "serviceFallback": "Послуга",
+            "dateTime": "{date} о {time}",
+            "durationMin": "{count} хв",
+            "empty": {
+                "title": "У вас поки немає майбутніх записів",
+                "body": "Якщо ви плануєте візит, радимо записатися заздалегідь.",
+                "recommended": "Рекомендуємо сьогодні"
+            },
+            "findMaster": "Знайти майстра",
+            "repeat": {
+                "question": "Записатися знову?",
+                "book": "Записатися"
+            },
+            "popular": "Популярні послуги",
+            "tabs": {
+                "history": "Історія відвідувань",
+                "masters": "Мої майстри"
+            },
+            "history": {
+                "upcoming": "Майбутні записи",
+                "empty": "Історія відвідувань порожня",
+                "past": "Минулі візити",
+                "review": "Оцінити візит",
+                "repeat": "Повторити запис",
+                "profile": "Профіль"
+            },
+            "masters": {
+                "empty": "У вас поки немає збережених майстрів. Додавайте в обране на сторінці пошуку."
+            },
+            "stats": {
+                "title": "Ваша статистика",
+                "total": "Усього візитів",
+                "favoriteCategory": "Улюблена категорія"
+            },
+            "settings": {
+                "title": "Налаштування",
+                "profileTitle": "Профіль і акаунт",
+                "profileBody": "Керування особистими даними, номером телефону та email."
+            }
+        },
+        "chat": {
+            "status": {
+                "confirmed": "Підтверджено",
+                "pending": "Очікує підтвердження",
+                "cancelled": "Скасовано"
+            },
+            "title": "Чати",
+            "subtitle": "Особисті повідомлення з клієнтами та майстрами",
+            "emptyConversations": "Діалогів поки немає",
+            "userFallback": "Користувач",
+            "interlocutorFallback": "Співрозмовник",
+            "dialogFallback": "Діалог",
+            "bookingDateTime": "{date} о {time}",
+            "noBooking": "Для цього діалогу немає пов'язаного запису",
+            "emptyMessages": "Почніть діалог першим повідомленням",
+            "messagePlaceholder": "Введіть повідомлення...",
+            "selectDialog": "Оберіть діалог зліва"
+        },
+        "provider": {
+            "nav": {
+                "bookings": "Записи",
+                "analytics": "Статистика",
+                "staff": "Команда",
+                "profile": "Профіль"
+            },
+            "kpi": {
+                "total": "Усього записів",
+                "totalTrend": "За весь час роботи",
+                "pending": "Очікують підтвердження",
+                "pendingNeedsAnswer": "Потребують вашої відповіді",
+                "pendingEmpty": "Немає нових запитів",
+                "confirmed": "Підтверджено",
+                "completedCount": "{count, plural, one {# завершено} few {# завершено} many {# завершено} other {# завершено}}",
+                "activeBookings": "Активних записів",
+                "cancelled": "Скасовано",
+                "cancelledEmpty": "Чудово — тримайте так",
+                "cancelledWarn": "Спробуйте зменшити"
+            },
+            "backToProfile": "Мій профіль",
+            "active": "Активний",
+            "viewProfile": "Переглянути профіль",
+            "setup": {
+                "title": "Ваш прогрес",
+                "percent": "{percent}% готово",
+                "addServices": "Додайте послуги",
+                "addSchedule": "Вкажіть робочі години"
+            },
+            "bookings": {
+                "calendarTitle": "Календар записів",
+                "calendarSubtitle": "За замовчуванням поточний тиждень. Клік по запису відкриває деталі та зміну статусу.",
+                "incomingTitle": "Вхідні записи",
+                "totalCount": "{count, plural, one {# запис} few {# записи} many {# записів} other {# запису}}",
+                "completedCount": "{count, plural, one {# завершено} few {# завершено} many {# завершено} other {# завершено}}",
+                "emptyTitle": "У вас поки немає записів",
+                "emptyBody": "Поділіться посиланням на профіль, щоб клієнти почали бронювати послуги.",
+                "shareProfile": "Поділитися посиланням на профіль"
+            },
+            "services": {
+                "title": "Мої послуги",
+                "count": "{count, plural, one {# послуга} few {# послуги} many {# послуг} other {# послуги}}"
+            },
+            "schedule": {
+                "title": "Розклад салону",
+                "subtitle": "Загальні робочі години. Якщо для майстра не задано особистий розклад, буде застосовано цей."
+            },
+            "staff": {
+                "title": "Команда майстрів",
+                "subtitle": "Додайте співробітників, щоб створити спільний календар записів."
+            },
+            "tax": {
+                "salonTitle": "Потрібен податковий номер (Steuernummer / USt-IdNr)",
+                "salonBody": "Для активації профілю салону та публікації в каталозі вкажіть податковий номер вашої компанії в налаштуваннях.",
+                "individualTitle": "Потрібен податковий номер (Steuernummer)",
+                "individualBody": "Щоб клієнти могли знаходити вас у пошуку та записуватися, вкажіть ваш податковий номер у налаштуваннях профілю.",
+                "guideLink": "У мене ще немає номера. Як його отримати? 👉",
+                "enterNumber": "Ввести номер"
+            },
+            "photos": {
+                "salonTitle": "Фото інтер'єру",
+                "individualTitle": "Фото робіт",
+                "salonSubtitle": "Покажіть атмосферу вашого салону — ці фото відображатимуться у вашому публічному профілі.",
+                "individualSubtitle": "Додайте фото ваших робіт — вони відображатимуться в шапці вашого профілю."
+            },
+            "arrival": {
+                "title": "Інформація про прибуття",
+                "subtitle": "Ці дані будуть видимі клієнту лише після підтвердження запису."
+            },
+            "sidebar": {
+                "providerDashboard": "Кабінет майстра",
+                "profile": "Профіль",
+                "bookings": "Записи",
+                "clients": "Клієнти",
+                "reviews": "Відгуки",
+                "analytics": "Статистика",
+                "staff": "Співробітники",
+                "profileGeneral": "Основне",
+                "services": "Послуги",
+                "schedule": "Розклад",
+                "location": "Локація",
+                "notifications": "Сповіщення",
+                "viewProfile": "Переглянути профіль"
+            },
+            "manualBooking": {
+                "newBooking": "Новий запис",
+                "clientName": "Ім'я клієнта",
+                "clientNamePlaceholder": "Ім'я Прізвище",
+                "phone": "Телефон",
+                "service": "Послуга",
+                "serviceSearchPlaceholder": "Пошук послуги...",
+                "nothingFound": "Нічого не знайдено",
+                "durationMin": "{count} хв",
+                "staff": "Співробітник",
+                "noStaff": "Без прив'язки",
+                "date": "Дата",
+                "time": "Час",
+                "cancel": "Скасувати",
+                "close": "Закрити",
+                "createBooking": "Створити запис",
+                "errors": {
+                    "clientName": "Вкажіть ім'я клієнта",
+                    "clientPhone": "Вкажіть телефон клієнта",
+                    "service": "Оберіть послугу",
+                    "date": "Оберіть дату",
+                    "time": "Оберіть час",
+                    "create": "Не вдалося створити запис",
+                    "network": "Помилка мережі"
+                }
+            },
+            "copyProfile": {
+                "success": "Посилання на профіль скопійовано!",
+                "error": "Не вдалося скопіювати посилання",
+                "aria": "Скопіювати посилання на профіль",
+                "title": "Скопіювати посилання"
+            },
+            "bookingRow": {
+                "status": {
+                    "pending": "Очікує",
+                    "confirmed": "Підтверджено",
+                    "cancelled": "Скасовано",
+                    "completed": "Візит завершено",
+                    "noShow": "Не прийшов",
+                    "unknown": "Невідомо"
+                },
+                "updateError": "Не вдалося оновити статус",
+                "chatError": "Не вдалося відкрити чат",
+                "newClient": "✨ Новий клієнт",
+                "message": "Написати",
+                "confirm": "Підтвердити",
+                "cancel": "Скасувати",
+                "complete": "Завершити",
+                "noShow": "Не прийшов"
+            },
+            "bookingDetails": {
+                "status": {
+                    "pending": "Очікує",
+                    "confirmed": "Підтверджено",
+                    "cancelled": "Скасовано",
+                    "completed": "Візит завершено",
+                    "noShow": "Не прийшов",
+                    "unknown": "Невідомо"
+                },
+                "notFound": "Запис не знайдено",
+                "close": "Закрити",
+                "chatError": "Не вдалося відкрити чат",
+                "title": "Деталі запису",
+                "service": "Послуга",
+                "message": "Написати",
+                "confirm": "Підтвердити",
+                "cancel": "Скасувати",
+                "completeVisit": "Завершити візит",
+                "noShow": "Не прийшов"
+            },
+            "analytics": {
+                "title": "Аналітика",
+                "subtitle": "Ключові метрики та топ послуг",
+                "revenue": "Дохід",
+                "completedVisits": "Завершені візити",
+                "cancellations": "Скасування",
+                "uniqueClients": "Унікальні клієнти",
+                "revenueTrend": "Динаміка доходу",
+                "last14Days": "За останні 14 днів",
+                "calendarTitle": "Календар записів",
+                "calendarSubtitle": "Назад / Сьогодні / Вперед — перемикання тижнів",
+                "topServices": "Топ послуг",
+                "topServicesSubtitle": "За завершеними візитами та доходом",
+                "emptyTopServices": "Поки немає завершених візитів за послугами",
+                "service": "Послуга",
+                "visits": "Візитів"
+            },
+            "clients": {
+                "title": "Клієнти",
+                "count": "{count, plural, one {# клієнт} few {# клієнти} many {# клієнтів} other {# клієнта}}",
+                "totalRevenue": "{value} € загалом",
+                "loadError": "Не вдалося завантажити клієнтів",
+                "networkError": "Помилка мережі",
+                "searchPlaceholder": "Пошук за ім'ям або телефоном...",
+                "columns": {
+                    "client": "Клієнт",
+                    "visits": "Візити",
+                    "revenue": "Оборот",
+                    "noShows": "Не прийшов",
+                    "lastVisit": "Останній візит",
+                    "action": "Дія"
+                },
+                "emptySearchTitle": "Нічого не знайдено",
+                "emptyTitle": "Поки немає клієнтів",
+                "emptySearchBody": "Спробуйте змінити запит.",
+                "emptyBody": "Клієнти з'являться тут після першого запису.",
+                "history": "Історія"
+            },
+            "reviews": {
+                "eyebrow": "Відгуки",
+                "count": "{count, plural, one {# відгук} few {# відгуки} many {# відгуків} other {# відгуку}}",
+                "emptyTitle": "Поки немає відгуків",
+                "emptyBody": "Відгуки з'являться після першого завершеного візиту.",
+                "loadError": "Не вдалося завантажити відгуки",
+                "networkError": "Помилка мережі",
+                "replySaveError": "Не вдалося зберегти відповідь",
+                "yourReply": "Ваша відповідь",
+                "edit": "Редагувати",
+                "reply": "Відповісти",
+                "replyPlaceholder": "Напишіть відповідь клієнту...",
+                "cancel": "Скасувати",
+                "publish": "Опублікувати"
+            },
+            "calendar": {
+                "loadError": "Помилка завантаження",
+                "previousWeek": "Попередній тиждень",
+                "nextWeek": "Наступний тиждень",
+                "currentWeek": "Поточний тиждень",
+                "back": "Назад",
+                "today": "Сьогодні",
+                "forward": "Вперед",
+                "loading": "Завантаження...",
+                "status": {
+                    "pending": "Очікує",
+                    "confirmed": "Підтверджено",
+                    "cancelled": "Скасовано",
+                    "completed": "Завершено"
+                }
+            },
+            "media": {
+                "invalidImageType": "Дозволені лише JPEG, PNG і WebP.",
+                "fileTooLarge": "Файл занадто великий (макс. 5 МБ).",
+                "photoUploaded": "Фото завантажено",
+                "photosUploaded": "Завантажено фото: {count}",
+                "photoUploadError": "Помилка завантаження фото",
+                "photoDeleted": "Фото видалено",
+                "photoDeleteError": "Помилка видалення",
+                "reorderError": "Не вдалося змінити порядок.",
+                "deletePhotoConfirm": "Видалити це фото?",
+                "deletePhoto": "Видалити фото",
+                "delete": "Видалити",
+                "interiorAlt": "Інтер'єр",
+                "interiorEmptyTitle": "Додайте фото вашого інтер'єру",
+                "interiorEmptyBody": "Покажіть атмосферу вашого салону — до {max} фото",
+                "addPhoto": "Додати фото",
+                "photoCounter": "{current}/{max} фото",
+                "coverBadge": "Обкладинка",
+                "makeCover": "Зробити обкладинкою",
+                "uploading": "Завантаження...",
+                "staffOwnerTitle": "Чия це робота?",
+                "master": "Майстер",
+                "addPortfolioExamples": "Додати приклади робіт",
+                "coverUploaded": "Обкладинку завантажено і збережено",
+                "coverUploadError": "Помилка завантаження обкладинки",
+                "coverDeleted": "Обкладинку видалено",
+                "coverDeleteError": "Помилка видалення обкладинки",
+                "coverLabel": "Обкладинка профілю",
+                "coverAlt": "Обкладинка",
+                "replace": "Замінити",
+                "deleteCover": "Видалити обкладинку",
+                "uploadingEllipsis": "Завантаження…",
+                "uploadCover": "+ Завантажити обкладинку",
+                "coverHint": "Рекомендований розмір: 1200×400px горизонтально, до 5 МБ",
+                "maxInteriorPhotos": "Можна завантажити максимум {max} фото інтер’єру. Зараз: {current}."
+            },
+            "servicesUi": {
+                "empty": "Послуги поки не додані",
+                "addDescription": "Додайте опис у картку послуги",
+                "edit": "Змінити",
+                "deleteService": "Видалити послугу",
+                "byAgreement": "за домовленістю",
+                "durationMin": "{count} хв",
+                "updated": "Послугу оновлено",
+                "added": "Послугу додано",
+                "deleted": "Послугу видалено",
+                "deleteError": "Не вдалося видалити послугу",
+                "editService": "Змінити послугу",
+                "newService": "Нова послуга",
+                "close": "Закрити",
+                "subtitle": "Керуйте послугами та цінами в кілька кліків.",
+                "addService": "Додати послугу",
+                "createTitle": "Яку послугу ви хочете запропонувати?",
+                "selectCategory": "Оберіть категорію",
+                "selectSubcategory": "Оберіть підкатегорію",
+                "selectCategoryFirst": "Спочатку оберіть категорію",
+                "selectExactService": "Оберіть конкретну послугу",
+                "serviceLabel": "Послуга",
+                "pricePlaceholder": "Ціна, €",
+                "minutesPlaceholder": "Хв",
+                "priceHint": "Ціна і час необов'язкові. Натисніть «за домовленістю», якщо не вказуєте.",
+                "descriptionPlaceholder": "Опис послуги (що входить у процедуру, матеріали, особливості)",
+                "assignStaff": "Призначити майстрів",
+                "assignStaffHint": "Оберіть спеціалістів, які виконують цю послугу. Клієнти побачать їх у картці послуги.",
+                "selectStaffForPhotos": "Оберіть майстра, щоб додати приклади робіт",
+                "portfolioExamples": "Приклади робіт",
+                "portfolioHint": "Додайте фото результатів цієї послуги.",
+                "portfolioStaffHint": "Вони будуть прив'язані до обраних майстрів.",
+                "saveChanges": "Зберегти зміни",
+                "backToDashboard": "Повернутися до кабінету",
+                "errors": {
+                    "selectService": "Оберіть послугу з довідника.",
+                    "selectStaff": "Оберіть хоча б одного майстра.",
+                    "description": "Додайте опис послуги.",
+                    "priceDuration": "Ціна і тривалість заповнені некоректно.",
+                    "generic": "Помилка",
+                    "add": "Помилка при додаванні послуги",
+                    "save": "Помилка при збереженні послуги"
+                }
+            },
+            "profileForm": {
+                "studioPhotosSalonOnly": "Фото студії доступні тільки для салону.",
+                "maxStudioPhotos": "Можна завантажити максимум 8 фото студії.",
+                "photoUploadError": "Не вдалося завантажити фото",
+                "savedToast": "Профіль збережено",
+                "savedInline": "Зміни збережено!",
+                "name": "Ім'я / Назва",
+                "providerType": "Тип виконавця",
+                "salonOption": "Я представляю салон",
+                "privateOption": "Я приватний майстер",
+                "studioPhotosHint": "Фото студії доступні тільки для профілів типу «Салон».",
+                "category": "Спеціалізація (категорія)",
+                "bio": "Про себе / Про салон",
+                "bioPlaceholder": "Розкажіть про свій досвід, підхід до роботи та матеріали, які ви використовуєте...",
+                "languages": "Мови",
+                "phone": "Контактний телефон",
+                "legalInfo": "Юридична інформація",
+                "taxHint": "Обов'язково, щоб профіль став видимим для клієнтів.",
+                "city": "Місто",
+                "cityHint": "Спочатку оберіть місто з підказок OpenStreetMap.",
+                "cityConfirmHint": "Місто потрібно підтвердити кліком по одній з підказок.",
+                "salonAddress": "Повна адреса салону",
+                "addressNeedsCity": "Спочатку оберіть місто, потім введіть адресу в межах цього міста.",
+                "addressHint": "Введіть мінімум 3 символи та оберіть адресу зі списку OpenStreetMap.",
+                "addressConfirmHint": "Адресу потрібно підтвердити кліком по одній з підказок.",
+                "telegramTitle": "Telegram-сповіщення",
+                "telegramConnected": "Telegram успішно підключено",
+                "telegramDisconnected": "Telegram відключено",
+                "disconnect": "Відключити",
+                "connectTelegram": "Підключити Telegram-бота",
+                "telegramUnavailable": "Посилання для підключення недоступне. Вкажіть TELEGRAM_BOT_USERNAME у налаштуваннях сервера.",
+                "saveChanges": "Зберегти зміни",
+                "errors": {
+                    "selectCity": "Оберіть місто зі списку.",
+                    "salonAddress": "Вкажіть повну адресу салону.",
+                    "selectSalonAddress": "Оберіть адресу салону зі списку.",
+                    "generic": "Помилка",
+                    "saveProfile": "Помилка при збереженні профілю"
+                }
+            },
+            "workingHours": {
+                "days": {
+                    "mon": "Пн",
+                    "tue": "Вт",
+                    "wed": "Ср",
+                    "thu": "Чт",
+                    "fri": "Пт",
+                    "sat": "Сб",
+                    "sun": "Нд"
+                },
+                "selectDayError": "Оберіть хоча б один робочий день і задайте інтервал.",
+                "dayFallback": "День",
+                "saved": "Розклад збережено",
+                "saveError": "Не вдалося зберегти розклад.",
+                "saveErrorShort": "Не вдалося зберегти розклад",
+                "presets": "Пресети часу",
+                "standardPreset": "Стандарт: 09:00 - 18:00",
+                "eveningPreset": "Вечірній: 10:00 - 20:00",
+                "from": "З",
+                "to": "До",
+                "deleteInterval": "Видалити інтервал",
+                "addInterval": "Додати інтервал",
+                "dayOff": "Вихідний день",
+                "saveHours": "Зберегти робочі години"
+            },
+            "arrivalInfo": {
+                "addressRequired": "Адреса обов'язкова.",
+                "saved": "Інформацію про прибуття збережено",
+                "saveError": "Помилка збереження",
+                "deleteConfirm": "Видалити інформацію про прибуття?",
+                "deleted": "Інформацію про прибуття видалено",
+                "deleteError": "Помилка видалення",
+                "address": "Точна адреса",
+                "addressHint": "Адреса видима клієнту лише після підтвердження запису.",
+                "doorCode": "Код дверей",
+                "bell": "Дзвінок / домофон",
+                "bellPlaceholder": "Дзвінок «Марія», 3 поверх",
+                "waitingSpot": "Місце очікування",
+                "waitingSpotPlaceholder": "Café Oliv (2 хв) — гарне місце зачекати",
+                "save": "Зберегти",
+                "delete": "Видалити",
+                "previewTitle": "Прев'ю — так побачить клієнт після запису",
+                "howToArrive": "Як дістатися",
+                "doorCodeValue": "Код дверей: {code}",
+                "nearbyValue": "Поруч: {place}"
+            },
+            "staffUi": {
+                "genericError": "Помилка",
+                "deleteConfirm": "Видалити майстра? Усі записи до нього залишаться, але він зникне з форми бронювання.",
+                "addStaff": "Додати майстра",
+                "newStaff": "Новий майстер",
+                "staffName": "Ім'я майстра",
+                "namePlaceholder": "Наприклад: Анна",
+                "specialtyBio": "Спеціалізація / Біо",
+                "specialtyPlaceholder": "Топ-стиліст, колорист",
+                "saving": "Збереження...",
+                "save": "Зберегти",
+                "photoCount": "{count} фото",
+                "generalSchedule": "Загальний розклад",
+                "deleteStaff": "Видалити майстра",
+                "empty": "У вашому салоні ще немає доданих майстрів."
+            },
+            "staffHub": {
+                "title": "Керування: {name}",
+                "tabs": {
+                    "profile": "Профіль",
+                    "schedule": "Розклад",
+                    "portfolio": "Роботи"
+                },
+                "profile": {
+                    "nameRequired": "Ім'я не може бути порожнім",
+                    "ratingInvalid": "Рейтинг має бути числом від 0 до 5",
+                    "saved": "Профіль успішно оновлено",
+                    "saveError": "Помилка при збереженні",
+                    "name": "Ім'я майстра",
+                    "namePlaceholder": "Наприклад: Анна",
+                    "specialty": "Спеціалізація (Посада)",
+                    "specialtyPlaceholder": "Наприклад: Бровіст, Колорист",
+                    "bio": "Опис (Біо)",
+                    "bioPlaceholder": "Коротка інформація про майстра...",
+                    "experience": "Досвід роботи",
+                    "experiencePlaceholder": "Наприклад: 5 років досвіду",
+                    "rating": "Рейтинг (0-5)",
+                    "tags": "Спеціалізація (Теги)",
+                    "tagsPlaceholder": "Ламінування, Архітектура, Корекція",
+                    "tagsHint": "Перелічіть через кому. Максимум 12.",
+                    "cancel": "Скасувати",
+                    "save": "Зберегти"
+                },
+                "schedule": {
+                    "days": {
+                        "mon": "Понеділок",
+                        "tue": "Вівторок",
+                        "wed": "Середа",
+                        "thu": "Четвер",
+                        "fri": "П'ятниця",
+                        "sat": "Субота",
+                        "sun": "Неділя"
+                    },
+                    "loadError": "Не вдалося завантажити розклад",
+                    "checkTime": "Перевірте час: {day}",
+                    "dayFallback": "День",
+                    "saved": "Розклад збережено",
+                    "saveError": "Не вдалося зберегти",
+                    "subtitle": "Індивідуальні робочі години майстра мають пріоритет над основним розкладом салону.",
+                    "dayOff": "Вихідний",
+                    "cancel": "Скасувати",
+                    "save": "Зберегти"
+                },
+                "portfolio": {
+                    "emptyServices": "У салоні поки немає послуг. Фотографії майстрів прикріплюються до конкретної послуги, наприклад «Фарбування коренів».",
+                    "addService": "Додати послугу",
+                    "hint": "Оберіть послугу, щоб додати або видалити фотографії робіт цього майстра.",
+                    "photoCount": "{count} фото"
+                }
+            },
+            "dashboardCards": {
+                "passport": {
+                    "pendingTitle": "Документи на перевірці",
+                    "pendingBody": "Ми перевіряємо ваші документи. Зазвичай це займає не більше 24 годин.",
+                    "approvedTitle": "Особу підтверджено",
+                    "approvedBody": "Ваші документи перевірено. Довіра до профілю підвищена!",
+                    "rejectedTitle": "Перевірку не пройдено",
+                    "idleTitle": "Пройдіть перевірку паспорта",
+                    "rejectedBody": "На жаль, ваші документи відхилено. Будь ласка, спробуйте ще раз.",
+                    "idleBody": "Нам потрібно переконатися, що це справді ви. Для цього покажіть паспорт і сфотографуйтеся з ним.",
+                    "verify": "+ Пройти перевірку"
+                },
+                "publication": {
+                    "title": "Залишилося опублікувати профіль",
+                    "body": "Додайте кілька послуг для публікації — без них клієнти не зможуть вас знайти",
+                    "addServices": "Додати послуги"
+                },
+                "publicProfile": {
+                    "title": "Публічний профіль",
+                    "unavailable": "Ваш профіль недоступний для перегляду"
+                },
+                "stats": {
+                    "photoTitle": "Фото профілю",
+                    "photoAdded": "Фото додано",
+                    "photoMissing": "Фото не додано",
+                    "addressTitle": "Адреси",
+                    "addressAdded": "Адресу додано",
+                    "addressMissing": "Адресу не додано",
+                    "bioTitle": "Про себе",
+                    "bioFilled": "{count, plural, one {Заповнено # символ} few {Заповнено # символи} many {Заповнено # символів} other {Заповнено # символа}}",
+                    "bioMissing": "Не заповнено",
+                    "specialtiesTitle": "Спеціальності",
+                    "specialtiesAdded": "{count, plural, one {Додано # спеціальність} few {Додано # спеціальності} many {Додано # спеціальностей} other {Додано # спеціальності}}"
+                },
+                "services": {
+                    "title": "Мої послуги",
+                    "emptyBody": "Тут будуть ваші послуги",
+                    "addService": "Додати послугу",
+                    "add": "Додати",
+                    "uncategorized": "Без категорії",
+                    "pending": "На перевірці",
+                    "active": "Активна",
+                    "noDescription": "Без опису"
+                },
+                "specialties": {
+                    "add": "Додати спеціальність"
+                }
+            },
+            "publishNotice": {
+                "publishError": "Помилка публікації",
+                "serverError": "Внутрішня помилка сервера",
+                "title": "Ваш профіль прихований з пошуку",
+                "body": "Щоб клієнти могли знаходити вас і записуватися онлайн, профіль потрібно опублікувати. Переконайтеся, що ви додали <photo>фотографію</photo> і хоча б одну <service>послугу з ціною</service>.",
+                "checking": "Перевірка...",
+                "publish": "Опублікувати профіль"
+            },
+            "cityAutocomplete": {
+                "loadError": "Не вдалося завантажити міста. Спробуйте ще раз.",
+                "placeholder": "Почніть вводити місто",
+                "minLength": "Введіть щонайменше 2 символи для пошуку міста.",
+                "notFound": "Міст не знайдено. Уточніть запит."
+            },
+            "addressAutocomplete": {
+                "cityRequired": "Спочатку оберіть місто.",
+                "loadError": "Не вдалося завантажити адреси. Спробуйте ще раз.",
+                "placeholder": "Почніть вводити вулицю і номер будинку",
+                "minLength": "Введіть щонайменше 3 символи для пошуку адреси.",
+                "notFound": "Адрес не знайдено. Уточніть вулицю або номер будинку."
+            },
+            "avatarUpload": {
+                "uploadError": "Помилка завантаження",
+                "uploadFailed": "Не вдалося завантажити файл. Спробуйте ще раз.",
+                "changePhoto": "Змінити фото"
+            },
+            "providerOnboardingPage": {
+                "title": "Створення кабінету майстра",
+                "subtitle": "Заповніть базові дані, щоб відкрити дашборд і почати приймати заявки."
+            },
+            "preview": {
+                "title": "Передперегляд профілю | Svoi.de"
+            },
+            "legalSetup": {
+                "title": "Юридичні дані (DAC7)",
+                "subtitle": "Згідно з директивою ЄС DAC7, платформи бронювання зобов’язані збирати податкову інформацію. Ваші дані надійно захищені.",
+                "form": {
+                    "saveError": "Помилка під час збереження даних",
+                    "unexpectedError": "Сталася непередбачена помилка",
+                    "entityType": "Тип особи",
+                    "individual": "Фізична особа / Самозайнятий (приватний майстер)",
+                    "company": "Юридична особа (Салон / GmbH / UG)",
+                    "legalName": "Повне юридичне ім’я (ПІБ або назва компанії) *",
+                    "legalNamePlaceholder": "Наприклад: Ivan Ivanov або Beauty Salon GmbH",
+                    "taxId": "Ідентифікаційний податковий номер (Steuer-ID / Steuernummer) *",
+                    "taxIdPlaceholder": "Наприклад: 11/222/33333 або 11 222 33333",
+                    "taxIdHint": "Обов’язково для всіх, хто надає платні послуги.",
+                    "vatId": "Номер ПДВ (USt-IdNr)",
+                    "vatIdPlaceholder": "DE123456789 (якщо застосовується)",
+                    "saving": "Зберігаємо...",
+                    "submit": "Завершити реєстрацію"
+                }
+            },
+            "onboardingWizard": {
+                "days": {
+                    "mon": "Пн",
+                    "tue": "Вт",
+                    "wed": "Ср",
+                    "thu": "Чт",
+                    "fri": "Пт",
+                    "sat": "Сб",
+                    "sun": "Нд"
+                },
+                "bioTags": {
+                    "experience": "8 років досвіду",
+                    "homeStudio": "Приймаю вдома",
+                    "outcall": "Виїзд до клієнта",
+                    "children": "Працюю з дітьми",
+                    "naturalMaterials": "Тільки натуральні матеріали"
+                },
+                "placePresets": {
+                    "rent": "Орендую місце",
+                    "ownSalon": "Свій салон",
+                    "home": "Працюю вдома"
+                },
+                "audiences": {
+                    "women": "Жінки",
+                    "men": "Чоловіки",
+                    "kids": "Діти"
+                },
+                "serviceCategories": {
+                    "hair": "Стрижка",
+                    "nails": "Манікюр",
+                    "browsLashes": "Брови і вії",
+                    "cosmetology": "Косметологія",
+                    "massage": "Масаж",
+                    "other": "Інше"
+                },
+                "subservices": {
+                    "other": "Інше",
+                    "hair": {
+                        "men": "Чоловіча стрижка",
+                        "women": "Жіноча стрижка",
+                        "kids": "Дитяча стрижка",
+                        "color": "Фарбування"
+                    },
+                    "nails": {
+                        "classic": "Класичний манікюр",
+                        "hardware": "Апаратний манікюр",
+                        "gel": "Гель-лак",
+                        "extensions": "Нарощування",
+                        "pedicure": "Педикюр"
+                    },
+                    "browsLashes": {
+                        "browCorrection": "Корекція брів",
+                        "browColor": "Фарбування брів",
+                        "lashExtensions": "Нарощування вій",
+                        "lamination": "Ламінування"
+                    },
+                    "cosmetology": {
+                        "cleaning": "Чистка обличчя",
+                        "peeling": "Пілінг",
+                        "care": "Доглядові процедури"
+                    },
+                    "massage": {
+                        "classic": "Класичний масаж",
+                        "sport": "Спортивний масаж",
+                        "relax": "Розслаблюючий масаж"
+                    }
+                },
+                "languages": {
+                    "ru": "Російська",
+                    "uk": "Українська",
+                    "de": "Німецька",
+                    "en": "Англійська"
+                },
+                "steps": {
+                    "INDIVIDUAL": {
+                        "1": {
+                            "label": "Познайомимось",
+                            "title": "Як вас звати?",
+                            "subtitle": "Це побачать клієнти у вашому профілі"
+                        },
+                        "2": {
+                            "label": "Ваша спеціалізація",
+                            "title": "Деталі роботи"
+                        },
+                        "3": {
+                            "label": "Як і де ви працюєте?",
+                            "title": "Де ви приймаєте клієнтів?"
+                        },
+                        "4": {
+                            "label": "Ваша перша послуга",
+                            "title": "Додайте послугу",
+                            "subtitle": "Більше послуг ви додасте пізніше в кабінеті"
+                        },
+                        "5": {
+                            "label": "Ваш графік",
+                            "title": "Коли ви приймаєте клієнтів?"
+                        }
+                    },
+                    "SALON": {
+                        "1": {
+                            "label": "Ваш салон",
+                            "title": "Назва вашого салону"
+                        },
+                        "2": {
+                            "label": "Послуги салону",
+                            "title": "Що пропонує ваш салон?",
+                            "subtitle": "Оберіть усі відповідні категорії"
+                        },
+                        "3": {
+                            "label": "Адреса салону",
+                            "title": "Де знаходиться ваш салон?",
+                            "subtitle": "Клієнти бачитимуть точну адресу на карті"
+                        },
+                        "4": {
+                            "label": "Перша послуга салону",
+                            "title": "Додайте послугу"
+                        },
+                        "5": {
+                            "label": "Графік роботи",
+                            "title": "Години роботи салону"
+                        }
+                    }
+                },
+                "progress": "Крок {current} з {total}",
+                "fields": {
+                    "name": "Ім'я",
+                    "bio": "Про себе",
+                    "salonName": "Назва салону",
+                    "salonBio": "Про салон",
+                    "managerName": "Ім'я керівника / контактна особа",
+                    "audiences": "З ким працюєте",
+                    "categories": "Категорії",
+                    "languages": "Мови",
+                    "workMode": "Формат роботи",
+                    "placeName": "Назва місця",
+                    "city": "Місто",
+                    "zip": "Індекс",
+                    "street": "Вулиця",
+                    "house": "Будинок",
+                    "serviceTitle": "Назва послуги",
+                    "price": "Ціна €",
+                    "duration": "Тривалість",
+                    "descriptionOptional": "Опис (необов’язково)"
+                },
+                "placeholders": {
+                    "name": "Наприклад: Анна Краузе",
+                    "bio": "Розкажіть клієнтам про себе...",
+                    "salonName": "Наприклад: Beauty Studio Anna",
+                    "salonBio": "Опишіть ваш салон, атмосферу та переваги...",
+                    "managerName": "Як до вас звертатися?",
+                    "placeName": "Назва (напр. студія 'Bliss' або оренда місця)",
+                    "city": "Оберіть місто",
+                    "street": "Почніть вводити назву вулиці...",
+                    "cityFirst": "Спочатку оберіть місто",
+                    "otherCategory": "Наприклад: тату, подологія, пірсинг...",
+                    "serviceTitle": "Наприклад: чоловіча стрижка",
+                    "price": "Наприклад: 20"
+                },
+                "photo": {
+                    "add": "Додати фото",
+                    "remove": "Видалити фото",
+                    "hint": "Профілі з фото викликають більше довіри",
+                    "skip": "Пропустити, додам пізніше →",
+                    "servicePhoto": "Фото роботи (необов’язково)",
+                    "servicePhotoHint": "До 5 МБ. Більше фото можна буде додати пізніше в кабінеті.",
+                    "servicePreviewAlt": "Передперегляд фото послуги",
+                    "replace": "Замінити фото",
+                    "choose": "Обрати фото",
+                    "formats": "JPG, PNG або WebP"
+                },
+                "workMode": {
+                    "studioTitle": "Приймаю у себе",
+                    "studioBody": "Салон, кабінет, студія або домашній кабінет",
+                    "outcallTitle": "Виїжджаю до клієнта",
+                    "outcallBody": "Можна обрати разом із прийомом у себе",
+                    "required": "Оберіть хоча б один формат роботи, щоб продовжити."
+                },
+                "common": {
+                    "remove": "Видалити"
+                },
+                "location": {
+                    "itemTitle": "Місце {number}",
+                    "hideExact": "Не показувати точну адресу - показувати лише район",
+                    "add": "+ Додати ще одне місце",
+                    "primaryHint": "Основним для пошуку буде перше місце зі списку."
+                },
+                "outcall": {
+                    "radius": "Радіус виїзду (км)",
+                    "radiusHint": "Клієнти побачать вас, якщо їхня адреса знаходиться в цьому радіусі від вашого базового міста.",
+                    "baseCity": "Ваше базове місто (для розрахунку радіуса)"
+                },
+                "distanceKm": "{count} км",
+                "service": {
+                    "categoryStep": "1) Оберіть категорію",
+                    "otherCategory": "Уточніть категорію",
+                    "subserviceStep": "2) Оберіть підпослугу",
+                    "startingPrice": "Ціна «від» (залежить від складності)"
+                },
+                "durationMin": "{count} хв",
+                "schedule": {
+                    "weekdayPreset": "Пн-Пт, 09:00-18:00 (стандартний)",
+                    "workingDay": "Працюю в цей день",
+                    "from": "з",
+                    "to": "до",
+                    "invalidRange": "Час початку має бути раніше часу завершення.",
+                    "applyToAll": "Застосувати один час до всіх робочих днів",
+                    "saveHint": "Під час збереження використовується єдиний робочий діапазон часу для вибраних днів.",
+                    "breaksHint": "Перерви й точне налаштування слотів можна буде додати пізніше в особистому кабінеті."
+                },
+                "navigation": {
+                    "back": "← Назад",
+                    "next": "Далі →",
+                    "finish": "Завершити реєстрацію ✓"
+                },
+                "errors": {
+                    "photoUpload": "Помилка завантаження фото. Спробуйте ще раз.",
+                    "imageType": "Дозволені лише JPEG, PNG і WebP.",
+                    "imageSize": "Файл занадто великий. Максимум 5 МБ.",
+                    "preview": "Не вдалося підготувати передперегляд зображення.",
+                    "fixBeforeContinue": "Будь ласка, виправте помилки перед продовженням",
+                    "saveDraft": "Не вдалося зберегти чернетку.",
+                    "selectWorkMode": "Оберіть хоча б один формат роботи.",
+                    "addWorkLocation": "Додайте мінімум одне місце роботи.",
+                    "completeWorkLocations": "Вкажіть місто, вулицю, номер будинку та індекс у кожному місці роботи.",
+                    "completeSalonAddress": "Вкажіть місто, вулицю, номер будинку та індекс салону.",
+                    "outcallCity": "Вкажіть базове місто для виїзду до клієнта.",
+                    "outcallRadius": "Вкажіть радіус виїзду від 1 до 100 км.",
+                    "category": "Не вдалося визначити категорію. Оберіть послугу ще раз.",
+                    "saveProfileDraft": "Не вдалося зберегти чернетку профілю.",
+                    "serviceTitle": "Вкажіть назву послуги.",
+                    "otherCategory": "Уточніть категорію для послуги.",
+                    "publish": "Не вдалося опублікувати профіль.",
+                    "finish": "Не вдалося завершити реєстрацію. Спробуйте ще раз."
+                },
+                "descriptionMeta": {
+                    "category": "Категорія: {value}",
+                    "startingPrice": "Ціна від: залежить від складності"
+                },
+                "bioMeta": {
+                    "contactPerson": "Контактна особа: {name}\n\n{bio}",
+                    "workLocations": "Місця роботи"
+                },
+                "success": "Профіль відправлено на модерацію! Перенаправляємо..."
+            }
+        },
+        "admin": {
+            "access": {
+                "title": "Адмін-центр",
+                "denied": "Доступ заборонено",
+                "body": "Ваш акаунт не має прав адміністратора.",
+                "home": "На головну"
+            },
+            "title": "Панель адміністратора",
+            "metrics": {
+                "totalBookings": "Усього записів",
+                "completed": "Завершено",
+                "cancelled": "Скасовано"
+            },
+            "tabs": {
+                "users": "Користувачі",
+                "services": "Послуги",
+                "bookings": "Записи"
+            },
+            "migration": {
+                "confirm": "Відновити тестових майстрів? Це створить нових User'ів для профілів без акаунта.",
+                "success": "Міграція успішна! Відновлено профілів: {count}",
+                "error": "Помилка міграції: {message}",
+                "title": "Інструменти розробника",
+                "body": "Відновити профілі \"привиди\" без акаунта. (Тимчасова кнопка)",
+                "running": "Міграція...",
+                "button": "Фікс БД: відновити майстрів"
+            },
+            "servicesTable": {
+                "deleteConfirm": "Ви впевнені, що хочете видалити цю послугу? Цю дію неможливо скасувати.",
+                "columns": {
+                    "service": "Назва послуги",
+                    "provider": "Майстер / Салон",
+                    "price": "Ціна",
+                    "duration": "Тривалість",
+                    "actions": "Дії"
+                },
+                "empty": "Немає послуг",
+                "profileDeleted": "Профіль видалено",
+                "durationMin": "{count} хв.",
+                "delete": "Видалити"
+            },
+            "bookingsTable": {
+                "status": {
+                    "pending": "Очікує",
+                    "confirmed": "Підтверджено",
+                    "completed": "Завершено",
+                    "cancelled": "Скасовано",
+                    "noShow": "Не прийшов"
+                },
+                "columns": {
+                    "dateTime": "Дата / Час",
+                    "service": "Послуга",
+                    "client": "Клієнт",
+                    "provider": "Майстер",
+                    "amount": "Сума",
+                    "status": "Статус"
+                },
+                "empty": "Немає записів",
+                "unnamed": "Без імені",
+                "serviceDeleted": "Послугу видалено"
+            },
+            "usersTable": {
+                "unnamed": "Без імені",
+                "noEmail": "Немає email",
+                "registered": "Зареєстровано: {date}",
+                "status": {
+                    "banned": "Заблоковано",
+                    "active": "Активний"
+                },
+                "providerStatus": {
+                    "draft": "Чернетка",
+                    "pending": "На перевірці",
+                    "approved": "Схвалено",
+                    "rejected": "Відхилено"
+                },
+                "openPublicProfile": "Перейти до публічного профілю",
+                "tabs": {
+                    "stats": "Статистика",
+                    "bookings": "Історія записів"
+                },
+                "clientStats": "Статистика клієнта",
+                "bookingsCreated": "Створено записів",
+                "yes": "Так",
+                "no": "Ні",
+                "providerProfile": "Профіль майстра",
+                "providerStats": "Статистика майстра",
+                "activeServices": "Активних послуг",
+                "receivedBookings": "Отриманих записів",
+                "noProviderProfile": "Профіль майстра не створено",
+                "adminActions": "Дії адміністратора",
+                "providerModeration": "Модерація профілю майстра",
+                "approve": "Схвалити",
+                "reject": "Відхилити",
+                "cannotBanAdmins": "Адміністраторів не можна заблокувати",
+                "unbanAccount": "Зняти блокування акаунта",
+                "softBan": "Призупинити доступ (Soft Ban)",
+                "bookingStatus": {
+                    "pending": "Очікує",
+                    "confirmed": "Підтверджено",
+                    "completed": "Завершено",
+                    "cancelled": "Скасовано"
+                },
+                "loadingBookings": "Завантаження записів...",
+                "noBookingsTitle": "Немає записів",
+                "noBookingsBody": "У користувача поки немає жодного запису як майстра або клієнта.",
+                "latestBookings": "Останні записи ({count})",
+                "bookingFor": "ДЛЯ",
+                "bookingWith": "ДО",
+                "serviceDeleted": "Послугу видалено",
+                "confirmBan": "Ви впевнені, що хочете заблокувати цього користувача?",
+                "confirmReject": "Відхилити профіль і приховати його з каталогу?",
+                "filters": {
+                    "all": "Усі",
+                    "masters": "Тільки майстри",
+                    "clients": "Тільки клієнти"
+                },
+                "columns": {
+                    "name": "Ім'я",
+                    "accountType": "Тип акаунта",
+                    "role": "Роль",
+                    "status": "Статус",
+                    "actions": "Дії"
+                },
+                "emptyUsers": "Немає користувачів",
+                "accountType": {
+                    "provider": "Майстер",
+                    "client": "Клієнт"
+                },
+                "unban": "Розблокувати",
+                "ban": "Заблокувати",
+                "dossierTitle": "Досьє користувача",
+                "dossierDescription": "Детальна інформація, статистика та керування доступом."
+            },
+            "actionErrors": {
+                "invalidProfileId": "Некоректний ID заявки",
+                "accessDenied": "Доступ заборонено",
+                "profileNotFound": "Профіль не знайдено",
+                "profileNotPending": "Профіль не перебуває в статусі очікування перевірки",
+                "database": "Помилка бази даних"
+            }
+        }
+    },
+    "header": {
+        "becomePro": "Стати майстром",
+        "login": "Увійти",
+        "logout": "Вийти",
+        "myAccount": "Мій кабінет",
+        "myBookings": "Мої записи",
+        "messages": "Повідомлення",
+        "search": "Пошук",
+        "chat": "Чат",
+        "openChat": "Відкрити чат",
+        "openMenu": "Відкрити меню",
+        "closeMenu": "Закрити меню",
+        "forMasters": "Для майстрів",
+        "forClient": "Для клієнтів",
+        "userFallback": "Користувач",
+        "noEmail": "Без email",
+        "continueOnboarding": "Продовжити налаштування профілю",
+        "adminPanel": "Панель управління",
+        "masterCabinet": "Кабінет майстра",
+        "myCabinet": "Мій кабінет",
+        "accountSettings": "Налаштування акаунта",
+        "nav": {
+            "services": "Послуги",
+            "masters": "Майстри",
+            "about": "Про нас"
+        }
+    },
+    "userMenu": {
+        "openLabel": "Відкрити меню користувача",
+        "dashboardSectionsLabel": "Показати розділи кабінету",
+        "role": {
+            "admin": "Адміністратор",
+            "draft": "Чернетка",
+            "registering": "Реєстрація...",
+            "master": "Майстер",
+            "client": "Клієнт"
+        },
+        "section": {
+            "bookings": "Записи",
+            "analytics": "Статистика",
+            "services": "Послуги",
+            "schedule": "Розклад"
+        }
+    },
+    "footer": {
+        "rights": "Усі права захищені",
+        "copyright": "© {year} SVOI Curated Atelier. Усі права захищені.",
+        "language": "Мова",
+        "contact": "Контакт",
+        "columns": {
+            "services": "Послуги",
+            "platform": "Платформа",
+            "legal": "Юридична інформація"
+        },
+        "services": {
+            "hairDesign": "Дизайн волосся",
+            "makeup": "Макіяж",
+            "skincare": "Догляд за шкірою",
+            "wellness": "Велнес"
+        },
+        "links": {
+            "about": "Про нас",
+            "guide": "Як це працює",
+            "becomePro": "Для майстрів",
+            "agb": "Умови використання",
+            "datenschutz": "Політика конфіденційності",
+            "impressum": "Impressum"
+        }
+    },
+    "errors": {
+        "notFound": {
+            "title": "Сторінку не знайдено",
+            "body": "Запитувана сторінка не існує або була переміщена."
+        },
+        "generic": {
+            "title": "Щось пішло не так",
+            "body": "Спробуйте оновити сторінку. Якщо помилка повторюється, зв'яжіться з нами."
+        }
+    }
+}

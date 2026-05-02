@@ -5,31 +5,35 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
 import { checkBanned } from '@/lib/requireNotBanned';
+import { getTranslations } from 'next-intl/server';
 
 const APPROVED_PROVIDER_STATUS = 'PUBLISHED' as const;
 const REJECTED_PROVIDER_STATUS = 'SUSPENDED' as const;
 
-function parseProfileId(formData: FormData) {
+type AdminActionTranslator = Awaited<ReturnType<typeof getTranslations<'dashboard.admin.actionErrors'>>>;
+
+function parseProfileId(formData: FormData, t: AdminActionTranslator) {
     const profileId = Number(formData.get('profile_id'));
     if (!Number.isInteger(profileId)) {
-        throw new Error('Некорректный ID заявки');
+        throw new Error(t('invalidProfileId'));
     }
     return profileId;
 }
 
 export async function approveMaster(formData: FormData) {
+    const t = await getTranslations('dashboard.admin.actionErrors');
     const session = await auth();
     if (!session?.user || session.user.role !== 'ADMIN') {
-        throw new Error('Доступ запрещен');
+        throw new Error(t('accessDenied'));
     }
     const banned = checkBanned(session);
     if (banned) throw new Error(banned.error);
 
-    const profileId = parseProfileId(formData);
+    const profileId = parseProfileId(formData, t);
 
     const profile = await prisma.profile.findUnique({ where: { id: profileId }, select: { status: true } });
-    if (!profile) throw new Error('Профиль не найден');
-    if (profile.status !== 'PENDING_REVIEW') throw new Error('Профиль не находится в статусе ожидания проверки');
+    if (!profile) throw new Error(t('profileNotFound'));
+    if (profile.status !== 'PENDING_REVIEW') throw new Error(t('profileNotPending'));
 
     const updated = await prisma.profile.update({
         where: { id: profileId },
@@ -49,18 +53,19 @@ export async function approveMaster(formData: FormData) {
 }
 
 export async function rejectMaster(formData: FormData) {
+    const t = await getTranslations('dashboard.admin.actionErrors');
     const session = await auth();
     if (!session?.user || session.user.role !== 'ADMIN') {
-        throw new Error('Доступ запрещен');
+        throw new Error(t('accessDenied'));
     }
     const banned = checkBanned(session);
     if (banned) throw new Error(banned.error);
 
-    const profileId = parseProfileId(formData);
+    const profileId = parseProfileId(formData, t);
 
     const profile = await prisma.profile.findUnique({ where: { id: profileId }, select: { status: true } });
-    if (!profile) throw new Error('Профиль не найден');
-    if (profile.status !== 'PENDING_REVIEW') throw new Error('Профиль не находится в статусе ожидания проверки');
+    if (!profile) throw new Error(t('profileNotFound'));
+    if (profile.status !== 'PENDING_REVIEW') throw new Error(t('profileNotPending'));
 
     const updated = await prisma.profile.update({
         where: { id: profileId },
@@ -212,7 +217,8 @@ export async function getAdminData() {
         };
     } catch (error) {
         console.error("PRISMA FETCH ERROR:", error);
-        throw new Error(error instanceof Error ? error.message : "Ошибка базы данных");
+        const t = await getTranslations('dashboard.admin.actionErrors');
+        throw new Error(error instanceof Error ? error.message : t('database'));
     }
 }
 
@@ -288,9 +294,10 @@ export async function getUserBookings(userId: string) {
 }
 
 export async function migrateOrphanedProviders() {
+    const t = await getTranslations('dashboard.admin.actionErrors');
     const session = await auth();
     if (!session?.user || session.user.role !== 'ADMIN') {
-        throw new Error('Доступ запрещен');
+        throw new Error(t('accessDenied'));
     }
 
     const orphanedProfiles = await prisma.profile.findMany({

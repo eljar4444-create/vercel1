@@ -11,6 +11,9 @@ import {
     type BookingActor,
 } from '@/lib/booking/state-machine';
 import { recordClientVisit, recordClientNoShow } from '@/lib/client/upsert';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { resolveLocale } from '@/i18n/canonical';
+import { safeParseWithLocale } from '@/i18n/zod';
 
 const StatusSchema = z.nativeEnum(BookingStatus);
 
@@ -19,17 +22,20 @@ export async function updateBookingStatus(
     newStatus: string,
     actorHint?: BookingActor,
 ) {
+    const locale = resolveLocale(await getLocale());
+    const t = await getTranslations({ locale, namespace: 'forms.api' });
+
     const session = await auth();
     if (!session?.user) {
         return { success: false, error: 'Unauthorized' };
     }
     if (session.user.isBanned) {
-        return { success: false, error: 'Ваш аккаунт заблокирован.' };
+        return { success: false, error: t('banned') };
     }
 
-    const parsed = StatusSchema.safeParse(newStatus);
+    const parsed = await safeParseWithLocale(StatusSchema, newStatus, locale);
     if (!parsed.success) {
-        return { success: false, error: 'Недопустимый статус' };
+        return { success: false, error: t('invalidStatus') };
     }
     const targetStatus = parsed.data;
 
@@ -70,7 +76,7 @@ export async function updateBookingStatus(
         if (!canTransition(booking.status, targetStatus, actor)) {
             return {
                 success: false,
-                error: `Недопустимый переход: ${booking.status} → ${targetStatus}`,
+                error: t('invalidStatusTransition', { from: booking.status, to: targetStatus }),
             };
         }
 
@@ -108,6 +114,6 @@ export async function updateBookingStatus(
         return { success: true };
     } catch (error: any) {
         console.error('Update booking status error:', error);
-        return { success: false, error: error.message || 'Ошибка при обновлении статуса' };
+        return { success: false, error: error.message || t('statusUpdateError') };
     }
 }

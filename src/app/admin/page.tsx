@@ -20,10 +20,12 @@ import AdminServicesTable from './components/AdminServicesTable';
 import AdminBookingsTable from './components/AdminBookingsTable';
 import AdminStatCard from './components/AdminStatCard';
 import { SystemStatus } from '@/components/admin/SystemStatus';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminPage() {
+    const t = await getTranslations('dashboard.admin');
     const session = await auth();
     const hasAccess = session?.user?.role === 'ADMIN';
 
@@ -37,19 +39,19 @@ export default async function AdminPage() {
                     <div className="bg-gray-950 px-6 py-5 text-white">
                         <div className="flex items-center gap-3">
                             <ShieldAlert className="h-6 w-6 text-red-400" />
-                            <h1 className="text-xl font-bold tracking-tight">Админ-центр</h1>
+                            <h1 className="text-xl font-bold tracking-tight">{t('access.title')}</h1>
                         </div>
                     </div>
                     <div className="bg-white px-6 py-10 text-center">
                         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
                             <ShieldAlert className="h-7 w-7 text-red-500" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900">Доступ запрещен</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">{t('access.denied')}</h2>
                         <p className="mx-auto mt-3 max-w-md text-sm text-gray-500">
-                            У вашей учетной записи нет прав администратора.
+                            {t('access.body')}
                         </p>
                         <Button asChild variant="outline" className="mt-6">
-                            <Link href="/">На главную</Link>
+                            <Link href="/">{t('access.home')}</Link>
                         </Button>
                     </div>
                 </div>
@@ -97,7 +99,7 @@ export default async function AdminPage() {
                                 Control Center
                             </p>
                             <h1 className="mt-0.5 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-                                Панель администратора
+                                {t('title')}
                             </h1>
                         </div>
                     </div>
@@ -142,7 +144,7 @@ export default async function AdminPage() {
                 {/* ── Second Row: Booking metrics ── */}
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <AdminStatCard
-                        label="Всего записей"
+                        label={t('metrics.totalBookings')}
                         value={totalBookings}
                         icon={CalendarDays}
                         iconColor="text-orange-600"
@@ -150,7 +152,7 @@ export default async function AdminPage() {
                         borderColor="#ea580c"
                     />
                     <AdminStatCard
-                        label="Завершено"
+                        label={t('metrics.completed')}
                         value={completedBookings}
                         icon={CalendarCheck}
                         iconColor="text-green-600"
@@ -158,7 +160,7 @@ export default async function AdminPage() {
                         borderColor="#16a34a"
                     />
                     <AdminStatCard
-                        label="Отменено"
+                        label={t('metrics.cancelled')}
                         value={canceledBookings}
                         icon={CalendarX}
                         iconColor="text-red-500"
@@ -181,7 +183,7 @@ export default async function AdminPage() {
                                     className="relative rounded-none border-b-2 border-transparent px-4 pb-3 pt-1 text-sm font-medium text-gray-500 transition-all data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 data-[state=active]:shadow-none data-[state=active]:bg-transparent"
                                 >
                                     <Users className="mr-2 h-4 w-4 inline-block" />
-                                    Пользователи
+                                    {t('tabs.users')}
                                     <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-200 px-1.5 text-[10px] font-bold text-gray-600">
                                         {totalUsers}
                                     </span>
@@ -191,7 +193,7 @@ export default async function AdminPage() {
                                     className="relative rounded-none border-b-2 border-transparent px-4 pb-3 pt-1 text-sm font-medium text-gray-500 transition-all data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 data-[state=active]:shadow-none data-[state=active]:bg-transparent"
                                 >
                                     <Briefcase className="mr-2 h-4 w-4 inline-block" />
-                                    Услуги
+                                    {t('tabs.services')}
                                     <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-200 px-1.5 text-[10px] font-bold text-gray-600">
                                         {totalServices}
                                     </span>
@@ -201,7 +203,7 @@ export default async function AdminPage() {
                                     className="relative rounded-none border-b-2 border-transparent px-4 pb-3 pt-1 text-sm font-medium text-gray-500 transition-all data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 data-[state=active]:shadow-none data-[state=active]:bg-transparent"
                                 >
                                     <BookOpen className="mr-2 h-4 w-4 inline-block" />
-                                    Записи
+                                    {t('tabs.bookings')}
                                     <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-gray-200 px-1.5 text-[10px] font-bold text-gray-600">
                                         {totalBookings}
                                     </span>

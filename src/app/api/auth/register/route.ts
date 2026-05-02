@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { registerRateLimit } from '@/lib/rate-limit';
+import { localeFromRequest, safeParseWithLocale } from '@/i18n/zod';
+import { getTranslations } from 'next-intl/server';
 
 const RegisterSchema = z.object({
     email: z.string().email(),
@@ -11,11 +13,13 @@ const RegisterSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+    const locale = localeFromRequest(req);
+    const t = await getTranslations({ locale, namespace: 'auth.api' });
     const jwtSecret = process.env.JWT_SECRET;
     if (!jwtSecret || jwtSecret.length < 16) {
         console.error('Registration: JWT_SECRET is missing or too short (min 16 chars)');
         return NextResponse.json(
-            { error: 'Сервер не настроен для регистрации. Обратитесь к администратору.' },
+            { error: t('serverMisconfigured') },
             { status: 500 }
         );
     }
@@ -26,17 +30,36 @@ export async function POST(req: NextRequest) {
         const isProviderRegistration = roleParam === 'provider';
         const onboardingType = typeParam === 'SALON' ? 'SALON' : 'INDIVIDUAL';
 
-        const body = await req.json();
+        let body: unknown;
+        try {
+            body = await req.json();
+        } catch {
+            return NextResponse.json({ error: t('invalidJson') }, { status: 400 });
+        }
 
         // 1. Honeypot check: if website_url is filled, fake 200 OK immediately
-        if (body.website_url && typeof body.website_url === 'string' && body.website_url.trim().length > 0) {
+        const rawBody = body && typeof body === 'object' ? body as Record<string, unknown> : {};
+        if (typeof rawBody.website_url === 'string' && rawBody.website_url.trim().length > 0) {
             console.log('Bot detected via honeypot field. Returning fake success.');
             // Return fake 200 to trick the bot without touching the DB
             return NextResponse.json({
                 success: true,
                 token: 'honeypot-fake-token-do-not-use',
-                user: { id: 0, email: body.email || 'bot@example.com', role: 'USER', name: body.name || 'Bot User' },
+                user: {
+                    id: 0,
+                    email: typeof rawBody.email === 'string' ? rawBody.email : 'bot@example.com',
+                    role: 'USER',
+                    name: typeof rawBody.name === 'string' ? rawBody.name : 'Bot User',
+                },
             });
+        }
+
+        const result = await safeParseWithLocale(RegisterSchema, body, locale);
+
+        if (!result.success) {
+            const firstIssue = result.error.flatten().fieldErrors;
+            const message = firstIssue.email?.[0] ?? firstIssue.password?.[0] ?? firstIssue.name?.[0] ?? t('invalidInput');
+            return NextResponse.json({ error: message }, { status: 400 });
         }
 
         // Extract client IP for rate limiting and AGB acceptance record
@@ -50,18 +73,10 @@ export async function POST(req: NextRequest) {
             const rateLimit = await registerRateLimit.limit(clientIp);
             if (!rateLimit.success) {
                 return NextResponse.json(
-                    { error: 'Слишком много попыток регистрации с этого IP. Попробуйте снова через час.' },
+                    { error: t('registerRateLimited') },
                     { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.reset - Date.now()) / 1000)) } }
                 );
             }
-        }
-
-        const result = RegisterSchema.safeParse(body);
-
-        if (!result.success) {
-            const firstIssue = result.error.flatten().fieldErrors;
-            const message = firstIssue.email?.[0] ?? firstIssue.password?.[0] ?? firstIssue.name?.[0] ?? 'Проверьте введённые данные.';
-            return NextResponse.json({ error: message }, { status: 400 });
         }
 
         const { email, password, name } = result.data;
@@ -69,7 +84,7 @@ export async function POST(req: NextRequest) {
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             return NextResponse.json(
-                { error: 'Пользователь с таким email уже зарегистрирован.' },
+                { error: t('emailTaken') },
                 { status: 409 }
             );
         }
@@ -106,13 +121,13 @@ export async function POST(req: NextRequest) {
         const prismaError = error as { code?: string };
         if (prismaError.code === 'P2002') {
             return NextResponse.json(
-                { error: 'Пользователь с таким email уже зарегистрирован.' },
+                { error: t('emailTaken') },
                 { status: 409 }
             );
         }
 
         return NextResponse.json(
-            { error: 'Ошибка при создании аккаунта. Попробуйте позже.' },
+            { error: t('createAccountError') },
             { status: 500 }
         );
     }

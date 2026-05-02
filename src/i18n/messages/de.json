@@ -1,0 +1,1833 @@
+{
+    "common": {
+        "home": "Startseite",
+        "back": "Zurück",
+        "backToHome": "Zur Startseite",
+        "navigation": "Navigation",
+        "search": "Suche",
+        "searchAcrossGermany": "In ganz Deutschland suchen",
+        "loading": "Wird geladen...",
+        "save": "Speichern",
+        "cancel": "Abbrechen",
+        "close": "Schließen",
+        "more": "Mehr erfahren",
+        "yes": "Ja",
+        "no": "Nein"
+    },
+    "seo": {
+        "site": {
+            "title": "Svoi.de — Marktplatz für Dienstleistungen",
+            "description": "Finden Sie den perfekten Spezialisten für jede Aufgabe auf Svoi.de"
+        }
+    },
+    "home": {
+        "hero": {
+            "titleLine1": "Ihre Spezialisten",
+            "titleLine2": "Ihr Service",
+            "subtitle": "Finden und buchen Sie die besten Beauty-Spezialisten"
+        },
+        "searchBar": {
+            "servicePlaceholder": "Leistung",
+            "searchButton": "Suchen",
+            "validationToast": "Bitte geben Sie Stadt und gewünschte Leistung für eine präzise Suche an",
+            "megaMenuEmpty": "Keine Leistungen gefunden",
+            "viewAllServices": "Alle Leistungen ansehen ➔"
+        },
+        "categoryNav": {
+            "eyebrow": "Entdecken Sie",
+            "title": "Beliebte Leistungen",
+            "allCategories": "Alle Kategorien"
+        },
+        "gallery": {
+            "eyebrow": "SVOI-Auswahl",
+            "titleSalons": "Top-Salons der Plattform",
+            "titleMasters": "Top-Spezialisten der Plattform",
+            "titleSalonsCity": "Salons — {city}",
+            "titleMastersCity": "Spezialisten — {city}",
+            "subtitle": "Wir prüfen jeden Spezialisten auf den SVOI-Goldstandard für Qualität.",
+            "toggleFreelancers": "Selbstständige",
+            "toggleSalons": "Salons",
+            "searching": "Suche läuft...",
+            "loading": "Wird geladen...",
+            "showLocal": "Spezialisten in der Nähe anzeigen?",
+            "showAll": "Alle Spezialisten der Plattform anzeigen",
+            "noLocal": "In Ihrer Region gibt es noch keine Spezialisten — sehen Sie sich die besten der Plattform an.",
+            "prevSalons": "Vorherige Salons",
+            "nextSalons": "Nächste Salons",
+            "emptySalons": "In Ihrer Region gibt es noch keine Salons. Seien Sie die Ersten!",
+            "emptyMasters": "In Ihrer Region gibt es noch keine selbstständigen Spezialisten. Seien Sie die Ersten!"
+        },
+        "howItWorks": {
+            "step1": {
+                "title": "Spezialist auswählen",
+                "description": "Entdecken Sie kuratierte Profile, Bewertungen und Arbeitsgalerien von Profis der Spitzenklasse."
+            },
+            "step2": {
+                "title": "Buchung in 30 Sekunden",
+                "description": "Mit der nahtlosen Online-Buchung reservieren Sie Ihren Termin ohne lange Anrufe."
+            },
+            "step3": {
+                "title": "Qualitätsstandards",
+                "description": "Wir prüfen jeden Spezialisten streng auf Hygiene und Ausführung der Leistungen."
+            }
+        },
+        "jealousy": {
+            "eyebrow": "Für Profis",
+            "title": "Möchten Sie auch so ein Profil?",
+            "description": "Treten Sie der erlesenen SVOI-Spezialisten-Community bei. Präsentieren Sie Ihre Arbeit im digitalen Atelier vor einem Premium-Publikum.",
+            "cta": "Eigene Galerie erstellen"
+        },
+        "manifesto": {
+            "titleLine1": "Wir machen keine Kompromisse.",
+            "titleLine2": "Und Sie sollten es auch nicht.",
+            "findMaster": "Spezialist finden",
+            "becomePro": "Spezialist werden"
+        },
+        "categories": {
+            "hair": {
+                "title": "HAARE",
+                "service1": "Färben",
+                "service2": "Schnitt",
+                "service3": "Styling"
+            },
+            "nails": {
+                "title": "NÄGEL",
+                "service1": "Maniküre",
+                "service2": "Pediküre",
+                "service3": "Modellage"
+            },
+            "face": {
+                "title": "GESICHT",
+                "service1": "Brauen",
+                "service2": "Wimpern",
+                "service3": "Hautpflege"
+            },
+            "body": {
+                "title": "BODY & STYLE",
+                "service1": "Make-up",
+                "service2": "Massage",
+                "service3": "Haarentfernung"
+            }
+        },
+        "masterCard": {
+            "salonFallback": "Salon",
+            "masterFallback": "Spezialist"
+        }
+    },
+    "city": {
+        "metaTitle": "Beauty-Spezialisten in {city} — Online buchen | Svoi.de",
+        "metaDescription": "Finden Sie die besten Beauty-Spezialisten in {city}. Preise vergleichen, Portfolios ansehen und online buchen auf Svoi.de. Kostenlos und ohne Provision.",
+        "h1": "Beauty-Spezialisten in {city}",
+        "foundCount": "{count, plural, one {# Spezialist gefunden} other {# Spezialisten gefunden}}",
+        "noneYet": "Noch keine Spezialisten gefunden",
+        "emptyTitle": "Keine Spezialisten gefunden",
+        "emptyBody": "In {city} sind noch keine Spezialisten registriert.",
+        "salons": "Salons",
+        "privateMasters": "Private Spezialisten",
+        "breadcrumb": {
+            "home": "Startseite"
+        }
+    },
+    "cityCategory": {
+        "metaTitle": "{category} in {city} — Online buchen | Svoi.de",
+        "metaDescription": "Suchen Sie die besten Spezialisten für {category} in {city}? Preise vergleichen, Portfolios ansehen und online buchen auf Svoi.de. Kostenlos und ohne Provision.",
+        "h1": "{category} in {city}",
+        "emptyBody": "Für die Anfrage «{category}» in {city} gibt es noch keine Spezialisten.",
+        "allMastersInCity": "Alle Spezialisten in {city}"
+    },
+    "search": {
+        "metaTitle": "Spezialisten suchen — Svoi.de",
+        "metaTitleCity": "Spezialisten in {city} suchen — Svoi.de",
+        "metaTitleQuery": "{query} — Spezialisten suchen — Svoi.de",
+        "metaTitleQueryCity": "{query} — Spezialisten in {city} suchen — Svoi.de",
+        "metaDesc": "Finden Sie die besten Beauty-Spezialisten in Deutschland. Online-Buchung auf Svoi.de.",
+        "metaDescCity": "Finden Sie die besten Beauty-Spezialisten in {city}. Online-Buchung auf Svoi.de.",
+        "metaDescQuery": "Finden Sie die besten Beauty-Spezialisten für «{query}» in Deutschland. Online-Buchung auf Svoi.de.",
+        "metaDescQueryCity": "Finden Sie die besten Beauty-Spezialisten für «{query}» in {city}. Online-Buchung auf Svoi.de.",
+        "loading": "Spezialisten werden gesucht…",
+        "resultsSpecialists": "{count, plural, one {# Spezialist gefunden} other {# Spezialisten gefunden}}",
+        "resultsSalons": "{count, plural, one {# Salon gefunden} other {# Salons gefunden}}",
+        "emptySalons": "Keine Salons gefunden",
+        "emptySpecialists": "Keine Spezialisten gefunden",
+        "emptyHint": "Versuchen Sie, die Karte zu verschieben oder die Anfrage zu ändern.",
+        "resetFilters": "Filter zurücksetzen",
+        "toggleFreelancers": "Selbstständige",
+        "toggleSalons": "Salons",
+        "homeLink": "Zur Startseite",
+        "mapUnavailable": "Karte vorübergehend nicht verfügbar",
+        "mapTooltipCta": "Zum Profil",
+        "fromPrice": "ab",
+        "toProfile": "Zum Profil",
+        "seeOtherServices": "weitere Leistungen ansehen",
+        "ratingAria": "Bewertung {rating}",
+        "openProfileAria": "Profil von {name} öffnen{titleSuffix}",
+        "titleSuffixWithService": " — {service} in {city}",
+        "titleSuffixCity": " in {city}",
+        "imageAlt": "{name} — Spezialist in {city}",
+        "filtersNavLabel": "Filter",
+        "filters": {
+            "title": "Filter",
+            "languageHeader": "Sprache",
+            "today": "Heute verfügbar",
+            "homeVisit": "Hausbesuch",
+            "promo": "Angebote",
+            "inSalon": "Im Salon",
+            "cardPayment": "Kartenzahlung / PayPal",
+            "instantBooking": "Sofortbestätigung",
+            "removeFilter": "Filter entfernen: {label}"
+        },
+        "filtersForm": {
+            "serviceCollapsed": "Alle Leistungen",
+            "locationCollapsed": "Standort",
+            "servicePlaceholder": "Maniküre, Haarschnitt, Massage...",
+            "cityPlaceholder": "Ihre Stadt",
+            "geoAria": "Meine Stadt erkennen",
+            "radiusAria": "Suchradius",
+            "submit": "Suchen",
+            "topCategories": "Top-Kategorien",
+            "cityResolved": "Stadt erkannt: {city}",
+            "cityNotFound": "Ihre Stadt wurde nicht in der Datenbank gefunden. Wählen Sie manuell die nächstgrößere Stadt.",
+            "geoFailed": "Stadt konnte nicht ermittelt werden. Bitte manuell eingeben."
+        },
+        "quickSlots": {
+            "label": "Schnelle Termine",
+            "uncertain": "Termin bei Buchung präzisieren",
+            "none": "Keine freien Slots in den nächsten 7 Tagen"
+        }
+    },
+    "salon": {
+        "notFound": "Profil nicht gefunden | Svoi.de",
+        "backToSearch": "Zurück zur Suche",
+        "ctaBook": "Termin buchen",
+        "ctaMessage": "Nachricht an den Spezialisten",
+        "chat": {
+            "opening": "Wird geöffnet…",
+            "failed": "Chat konnte nicht geöffnet werden"
+        },
+        "section": {
+            "aboutSalon": "Über uns",
+            "aboutMaster": "Über den Spezialisten",
+            "services": "Leistungen",
+            "servicesEmpty": "Die Leistungsliste ist noch leer.",
+            "servicesDefaultGroup": "Beliebte Leistungen",
+            "portfolio": "Portfolio",
+            "reviews": "Kundenbewertungen",
+            "reviewsEmpty": "Noch keine Bewertungen. Seien Sie die Erste, die diesen Spezialisten bewertet!",
+            "team": "Team",
+            "teamMembers": "Spezialisten",
+            "location": "Adresse",
+            "findUs": "So finden Sie uns",
+            "ratingAndReviews": "Bewertung und Rezensionen"
+        },
+        "rating": {
+            "quality": "Qualität",
+            "cleanliness": "Sauberkeit",
+            "service": "Service",
+            "atmosphere": "Atmosphäre",
+            "aria": "Bewertung: {rating} von 5"
+        },
+        "price": {
+            "from": "Ab",
+            "onRequest": "auf Anfrage"
+        },
+        "service": {
+            "select": "Auswählen",
+            "durationMin": "{count} Min.",
+            "durationOnRequest": "auf Anfrage",
+            "countPlural": "{count, plural, one {# Leistung} other {# Leistungen}}",
+            "reviewsPlural": "{count, plural, one {# Bewertung} other {# Bewertungen}}",
+            "photosPlural": "{count, plural, one {# Foto} other {# Fotos}}",
+            "morePhotos": "Weitere {label}"
+        },
+        "gallery": {
+            "coverAlt": "{name} — Titelbild",
+            "coverAltN": "{name} — Titelbild {n}",
+            "interiorAlt": "Innenraum {name} {n}",
+            "portfolioAlt": "Arbeiten von {name}",
+            "viewAllPhotos": "Alle {count} Fotos ansehen",
+            "closeGallery": "Galerie schließen",
+            "prevPhoto": "Vorheriges Foto",
+            "nextPhoto": "Nächstes Foto"
+        },
+        "map": {
+            "openInOsm": "In OpenStreetMap öffnen"
+        },
+        "hero": {
+            "homeVisit": "Hausbesuch bis {radius} km"
+        },
+        "preview": {
+            "banner": "Dies ist der Vorschaumodus. Kunden sehen Ihre veröffentlichte Version über den Hauptlink."
+        },
+        "fallback": {
+            "clientName": "Kunde",
+            "clientNameAlt": "Benutzer",
+            "topService": "Beauty-Spezialist"
+        },
+        "jsonLd": {
+            "offerCatalogName": "Leistungen"
+        },
+        "bookingCta": {
+            "defaultLabel": "Termin buchen"
+        },
+        "modals": {
+            "close": "Schließen",
+            "deepDive": {
+                "backToGallery": "Zurück zur Galerie"
+            },
+            "craftWall": {
+                "photoAria": "Arbeitsfoto {number}",
+                "showMore": "Mehr anzeigen"
+            },
+            "specialistSelector": {
+                "dialogLabel": "Spezialist auswählen",
+                "title": "Spezialist auswählen",
+                "anyAvailable": "Beliebiger freier Spezialist",
+                "anyAvailableHint": "Wir wählen den nächstmöglichen aus"
+            },
+            "staffPortfolio": {
+                "tabs": {
+                    "about": "Über den Spezialisten",
+                    "services": "Leistungen",
+                    "portfolio": "Portfolio",
+                    "reviews": "Bewertungen"
+                },
+                "ctaBookStaff": "Termin bei diesem Spezialisten buchen",
+                "stats": {
+                    "completedOrders": "Abgeschlossene Aufträge",
+                    "clients": "Kunden"
+                },
+                "specialty": "Spezialisierung",
+                "interests": "Interessen",
+                "servicesEmpty": "Keine Leistungen zur Anzeige.",
+                "portfolioEmpty": "Dieser Spezialist hat noch keine Arbeiten hochgeladen.",
+                "portfolioAlt": "Arbeit von {name}",
+                "reviewsSummary": "{count, plural, one {Basierend auf # Bewertung} other {Basierend auf # Bewertungen}}",
+                "verifiedClients": "von verifizierten Kunden",
+                "mockReviews": {
+                    "r1": {
+                        "name": "Anna",
+                        "date": "12. April",
+                        "text": "Großartige Spezialistin. Alles wurde perfekt gemacht, der Salon ist gemütlich und die Atmosphäre entspannt."
+                    },
+                    "r2": {
+                        "name": "Maria",
+                        "date": "5. April",
+                        "text": "Sehr aufmerksam bei Details, das Ergebnis hat die Erwartungen übertroffen. Ich komme sicher wieder."
+                    },
+                    "r3": {
+                        "name": "Elena",
+                        "date": "28. März",
+                        "text": "Ich empfehle sie allen. Ein echter Profi."
+                    }
+                }
+            }
+        }
+    },
+    "booking": {
+        "meta": {
+            "notFound": "Nicht gefunden",
+            "title": "Termin bei {name} | Svoi.de",
+            "description": "Online-Terminbuchung. {city}."
+        },
+        "page": {
+            "title": "Termin buchen",
+            "subtitle": "Wählen Sie ein passendes Datum und eine passende Uhrzeit für Ihren Besuch bei <strong>{name}</strong>."
+        },
+        "fallbackService": {
+            "title": "Beratung",
+            "price": "Kostenlos"
+        },
+        "staff": {
+            "title": "Spezialist auswählen",
+            "any": "Beliebig"
+        },
+        "date": {
+            "title": "Datum",
+            "prevWeek": "Vorherige Woche",
+            "nextWeek": "Nächste Woche"
+        },
+        "time": {
+            "title": "Uhrzeit",
+            "noSlots": "An diesem Tag sind keine Zeiten verfügbar"
+        },
+        "form": {
+            "title": "Ihre Daten",
+            "name": "Name",
+            "namePlaceholder": "Alexandra",
+            "phone": "Telefon",
+            "email": "Email",
+            "comment": "Kommentar",
+            "optional": "(optional)",
+            "commentPlaceholder": "Wünsche oder Besonderheiten..."
+        },
+        "summary": {
+            "title": "Ihre Buchung",
+            "service": "Leistung",
+            "staff": "Spezialist",
+            "date": "Datum",
+            "time": "Uhrzeit",
+            "durationMin": "{count} Min.",
+            "total": "Gesamt",
+            "submitting": "Wird gebucht…",
+            "submit": "Bestätigen und buchen",
+            "terms": "Mit Klick auf den Button stimmen Sie den Regeln und der Verarbeitung personenbezogener Daten zu.",
+            "cancellationTitle": "Stornierungsregeln",
+            "cancellationBody": "Eine kostenlose Stornierung ist bis 24 Stunden vor Beginn der Behandlung möglich. Bei einer Stornierung weniger als 24 Stunden vorher werden 30% des Preises einbehalten."
+        },
+        "arrival": {
+            "title": "So bereiten Sie sich auf den Besuch vor",
+            "address": "Genaue Adresse",
+            "doorCode": "Türcode",
+            "bellNote": "Bei welcher Klingel klingeln?",
+            "important": "Wichtige Information"
+        },
+        "otp": {
+            "close": "Schließen",
+            "title": "Email bestätigen",
+            "sentCode": "Wir haben einen 6-stelligen Code gesendet an",
+            "codeValid": "Code gültig:",
+            "verifying": "Wird geprüft...",
+            "confirm": "Bestätigen",
+            "attemptsLeft": "Verbleibende Versuche: {count}",
+            "successTitle": "Buchung bestätigt!",
+            "successBody": "Der Spezialist meldet sich zur endgültigen Bestätigung bei Ihnen.",
+            "passwordNudgeTitle": "Diesen Schritt beim nächsten Mal überspringen?",
+            "passwordNudgeBody": "Legen Sie ein Passwort fest, um Ihre Daten zu speichern und mit einem Klick zu buchen.",
+            "passwordPlaceholder": "Mindestens 8 Zeichen",
+            "showPassword": "Passwort anzeigen",
+            "hidePassword": "Passwort verbergen",
+            "savingPassword": "Wird gespeichert...",
+            "savePassword": "Passwort speichern",
+            "passwordSaved": "✓ Passwort gespeichert! Melden Sie sich beim nächsten Mal einfach per Email an.",
+            "errors": {
+                "enterAllDigits": "Geben Sie alle 6 Ziffern ein",
+                "verify": "Fehler beim Prüfen des Codes",
+                "passwordMin": "Mindestens 8 Zeichen",
+                "passwordSave": "Fehler beim Speichern"
+            }
+        },
+        "toasts": {
+            "invalidEmail": "Geben Sie eine gültige Email ein",
+            "turnstileNotReady": "Die Sicherheitsprüfung ist noch nicht abgeschlossen. Bitte warten Sie kurz und versuchen Sie es erneut.",
+            "otpSent": "Der Bestätigungscode wurde an Ihre Email gesendet!",
+            "bookingError": "Buchungsfehler",
+            "serverError": "Serverfehler",
+            "reservationExpired": "Die Reservierungszeit ist abgelaufen. Bitte versuchen Sie es erneut."
+        }
+    },
+    "about": {
+        "meta": {
+            "title": "Über SVOI | Geprüfte Beauty-Spezialisten in Deutschland",
+            "description": "SVOI ist ein Marktplatz für geprüfte Beauty-Spezialisten und Salons in Deutschland mit transparenter Suche und Online-Terminbuchung."
+        }
+    },
+    "guide": {
+        "meta": {
+            "title": "So funktioniert SVOI | Suche und Online-Terminbuchung",
+            "description": "Die Schritt-für-Schritt-Anleitung zu SVOI: Spezialisten finden, Leistung wählen, online buchen und nach dem Besuch bewerten."
+        }
+    },
+    "validation": {
+        "zod": {
+            "required": "Füllen Sie dieses Pflichtfeld aus.",
+            "invalidType": "Ungültiger Datentyp. Erwartet: {expected}.",
+            "invalidEmail": "Geben Sie eine gültige Email ein.",
+            "invalidUrl": "Geben Sie eine gültige URL ein.",
+            "invalidUuid": "Ungültige ID.",
+            "invalidFormat": "Ungültiges Format.",
+            "invalidString": "Ungültiger Wert.",
+            "tooSmallString": "Mindestens {minimum} Zeichen.",
+            "tooBigString": "Maximal {maximum} Zeichen.",
+            "tooSmallNumber": "Der Wert muss mindestens {minimum} sein.",
+            "tooBigNumber": "Der Wert darf höchstens {maximum} sein.",
+            "tooSmallArray": "Wählen Sie mindestens {minimum} aus.",
+            "tooBigArray": "Wählen Sie höchstens {maximum} aus.",
+            "tooSmall": "Der Wert ist zu klein.",
+            "tooBig": "Der Wert ist zu groß.",
+            "invalidEnum": "Wählen Sie eine der verfügbaren Optionen: {options}.",
+            "unrecognizedKeys": "Unbekannte Felder: {keys}.",
+            "invalidDate": "Geben Sie ein gültiges Datum ein.",
+            "invalidUnion": "Ungültige Daten.",
+            "invalidLiteral": "Erwarteter Wert: {expected}.",
+            "notMultipleOf": "Der Wert muss ein Vielfaches von {multipleOf} sein.",
+            "custom": "Ungültige Daten.",
+            "fallback": "Prüfen Sie Ihre Eingaben."
+        }
+    },
+    "auth": {
+        "api": {
+            "tooManyRequests": "Zu viele Versuche. Bitte versuchen Sie es später erneut.",
+            "serverMisconfigured": "Der Server ist nicht für die Registrierung konfiguriert. Bitte wenden Sie sich an den Administrator.",
+            "registerRateLimited": "Zu viele Registrierungsversuche von dieser IP. Bitte versuchen Sie es in einer Stunde erneut.",
+            "invalidJson": "Ungültiges JSON.",
+            "invalidInput": "Prüfen Sie Ihre Eingaben.",
+            "invalidCredentials": "Email oder Passwort ist falsch.",
+            "emailTaken": "Ein Benutzer mit dieser Email ist bereits registriert.",
+            "createAccountError": "Fehler beim Erstellen des Kontos. Bitte versuchen Sie es später erneut.",
+            "internalServerError": "Serverfehler. Bitte versuchen Sie es später erneut."
+        },
+        "login": {
+            "heading": {
+                "providerRegister": "Spezialistenprofil erstellen",
+                "register": "Konto erstellen",
+                "emailLogin": "Mit Email anmelden",
+                "login": "Anmelden"
+            },
+            "subheading": {
+                "providerRegister": "Registrieren Sie sich, um Kunden anzunehmen",
+                "register": "Geben Sie Ihre Daten für die Registrierung ein",
+                "emailLogin": "Geben Sie Email und Passwort ein",
+                "login": "Melden Sie sich an, um fortzufahren"
+            },
+            "badge": {
+                "salon": "Salon",
+                "individual": "Selbstständiger Spezialist"
+            },
+            "errors": {
+                "oauthAccountNotLinked": "Diese Email wird bereits mit einer anderen Anmeldemethode verwendet. Melden Sie sich so an wie bei der Registrierung.",
+                "oauthCallback": "Fehler bei der Anmeldung über Google. Prüfen Sie die OAuth-Einstellungen.",
+                "configuration": "Fehler in der Auth-Konfiguration. Fügen Sie AUTH_SECRET zur .env-Datei hinzu.",
+                "genericSignIn": "Anmeldefehler: {code}",
+                "registrationFallback": "Registrierungsfehler. Prüfen Sie Ihre Eingaben.",
+                "sessionCreate": "Die Sitzung konnte nicht erstellt werden. Bitte melden Sie sich erneut an.",
+                "sessionCreateRetry": "Die Sitzung konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+                "invalidCredentials": "Email oder Passwort ist falsch.",
+                "server": "Serverfehler. Bitte versuchen Sie es später erneut."
+            },
+            "success": {
+                "accountCreated": "Konto erstellt! Sie werden weitergeleitet...",
+                "loggedIn": "Anmeldung erfolgreich! Sie werden weitergeleitet..."
+            },
+            "labels": {
+                "name": "Name",
+                "email": "Email",
+                "password": "Passwort",
+                "websiteUrl": "Website URL"
+            },
+            "placeholders": {
+                "name": "Ihr Name",
+                "email": "name@example.com",
+                "passwordRegister": "Mindestens 6 Zeichen",
+                "passwordLogin": "Ihr Passwort"
+            },
+            "buttons": {
+                "continueApple": "Mit Apple fortfahren",
+                "continueGoogle": "Mit Google fortfahren",
+                "or": "ODER",
+                "continueEmail": "Mit Email fortfahren",
+                "submitRegister": "Konto erstellen",
+                "submitLogin": "Anmelden",
+                "backToOAuth": "← Zurück zu anderen Anmeldemethoden"
+            },
+            "toggle": {
+                "hasAccount": "Sie haben bereits ein Konto?",
+                "noAccount": "Noch kein Konto?",
+                "login": "Anmelden",
+                "register": "Registrieren"
+            },
+            "legal": {
+                "prefix": "Indem Sie fortfahren, stimmen Sie unseren",
+                "agb": "AGB",
+                "and": "und",
+                "datenschutz": "Datenschutzbestimmungen"
+            },
+            "heroAlt": "Premium-Beauty-Salon"
+        }
+    },
+    "forms": {
+        "api": {
+            "banned": "Ihr Konto wurde gesperrt.",
+            "invalidJson": "Ungültiges JSON.",
+            "invalidData": "Ungültige Daten.",
+            "profileNotFound": "Profil nicht gefunden.",
+            "serviceNotFound": "Leistung nicht gefunden.",
+            "staffNotFound": "Mitarbeiter nicht gefunden.",
+            "invalidDate": "Ungültiges Datum.",
+            "slotTaken": "Dieser Termin ist bereits belegt.",
+            "serverError": "Serverfehler.",
+            "invalidStatus": "Ungültiger Status.",
+            "invalidStatusTransition": "Ungültiger Übergang: {from} → {to}",
+            "statusUpdateError": "Fehler beim Aktualisieren des Status."
+        },
+        "review": {
+            "selectRating": "Bitte wählen Sie eine Bewertung aus.",
+            "selectRatingLong": "Bitte wählen Sie eine Bewertung aus (1 bis 5 Sterne).",
+            "genericError": "Ein Fehler ist aufgetreten.",
+            "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten.",
+            "success": "Bewertung erfolgreich gesendet!",
+            "ratingPrompt": "Wie gut hat es Ihnen gefallen?",
+            "commentLabel": "Bewertung (optional)",
+            "commentPlaceholder": "Was hat Ihnen besonders gefallen?",
+            "publish": "Bewertung veröffentlichen",
+            "submitting": "Wird gesendet...",
+            "modalTitle": "Bewerten Sie Ihren Besuch bei {name}",
+            "modalCommentLabel": "Erzählen Sie von Ihren Eindrücken (optional)",
+            "modalCommentPlaceholder": "Was hat Ihnen besonders gefallen?",
+            "close": "Schließen",
+            "cancel": "Abbrechen",
+            "submit": "Senden"
+        },
+        "cancelBooking": {
+            "pending": "Wird storniert...",
+            "submit": "Besuch stornieren",
+            "success": "Buchung storniert",
+            "confirm": "Buchung stornieren? Diese Aktion ist nur vor dem Besuch möglich."
+        },
+        "favorite": {
+            "error": "Fehler",
+            "added": "Zu Favoriten hinzugefügt",
+            "removed": "Aus Favoriten entfernt",
+            "addAria": "Zu Favoriten hinzufügen",
+            "shortAddAria": "In Favoriten",
+            "removeAria": "Aus Favoriten entfernen"
+        },
+        "location": {
+            "locationFailed": "Standort konnte nicht ermittelt werden.",
+            "cityFailed": "Stadt konnte nicht ermittelt werden.",
+            "locationResolved": "Ihr Standort: {city}",
+            "locatingPlaceholder": "Wird ermittelt...",
+            "placeholder": "Geben Sie Ihre Stadt ein...",
+            "myLocationTitle": "Mein Standort",
+            "hint": "Beginnen Sie mit der Eingabe des Namens...",
+            "notFound": "Stadt nicht gefunden",
+            "myLocation": "Meine Geolokalisierung",
+            "allCities": "Alle Städte ansehen ➔"
+        },
+        "serviceSearch": {
+            "cityRequired": "Bitte geben Sie eine Stadt ein, um Spezialisten zu suchen.",
+            "subtitle": "Buchen Sie Premium-Beauty-Spezialisten. Qualitätsgarantie und strenge Prüfung jedes SVOI-Spezialisten.",
+            "cityQuestion": "In welcher Stadt suchen wir?",
+            "submit": "Spezialisten finden"
+        },
+        "loginNotifier": {
+            "userFallback": "Benutzer",
+            "welcome": "Willkommen zurück, {name}!"
+        },
+        "proRegistration": {
+            "genericError": "Ein Fehler ist aufgetreten.",
+            "successTitle": "Anfrage erhalten!",
+            "successBody": "Danke! Wir melden uns bei Ihnen, um das Profil zu aktivieren. Normalerweise dauert das 1-2 Werktage.",
+            "title": "Spezialistenregistrierung",
+            "subtitle": "Füllen Sie das Formular aus — wir melden uns bei Ihnen",
+            "name": "Name / Salonname",
+            "namePlaceholder": "Elena Petrova oder Beauty Studio",
+            "city": "Stadt",
+            "category": "Kategorie",
+            "selectCategory": "Kategorie auswählen",
+            "submitting": "Wird gesendet...",
+            "submit": "Registrieren",
+            "terms": "Mit Klick auf den Button stimmen Sie den Nutzungsbedingungen zu"
+        },
+        "providerOnboarding": {
+            "saveError": "Fehler beim Speichern",
+            "genericSaveError": "Fehler beim Speichern.",
+            "cityRequired": "Wählen Sie eine Stadt aus der Liste aus",
+            "draftSaved": "Profilentwurf gespeichert. Weiter zum Bereich...",
+            "salonTitle": "Salon registrieren",
+            "individualTitle": "Spezialist registrieren",
+            "greeting": "Hallo, {name}! ",
+            "subtitle": "Füllen Sie die Daten aus, um die Registrierung abzuschließen.",
+            "companyData": "Firmendaten",
+            "nameLabel": "Name / Salon",
+            "salonName": "Salonname",
+            "providerType": "Anbietertyp",
+            "salonOption": "Ich vertrete einen Salon",
+            "privateOption": "Ich bin selbstständiger Spezialist",
+            "salonAddress": "Vollständige Salonadresse",
+            "kleinunternehmerTitle": "Ich arbeite als Kleinunternehmer (§19 UStG)",
+            "kleinunternehmerBody": "Umsatzsteuerbefreiung bei einem Umsatz bis 22.000 € pro Jahr",
+            "addressTitle": "Adresse",
+            "street": "Straße und Hausnummer",
+            "privateAddressHint": "Ihre genaue Adresse wird nicht auf der Karte angezeigt. Kunden sehen nur ungefähr Ihr Arbeitsgebiet.",
+            "zip": "Postleitzahl",
+            "zipTitle": "Geben Sie 4-5 Ziffern ein",
+            "city": "Stadt",
+            "bioLabel": "Über mich / Über den Salon",
+            "bioPlaceholder": "Erzählen Sie von Ihrer Erfahrung, Ihrer Arbeitsweise und den Materialien, die Sie verwenden...",
+            "saving": "Wird gespeichert...",
+            "submit": "Registrierung abschließen",
+            "createProfile": "Spezialistenprofil erstellen"
+        },
+        "cityCombobox": {
+            "placeholder": "Beginnen Sie mit der Eingabe Ihrer Stadt...",
+            "geoFailed": "Der Standort konnte nicht ermittelt werden. Bitte wählen Sie die Stadt manuell aus der Liste aus.",
+            "geoResolved": "Stadt erkannt: {city}",
+            "notFound": "Stadt nicht gefunden. Wählen Sie die nächstgrößere Stadt",
+            "detectTitle": "Meine Stadt ermitteln",
+            "openList": "Städteliste öffnen"
+        },
+        "streetAddress": {
+            "placeholder": "Straße eingeben",
+            "cityRequired": "Wählen Sie zuerst eine Stadt aus der Liste aus.",
+            "loadError": "Straßen konnten nicht geladen werden. Versuchen Sie es erneut.",
+            "minLength": "Geben Sie mindestens 3 Zeichen ein, um nach einer Straße zu suchen.",
+            "notFound": "Keine Straßen gefunden. Präzisieren Sie Ihre Suche."
+        }
+    },
+    "dashboard": {
+        "accountSettings": {
+            "sections": {
+                "profile": "Mein Profil",
+                "notifications": "Benachrichtigungen",
+                "security": "Sicherheit"
+            },
+            "toasts": {
+                "profileUpdated": "Profil aktualisiert",
+                "saveError": "Fehler beim Speichern",
+                "photoUploadError": "Fehler beim Hochladen des Fotos",
+                "photoUpdated": "Foto aktualisiert",
+                "passwordFieldsRequired": "Füllen Sie alle Felder aus, um das Passwort zu ändern",
+                "passwordMismatch": "Neues Passwort und Bestätigung stimmen nicht überein",
+                "passwordSoon": "Die Passwortänderung wird im nächsten Update aktiviert",
+                "accountDeleted": "Konto gelöscht",
+                "deleteError": "Fehler beim Löschen des Kontos"
+            },
+            "back": "Zurück zum Konto",
+            "title": "Kontoeinstellungen",
+            "subtitle": "Verwalten Sie Profil, Benachrichtigungen und Sicherheit.",
+            "userFallback": "Benutzer",
+            "saving": "Wird gespeichert...",
+            "profile": {
+                "title": "Mein Profil",
+                "name": "Name",
+                "namePlaceholder": "Max Mustermann",
+                "phone": "Telefonnummer",
+                "bio": "Über mich",
+                "bioPlaceholder": "Erzählen Sie kurz etwas über sich...",
+                "save": "Änderungen speichern"
+            },
+            "notifications": {
+                "title": "Benachrichtigungen",
+                "subtitle": "Verwalten Sie, welche Benachrichtigungen Sie erhalten möchten.",
+                "remindersTitle": "Terminerinnerungen",
+                "remindersBody": "Email/SMS vor dem Besuch",
+                "chatTitle": "Chat-Nachrichten",
+                "chatBody": "Über neue Nachrichten informieren",
+                "systemTitle": "Systembenachrichtigungen",
+                "systemBody": "Änderungen am Kontostatus"
+            },
+            "security": {
+                "passwordTitle": "Passwort ändern",
+                "passwordBody": "Verwenden Sie ein starkes Passwort, um Ihr Konto zu schützen.",
+                "currentPassword": "Aktuelles Passwort",
+                "newPassword": "Neues Passwort",
+                "confirmPassword": "Bestätigung",
+                "updatePassword": "Passwort aktualisieren",
+                "dangerTitle": "Gefahrenzone",
+                "dangerBody": "Das Löschen des Kontos führt zum unwiderruflichen Verlust Ihrer Daten.",
+                "deleteAccount": "Konto löschen"
+            },
+            "deleteModal": {
+                "title": "Konto löschen?",
+                "body": "Sind Sie sicher, dass Sie Ihr Konto löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden und alle Ihre Daten werden dauerhaft gelöscht.",
+                "deleting": "Wird gelöscht...",
+                "confirm": "Ja, Konto löschen",
+                "cancel": "Abbrechen"
+            }
+        },
+        "client": {
+            "status": {
+                "confirmed": "Bestätigt",
+                "cancelled": "Storniert",
+                "pending": "Ausstehend"
+            },
+            "quick": {
+                "haircut": "Haarschnitt",
+                "manicure": "Maniküre",
+                "massage": "Massage",
+                "cosmetology": "Kosmetik"
+            },
+            "hero": {
+                "greeting": "Hallo, {name}! 👋",
+                "welcome": "Willkommen! 👋"
+            },
+            "next": {
+                "title": "Nächster Termin",
+                "route": "Route planen",
+                "message": "Spezialisten schreiben"
+            },
+            "serviceFallback": "Leistung",
+            "dateTime": "{date} um {time}",
+            "durationMin": "{count} Min.",
+            "empty": {
+                "title": "Sie haben noch keine bevorstehenden Termine",
+                "body": "Wenn Sie einen Besuch planen, empfehlen wir eine frühzeitige Buchung.",
+                "recommended": "Heute empfohlen"
+            },
+            "findMaster": "Spezialisten finden",
+            "repeat": {
+                "question": "Erneut buchen?",
+                "book": "Buchen"
+            },
+            "popular": "Beliebte Leistungen",
+            "tabs": {
+                "history": "Besuchshistorie",
+                "masters": "Meine Spezialisten"
+            },
+            "history": {
+                "upcoming": "Bevorstehende Termine",
+                "empty": "Die Besuchshistorie ist leer",
+                "past": "Vergangene Besuche",
+                "review": "Besuch bewerten",
+                "repeat": "Erneut buchen",
+                "profile": "Profil"
+            },
+            "masters": {
+                "empty": "Sie haben noch keine gespeicherten Spezialisten. Fügen Sie Favoriten auf der Suchseite hinzu."
+            },
+            "stats": {
+                "title": "Ihre Statistik",
+                "total": "Besuche gesamt",
+                "favoriteCategory": "Lieblingskategorie"
+            },
+            "settings": {
+                "title": "Einstellungen",
+                "profileTitle": "Profil und Konto",
+                "profileBody": "Verwaltung persönlicher Daten, Telefonnummer und Email."
+            }
+        },
+        "chat": {
+            "status": {
+                "confirmed": "Bestätigt",
+                "pending": "Wartet auf Bestätigung",
+                "cancelled": "Storniert"
+            },
+            "title": "Chats",
+            "subtitle": "Persönliche Nachrichten mit Kunden und Spezialisten",
+            "emptyConversations": "Noch keine Dialoge",
+            "userFallback": "Benutzer",
+            "interlocutorFallback": "Gesprächspartner",
+            "dialogFallback": "Dialog",
+            "bookingDateTime": "{date} um {time}",
+            "noBooking": "Für diesen Dialog gibt es keine verknüpfte Buchung",
+            "emptyMessages": "Beginnen Sie den Dialog mit der ersten Nachricht",
+            "messagePlaceholder": "Nachricht eingeben...",
+            "selectDialog": "Wählen Sie links einen Dialog"
+        },
+        "provider": {
+            "nav": {
+                "bookings": "Buchungen",
+                "analytics": "Statistik",
+                "staff": "Team",
+                "profile": "Profil"
+            },
+            "kpi": {
+                "total": "Buchungen gesamt",
+                "totalTrend": "Über die gesamte Laufzeit",
+                "pending": "Warten auf Bestätigung",
+                "pendingNeedsAnswer": "Benötigen Ihre Antwort",
+                "pendingEmpty": "Keine neuen Anfragen",
+                "confirmed": "Bestätigt",
+                "completedCount": "{count, plural, one {# abgeschlossen} other {# abgeschlossen}}",
+                "activeBookings": "Aktive Buchungen",
+                "cancelled": "Storniert",
+                "cancelledEmpty": "Sehr gut - weiter so",
+                "cancelledWarn": "Versuchen Sie, sie zu reduzieren"
+            },
+            "backToProfile": "Mein Profil",
+            "active": "Aktiv",
+            "viewProfile": "Profil ansehen",
+            "setup": {
+                "title": "Ihr Fortschritt",
+                "percent": "{percent}% fertig",
+                "addServices": "Leistungen hinzufügen",
+                "addSchedule": "Arbeitszeiten angeben"
+            },
+            "bookings": {
+                "calendarTitle": "Buchungskalender",
+                "calendarSubtitle": "Standardmäßig die aktuelle Woche. Klick auf eine Buchung öffnet Details und Statuswechsel.",
+                "incomingTitle": "Eingehende Buchungen",
+                "totalCount": "{count, plural, one {# Buchung} other {# Buchungen}}",
+                "completedCount": "{count, plural, one {# abgeschlossen} other {# abgeschlossen}}",
+                "emptyTitle": "Sie haben noch keine Buchungen",
+                "emptyBody": "Teilen Sie Ihren Profillink, damit Kunden Leistungen buchen können.",
+                "shareProfile": "Profillink teilen"
+            },
+            "services": {
+                "title": "Meine Leistungen",
+                "count": "{count, plural, one {# Leistung} other {# Leistungen}}"
+            },
+            "schedule": {
+                "title": "Salon-Zeitplan",
+                "subtitle": "Allgemeine Arbeitszeiten. Wenn ein Teammitglied keinen eigenen Zeitplan hat, gilt dieser Zeitplan."
+            },
+            "staff": {
+                "title": "Team",
+                "subtitle": "Fügen Sie Mitarbeitende hinzu, um einen gemeinsamen Buchungskalender zu erstellen."
+            },
+            "tax": {
+                "salonTitle": "Steuernummer oder USt-IdNr erforderlich",
+                "salonBody": "Geben Sie die Steuernummer Ihres Unternehmens in den Einstellungen an, damit Ihr Salonprofil aktiviert und im Katalog veröffentlicht werden kann.",
+                "individualTitle": "Steuernummer erforderlich",
+                "individualBody": "Geben Sie Ihre Steuernummer in den Profileinstellungen an, damit Kunden Sie finden und buchen können.",
+                "guideLink": "Ich habe noch keine Nummer. Wie bekomme ich sie? 👉",
+                "enterNumber": "Nummer eingeben"
+            },
+            "photos": {
+                "salonTitle": "Innenraumfotos",
+                "individualTitle": "Arbeitsfotos",
+                "salonSubtitle": "Zeigen Sie die Atmosphäre Ihres Salons. Diese Fotos erscheinen in Ihrem öffentlichen Profil.",
+                "individualSubtitle": "Fügen Sie Fotos Ihrer Arbeit hinzu. Sie erscheinen im Kopfbereich Ihres Profils."
+            },
+            "arrival": {
+                "title": "Ankunftsinformationen",
+                "subtitle": "Diese Daten sind für Kunden erst sichtbar, nachdem die Buchung bestätigt wurde."
+            },
+            "sidebar": {
+                "providerDashboard": "Spezialisten-Bereich",
+                "profile": "Profil",
+                "bookings": "Buchungen",
+                "clients": "Kunden",
+                "reviews": "Bewertungen",
+                "analytics": "Statistik",
+                "staff": "Mitarbeitende",
+                "profileGeneral": "Allgemein",
+                "services": "Leistungen",
+                "schedule": "Zeitplan",
+                "location": "Standort",
+                "notifications": "Benachrichtigungen",
+                "viewProfile": "Profil ansehen"
+            },
+            "manualBooking": {
+                "newBooking": "Neue Buchung",
+                "clientName": "Kundenname",
+                "clientNamePlaceholder": "Vorname Nachname",
+                "phone": "Telefon",
+                "service": "Leistung",
+                "serviceSearchPlaceholder": "Leistung suchen...",
+                "nothingFound": "Nichts gefunden",
+                "durationMin": "{count} Min.",
+                "staff": "Mitarbeitende",
+                "noStaff": "Keine Zuordnung",
+                "date": "Datum",
+                "time": "Uhrzeit",
+                "cancel": "Abbrechen",
+                "close": "Schließen",
+                "createBooking": "Buchung erstellen",
+                "errors": {
+                    "clientName": "Geben Sie den Kundennamen an",
+                    "clientPhone": "Geben Sie die Telefonnummer des Kunden an",
+                    "service": "Wählen Sie eine Leistung aus",
+                    "date": "Wählen Sie ein Datum aus",
+                    "time": "Wählen Sie eine Uhrzeit aus",
+                    "create": "Buchung konnte nicht erstellt werden",
+                    "network": "Netzwerkfehler"
+                }
+            },
+            "copyProfile": {
+                "success": "Profillink kopiert!",
+                "error": "Link konnte nicht kopiert werden",
+                "aria": "Profillink kopieren",
+                "title": "Link kopieren"
+            },
+            "bookingRow": {
+                "status": {
+                    "pending": "Ausstehend",
+                    "confirmed": "Bestätigt",
+                    "cancelled": "Storniert",
+                    "completed": "Besuch abgeschlossen",
+                    "noShow": "Nicht erschienen",
+                    "unknown": "Unbekannt"
+                },
+                "updateError": "Status konnte nicht aktualisiert werden",
+                "chatError": "Chat konnte nicht geöffnet werden",
+                "newClient": "✨ Neuer Kunde",
+                "message": "Schreiben",
+                "confirm": "Bestätigen",
+                "cancel": "Stornieren",
+                "complete": "Abschließen",
+                "noShow": "Nicht erschienen"
+            },
+            "bookingDetails": {
+                "status": {
+                    "pending": "Ausstehend",
+                    "confirmed": "Bestätigt",
+                    "cancelled": "Storniert",
+                    "completed": "Besuch abgeschlossen",
+                    "noShow": "Nicht erschienen",
+                    "unknown": "Unbekannt"
+                },
+                "notFound": "Buchung nicht gefunden",
+                "close": "Schließen",
+                "chatError": "Chat konnte nicht geöffnet werden",
+                "title": "Buchungsdetails",
+                "service": "Leistung",
+                "message": "Schreiben",
+                "confirm": "Bestätigen",
+                "cancel": "Stornieren",
+                "completeVisit": "Besuch abschließen",
+                "noShow": "Nicht erschienen"
+            },
+            "analytics": {
+                "title": "Analytik",
+                "subtitle": "Kernmetriken und Top-Leistungen",
+                "revenue": "Umsatz",
+                "completedVisits": "Abgeschlossene Besuche",
+                "cancellations": "Stornierungen",
+                "uniqueClients": "Einmalige Kunden",
+                "revenueTrend": "Umsatzentwicklung",
+                "last14Days": "In den letzten 14 Tagen",
+                "calendarTitle": "Buchungskalender",
+                "calendarSubtitle": "Zurück / Heute / Weiter - Wochen wechseln",
+                "topServices": "Top-Leistungen",
+                "topServicesSubtitle": "Nach abgeschlossenen Besuchen und Umsatz",
+                "emptyTopServices": "Noch keine abgeschlossenen Besuche pro Leistung",
+                "service": "Leistung",
+                "visits": "Besuche"
+            },
+            "clients": {
+                "title": "Kunden",
+                "count": "{count, plural, one {# Kunde} other {# Kunden}}",
+                "totalRevenue": "{value} € insgesamt",
+                "loadError": "Kunden konnten nicht geladen werden",
+                "networkError": "Netzwerkfehler",
+                "searchPlaceholder": "Nach Name oder Telefon suchen...",
+                "columns": {
+                    "client": "Kunde",
+                    "visits": "Besuche",
+                    "revenue": "Umsatz",
+                    "noShows": "Nicht erschienen",
+                    "lastVisit": "Letzter Besuch",
+                    "action": "Aktion"
+                },
+                "emptySearchTitle": "Nichts gefunden",
+                "emptyTitle": "Noch keine Kunden",
+                "emptySearchBody": "Versuchen Sie eine andere Suche.",
+                "emptyBody": "Kunden erscheinen hier nach der ersten Buchung.",
+                "history": "Historie"
+            },
+            "reviews": {
+                "eyebrow": "Bewertungen",
+                "count": "{count, plural, one {# Bewertung} other {# Bewertungen}}",
+                "emptyTitle": "Noch keine Bewertungen",
+                "emptyBody": "Bewertungen erscheinen nach dem ersten abgeschlossenen Besuch.",
+                "loadError": "Bewertungen konnten nicht geladen werden",
+                "networkError": "Netzwerkfehler",
+                "replySaveError": "Antwort konnte nicht gespeichert werden",
+                "yourReply": "Ihre Antwort",
+                "edit": "Bearbeiten",
+                "reply": "Antworten",
+                "replyPlaceholder": "Antwort an den Kunden schreiben...",
+                "cancel": "Abbrechen",
+                "publish": "Veröffentlichen"
+            },
+            "calendar": {
+                "loadError": "Fehler beim Laden",
+                "previousWeek": "Vorherige Woche",
+                "nextWeek": "Nächste Woche",
+                "currentWeek": "Aktuelle Woche",
+                "back": "Zurück",
+                "today": "Heute",
+                "forward": "Weiter",
+                "loading": "Wird geladen...",
+                "status": {
+                    "pending": "Ausstehend",
+                    "confirmed": "Bestätigt",
+                    "cancelled": "Storniert",
+                    "completed": "Abgeschlossen"
+                }
+            },
+            "media": {
+                "invalidImageType": "Nur JPEG, PNG und WebP sind erlaubt.",
+                "fileTooLarge": "Die Datei ist zu groß (max. 5 MB).",
+                "photoUploaded": "Foto hochgeladen",
+                "photosUploaded": "Fotos hochgeladen: {count}",
+                "photoUploadError": "Fehler beim Hochladen des Fotos",
+                "photoDeleted": "Foto gelöscht",
+                "photoDeleteError": "Fehler beim Löschen",
+                "reorderError": "Reihenfolge konnte nicht geändert werden.",
+                "deletePhotoConfirm": "Dieses Foto löschen?",
+                "deletePhoto": "Foto löschen",
+                "delete": "Löschen",
+                "interiorAlt": "Innenraum",
+                "interiorEmptyTitle": "Fügen Sie Fotos Ihres Innenraums hinzu",
+                "interiorEmptyBody": "Zeigen Sie die Atmosphäre Ihres Salons - bis zu {max} Fotos",
+                "addPhoto": "Foto hinzufügen",
+                "photoCounter": "{current}/{max} Fotos",
+                "coverBadge": "Cover",
+                "makeCover": "Als Cover festlegen",
+                "uploading": "Wird hochgeladen...",
+                "staffOwnerTitle": "Wessen Arbeit ist das?",
+                "master": "Spezialist",
+                "addPortfolioExamples": "Arbeitsbeispiele hinzufügen",
+                "coverUploaded": "Cover hochgeladen und gespeichert",
+                "coverUploadError": "Fehler beim Hochladen des Covers",
+                "coverDeleted": "Cover gelöscht",
+                "coverDeleteError": "Fehler beim Löschen des Covers",
+                "coverLabel": "Profil-Cover",
+                "coverAlt": "Cover",
+                "replace": "Ersetzen",
+                "deleteCover": "Cover löschen",
+                "uploadingEllipsis": "Wird hochgeladen...",
+                "uploadCover": "+ Cover hochladen",
+                "coverHint": "Empfohlene Größe: 1200×400px horizontal, bis 5 MB",
+                "maxInteriorPhotos": "Sie können maximal {max} Innenraumfotos hochladen. Aktuell: {current}."
+            },
+            "servicesUi": {
+                "empty": "Noch keine Leistungen hinzugefügt",
+                "addDescription": "Fügen Sie eine Beschreibung zur Leistung hinzu",
+                "edit": "Bearbeiten",
+                "deleteService": "Leistung löschen",
+                "byAgreement": "nach Vereinbarung",
+                "durationMin": "{count} Min.",
+                "updated": "Leistung aktualisiert",
+                "added": "Leistung hinzugefügt",
+                "deleted": "Leistung gelöscht",
+                "deleteError": "Leistung konnte nicht gelöscht werden",
+                "editService": "Leistung bearbeiten",
+                "newService": "Neue Leistung",
+                "close": "Schließen",
+                "subtitle": "Verwalten Sie Leistungen und Preise mit wenigen Klicks.",
+                "addService": "Leistung hinzufügen",
+                "createTitle": "Welche Leistung möchten Sie anbieten?",
+                "selectCategory": "Kategorie auswählen",
+                "selectSubcategory": "Unterkategorie auswählen",
+                "selectCategoryFirst": "Wählen Sie zuerst eine Kategorie",
+                "selectExactService": "Konkrete Leistung auswählen",
+                "serviceLabel": "Leistung",
+                "pricePlaceholder": "Preis, €",
+                "minutesPlaceholder": "Min.",
+                "priceHint": "Preis und Zeit sind optional. Wählen Sie nach Vereinbarung, wenn Sie nichts angeben.",
+                "descriptionPlaceholder": "Leistungsbeschreibung (Ablauf, Materialien, Besonderheiten)",
+                "assignStaff": "Mitarbeitende zuweisen",
+                "assignStaffHint": "Wählen Sie die Spezialisten aus, die diese Leistung ausführen. Kunden sehen sie in der Leistungskarte.",
+                "selectStaffForPhotos": "Wählen Sie einen Spezialisten aus, um Arbeitsbeispiele hinzuzufügen",
+                "portfolioExamples": "Arbeitsbeispiele",
+                "portfolioHint": "Fügen Sie Ergebnisfotos zu dieser Leistung hinzu.",
+                "portfolioStaffHint": "Sie werden den ausgewählten Mitarbeitenden zugeordnet.",
+                "saveChanges": "Änderungen speichern",
+                "backToDashboard": "Zurück zum Bereich",
+                "errors": {
+                    "selectService": "Wählen Sie eine Leistung aus dem Verzeichnis aus.",
+                    "selectStaff": "Wählen Sie mindestens einen Spezialisten aus.",
+                    "description": "Fügen Sie eine Beschreibung der Leistung hinzu.",
+                    "priceDuration": "Preis und Dauer sind ungültig.",
+                    "generic": "Fehler",
+                    "add": "Fehler beim Hinzufügen der Leistung",
+                    "save": "Fehler beim Speichern der Leistung"
+                }
+            },
+            "profileForm": {
+                "studioPhotosSalonOnly": "Studiofotos sind nur für Salons verfügbar.",
+                "maxStudioPhotos": "Sie können maximal 8 Studiofotos hochladen.",
+                "photoUploadError": "Foto konnte nicht hochgeladen werden",
+                "savedToast": "Profil gespeichert",
+                "savedInline": "Änderungen gespeichert!",
+                "name": "Name / Titel",
+                "providerType": "Anbietertyp",
+                "salonOption": "Ich vertrete einen Salon",
+                "privateOption": "Ich bin selbstständiger Spezialist",
+                "studioPhotosHint": "Studiofotos sind nur für Profile vom Typ Salon verfügbar.",
+                "category": "Spezialisierung (Kategorie)",
+                "bio": "Über mich / Über den Salon",
+                "bioPlaceholder": "Erzählen Sie von Ihrer Erfahrung, Ihrer Arbeitsweise und den Materialien, die Sie verwenden...",
+                "languages": "Sprachen",
+                "phone": "Kontakttelefon",
+                "legalInfo": "Rechtliche Informationen",
+                "taxHint": "Erforderlich, damit Ihr Profil für Kunden sichtbar wird.",
+                "city": "Stadt",
+                "cityHint": "Wählen Sie zuerst eine Stadt aus den OpenStreetMap-Vorschlägen.",
+                "cityConfirmHint": "Die Stadt muss per Klick auf einen Vorschlag bestätigt werden.",
+                "salonAddress": "Vollständige Salonadresse",
+                "addressNeedsCity": "Wählen Sie zuerst eine Stadt aus und geben Sie dann eine Adresse innerhalb dieser Stadt ein.",
+                "addressHint": "Geben Sie mindestens 3 Zeichen ein und wählen Sie eine Adresse aus OpenStreetMap.",
+                "addressConfirmHint": "Die Adresse muss per Klick auf einen Vorschlag bestätigt werden.",
+                "telegramTitle": "Telegram-Benachrichtigungen",
+                "telegramConnected": "Telegram erfolgreich verbunden",
+                "telegramDisconnected": "Telegram getrennt",
+                "disconnect": "Trennen",
+                "connectTelegram": "Telegram-Bot verbinden",
+                "telegramUnavailable": "Der Verbindungslink ist nicht verfügbar. Setzen Sie TELEGRAM_BOT_USERNAME in den Servereinstellungen.",
+                "saveChanges": "Änderungen speichern",
+                "errors": {
+                    "selectCity": "Wählen Sie eine Stadt aus der Dropdown-Liste.",
+                    "salonAddress": "Geben Sie die vollständige Salonadresse an.",
+                    "selectSalonAddress": "Wählen Sie eine Salonadresse aus der Dropdown-Liste.",
+                    "generic": "Fehler",
+                    "saveProfile": "Fehler beim Speichern des Profils"
+                }
+            },
+            "workingHours": {
+                "days": {
+                    "mon": "Mo",
+                    "tue": "Di",
+                    "wed": "Mi",
+                    "thu": "Do",
+                    "fri": "Fr",
+                    "sat": "Sa",
+                    "sun": "So"
+                },
+                "selectDayError": "Wählen Sie mindestens einen Arbeitstag und legen Sie ein Zeitfenster fest.",
+                "dayFallback": "Tag",
+                "saved": "Zeitplan gespeichert",
+                "saveError": "Zeitplan konnte nicht gespeichert werden.",
+                "saveErrorShort": "Zeitplan konnte nicht gespeichert werden",
+                "presets": "Zeitvorlagen",
+                "standardPreset": "Standard: 09:00 - 18:00",
+                "eveningPreset": "Abend: 10:00 - 20:00",
+                "from": "Von",
+                "to": "Bis",
+                "deleteInterval": "Zeitfenster löschen",
+                "addInterval": "Zeitfenster hinzufügen",
+                "dayOff": "Freier Tag",
+                "saveHours": "Arbeitszeiten speichern"
+            },
+            "arrivalInfo": {
+                "addressRequired": "Adresse ist erforderlich.",
+                "saved": "Ankunftsinformationen gespeichert",
+                "saveError": "Fehler beim Speichern",
+                "deleteConfirm": "Ankunftsinformationen löschen?",
+                "deleted": "Ankunftsinformationen gelöscht",
+                "deleteError": "Fehler beim Löschen",
+                "address": "Genaue Adresse",
+                "addressHint": "Die Adresse ist für Kunden erst nach Bestätigung der Buchung sichtbar.",
+                "doorCode": "Türcode",
+                "bell": "Klingel / Gegensprechanlage",
+                "bellPlaceholder": "Klingel Maria, 3. Etage",
+                "waitingSpot": "Warteort",
+                "waitingSpotPlaceholder": "Café Oliv (2 Min.) - guter Ort zum Warten",
+                "save": "Speichern",
+                "delete": "Löschen",
+                "previewTitle": "Vorschau - so sieht es der Kunde nach der Buchung",
+                "howToArrive": "Anfahrt",
+                "doorCodeValue": "Türcode: {code}",
+                "nearbyValue": "In der Nähe: {place}"
+            },
+            "staffUi": {
+                "genericError": "Fehler",
+                "deleteConfirm": "Spezialisten löschen? Alle Buchungen bleiben erhalten, aber er verschwindet aus dem Buchungsformular.",
+                "addStaff": "Spezialisten hinzufügen",
+                "newStaff": "Neuer Spezialist",
+                "staffName": "Name des Spezialisten",
+                "namePlaceholder": "Zum Beispiel: Anna",
+                "specialtyBio": "Spezialisierung / Bio",
+                "specialtyPlaceholder": "Top-Stylist, Colorist",
+                "saving": "Wird gespeichert...",
+                "save": "Speichern",
+                "photoCount": "{count} Fotos",
+                "generalSchedule": "Allgemeiner Zeitplan",
+                "deleteStaff": "Spezialisten löschen",
+                "empty": "In Ihrem Salon wurden noch keine Spezialisten hinzugefügt."
+            },
+            "staffHub": {
+                "title": "Verwaltung: {name}",
+                "tabs": {
+                    "profile": "Profil",
+                    "schedule": "Zeitplan",
+                    "portfolio": "Arbeiten"
+                },
+                "profile": {
+                    "nameRequired": "Der Name darf nicht leer sein",
+                    "ratingInvalid": "Die Bewertung muss eine Zahl von 0 bis 5 sein",
+                    "saved": "Profil erfolgreich aktualisiert",
+                    "saveError": "Fehler beim Speichern",
+                    "name": "Name des Spezialisten",
+                    "namePlaceholder": "Zum Beispiel: Anna",
+                    "specialty": "Spezialisierung (Position)",
+                    "specialtyPlaceholder": "Zum Beispiel: Brow Artist, Colorist",
+                    "bio": "Beschreibung (Bio)",
+                    "bioPlaceholder": "Kurze Information über den Spezialisten...",
+                    "experience": "Berufserfahrung",
+                    "experiencePlaceholder": "Zum Beispiel: 5 Jahre Erfahrung",
+                    "rating": "Bewertung (0-5)",
+                    "tags": "Spezialisierung (Tags)",
+                    "tagsPlaceholder": "Laminierung, Architektur, Korrektur",
+                    "tagsHint": "Durch Kommas trennen. Maximal 12.",
+                    "cancel": "Abbrechen",
+                    "save": "Speichern"
+                },
+                "schedule": {
+                    "days": {
+                        "mon": "Montag",
+                        "tue": "Dienstag",
+                        "wed": "Mittwoch",
+                        "thu": "Donnerstag",
+                        "fri": "Freitag",
+                        "sat": "Samstag",
+                        "sun": "Sonntag"
+                    },
+                    "loadError": "Zeitplan konnte nicht geladen werden",
+                    "checkTime": "Prüfen Sie die Zeit: {day}",
+                    "dayFallback": "Tag",
+                    "saved": "Zeitplan gespeichert",
+                    "saveError": "Konnte nicht gespeichert werden",
+                    "subtitle": "Individuelle Arbeitszeiten des Spezialisten haben Vorrang vor dem allgemeinen Salon-Zeitplan.",
+                    "dayOff": "Freier Tag",
+                    "cancel": "Abbrechen",
+                    "save": "Speichern"
+                },
+                "portfolio": {
+                    "emptyServices": "Der Salon hat noch keine Leistungen. Fotos der Spezialisten werden einer konkreten Leistung zugeordnet, zum Beispiel Ansatzfarbe.",
+                    "addService": "Leistung hinzufügen",
+                    "hint": "Wählen Sie eine Leistung, um Arbeitsfotos dieses Spezialisten hinzuzufügen oder zu löschen.",
+                    "photoCount": "{count} Fotos"
+                }
+            },
+            "dashboardCards": {
+                "passport": {
+                    "pendingTitle": "Dokumente werden geprüft",
+                    "pendingBody": "Wir prüfen Ihre Dokumente. Das dauert normalerweise nicht länger als 24 Stunden.",
+                    "approvedTitle": "Identität bestätigt",
+                    "approvedBody": "Ihre Dokumente wurden geprüft. Das Vertrauen in Ihr Profil steigt.",
+                    "rejectedTitle": "Prüfung nicht bestanden",
+                    "idleTitle": "Passprüfung abschließen",
+                    "rejectedBody": "Ihre Dokumente wurden leider abgelehnt. Bitte versuchen Sie es erneut.",
+                    "idleBody": "Wir müssen sicherstellen, dass Sie wirklich Sie sind. Dafür zeigen Sie Ihren Pass und machen ein Foto damit.",
+                    "verify": "+ Prüfung starten"
+                },
+                "publication": {
+                    "title": "Profil noch veröffentlichen",
+                    "body": "Fügen Sie einige Leistungen hinzu. Ohne Leistungen können Kunden Sie nicht finden.",
+                    "addServices": "Leistungen hinzufügen"
+                },
+                "publicProfile": {
+                    "title": "Öffentliches Profil",
+                    "unavailable": "Ihr Profil ist nicht öffentlich sichtbar"
+                },
+                "stats": {
+                    "photoTitle": "Profilfoto",
+                    "photoAdded": "Foto hinzugefügt",
+                    "photoMissing": "Foto fehlt",
+                    "addressTitle": "Adressen",
+                    "addressAdded": "Adresse hinzugefügt",
+                    "addressMissing": "Adresse fehlt",
+                    "bioTitle": "Über mich",
+                    "bioFilled": "{count, plural, one {# Zeichen ausgefüllt} other {# Zeichen ausgefüllt}}",
+                    "bioMissing": "Nicht ausgefüllt",
+                    "specialtiesTitle": "Spezialisierungen",
+                    "specialtiesAdded": "{count, plural, one {# Spezialisierung hinzugefügt} other {# Spezialisierungen hinzugefügt}}"
+                },
+                "services": {
+                    "title": "Meine Leistungen",
+                    "emptyBody": "Hier erscheinen Ihre Leistungen",
+                    "addService": "Leistung hinzufügen",
+                    "add": "Hinzufügen",
+                    "uncategorized": "Ohne Kategorie",
+                    "pending": "In Prüfung",
+                    "active": "Aktiv",
+                    "noDescription": "Keine Beschreibung"
+                },
+                "specialties": {
+                    "add": "Spezialisierung hinzufügen"
+                }
+            },
+            "publishNotice": {
+                "publishError": "Fehler beim Veröffentlichen",
+                "serverError": "Interner Serverfehler",
+                "title": "Ihr Profil ist in der Suche verborgen",
+                "body": "Damit Kunden Sie finden und online buchen können, muss das Profil veröffentlicht werden. Stellen Sie sicher, dass Sie ein <photo>Foto</photo> und mindestens eine <service>Leistung mit Preis</service> hinzugefügt haben.",
+                "checking": "Prüfung...",
+                "publish": "Profil veröffentlichen"
+            },
+            "cityAutocomplete": {
+                "loadError": "Städte konnten nicht geladen werden. Versuchen Sie es erneut.",
+                "placeholder": "Stadt eingeben",
+                "minLength": "Geben Sie mindestens 2 Zeichen ein, um nach einer Stadt zu suchen.",
+                "notFound": "Keine Städte gefunden. Präzisieren Sie Ihre Suche."
+            },
+            "addressAutocomplete": {
+                "cityRequired": "Wählen Sie zuerst eine Stadt aus.",
+                "loadError": "Adressen konnten nicht geladen werden. Versuchen Sie es erneut.",
+                "placeholder": "Straße und Hausnummer eingeben",
+                "minLength": "Geben Sie mindestens 3 Zeichen ein, um nach einer Adresse zu suchen.",
+                "notFound": "Keine Adressen gefunden. Präzisieren Sie Straße oder Hausnummer."
+            },
+            "avatarUpload": {
+                "uploadError": "Fehler beim Hochladen",
+                "uploadFailed": "Datei konnte nicht hochgeladen werden. Versuchen Sie es erneut.",
+                "changePhoto": "Foto ändern"
+            },
+            "providerOnboardingPage": {
+                "title": "Spezialistenbereich erstellen",
+                "subtitle": "Füllen Sie die Basisdaten aus, um den Bereich zu öffnen und Anfragen zu erhalten."
+            },
+            "preview": {
+                "title": "Profilvorschau | Svoi.de"
+            },
+            "legalSetup": {
+                "title": "Rechtliche Daten (DAC7)",
+                "subtitle": "Nach der EU-Richtlinie DAC7 müssen Buchungsplattformen Steuerinformationen erfassen. Ihre Daten sind sicher geschützt.",
+                "form": {
+                    "saveError": "Fehler beim Speichern der Daten",
+                    "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten",
+                    "entityType": "Rechtsform",
+                    "individual": "Natürliche Person / Selbstständig (privater Spezialist)",
+                    "company": "Juristische Person (Salon / GmbH / UG)",
+                    "legalName": "Vollständiger rechtlicher Name (Name oder Firmenname) *",
+                    "legalNamePlaceholder": "Zum Beispiel: Ivan Ivanov oder Beauty Salon GmbH",
+                    "taxId": "Steuer-ID / Steuernummer *",
+                    "taxIdPlaceholder": "Zum Beispiel: 11/222/33333 oder 11 222 33333",
+                    "taxIdHint": "Erforderlich für alle, die kostenpflichtige Leistungen anbieten.",
+                    "vatId": "USt-IdNr",
+                    "vatIdPlaceholder": "DE123456789 (falls zutreffend)",
+                    "saving": "Wird gespeichert...",
+                    "submit": "Registrierung abschließen"
+                }
+            },
+            "onboardingWizard": {
+                "days": {
+                    "mon": "Mo",
+                    "tue": "Di",
+                    "wed": "Mi",
+                    "thu": "Do",
+                    "fri": "Fr",
+                    "sat": "Sa",
+                    "sun": "So"
+                },
+                "bioTags": {
+                    "experience": "8 Jahre Erfahrung",
+                    "homeStudio": "Ich empfange zuhause",
+                    "outcall": "Hausbesuche beim Kunden",
+                    "children": "Ich arbeite mit Kindern",
+                    "naturalMaterials": "Nur natürliche Materialien"
+                },
+                "placePresets": {
+                    "rent": "Platz gemietet",
+                    "ownSalon": "Eigener Salon",
+                    "home": "Ich arbeite zuhause"
+                },
+                "audiences": {
+                    "women": "Frauen",
+                    "men": "Männer",
+                    "kids": "Kinder"
+                },
+                "serviceCategories": {
+                    "hair": "Haarschnitt",
+                    "nails": "Maniküre",
+                    "browsLashes": "Brauen und Wimpern",
+                    "cosmetology": "Kosmetik",
+                    "massage": "Massage",
+                    "other": "Andere"
+                },
+                "subservices": {
+                    "other": "Andere",
+                    "hair": {
+                        "men": "Herrenhaarschnitt",
+                        "women": "Damenhaarschnitt",
+                        "kids": "Kinderhaarschnitt",
+                        "color": "Coloration"
+                    },
+                    "nails": {
+                        "classic": "Klassische Maniküre",
+                        "hardware": "Apparative Maniküre",
+                        "gel": "Gel-Lack",
+                        "extensions": "Nagelverlängerung",
+                        "pedicure": "Pediküre"
+                    },
+                    "browsLashes": {
+                        "browCorrection": "Brauenkorrektur",
+                        "browColor": "Brauen färben",
+                        "lashExtensions": "Wimpernverlängerung",
+                        "lamination": "Laminierung"
+                    },
+                    "cosmetology": {
+                        "cleaning": "Gesichtsreinigung",
+                        "peeling": "Peeling",
+                        "care": "Pflegebehandlungen"
+                    },
+                    "massage": {
+                        "classic": "Klassische Massage",
+                        "sport": "Sportmassage",
+                        "relax": "Entspannungsmassage"
+                    }
+                },
+                "languages": {
+                    "ru": "Russisch",
+                    "uk": "Ukrainisch",
+                    "de": "Deutsch",
+                    "en": "Englisch"
+                },
+                "steps": {
+                    "INDIVIDUAL": {
+                        "1": {
+                            "label": "Lernen wir uns kennen",
+                            "title": "Wie heißen Sie?",
+                            "subtitle": "Das sehen Kunden in Ihrem Profil"
+                        },
+                        "2": {
+                            "label": "Ihre Spezialisierung",
+                            "title": "Arbeitsdetails"
+                        },
+                        "3": {
+                            "label": "Wie und wo arbeiten Sie?",
+                            "title": "Wo empfangen Sie Kunden?"
+                        },
+                        "4": {
+                            "label": "Ihre erste Leistung",
+                            "title": "Leistung hinzufügen",
+                            "subtitle": "Weitere Leistungen können Sie später im Konto hinzufügen"
+                        },
+                        "5": {
+                            "label": "Ihr Zeitplan",
+                            "title": "Wann empfangen Sie Kunden?"
+                        }
+                    },
+                    "SALON": {
+                        "1": {
+                            "label": "Ihr Salon",
+                            "title": "Name Ihres Salons"
+                        },
+                        "2": {
+                            "label": "Salonleistungen",
+                            "title": "Was bietet Ihr Salon an?",
+                            "subtitle": "Wählen Sie alle passenden Kategorien"
+                        },
+                        "3": {
+                            "label": "Salonadresse",
+                            "title": "Wo befindet sich Ihr Salon?",
+                            "subtitle": "Kunden sehen die genaue Adresse auf der Karte"
+                        },
+                        "4": {
+                            "label": "Erste Salonleistung",
+                            "title": "Leistung hinzufügen"
+                        },
+                        "5": {
+                            "label": "Arbeitszeit",
+                            "title": "Öffnungszeiten des Salons"
+                        }
+                    }
+                },
+                "progress": "Schritt {current} von {total}",
+                "fields": {
+                    "name": "Name",
+                    "bio": "Über mich",
+                    "salonName": "Salonname",
+                    "salonBio": "Über den Salon",
+                    "managerName": "Name der Leitung / Kontaktperson",
+                    "audiences": "Für wen arbeiten Sie?",
+                    "categories": "Kategorien",
+                    "languages": "Sprachen",
+                    "workMode": "Arbeitsformat",
+                    "placeName": "Name des Ortes",
+                    "city": "Stadt",
+                    "zip": "Postleitzahl",
+                    "street": "Straße",
+                    "house": "Hausnummer",
+                    "serviceTitle": "Leistungsname",
+                    "price": "Preis €",
+                    "duration": "Dauer",
+                    "descriptionOptional": "Beschreibung (optional)"
+                },
+                "placeholders": {
+                    "name": "Zum Beispiel: Anna Krause",
+                    "bio": "Erzählen Sie Kunden etwas über sich...",
+                    "salonName": "Zum Beispiel: Beauty Studio Anna",
+                    "salonBio": "Beschreiben Sie Ihren Salon, die Atmosphäre und Vorteile...",
+                    "managerName": "Wie sollen wir Sie ansprechen?",
+                    "placeName": "Name (z. B. Studio 'Bliss' oder gemieteter Platz)",
+                    "city": "Stadt auswählen",
+                    "street": "Straßennamen eingeben...",
+                    "cityFirst": "Wählen Sie zuerst eine Stadt",
+                    "otherCategory": "Zum Beispiel: Tattoo, Podologie, Piercing...",
+                    "serviceTitle": "Zum Beispiel: Herrenhaarschnitt",
+                    "price": "Zum Beispiel: 20"
+                },
+                "photo": {
+                    "add": "Foto hinzufügen",
+                    "remove": "Foto entfernen",
+                    "hint": "Profile mit Foto schaffen mehr Vertrauen",
+                    "skip": "Überspringen, später hinzufügen →",
+                    "servicePhoto": "Arbeitsfoto (optional)",
+                    "servicePhotoHint": "Bis 5 MB. Weitere Fotos können Sie später im Konto hinzufügen.",
+                    "servicePreviewAlt": "Vorschau des Leistungsfotos",
+                    "replace": "Foto ersetzen",
+                    "choose": "Foto auswählen",
+                    "formats": "JPG, PNG oder WebP"
+                },
+                "workMode": {
+                    "studioTitle": "Ich empfange vor Ort",
+                    "studioBody": "Salon, Kabinett, Studio oder Home-Studio",
+                    "outcallTitle": "Ich fahre zum Kunden",
+                    "outcallBody": "Kann zusammen mit Vor-Ort-Terminen gewählt werden",
+                    "required": "Wählen Sie mindestens ein Arbeitsformat aus, um fortzufahren."
+                },
+                "common": {
+                    "remove": "Entfernen"
+                },
+                "location": {
+                    "itemTitle": "Ort {number}",
+                    "hideExact": "Genaue Adresse nicht anzeigen - nur den Bereich anzeigen",
+                    "add": "+ Weiteren Ort hinzufügen",
+                    "primaryHint": "Der erste Ort in der Liste wird als Hauptort für die Suche verwendet."
+                },
+                "outcall": {
+                    "radius": "Anfahrtsradius (km)",
+                    "radiusHint": "Kunden sehen Sie, wenn ihre Adresse innerhalb dieses Radius von Ihrer Basisstadt liegt.",
+                    "baseCity": "Ihre Basisstadt (für die Radiusberechnung)"
+                },
+                "distanceKm": "{count} km",
+                "service": {
+                    "categoryStep": "1. Kategorie wählen",
+                    "otherCategory": "Kategorie präzisieren",
+                    "subserviceStep": "2. Unterleistung wählen",
+                    "startingPrice": "Preis ab (abhängig von der Komplexität)"
+                },
+                "durationMin": "{count} Min.",
+                "schedule": {
+                    "weekdayPreset": "Mo-Fr, 09:00-18:00 (Standard)",
+                    "workingDay": "Ich arbeite an diesem Tag",
+                    "from": "von",
+                    "to": "bis",
+                    "invalidRange": "Die Startzeit muss vor der Endzeit liegen.",
+                    "applyToAll": "Eine Zeit auf alle Arbeitstage anwenden",
+                    "saveHint": "Beim Speichern wird ein einheitlicher Arbeitszeitraum für die ausgewählten Tage verwendet.",
+                    "breaksHint": "Pausen und genaue Slot-Einstellungen können Sie später im Konto hinzufügen."
+                },
+                "navigation": {
+                    "back": "← Zurück",
+                    "next": "Weiter →",
+                    "finish": "Registrierung abschließen ✓"
+                },
+                "errors": {
+                    "photoUpload": "Fehler beim Hochladen des Fotos. Versuchen Sie es erneut.",
+                    "imageType": "Nur JPEG, PNG und WebP sind erlaubt.",
+                    "imageSize": "Die Datei ist zu groß. Maximal 5 MB.",
+                    "preview": "Bildvorschau konnte nicht vorbereitet werden.",
+                    "fixBeforeContinue": "Beheben Sie die Fehler, bevor Sie fortfahren",
+                    "saveDraft": "Entwurf konnte nicht gespeichert werden.",
+                    "selectWorkMode": "Wählen Sie mindestens ein Arbeitsformat aus.",
+                    "addWorkLocation": "Fügen Sie mindestens einen Arbeitsort hinzu.",
+                    "completeWorkLocations": "Geben Sie Stadt, Straße, Hausnummer und Postleitzahl für jeden Arbeitsort an.",
+                    "completeSalonAddress": "Geben Sie Stadt, Straße, Hausnummer und Postleitzahl des Salons an.",
+                    "outcallCity": "Geben Sie eine Basisstadt für Hausbesuche an.",
+                    "outcallRadius": "Geben Sie einen Anfahrtsradius von 1 bis 100 km an.",
+                    "category": "Kategorie konnte nicht bestimmt werden. Wählen Sie die Leistung erneut aus.",
+                    "saveProfileDraft": "Profilentwurf konnte nicht gespeichert werden.",
+                    "serviceTitle": "Geben Sie den Leistungsnamen an.",
+                    "otherCategory": "Präzisieren Sie die Kategorie der Leistung.",
+                    "publish": "Profil konnte nicht veröffentlicht werden.",
+                    "finish": "Registrierung konnte nicht abgeschlossen werden. Versuchen Sie es erneut."
+                },
+                "descriptionMeta": {
+                    "category": "Kategorie: {value}",
+                    "startingPrice": "Preis ab: abhängig von der Komplexität"
+                },
+                "bioMeta": {
+                    "contactPerson": "Kontaktperson: {name}\n\n{bio}",
+                    "workLocations": "Arbeitsorte"
+                },
+                "success": "Profil wurde zur Moderation gesendet. Weiterleitung..."
+            }
+        },
+        "admin": {
+            "access": {
+                "title": "Admin-Bereich",
+                "denied": "Zugriff verweigert",
+                "body": "Ihr Konto hat keine Administratorrechte.",
+                "home": "Zur Startseite"
+            },
+            "title": "Administrationsbereich",
+            "metrics": {
+                "totalBookings": "Buchungen gesamt",
+                "completed": "Abgeschlossen",
+                "cancelled": "Storniert"
+            },
+            "tabs": {
+                "users": "Benutzer",
+                "services": "Leistungen",
+                "bookings": "Buchungen"
+            },
+            "migration": {
+                "confirm": "Test-Spezialisten wiederherstellen? Dadurch werden neue User für verwaiste Profile erstellt.",
+                "success": "Migration erfolgreich. Wiederhergestellte Profile: {count}",
+                "error": "Migrationsfehler: {message}",
+                "title": "Entwicklertools",
+                "body": "Profile ohne Konto wiederherstellen. (Temporäre Schaltfläche)",
+                "running": "Migration...",
+                "button": "DB-Fix: Spezialisten wiederherstellen"
+            },
+            "servicesTable": {
+                "deleteConfirm": "Sind Sie sicher, dass Sie diese Leistung löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.",
+                "columns": {
+                    "service": "Leistungsname",
+                    "provider": "Spezialist / Salon",
+                    "price": "Preis",
+                    "duration": "Dauer",
+                    "actions": "Aktionen"
+                },
+                "empty": "Keine Leistungen",
+                "profileDeleted": "Profil gelöscht",
+                "durationMin": "{count} Min.",
+                "delete": "Löschen"
+            },
+            "bookingsTable": {
+                "status": {
+                    "pending": "Ausstehend",
+                    "confirmed": "Bestätigt",
+                    "completed": "Abgeschlossen",
+                    "cancelled": "Storniert",
+                    "noShow": "Nicht erschienen"
+                },
+                "columns": {
+                    "dateTime": "Datum / Uhrzeit",
+                    "service": "Leistung",
+                    "client": "Kunde",
+                    "provider": "Spezialist",
+                    "amount": "Summe",
+                    "status": "Status"
+                },
+                "empty": "Keine Buchungen",
+                "unnamed": "Ohne Namen",
+                "serviceDeleted": "Leistung gelöscht"
+            },
+            "usersTable": {
+                "unnamed": "Ohne Namen",
+                "noEmail": "Keine E-Mail",
+                "registered": "Registriert: {date}",
+                "status": {
+                    "banned": "Gesperrt",
+                    "active": "Aktiv"
+                },
+                "providerStatus": {
+                    "draft": "Entwurf",
+                    "pending": "In Prüfung",
+                    "approved": "Freigegeben",
+                    "rejected": "Abgelehnt"
+                },
+                "openPublicProfile": "Öffentliches Profil öffnen",
+                "tabs": {
+                    "stats": "Statistik",
+                    "bookings": "Buchungshistorie"
+                },
+                "clientStats": "Kundenstatistik",
+                "bookingsCreated": "Erstellte Buchungen",
+                "yes": "Ja",
+                "no": "Nein",
+                "providerProfile": "Spezialistenprofil",
+                "providerStats": "Spezialistenstatistik",
+                "activeServices": "Aktive Leistungen",
+                "receivedBookings": "Erhaltene Buchungen",
+                "noProviderProfile": "Spezialistenprofil wurde nicht erstellt",
+                "adminActions": "Admin-Aktionen",
+                "providerModeration": "Moderation des Spezialistenprofils",
+                "approve": "Freigeben",
+                "reject": "Ablehnen",
+                "cannotBanAdmins": "Administratoren können nicht gesperrt werden",
+                "unbanAccount": "Kontosperre aufheben",
+                "softBan": "Zugriff pausieren (Soft Ban)",
+                "bookingStatus": {
+                    "pending": "Ausstehend",
+                    "confirmed": "Bestätigt",
+                    "completed": "Abgeschlossen",
+                    "cancelled": "Storniert"
+                },
+                "loadingBookings": "Buchungen werden geladen...",
+                "noBookingsTitle": "Keine Buchungen",
+                "noBookingsBody": "Dieser Benutzer hat noch keine Buchungen als Spezialist oder Kunde.",
+                "latestBookings": "Letzte Buchungen ({count})",
+                "bookingFor": "FÜR",
+                "bookingWith": "MIT",
+                "serviceDeleted": "Leistung gelöscht",
+                "confirmBan": "Sind Sie sicher, dass Sie diesen Benutzer sperren möchten?",
+                "confirmReject": "Profil ablehnen und aus dem Katalog ausblenden?",
+                "filters": {
+                    "all": "Alle",
+                    "masters": "Nur Spezialisten",
+                    "clients": "Nur Kunden"
+                },
+                "columns": {
+                    "name": "Name",
+                    "accountType": "Kontotyp",
+                    "role": "Rolle",
+                    "status": "Status",
+                    "actions": "Aktionen"
+                },
+                "emptyUsers": "Keine Benutzer",
+                "accountType": {
+                    "provider": "Spezialist",
+                    "client": "Kunde"
+                },
+                "unban": "Entsperren",
+                "ban": "Sperren",
+                "dossierTitle": "Benutzerdossier",
+                "dossierDescription": "Detaillierte Informationen, Statistik und Zugriffsverwaltung."
+            },
+            "actionErrors": {
+                "invalidProfileId": "Ungültige Profil-ID",
+                "accessDenied": "Zugriff verweigert",
+                "profileNotFound": "Profil nicht gefunden",
+                "profileNotPending": "Profil wartet nicht auf Prüfung",
+                "database": "Datenbankfehler"
+            }
+        }
+    },
+    "header": {
+        "becomePro": "Spezialist werden",
+        "login": "Anmelden",
+        "logout": "Abmelden",
+        "myAccount": "Mein Konto",
+        "myBookings": "Meine Buchungen",
+        "messages": "Nachrichten",
+        "search": "Suche",
+        "chat": "Chat",
+        "openChat": "Chat öffnen",
+        "openMenu": "Menü öffnen",
+        "closeMenu": "Menü schließen",
+        "forMasters": "Für Spezialisten",
+        "forClient": "Für Kunden",
+        "userFallback": "Benutzer",
+        "noEmail": "Keine E-Mail",
+        "continueOnboarding": "Profil-Einrichtung fortsetzen",
+        "adminPanel": "Admin-Bereich",
+        "masterCabinet": "Spezialisten-Bereich",
+        "myCabinet": "Mein Bereich",
+        "accountSettings": "Kontoeinstellungen",
+        "nav": {
+            "services": "Leistungen",
+            "masters": "Spezialisten",
+            "about": "Über uns"
+        }
+    },
+    "userMenu": {
+        "openLabel": "Benutzermenü öffnen",
+        "dashboardSectionsLabel": "Bereiche anzeigen",
+        "role": {
+            "admin": "Administrator",
+            "draft": "Entwurf",
+            "registering": "Registrierung läuft...",
+            "master": "Spezialist",
+            "client": "Kunde"
+        },
+        "section": {
+            "bookings": "Buchungen",
+            "analytics": "Statistik",
+            "services": "Leistungen",
+            "schedule": "Zeitplan"
+        }
+    },
+    "footer": {
+        "rights": "Alle Rechte vorbehalten",
+        "copyright": "© {year} SVOI Curated Atelier. Alle Rechte vorbehalten.",
+        "language": "Sprache",
+        "contact": "Kontakt",
+        "columns": {
+            "services": "Leistungen",
+            "platform": "Plattform",
+            "legal": "Rechtliches"
+        },
+        "services": {
+            "hairDesign": "Hair-Design",
+            "makeup": "Make-up",
+            "skincare": "Hautpflege",
+            "wellness": "Wellness"
+        },
+        "links": {
+            "about": "Über uns",
+            "guide": "So funktioniert es",
+            "becomePro": "Für Spezialisten",
+            "agb": "AGB",
+            "datenschutz": "Datenschutz",
+            "impressum": "Impressum"
+        }
+    },
+    "errors": {
+        "notFound": {
+            "title": "Seite nicht gefunden",
+            "body": "Die angeforderte Seite existiert nicht oder wurde verschoben."
+        },
+        "generic": {
+            "title": "Etwas ist schiefgelaufen",
+            "body": "Bitte laden Sie die Seite neu. Falls der Fehler weiterhin besteht, kontaktieren Sie uns."
+        }
+    }
+}

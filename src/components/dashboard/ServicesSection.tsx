@@ -6,6 +6,7 @@ import { deleteService } from '@/app/actions/services';
 import { ServiceList, type ServiceData } from '@/components/dashboard/ServiceList';
 import { AddServiceForm, type StaffOption } from '@/components/dashboard/AddServiceForm';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface ServicesSectionProps {
     profileId: number;
@@ -14,6 +15,7 @@ interface ServicesSectionProps {
 }
 
 export function ServicesSection({ profileId, services, staff = [] }: ServicesSectionProps) {
+    const t = useTranslations('dashboard.provider.servicesUi');
     const [serviceItems, setServiceItems] = useState(services);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editingService, setEditingService] = useState<ServiceData | null>(null);
@@ -30,12 +32,12 @@ export function ServicesSection({ profileId, services, staff = [] }: ServicesSec
 
         if (editingService) {
             setEditingService(null);
-            toast.success('Услуга обновлена');
+            toast.success(t('updated'));
             return;
         }
 
         setIsAddOpen(false);
-        toast.success('Услуга добавлена');
+        toast.success(t('added'));
     };
 
     const handleDelete = async (serviceId: number) => {
@@ -43,9 +45,9 @@ export function ServicesSection({ profileId, services, staff = [] }: ServicesSec
         const result = await deleteService(serviceId);
         if (result.success) {
             setServiceItems((prev) => prev.filter((service) => service.id !== serviceId));
-            toast.success('Услуга удалена');
+            toast.success(t('deleted'));
         } else {
-            toast.error(result.error || 'Не удалось удалить услугу');
+            toast.error(result.error || t('deleteError'));
         }
         setDeletingId(null);
     };
@@ -59,7 +61,7 @@ export function ServicesSection({ profileId, services, staff = [] }: ServicesSec
                 <div className="w-full max-w-2xl rounded-md bg-[#F5F2ED] border border-gray-300">
                     <div className="flex items-center justify-between border-b border-gray-300 px-4 py-3">
                         <h3 className="text-base font-semibold text-slate-900">
-                            {isEdit ? 'Изменить услугу' : 'Новая услуга'}
+                            {isEdit ? t('editService') : t('newService')}
                         </h3>
                         <button
                             type="button"
@@ -71,7 +73,7 @@ export function ServicesSection({ profileId, services, staff = [] }: ServicesSec
                                 }
                             }}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 bg-transparent text-slate-500 hover:border-gray-900 hover:text-slate-900"
-                            aria-label="Закрыть"
+                            aria-label={t('close')}
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -103,14 +105,14 @@ export function ServicesSection({ profileId, services, staff = [] }: ServicesSec
         <>
             <div className="space-y-4 bg-transparent">
                 <div className="flex items-center justify-between gap-3 border-b border-gray-300 pb-4">
-                    <p className="text-sm text-slate-500">Управляйте услугами и ценами в пару кликов.</p>
+                    <p className="text-sm text-slate-500">{t('subtitle')}</p>
                     <button
                         type="button"
                         onClick={() => setIsAddOpen(true)}
                         className="inline-flex h-10 items-center gap-2 rounded-md bg-slate-900 px-4 text-sm font-semibold text-white transition hover:bg-slate-700"
                     >
                         <Plus className="h-4 w-4" />
-                        Добавить услугу
+                        {t('addService')}
                     </button>
                 </div>
 

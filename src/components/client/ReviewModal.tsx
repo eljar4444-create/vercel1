@@ -6,6 +6,7 @@ import { Star, X } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import toast from 'react-hot-toast';
 import { createReview } from '@/actions/reviews';
+import { useTranslations } from 'next-intl';
 
 interface ReviewModalProps {
     isOpen: boolean;
@@ -15,6 +16,7 @@ interface ReviewModalProps {
 }
 
 export function ReviewModal({ isOpen, onClose, bookingId, masterName }: ReviewModalProps) {
+    const t = useTranslations('forms.review');
     const [rating, setRating] = useState(0);
     const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState('');
@@ -24,7 +26,7 @@ export function ReviewModal({ isOpen, onClose, bookingId, masterName }: ReviewMo
 
     const handleSubmit = async () => {
         if (rating === 0) {
-            toast.error('Пожалуйста, выберите оценку');
+            toast.error(t('selectRating'));
             return;
         }
 
@@ -32,13 +34,13 @@ export function ReviewModal({ isOpen, onClose, bookingId, masterName }: ReviewMo
         try {
             const result = await createReview(bookingId, rating, comment);
             if (result.success) {
-                toast.success('Отзыв успешно отправлен!');
+                toast.success(t('success'));
                 onClose();
             } else {
-                toast.error(result.error || 'Произошла ошибка');
+                toast.error(result.error || t('genericError'));
             }
         } catch (error) {
-            toast.error('Произошла непредвиденная ошибка');
+            toast.error(t('unexpectedError'));
         } finally {
             setIsSubmitting(false);
         }
@@ -58,13 +60,13 @@ export function ReviewModal({ isOpen, onClose, bookingId, masterName }: ReviewMo
             >
                 <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                     <h2 className="text-lg font-semibold text-slate-900">
-                        Оцените визит к {masterName}
+                        {t('modalTitle', { name: masterName })}
                     </h2>
                     <button
                         type="button"
                         onClick={onClose}
                         className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-                        aria-label="Закрыть"
+                        aria-label={t('close')}
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -93,11 +95,11 @@ export function ReviewModal({ isOpen, onClose, bookingId, masterName }: ReviewMo
 
                     <div className="w-full space-y-3">
                         <label htmlFor="comment" className="text-sm font-medium text-slate-700">
-                            Расскажите о ваших впечатлениях (необязательно)
+                            {t('modalCommentLabel')}
                         </label>
                         <Textarea
                             id="comment"
-                            placeholder="Что вам особенно понравилось?"
+                            placeholder={t('modalCommentPlaceholder')}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                             className="resize-none h-24"
@@ -107,14 +109,14 @@ export function ReviewModal({ isOpen, onClose, bookingId, masterName }: ReviewMo
 
                 <div className="flex justify-end gap-3 w-full border-t border-slate-100 px-5 py-4">
                     <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-                        Отмена
+                        {t('cancel')}
                     </Button>
                     <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting || rating === 0}
                         className="bg-slate-900 text-white hover:bg-slate-800"
                     >
-                        {isSubmitting ? 'Отправка...' : 'Отправить'}
+                        {isSubmitting ? t('submitting') : t('submit')}
                     </Button>
                 </div>
             </div>

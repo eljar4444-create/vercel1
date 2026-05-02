@@ -7,6 +7,7 @@ import { generateUniqueProfileSlug } from '@/lib/slugify';
 import { geocodeAddress } from '@/lib/geocode';
 import { buildSchedulePayload, createUniformSchedule } from '@/lib/scheduling';
 import type { Prisma, ProviderType } from '@prisma/client';
+import { DEFAULT_LOCALE } from '@/i18n/config';
 
 interface ProviderOnboardingResult {
     success: boolean;
@@ -434,6 +435,35 @@ export async function saveProviderDraft(formData: FormData): Promise<ProviderOnb
                 select: { id: true },
             });
 
+        const bioForTranslation = typeof prepared.data.bio === 'string' ? prepared.data.bio.trim() : '';
+        if (bioForTranslation) {
+            await prisma.profileTranslation.upsert({
+                where: {
+                    profileId_locale: {
+                        profileId: profile.id,
+                        locale: DEFAULT_LOCALE,
+                    },
+                },
+                create: {
+                    profileId: profile.id,
+                    locale: DEFAULT_LOCALE,
+                    bio: bioForTranslation,
+                    translationSource: 'original',
+                },
+                update: {
+                    bio: bioForTranslation,
+                    translationSource: 'original',
+                },
+            });
+        } else {
+            await prisma.profileTranslation.deleteMany({
+                where: {
+                    profileId: profile.id,
+                    locale: DEFAULT_LOCALE,
+                },
+            });
+        }
+
         return { success: true, profileId: profile.id };
     } catch (error) {
         console.error('[providerOnboarding] saveProviderDraft error:', error);
@@ -535,6 +565,14 @@ export async function publishProviderProfile(formData: FormData): Promise<Provid
                     images: serviceImageUrl ? [serviceImageUrl] : [],
                     price: servicePrice,
                     duration_min: serviceDuration,
+                    translations: {
+                        create: {
+                            locale: DEFAULT_LOCALE,
+                            title: serviceTitle,
+                            description: serviceDescription || null,
+                            translationSource: 'original',
+                        },
+                    },
                 },
             });
 

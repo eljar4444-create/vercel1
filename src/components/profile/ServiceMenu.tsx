@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { Clock, Camera } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { DeepDiveModal, type DeepDivePhoto } from './DeepDiveModal';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -42,18 +43,9 @@ interface ServiceMenuProps {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function formatPrice(price: string | number) {
+function formatPrice(price: string | number, onRequestLabel: string) {
     const n = Number(price);
-    return n === 0 ? 'по договорённости' : `€${n.toFixed(0)}`;
-}
-
-function formatDuration(min: number) {
-    return min === 0 ? 'по договорённости' : `${min} мин`;
-}
-
-function pluralPhotos(n: number) {
-    if (n === 1) return '1 фото';
-    return `${n} фото`;
+    return n === 0 ? onRequestLabel : `€${n.toFixed(0)}`;
 }
 
 // ── ServiceMenuRow ────────────────────────────────────────────────────────────
@@ -69,6 +61,7 @@ function ServiceMenuRow({
     showSpecialistNames?: boolean;
     onSeePhotos: () => void;
 }) {
+    const t = useTranslations('salon');
     const coverPhoto = service.photos[0] ?? null;
     const extraCount = service.photos.length - 1;
 
@@ -110,7 +103,9 @@ function ServiceMenuRow({
                     <div className="mt-1 flex items-center gap-3">
                         <span className="inline-flex items-center gap-1 text-xs text-booking-textMuted">
                             <Clock className="h-3 w-3" />
-                            {formatDuration(service.duration_min)}
+                            {service.duration_min === 0
+                                ? t('service.durationOnRequest')
+                                : t('service.durationMin', { count: service.duration_min })}
                         </span>
                         {showSpecialistNames && service.staff && service.staff.length > 0 && (
                             <span className="text-xs text-booking-textMuted">
@@ -124,7 +119,7 @@ function ServiceMenuRow({
                             onClick={onSeePhotos}
                             className="mt-1 text-xs font-medium text-booking-primary underline underline-offset-2 transition hover:text-booking-primaryHover"
                         >
-                            Ещё {pluralPhotos(extraCount)}
+                            {t('service.morePhotos', { label: t('service.photosPlural', { count: extraCount }) })}
                         </button>
                     )}
                 </div>
@@ -132,14 +127,14 @@ function ServiceMenuRow({
                 {/* Price + CTA */}
                 <div className="flex shrink-0 items-center gap-3">
                     <span className="text-base font-semibold tabular-nums text-booking-textMain">
-                        {formatPrice(service.price)}
+                        {formatPrice(service.price, t('price.onRequest'))}
                     </span>
                     <button
                         type="button"
                         onClick={onBook}
                         className="h-9 rounded-full bg-booking-card px-4 text-xs font-medium text-booking-textMain shadow-soft-out transition-all hover:bg-booking-bg hover:shadow-soft-in active:scale-95"
                     >
-                        Выбрать
+                        {t('service.select')}
                     </button>
                 </div>
             </div>
@@ -155,6 +150,7 @@ export function ServiceMenu({
     showSpecialistNames = false,
     providerName,
 }: ServiceMenuProps) {
+    const t = useTranslations('salon');
     const [deepDiveService, setDeepDiveService] = useState<ServiceItem | null>(null);
 
     const handleSeePhotos = useCallback((service: ServiceItem) => {
@@ -178,7 +174,7 @@ export function ServiceMenu({
     if (services.length === 0) {
         return (
             <div className="py-8 text-center">
-                <p className="text-sm text-booking-textMuted">Список услуг пока пуст.</p>
+                <p className="text-sm text-booking-textMuted">{t('section.servicesEmpty')}</p>
             </div>
         );
     }

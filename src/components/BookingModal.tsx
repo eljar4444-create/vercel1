@@ -2,13 +2,15 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
-import { X, Clock, User, Phone, CheckCircle, Loader2, MapPin, Star, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
-import { createBooking, getWeekAvailableSlots } from '@/app/actions/booking';
+import { X, Clock, User, Phone, Mail, CheckCircle, Loader2, MapPin, Star, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
+import { getWeekAvailableSlots } from '@/app/actions/booking';
 import { useEffect } from 'react';
 import useSWR from 'swr';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { OtpModal } from '@/components/booking-ui/OtpModal';
+import { useBookingOtp } from '@/hooks/useBookingOtp';
 
 interface BookingModalProps {
     isOpen: boolean;
@@ -106,12 +108,25 @@ export function BookingModal({
     const [weekStart, setWeekStart] = useState<Date>(today);
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [email, setEmail] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isFindingNearest, setIsFindingNearest] = useState(false);
     const [slotsError, setSlotsError] = useState<string | null>(null);
     const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+
+    // OTP booking flow
+    const {
+        isSubmitting,
+        showOtpModal,
+        otpSessionId,
+        otpExpiresAt,
+        turnstileRef,
+        submitBooking,
+        handleOtpSuccess,
+        handleOtpExpired,
+        handleOtpClose,
+    } = useBookingOtp();
 
     const selectedDuration = selectedService?.duration_min || 60;
     const weekDates = useMemo(
@@ -282,15 +297,13 @@ export function BookingModal({
         }
     };
 
-    const canSubmit = Boolean(time);
-    const authButtonText = canSubmit ? 'Войти и подтвердить запись' : 'Сначала выберите время';
+    const canSubmit = Boolean(time && name && phone && email);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitting(true);
         setError(null);
 
-        const result = await createBooking({
+        const success = await submitBooking({
             profileId,
             staffId: selectedStaffId,
             serviceId: selectedService?.id || null,
@@ -299,28 +312,12 @@ export function BookingModal({
             time,
             userName: name,
             userPhone: phone,
+            userEmail: email,
         });
 
-        setIsSubmitting(false);
-
-        if (result.success) {
-            toast.success('Успешно! Вы записаны');
-            setIsSubmitted(true);
-        } else {
-            setError(result.error || 'Произошла ошибка. Попробуйте позже.');
-            toast.error(result.error || 'Не удалось создать запись');
+        if (!success) {
+            setError('Не удалось создать запись. Попробуйте позже.');
         }
-    };
-
-    const getSignInCallbackUrl = () => {
-        if (typeof window === 'undefined') return '/auth/login';
-
-        const url = new URL(window.location.href);
-        url.searchParams.set('book', '1');
-        if (selectedService?.id) url.searchParams.set('service', String(selectedService.id));
-        if (date) url.searchParams.set('date', date);
-        if (time) url.searchParams.set('time', time);
-        return url.toString();
     };
 
     return (
@@ -588,7 +585,7 @@ export function BookingModal({
                                 )}
                             </section>
 
-                            <section className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <section className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div>
                                     <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-stone-700">
                                         <User className="h-4 w-4 text-stone-400" />
@@ -617,39 +614,58 @@ export function BookingModal({
                                         className="h-12 w-full rounded-2xl border border-[#E5E0D8] bg-stone-50 px-4 text-[16px] md:text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#E5D5C5]"
                                     />
                                 </div>
+                                <div>
+                                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-stone-700">
+                                        <Mail className="h-4 w-4 text-stone-400" />
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="you@example.com"
+                                        className="h-12 w-full rounded-2xl border border-[#E5E0D8] bg-stone-50 px-4 text-[16px] md:text-sm text-stone-800 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-[#E5D5C5]"
+                                    />
+                                </div>
                             </section>
 
                             <section className="mt-8">
-                                {status !== 'authenticated' ? (
-                                    <button
-                                        type="button"
-                                        disabled={!canSubmit}
-                                        onClick={() => signIn(undefined, { callbackUrl: getSignInCallbackUrl() })}
-                                        className="flex h-14 w-full items-center justify-center rounded-full bg-stone-800 text-base font-medium tracking-wide text-white transition-all hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        {authButtonText}
-                                    </button>
-                                ) : (
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting || !canSubmit || !session?.user}
-                                        className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-stone-800 text-base font-medium tracking-wide text-white transition-all hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <Loader2 className="h-5 w-5 animate-spin" />
-                                                Отправка...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <CheckCircle className="h-5 w-5" />
-                                                Подтвердить запись
-                                            </>
-                                        )}
-                                    </button>
-                                )}
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting || !canSubmit}
+                                    className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-stone-800 text-base font-medium tracking-wide text-white transition-all hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="h-5 w-5 animate-spin" />
+                                            Отправка...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CheckCircle className="h-5 w-5" />
+                                            Подтвердить запись
+                                        </>
+                                    )}
+                                </button>
                             </section>
+
+                            {/* Invisible Turnstile widget */}
+                            <div ref={turnstileRef} />
                         </form>
+
+                        {/* OTP Verification Modal */}
+                        {showOtpModal && otpSessionId && (
+                            <OtpModal
+                                isOpen={showOtpModal}
+                                onClose={handleOtpClose}
+                                otpSessionId={otpSessionId}
+                                email={email}
+                                expiresAt={otpExpiresAt || ''}
+                                onSuccess={handleOtpSuccess}
+                                onExpired={handleOtpExpired}
+                            />
+                        )}
                     </>
                 )}
             </div>

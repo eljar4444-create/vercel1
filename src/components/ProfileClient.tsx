@@ -16,6 +16,7 @@ import {
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useSession, signIn } from 'next-auth/react';
 import toast from 'react-hot-toast';
+import { useTranslations, useLocale } from 'next-intl';
 
 import { startConversationWithProvider } from '@/app/actions/chat';
 import { Button } from '@/components/ui/button';
@@ -68,27 +69,22 @@ interface ProfileData {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const RATING_BREAKDOWN = [
-    { label: 'Качество', score: 5.0 },
-    { label: 'Чистота', score: 4.9 },
-    { label: 'Сервис', score: 5.0 },
-    { label: 'Атмосфера', score: 4.9 },
-];
+const RATING_BREAKDOWN_KEYS = ['quality', 'cleanliness', 'service', 'atmosphere'] as const;
+const RATING_BREAKDOWN_SCORES: Record<typeof RATING_BREAKDOWN_KEYS[number], number> = {
+    quality: 5.0,
+    cleanliness: 4.9,
+    service: 5.0,
+    atmosphere: 4.9,
+};
 
 const FALLBACK_COVER =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23F5F2ED'/%3E%3Cstop offset='100%25' stop-color='%23E6DFD3'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='800' fill='url(%23g)'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23806E5A' font-family='Arial, sans-serif' font-size='56'%3ESvoi.de%3C/text%3E%3C/svg%3E";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function pluralReviews(n: number) {
-    if (n === 1) return 'отзыв';
-    if (n >= 2 && n <= 4) return 'отзыва';
-    return 'отзывов';
-}
-
-function formatPrice(price: string | number) {
+function formatPriceValue(price: string | number, onRequestLabel: string) {
     const n = Number(price);
-    return n === 0 ? 'по договорённости' : `€${n.toFixed(0)}`;
+    return n === 0 ? onRequestLabel : `€${n.toFixed(0)}`;
 }
 
 function getInitials(name: string) {
@@ -137,6 +133,7 @@ function ServiceRow({
     onBook: () => void;
     fallbackThumb?: string | null;
 }) {
+    const t = useTranslations('salon');
     const portfolioPhotoList = (service.portfolioPhotos ?? []).filter(
         (url): url is string => typeof url === 'string' && url.trim().length > 0
     );
@@ -162,19 +159,21 @@ function ServiceRow({
                     )}
                     <p className="mt-1 inline-flex items-center gap-1 text-sm text-gray-400">
                         <Clock className="h-3.5 w-3.5" />
-                        {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
+                        {service.duration_min === 0
+                            ? t('service.durationOnRequest')
+                            : t('service.durationMin', { count: service.duration_min })}
                     </p>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-4">
                     <span className="text-lg font-semibold text-gray-900 tabular-nums">
-                        {formatPrice(service.price)}
+                        {formatPriceValue(service.price, t('price.onRequest'))}
                     </span>
                     <button
                         onClick={onBook}
                         className="rounded-full border border-gray-300 bg-transparent px-5 py-2 text-sm font-medium text-gray-900 transition-all hover:border-gray-900 hover:bg-gray-50 active:scale-95"
                     >
-                        Выбрать
+                        {t('service.select')}
                     </button>
                 </div>
             </div>
@@ -213,8 +212,10 @@ function ReviewCard({
 }: {
     review: ProfileData['reviews'][number];
 }) {
+    const t = useTranslations('salon');
+    const locale = useLocale();
     const initials = getInitials(review.clientName);
-    const date = new Date(review.createdAt).toLocaleDateString('ru-RU', {
+    const date = new Date(review.createdAt).toLocaleDateString(locale, {
         month: 'long',
         year: 'numeric',
     });
@@ -230,7 +231,7 @@ function ReviewCard({
                         <span className="text-sm font-semibold text-stone-800">{review.clientName}</span>
                         <span className="text-xs text-stone-400 shrink-0">{date}</span>
                     </div>
-                    <div className="mt-1 flex gap-0.5" aria-label={`Рейтинг: ${review.rating} из 5`}>
+                    <div className="mt-1 flex gap-0.5" aria-label={t('rating.aria', { rating: review.rating })}>
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                                 key={star}
@@ -254,6 +255,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const { data: session, status } = useSession();
+    const t = useTranslations('salon');
 
     const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
     const [isStartingChat, setIsStartingChat] = useState(false);
@@ -284,15 +286,16 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
 
     const groupedServices = useMemo(() => {
         const groups = new Map<string, ProfileData['services']>();
+        const defaultGroup = t('section.servicesDefaultGroup');
         services.forEach((s) => {
             const parts = s.title.split(' - ');
-            const cat = parts.length > 1 ? parts[0] : 'Популярные услуги';
+            const cat = parts.length > 1 ? parts[0] : defaultGroup;
             const group = groups.get(cat) || [];
             group.push(s);
             groups.set(cat, group);
         });
         return Array.from(groups.entries());
-    }, [services]);
+    }, [services, t]);
 
     const trimmedBio = (profile.bio || '').trim();
 
@@ -334,7 +337,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
         const result = await startConversationWithProvider(profile.id);
         setIsStartingChat(false);
         if (!result.success || !result.conversationId) {
-            toast.error(result.error || 'Не удалось открыть чат');
+            toast.error(result.error || t('chat.failed'));
             return;
         }
         router.push(`/chat/${result.conversationId}`);
@@ -378,10 +381,10 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                 <Link
                     href={`/search${profile.category?.slug ? `?category=${profile.category.slug}` : ''}`}
                     className="inline-flex items-center gap-1.5 text-sm text-stone-500 transition-colors hover:text-stone-800"
-                    aria-label="Назад к поиску"
+                    aria-label={t('backToSearch')}
                 >
                     <ChevronLeft className="h-4 w-4" />
-                    Назад к поиску
+                    {t('backToSearch')}
                 </Link>
             </div>
 
@@ -400,7 +403,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     <div className={`relative w-full h-full overflow-hidden ${coverImages.length === 1 ? 'md:col-span-2' : ''}`}>
                                         <Image
                                             src={coverImages[0]}
-                                            alt={`${profile.name} — обложка`}
+                                            alt={t('gallery.coverAlt', { name: profile.name })}
                                             fill
                                             sizes="(max-width: 768px) 100vw, 50vw"
                                             priority
@@ -414,7 +417,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         <div className="relative w-full h-full hidden md:block overflow-hidden">
                                             <Image
                                                 src={coverImages[1]}
-                                                alt={`${profile.name} — обложка 2`}
+                                                alt={t('gallery.coverAltN', { name: profile.name, n: 2 })}
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, 50vw"
                                                 className="object-cover"
@@ -439,7 +442,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     }}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
-                                    Смотреть все {coverImages.length} фото
+                                    {t('gallery.viewAllPhotos', { count: coverImages.length })}
                                 </div>
                             )}
                         </div>
@@ -476,7 +479,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         onClick={() => openBooking()}
                                         className="h-10 sm:h-11 shrink-0 rounded-full border border-stone-600 bg-transparent px-6 sm:px-8 text-sm font-medium tracking-wide text-stone-700 transition-all hover:bg-[#F5F2ED] active:scale-95"
                                     >
-                                        Забронировать
+                                        {t('ctaBook')}
                                     </button>
                                 </div>
                             </div>
@@ -495,7 +498,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     <div className={`relative w-full h-full overflow-hidden ${coverImages.length === 1 ? 'md:col-span-2' : ''}`}>
                                         <Image
                                             src={coverImages[0]}
-                                            alt={`${profile.name} — обложка`}
+                                            alt={t('gallery.coverAlt', { name: profile.name })}
                                             fill
                                             sizes="(max-width: 768px) 100vw, 50vw"
                                             priority
@@ -509,7 +512,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         <div className="relative w-full h-full hidden md:block overflow-hidden">
                                             <Image
                                                 src={coverImages[1]}
-                                                alt={`${profile.name} — обложка 2`}
+                                                alt={t('gallery.coverAltN', { name: profile.name, n: 2 })}
                                                 fill
                                                 sizes="(max-width: 768px) 100vw, 50vw"
                                                 className="object-cover"
@@ -534,7 +537,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     }}
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
-                                    Смотреть все {coverImages.length} фото
+                                    {t('gallery.viewAllPhotos', { count: coverImages.length })}
                                 </div>
                             )}
                         </div>
@@ -574,7 +577,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         onClick={() => openBooking()}
                                         className="w-full md:w-auto h-11 md:h-12 shrink-0 rounded-full border border-stone-600 bg-transparent px-6 sm:px-8 text-sm font-medium tracking-wide text-stone-700 transition-all hover:bg-[#F5F2ED] active:scale-95"
                                     >
-                                        Забронировать
+                                        {t('ctaBook')}
                                     </button>
                                 </div>
                             </div>
@@ -587,7 +590,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                     <ScrollReveal>
                         <section className="bg-transparent">
                             <h2 className="text-xl font-semibold text-stone-800">
-                                {profile.provider_type === 'SALON' ? 'О нас' : 'О мастере'}
+                                {profile.provider_type === 'SALON' ? t('section.aboutSalon') : t('section.aboutMaster')}
                             </h2>
                             <p className="mt-3 text-sm leading-relaxed text-stone-500 whitespace-pre-wrap">
                                 {trimmedBio}
@@ -614,7 +617,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                             </div>
 
                             <aside className="col-span-1 flex h-full flex-col lg:pl-12">
-                                <h2 className="text-xl font-semibold text-stone-800 mb-5">Рейтинг и отзывы</h2>
+                                <h2 className="text-xl font-semibold text-stone-800 mb-5">{t('section.ratingAndReviews')}</h2>
                                 <div className="h-full w-full bg-transparent">
 
                                     <div className="flex items-end gap-2">
@@ -622,23 +625,23 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                             {profile.averageRating.toFixed(1)}
                                         </span>
                                         <span className="mb-1 text-xs text-stone-400">
-                                            {profile.reviewCount} {pluralReviews(profile.reviewCount)}
+                                            {t('service.reviewsPlural', { count: profile.reviewCount })}
                                         </span>
                                     </div>
 
                                     {/* Breakdown bars */}
                                     <div className="mt-5 space-y-3">
-                                        {RATING_BREAKDOWN.map((item) => (
-                                            <RatingBar key={item.label} label={item.label} score={item.score} />
+                                        {RATING_BREAKDOWN_KEYS.map((key) => (
+                                            <RatingBar key={key} label={t(`rating.${key}`)} score={RATING_BREAKDOWN_SCORES[key]} />
                                         ))}
                                     </div>
 
                                     {/* Price from */}
                                     {cheapestService ? (
                                         <div className="mt-6 border-t border-[#E5E0D8]/50 pt-5">
-                                            <p className="text-xs uppercase tracking-widest text-stone-400">Цена от</p>
+                                            <p className="text-xs uppercase tracking-widest text-stone-400">{t('price.from')}</p>
                                             <p className="mt-1 text-3xl font-bold text-stone-800 tabular-nums">
-                                                {formatPrice(cheapestService.price)}
+                                                {formatPriceValue(cheapestService.price, t('price.onRequest'))}
                                             </p>
                                         </div>
                                     ) : null}
@@ -650,7 +653,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         className="mt-5 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#E5D5C5] text-sm font-medium text-stone-600 transition-all hover:bg-[#F5F2ED] disabled:opacity-60"
                                     >
                                         <MessageCircle className="h-4 w-4" />
-                                        {isStartingChat ? 'Открываем…' : 'Написать мастеру'}
+                                        {isStartingChat ? t('chat.opening') : t('ctaMessage')}
                                     </button>
                                 </div>
                             </aside>
@@ -674,14 +677,14 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                         }`}
                                 >
                                     <div className="flex items-center justify-between">
-                                        <h2 className="text-xl font-semibold text-stone-800">Услуги</h2>
+                                        <h2 className="text-xl font-semibold text-stone-800">{t('section.services')}</h2>
                                         <span className="text-xs text-stone-400">
-                                            {services.length} {services.length === 1 ? 'услуга' : 'услуг'}
+                                            {t('service.countPlural', { count: services.length })}
                                         </span>
                                     </div>
 
                                     {services.length === 0 ? (
-                                        <p className="mt-6 text-sm text-stone-400">Список услуг пока пуст.</p>
+                                        <p className="mt-6 text-sm text-stone-400">{t('section.servicesEmpty')}</p>
                                     ) : (
                                         <div className="mt-4 space-y-6">
                                             {groupedServices.map(([groupTitle, groupItems]) => (
@@ -695,7 +698,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                                                 openBooking({
                                                                     id: service.id,
                                                                     title: service.title,
-                                                                    price: formatPrice(service.price),
+                                                                    price: formatPriceValue(service.price, t('price.onRequest')),
                                                                     duration_min: service.duration_min,
                                                                 })
                                                             }
@@ -719,23 +722,23 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                                     {profile.averageRating.toFixed(1)}
                                                 </span>
                                                 <span className="mb-1 text-xs text-stone-400">
-                                                    {profile.reviewCount} {pluralReviews(profile.reviewCount)}
+                                                    {t('service.reviewsPlural', { count: profile.reviewCount })}
                                                 </span>
                                             </div>
 
                                             {/* Breakdown bars */}
                                             <div className="mt-5 space-y-3">
-                                                {RATING_BREAKDOWN.map((item) => (
-                                                    <RatingBar key={item.label} label={item.label} score={item.score} />
+                                                {RATING_BREAKDOWN_KEYS.map((key) => (
+                                                    <RatingBar key={key} label={t(`rating.${key}`)} score={RATING_BREAKDOWN_SCORES[key]} />
                                                 ))}
                                             </div>
 
                                             {/* Price from */}
                                             {cheapestService ? (
                                                 <div className="mt-6 border-t border-[#E5E0D8]/50 pt-5">
-                                                    <p className="text-xs uppercase tracking-widest text-stone-400">Цена от</p>
+                                                    <p className="text-xs uppercase tracking-widest text-stone-400">{t('price.from')}</p>
                                                     <p className="mt-1 text-3xl font-bold text-stone-800 tabular-nums">
-                                                        {formatPrice(cheapestService.price)}
+                                                        {formatPriceValue(cheapestService.price, t('price.onRequest'))}
                                                     </p>
                                                 </div>
                                             ) : null}
@@ -747,7 +750,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                                 className="mt-5 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#E5D5C5] text-sm font-medium text-stone-600 transition-all hover:bg-[#F5F2ED] disabled:opacity-60"
                                             >
                                                 <MessageCircle className="h-4 w-4" />
-                                                {isStartingChat ? 'Открываем…' : 'Написать мастеру'}
+                                                {isStartingChat ? t('chat.opening') : t('ctaMessage')}
                                             </button>
                                         </div>
                                     </aside>
@@ -762,7 +765,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                     <section className="bg-transparent border-t border-gray-300 pt-10 mt-10 w-full">
                         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <h2 className="text-xl font-semibold text-stone-800">Как нас найти</h2>
+                                <h2 className="text-xl font-semibold text-stone-800">{t('section.findUs')}</h2>
                                 <p className="mt-0.5 text-sm text-stone-400">{visibleAddress}</p>
                             </div>
                             <a
@@ -772,7 +775,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#E5D5C5] px-3 py-2 text-xs font-medium text-stone-600 transition-all hover:bg-[#F5F2ED]"
                             >
                                 <ExternalLink className="h-3.5 w-3.5" />
-                                Открыть в OpenStreetMap
+                                {t('map.openInOsm')}
                             </a>
                         </div>
                         <div className="overflow-hidden rounded-2xl shadow-sm">
@@ -789,7 +792,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                 {/* ── Reviews ───────────────────────────────────────────── */}
                 <ScrollReveal>
                     <section className="bg-transparent border-t border-gray-300 pt-10 mt-10">
-                        <h2 className="text-xl font-semibold text-stone-800">Отзывы клиентов</h2>
+                        <h2 className="text-xl font-semibold text-stone-800">{t('section.reviews')}</h2>
 
                         {profile.reviews && profile.reviews.length > 0 ? (
                             <div className="mt-5 divide-y divide-gray-200/50">
@@ -801,7 +804,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                             <div className="mt-6 flex flex-col items-center gap-3 py-12 text-center">
                                 <Star className="h-8 w-8 text-stone-200" />
                                 <p className="text-sm text-stone-400">
-                                    Пока нет отзывов. Станьте первым, кто оценит работу мастера!
+                                    {t('section.reviewsEmpty')}
                                 </p>
                             </div>
                         )}
@@ -825,7 +828,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                 e.stopPropagation();
                                 setSelectedImageIndex(null);
                             }}
-                            aria-label="Закрыть галерею"
+                            aria-label={t('gallery.closeGallery')}
                         >
                             <X className="h-6 w-6" />
                         </button>
@@ -840,7 +843,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     e.stopPropagation();
                                     setSelectedImageIndex((prev) => (prev! > 0 ? prev! - 1 : coverImages.length - 1));
                                 }}
-                                aria-label="Предыдущее фото"
+                                aria-label={t('gallery.prevPhoto')}
                             >
                                 <ChevronLeft className="h-8 w-8" />
                             </button>
@@ -850,7 +853,7 @@ export function ProfileClient({ profile }: { profile: ProfileData }) {
                                     e.stopPropagation();
                                     setSelectedImageIndex((prev) => (prev! < coverImages.length - 1 ? prev! + 1 : 0));
                                 }}
-                                aria-label="Следующее фото"
+                                aria-label={t('gallery.nextPhoto')}
                             >
                                 <ChevronRight className="h-8 w-8" />
                             </button>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Loader2, Building2, Scissors, MapPin } from 'lucide-react';
 import { completeProviderOnboarding } from '@/app/actions/onboarding';
 import { toast } from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface OnboardingFormProps {
     providerType: string; // 'SALON' | 'INDIVIDUAL' | 'PRIVATE'
@@ -11,6 +12,7 @@ interface OnboardingFormProps {
 }
 
 export function OnboardingForm({ providerType, userName }: OnboardingFormProps) {
+    const t = useTranslations('forms.providerOnboarding');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const isSalon = providerType === 'SALON';
 
@@ -22,7 +24,7 @@ export function OnboardingForm({ providerType, userName }: OnboardingFormProps) 
         const result = await completeProviderOnboarding(formData);
 
         if (result && !result.success) {
-            toast.error(result.error || 'Ошибка сохранения');
+            toast.error(result.error || t('saveError'));
             setIsSubmitting(false);
         }
         // On success, server action redirects automatically
@@ -37,11 +39,11 @@ export function OnboardingForm({ providerType, userName }: OnboardingFormProps) 
                         {isSalon ? <Building2 className="h-6 w-6" /> : <Scissors className="h-6 w-6" />}
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-                        {isSalon ? 'Регистрация салона' : 'Регистрация мастера'}
+                        {isSalon ? t('salonTitle') : t('individualTitle')}
                     </h1>
                     <p className="mt-2 text-base text-gray-500">
-                        {userName ? `Привет, ${userName}! ` : ''}
-                        Заполните данные, чтобы завершить регистрацию.
+                        {userName ? t('greeting', { name: userName }) : ''}
+                        {t('subtitle')}
                     </p>
                 </div>
 
@@ -54,11 +56,11 @@ export function OnboardingForm({ providerType, userName }: OnboardingFormProps) 
                         <div className="mb-8 space-y-5">
                             <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-400">
                                 <Building2 className="h-4 w-4" />
-                                Данные компании
+                                {t('companyData')}
                             </h3>
                             <div>
                                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    Название салона <span className="text-red-400">*</span>
+                                    {t('salonName')} <span className="text-red-400">*</span>
                                 </label>
                                 <input
                                     name="companyName"
@@ -91,10 +93,10 @@ export function OnboardingForm({ providerType, userName }: OnboardingFormProps) 
                                 />
                                 <div>
                                     <p className="text-sm font-medium text-gray-900">
-                                        Я работаю как Kleinunternehmer (§19 UStG)
+                                        {t('kleinunternehmerTitle')}
                                     </p>
                                     <p className="text-xs text-gray-500">
-                                        Освобождение от НДС при обороте до 22.000 € в год
+                                        {t('kleinunternehmerBody')}
                                     </p>
                                 </div>
                             </label>
@@ -105,12 +107,12 @@ export function OnboardingForm({ providerType, userName }: OnboardingFormProps) 
                     <div className="space-y-5">
                         <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-gray-400">
                             <MapPin className="h-4 w-4" />
-                            Адрес
+                            {t('addressTitle')}
                         </h3>
 
                         <div>
                             <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                Улица и номер дома <span className="text-red-400">*</span>
+                                {t('street')} <span className="text-red-400">*</span>
                             </label>
                             <input
                                 name="address"
@@ -120,7 +122,7 @@ export function OnboardingForm({ providerType, userName }: OnboardingFormProps) 
                             />
                             {!isSalon && (
                                 <p className="mt-2 text-xs text-gray-500">
-                                    Ваш точный адрес не будет показан на карте. Клиенты увидят только примерную зону вашей работы.
+                                    {t('privateAddressHint')}
                                 </p>
                             )}
                         </div>
@@ -128,20 +130,20 @@ export function OnboardingForm({ providerType, userName }: OnboardingFormProps) 
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    Почтовый индекс <span className="text-red-400">*</span>
+                                    {t('zip')} <span className="text-red-400">*</span>
                                 </label>
                                 <input
                                     name="zipCode"
                                     required
                                     placeholder="10115"
                                     pattern="[0-9]{4,5}"
-                                    title="Введите 4-5 цифр"
+                                    title={t('zipTitle')}
                                     className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 text-sm text-gray-900 outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-100"
                                 />
                             </div>
                             <div>
                                 <label className="mb-1.5 block text-sm font-medium text-gray-700">
-                                    Город <span className="text-red-400">*</span>
+                                    {t('city')} <span className="text-red-400">*</span>
                                 </label>
                                 <input
                                     name="city"
@@ -169,10 +171,10 @@ export function OnboardingForm({ providerType, userName }: OnboardingFormProps) 
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="h-4 w-4 animate-spin" />
-                                Сохранение...
+                                {t('saving')}
                             </>
                         ) : (
-                            'Завершить регистрацию'
+                            t('submit')
                         )}
                     </button>
                 </form>

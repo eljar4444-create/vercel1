@@ -1,0 +1,160 @@
+import prisma from '@/lib/prisma';
+import { notFound } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Metadata } from 'next';
+import { MapPin, Calendar, Clock, Euro } from 'lucide-react';
+import Link from 'next/link';
+import ScrollReveal from '@/components/ScrollReveal';
+import ServiceLandingClient from './ServiceLandingClient';
+import { localizedAlternates, resolveLocale } from '@/i18n/canonical';
+import { localizeCategoryName, localizeService } from '@/lib/localized';
+
+interface Props {
+    params: { locale: string; slug: string };
+}
+
+function isNumericSlug(slug: string): boolean {
+    return /^\d+$/.test(slug);
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const locale = resolveLocale(params.locale);
+    const path = `/services/${params.slug}`;
+
+    if (!isNumericSlug(params.slug)) {
+        const serviceName = decodeURIComponent(params.slug);
+        return {
+            title: `${serviceName} — SVOI Premium Network`,
+            description: `Бронирование премиальных бьюти-специалистов: ${serviceName}. Гарантия качества и строгий аудит каждого мастера SVOI.`,
+            alternates: localizedAlternates(locale, path),
+        };
+    }
+
+    const id = parseInt(params.slug);
+    if (isNaN(id)) return { title: 'Service Not Found' };
+
+    const service = await prisma.service.findUnique({
+        where: { id },
+        include: {
+            translations: { select: { locale: true, title: true, description: true } },
+            profile: {
+                include: {
+                    category: { include: { translations: true } },
+                },
+            },
+        },
+    });
+
+    if (!service) return { title: 'Service Not Found' };
+    const localizedService = localizeService(service, locale);
+    const serviceCategory = service.profile.category
+        ? localizeCategoryName(service.profile.category, locale)
+        : null;
+
+    return {
+        title: `${localizedService.title} | ${service.profile.name} - Svoi.de`,
+        description: localizedService.description || serviceCategory || `Service by ${service.profile.name}`,
+        alternates: localizedAlternates(locale, path),
+    };
+}
+
+export default async function ServicePage({ params }: Props) {
+    // Non-numeric slug → SEO landing page
+    if (!isNumericSlug(params.slug)) {
+        const serviceName = decodeURIComponent(params.slug);
+        return <ServiceLandingClient serviceName={serviceName} />;
+    }
+
+    // Numeric slug → individual service listing from DB
+    const id = parseInt(params.slug);
+    if (isNaN(id)) notFound();
+
+    const service = await prisma.service.findUnique({
+        where: { id },
+        include: {
+            translations: { select: { locale: true, title: true, description: true } },
+            profile: {
+                include: {
+                    category: { include: { translations: true } },
+                },
+            },
+        },
+    });
+
+    if (!service) notFound();
+    const localizedService = localizeService(service, resolveLocale(params.locale));
+
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <Link href="/" className="text-blue-600 hover:underline mb-4 inline-block">&larr; Back to Search</Link>
+
+            <ScrollReveal className="grid md:grid-cols-3 gap-8">
+                {/* Main Content */}
+                <div className="md:col-span-2 space-y-6">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{localizedService.title}</h1>
+                        {localizedService.description && (
+                            <p className="mb-4 text-gray-600">{localizedService.description}</p>
+                        )}
+                        <div className="flex items-center text-gray-500 gap-4">
+                            <span className="flex items-center gap-1">
+                                <MapPin className="w-4 h-4" /> {service.profile.city}
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" /> Posted {service.profile.created_at.toLocaleDateString()}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Location */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Location</CardTitle>
+                            <CardDescription>{service.profile.city}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="h-64 bg-gray-100 flex items-center justify-center rounded-b-xl">
+                            <p className="text-gray-500 italic">Map component will be restored here.</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Sidebar */}
+                <div className="space-y-6">
+                    <Card className="sticky top-24">
+                        <CardHeader>
+                            <div className="flex items-center gap-4">
+                                {service.profile.image_url ? (
+                                    <img src={service.profile.image_url} alt={service.profile.name} className="w-16 h-16 rounded-full object-cover" />
+                                ) : (
+                                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-xl font-bold">
+                                        {service.profile.name[0]}
+                                    </div>
+                                )}
+                                <div>
+                                    <CardTitle className="text-lg">{service.profile.name}</CardTitle>
+                                    <div className="text-sm text-green-600 font-medium">Verified Provider</div>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span className="text-gray-600 flex items-center gap-2"><Euro className="w-4 h-4" /> Price</span>
+                                <span className="font-bold text-xl">{service.price.toString()} €</span>
+                            </div>
+
+                            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <span className="text-gray-600 flex items-center gap-2"><Clock className="w-4 h-4" /> Duration</span>
+                                <span className="font-semibold">{service.duration_min} min</span>
+                            </div>
+
+                            <Button className="w-full text-lg py-6 bg-blue-600 hover:bg-blue-700">
+                                Contact Provider
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            </ScrollReveal>
+        </div>
+    );
+}

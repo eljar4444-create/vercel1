@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
+import { renderWithIntl } from './test-utils';
 
 // Mock framer-motion
 vi.mock('framer-motion', () => ({
@@ -43,25 +44,25 @@ describe('DeepDiveModal', () => {
     beforeEach(() => vi.clearAllMocks());
 
     it('does not render when open=false', () => {
-        const { container } = render(
+        const { container } = renderWithIntl(
             <DeepDiveModal open={false} onClose={vi.fn()} title="Test" photos={photos} />
         );
         expect(container.querySelector('[role="dialog"]')).toBeNull();
     });
 
     it('renders title and photo count when open', () => {
-        render(<DeepDiveModal open={true} onClose={vi.fn()} title="Балаяж" photos={photos} />);
+        renderWithIntl(<DeepDiveModal open={true} onClose={vi.fn()} title="Балаяж" photos={photos} />);
         expect(screen.getByText('Балаяж')).toBeTruthy();
         expect(screen.getByText('3 фото')).toBeTruthy();
     });
 
     it('shows grid view by default (CraftWallGrid)', () => {
-        render(<DeepDiveModal open={true} onClose={vi.fn()} title="Test" photos={photos} />);
+        renderWithIntl(<DeepDiveModal open={true} onClose={vi.fn()} title="Test" photos={photos} />);
         expect(screen.getByTestId('craft-wall-grid')).toBeTruthy();
     });
 
     it('switches to lightbox when a photo is tapped', () => {
-        render(<DeepDiveModal open={true} onClose={vi.fn()} title="Test" photos={photos} />);
+        renderWithIntl(<DeepDiveModal open={true} onClose={vi.fn()} title="Test" photos={photos} />);
         fireEvent.click(screen.getByTestId('grid-photo-p2'));
         // Lightbox shows navigation
         expect(screen.getByText('2 / 3')).toBeTruthy();
@@ -70,7 +71,7 @@ describe('DeepDiveModal', () => {
     });
 
     it('opens in lightbox mode when initialPhotoIndex is provided', () => {
-        render(
+        renderWithIntl(
             <DeepDiveModal
                 open={true}
                 onClose={vi.fn()}
@@ -83,7 +84,7 @@ describe('DeepDiveModal', () => {
     });
 
     it('navigates to next/prev in lightbox', () => {
-        render(
+        renderWithIntl(
             <DeepDiveModal
                 open={true}
                 onClose={vi.fn()}
@@ -100,7 +101,7 @@ describe('DeepDiveModal', () => {
     });
 
     it('wraps around at boundaries', () => {
-        render(
+        renderWithIntl(
             <DeepDiveModal
                 open={true}
                 onClose={vi.fn()}
@@ -116,7 +117,7 @@ describe('DeepDiveModal', () => {
 
     it('shows CTA button when onCtaClick is provided', () => {
         const onCta = vi.fn();
-        render(
+        renderWithIntl(
             <DeepDiveModal
                 open={true}
                 onClose={vi.fn()}
@@ -134,13 +135,13 @@ describe('DeepDiveModal', () => {
 
     it('calls onClose when Закрыть is clicked', () => {
         const onClose = vi.fn();
-        render(<DeepDiveModal open={true} onClose={onClose} title="Test" photos={photos} />);
+        renderWithIntl(<DeepDiveModal open={true} onClose={onClose} title="Test" photos={photos} />);
         fireEvent.click(screen.getByLabelText('Закрыть'));
         expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it('shows "Назад к галерее" in lightbox and returns to grid on click', () => {
-        render(
+        renderWithIntl(
             <DeepDiveModal
                 open={true}
                 onClose={vi.fn()}

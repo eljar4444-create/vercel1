@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
 import { Star, Loader2, MessageSquare } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface ReviewRow {
     id: string;
@@ -41,6 +40,8 @@ function Stars({ value, size = 'sm' }: { value: number; size?: 'sm' | 'lg' }) {
 }
 
 export function ReviewsSection(_: ReviewsSectionProps) {
+    const t = useTranslations('dashboard.provider.reviews');
+    const locale = useLocale();
     const [reviews, setReviews] = useState<ReviewRow[]>([]);
     const [average, setAverage] = useState(0);
     const [count, setCount] = useState(0);
@@ -56,7 +57,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
         try {
             const res = await fetch('/api/dashboard/reviews');
             if (!res.ok) {
-                setError('Не удалось загрузить отзывы');
+                setError(t('loadError'));
                 return;
             }
             const data = await res.json();
@@ -64,7 +65,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
             setAverage(data.average ?? 0);
             setCount(data.count ?? 0);
         } catch {
-            setError('Ошибка сети');
+            setError(t('networkError'));
         } finally {
             setIsLoading(false);
         }
@@ -95,13 +96,13 @@ export function ReviewsSection(_: ReviewsSectionProps) {
             });
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
-                setError(data?.error ?? 'Не удалось сохранить ответ');
+                setError(data?.error ?? t('replySaveError'));
                 return;
             }
             await load();
             cancelReply();
         } catch {
-            setError('Ошибка сети');
+            setError(t('networkError'));
         } finally {
             setSubmittingId(null);
         }
@@ -111,7 +112,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
         <div className="bg-transparent">
             <div className="border-b border-gray-300 pb-10 mb-10">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">
-                    Отзывы
+                    {t('eyebrow')}
                 </p>
                 {count > 0 ? (
                     <div className="mt-3 flex items-end gap-6">
@@ -122,12 +123,12 @@ export function ReviewsSection(_: ReviewsSectionProps) {
                             <Stars value={average} size="lg" />
                         </div>
                         <p className="pb-1 text-sm text-stone-400">
-                            {count} {count === 1 ? 'отзыв' : 'отзывов'}
+                            {t('count', { count })}
                         </p>
                     </div>
                 ) : (
                     <h2 className="mt-3 text-2xl font-light text-gray-900">
-                        Пока нет отзывов
+                        {t('emptyTitle')}
                     </h2>
                 )}
             </div>
@@ -146,7 +147,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
                 <div className="border border-dashed border-gray-300 py-14 text-center">
                     <MessageSquare className="mx-auto mb-4 h-10 w-10 text-gray-300" />
                     <p className="text-sm text-stone-400 max-w-sm mx-auto">
-                        Отзывы появятся после первого завершённого визита.
+                        {t('emptyBody')}
                     </p>
                 </div>
             ) : (
@@ -164,9 +165,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
                                     <Stars value={r.rating} />
                                 </div>
                                 <div className="text-sm text-gray-400 tabular-nums">
-                                    {format(new Date(r.createdAt), 'dd MMM yyyy', {
-                                        locale: ru,
-                                    })}
+                                    {new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(r.createdAt))}
                                 </div>
                             </div>
 
@@ -185,7 +184,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
                             {r.replyText && replyingId !== r.id && (
                                 <div className="mt-5 ml-6 pl-5 border-l-2 border-gray-300">
                                     <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">
-                                        Ваш ответ
+                                        {t('yourReply')}
                                     </p>
                                     <p className="mt-2 text-gray-600 italic leading-relaxed max-w-2xl">
                                         {r.replyText}
@@ -195,7 +194,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
                                         onClick={() => openReply(r)}
                                         className="mt-2 text-xs font-medium text-gray-500 underline underline-offset-4 hover:text-gray-800"
                                     >
-                                        Редактировать
+                                        {t('edit')}
                                     </button>
                                 </div>
                             )}
@@ -207,7 +206,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
                                         onClick={() => openReply(r)}
                                         className="text-sm font-medium text-gray-700 underline underline-offset-4 hover:text-gray-900"
                                     >
-                                        Ответить
+                                        {t('reply')}
                                     </button>
                                 </div>
                             )}
@@ -215,13 +214,13 @@ export function ReviewsSection(_: ReviewsSectionProps) {
                             {replyingId === r.id && (
                                 <div className="mt-5 ml-6 pl-5 border-l-2 border-gray-300 max-w-2xl">
                                     <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-stone-400">
-                                        Ваш ответ
+                                        {t('yourReply')}
                                     </p>
                                     <textarea
                                         value={replyDraft}
                                         onChange={(e) => setReplyDraft(e.target.value)}
                                         rows={3}
-                                        placeholder="Напишите ответ клиенту..."
+                                        placeholder={t('replyPlaceholder')}
                                         className="mt-2 w-full bg-transparent border-b border-gray-300 focus:border-gray-900 rounded-none px-0 py-2 text-gray-800 leading-relaxed outline-none resize-none placeholder:text-gray-400 transition-colors"
                                         autoFocus
                                     />
@@ -232,7 +231,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
                                             disabled={submittingId === r.id}
                                             className="text-sm font-medium text-gray-500 underline underline-offset-4 hover:text-gray-800 disabled:opacity-50"
                                         >
-                                            Отмена
+                                            {t('cancel')}
                                         </button>
                                         <button
                                             type="button"
@@ -246,7 +245,7 @@ export function ReviewsSection(_: ReviewsSectionProps) {
                                             {submittingId === r.id && (
                                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                             )}
-                                            Опубликовать
+                                            {t('publish')}
                                         </button>
                                     </div>
                                 </div>

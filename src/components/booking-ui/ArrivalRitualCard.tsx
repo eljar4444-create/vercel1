@@ -2,6 +2,7 @@
 
 import useSWR from 'swr';
 import { MapPin, KeyRound, Bell, Loader2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ArrivalInfo {
     address: string;
@@ -11,6 +12,7 @@ interface ArrivalInfo {
 }
 
 export function ArrivalRitualCard({ bookingId }: { bookingId: number }) {
+    const t = useTranslations('booking');
     const { data, error, isLoading } = useSWR<{ arrivalInfo: ArrivalInfo | null }>(
         `/api/bookings/${bookingId}/arrival`,
         (url: string) => fetch(url).then((res) => {
@@ -38,7 +40,7 @@ export function ArrivalRitualCard({ bookingId }: { bookingId: number }) {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-booking-primary/30 via-booking-primary to-booking-primary/30" />
             
             <h3 className="font-serif text-lg font-semibold text-booking-textMain mb-4">
-                Как подготовиться к визиту
+                {t('arrival.title')}
             </h3>
 
             <div className="space-y-4">
@@ -47,7 +49,7 @@ export function ArrivalRitualCard({ bookingId }: { bookingId: number }) {
                         <MapPin className="h-4 w-4" />
                     </div>
                     <div>
-                        <p className="text-xs font-medium text-booking-textMuted uppercase tracking-wide">Точный адрес</p>
+                        <p className="text-xs font-medium text-booking-textMuted uppercase tracking-wide">{t('arrival.address')}</p>
                         <p className="text-sm font-medium text-booking-textMain mt-0.5">
                             {address}
                         </p>
@@ -62,7 +64,7 @@ export function ArrivalRitualCard({ bookingId }: { bookingId: number }) {
                         <div className="space-y-2 w-full">
                             {doorCode && (
                                 <div>
-                                    <p className="text-xs font-medium text-booking-textMuted uppercase tracking-wide">Код домофона</p>
+                                    <p className="text-xs font-medium text-booking-textMuted uppercase tracking-wide">{t('arrival.doorCode')}</p>
                                     <p className="text-sm font-medium text-booking-textMain mt-0.5">
                                         {doorCode}
                                     </p>
@@ -70,7 +72,7 @@ export function ArrivalRitualCard({ bookingId }: { bookingId: number }) {
                             )}
                             {bellNote && (
                                 <div>
-                                    <p className="text-xs font-medium text-booking-textMuted uppercase tracking-wide">В какой звонок звонить?</p>
+                                    <p className="text-xs font-medium text-booking-textMuted uppercase tracking-wide">{t('arrival.bellNote')}</p>
                                     <p className="text-sm font-medium text-booking-textMain mt-0.5">
                                         {bellNote}
                                     </p>
@@ -86,7 +88,7 @@ export function ArrivalRitualCard({ bookingId }: { bookingId: number }) {
                             <Bell className="h-4 w-4" />
                         </div>
                         <div>
-                            <p className="text-xs font-medium text-booking-textMuted uppercase tracking-wide">Важная информация</p>
+                            <p className="text-xs font-medium text-booking-textMuted uppercase tracking-wide">{t('arrival.important')}</p>
                             <p className="text-sm font-medium text-booking-textMain mt-0.5">
                                 {waitingSpot}
                             </p>

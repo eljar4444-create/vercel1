@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { resolveGermanCity, getGermanCitySuggestions } from '@/constants/searchSuggestions';
 import { GERMAN_CITIES } from '@/constants/germanCities';
+import { useTranslations } from 'next-intl';
 
 interface LocationAutocompleteProps {
     onSelect: (address: string, lat: number | null, lng: number | null) => void;
@@ -67,6 +68,7 @@ function getCoordsForCity(cityName: string): { lat: number; lng: number } | null
 }
 
 export function LocationAutocomplete({ onSelect, defaultValue = '', className, focusRef, onFocus }: LocationAutocompleteProps) {
+    const t = useTranslations('forms.location');
     const router = useRouter();
     const [value, setValue] = useState(defaultValue);
     const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -216,7 +218,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
             }
 
             if (lat === null || lng === null) {
-                toast.error('Не удалось определить местоположение.');
+                toast.error(t('locationFailed'));
                 return;
             }
 
@@ -241,12 +243,12 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
                 const coords = getCoordsForCity(resolvedCity);
                 setValue(resolvedCity);
                 onSelect(resolvedCity, coords?.lat ?? lat, coords?.lng ?? lng);
-                toast.success(`Ваше местоположение: ${resolvedCity}`);
+                toast.success(t('locationResolved', { city: resolvedCity }));
             } else {
-                toast.error('Не удалось определить город.');
+                toast.error(t('cityFailed'));
             }
         } catch {
-            toast.error('Не удалось определить город.');
+            toast.error(t('cityFailed'));
         } finally {
             setIsLocating(false);
             locatingLockRef.current = false;
@@ -267,14 +269,14 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
                         onFocus?.();
                     }}
                     className={cn("pr-10", className, isLocating && "opacity-70")}
-                    placeholder={isLocating ? "Определяем..." : "Введите ваш город..."}
+                    placeholder={isLocating ? t('locatingPlaceholder') : t('placeholder')}
                 />
                 <button
                     type="button"
                     onClick={handleGeolocation}
                     disabled={isLocating}
                     className={cn("absolute right-3 top-1/2 -translate-y-1/2 transition-colors", isLocating ? "text-booking-primary" : "text-gray-400 hover:text-primary")}
-                    title="Мое местоположение"
+                    title={t('myLocationTitle')}
                 >
                     {isLocating ? <Loader2 className="w-5 h-5 animate-spin" /> : <MapPin className="w-5 h-5" />}
                 </button>
@@ -284,7 +286,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
                 <div className="absolute top-[calc(100%+16px)] bg-white rounded-3xl shadow-2xl overflow-hidden z-50 text-center animate-fade-in p-6 md:p-8 border border-gray-100" style={menuStyle}>
                     {/* Instructional hint */}
                     <div className="text-xs text-gray-400 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100">
-                        Начните вводить название для поиска...
+                        {t('hint')}
                     </div>
 
                     {/* Bottom Section: Categories Grid or Suggestions */}
@@ -326,7 +328,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
                                 ))
                             ) : (
                                 <div className="text-center text-gray-500 text-sm py-4">
-                                    Город не найден
+                                    {t('notFound')}
                                 </div>
                             )}
                         </div>
@@ -342,7 +344,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
                             <div className="w-5 h-5 flex items-center justify-center shrink-0">
                                 {isLocating ? <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-800" /> : <MapPin className="w-3.5 h-3.5 text-gray-800" />}
                             </div>
-                            <span className="text-[14px] font-medium text-gray-800">Моя геолокация</span>
+                            <span className="text-[14px] font-medium text-gray-800">{t('myLocation')}</span>
                         </div>
 
                         <button
@@ -354,7 +356,7 @@ export function LocationAutocomplete({ onSelect, defaultValue = '', className, f
                             }}
                             className="text-[14px] font-medium text-gray-500 hover:text-green-800 transition-colors duration-200"
                         >
-                            Посмотреть все города ➔
+                            {t('allCities')}
                         </button>
                     </div>
                 </div>

@@ -3,8 +3,6 @@
 import { useTransition, useState, useEffect } from "react";
 import { toggleUserBan, getUserBookings, approveMaster, rejectMaster } from "../actions";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { ru } from "date-fns/locale";
 import Link from "next/link";
 import {
     Table,
@@ -38,6 +36,7 @@ import {
     AvatarFallback,
     AvatarImage,
 } from "@/components/ui/avatar";
+import { useLocale, useTranslations } from "next-intl";
 
 type AugmentedUser = any;
 
@@ -63,6 +62,8 @@ function getInitials(name: string | null | undefined): string {
 }
 
 function AvatarCell({ user }: { user: AugmentedUser }) {
+    const t = useTranslations("dashboard.admin.usersTable");
+
     return (
         <div className="flex items-center gap-3">
             <Avatar className="h-8 w-8 border border-gray-200">
@@ -71,7 +72,7 @@ function AvatarCell({ user }: { user: AugmentedUser }) {
                     {getInitials(user.name)}
                 </AvatarFallback>
             </Avatar>
-            <span className="font-medium text-gray-900">{user.name || "Без имени"}</span>
+            <span className="font-medium text-gray-900">{user.name || t("unnamed")}</span>
         </div>
     );
 }
@@ -91,30 +92,33 @@ function RoleBadge({ role }: { role: string }) {
 }
 
 function StatusBadge({ isBanned }: { isBanned: boolean }) {
+    const t = useTranslations("dashboard.admin.usersTable");
+
     return isBanned ? (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-semibold text-red-600 border border-red-200">
             <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-            Заблокирован
+            {t("status.banned")}
         </span>
     ) : (
         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Активен
+            {t("status.active")}
         </span>
     );
 }
 
 function ProviderModerationBadge({ status }: { status?: string | null }) {
+    const t = useTranslations("dashboard.admin.usersTable");
     if (!status) return null;
 
     const map: Record<string, { label: string; classes: string }> = {
-        DRAFT: { label: "Черновик", classes: "border-stone-200 bg-stone-50 text-stone-700" },
-        PENDING: { label: "На проверке", classes: "border-indigo-200 bg-indigo-50 text-indigo-700" },
-        PENDING_REVIEW: { label: "На проверке", classes: "border-indigo-200 bg-indigo-50 text-indigo-700" },
-        ACTIVE: { label: "Одобрен", classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
-        PUBLISHED: { label: "Одобрен", classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
-        REJECTED: { label: "Отклонён", classes: "border-rose-200 bg-rose-50 text-rose-700" },
-        SUSPENDED: { label: "Отклонён", classes: "border-rose-200 bg-rose-50 text-rose-700" },
+        DRAFT: { label: t("providerStatus.draft"), classes: "border-stone-200 bg-stone-50 text-stone-700" },
+        PENDING: { label: t("providerStatus.pending"), classes: "border-indigo-200 bg-indigo-50 text-indigo-700" },
+        PENDING_REVIEW: { label: t("providerStatus.pending"), classes: "border-indigo-200 bg-indigo-50 text-indigo-700" },
+        ACTIVE: { label: t("providerStatus.approved"), classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+        PUBLISHED: { label: t("providerStatus.approved"), classes: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+        REJECTED: { label: t("providerStatus.rejected"), classes: "border-rose-200 bg-rose-50 text-rose-700" },
+        SUSPENDED: { label: t("providerStatus.rejected"), classes: "border-rose-200 bg-rose-50 text-rose-700" },
     };
 
     const config = map[status] ?? { label: status, classes: "border-gray-200 bg-gray-50 text-gray-700" };
@@ -140,14 +144,16 @@ function UserDossier({
     onApproveProvider: () => void;
     onRejectProvider: () => void;
 }) {
+    const t = useTranslations("dashboard.admin.usersTable");
+    const locale = useLocale();
     const isAdmin = user.role === "ADMIN";
     const hasMasterProfile = !!user.profile;
     const regDate = user.createdAt
-        ? new Date(user.createdAt).toLocaleDateString("ru-RU", {
+        ? new Intl.DateTimeFormat(locale, {
             day: "2-digit",
             month: "long",
             year: "numeric",
-        })
+        }).format(new Date(user.createdAt))
         : "—";
 
     return (
@@ -178,15 +184,15 @@ function UserDossier({
 
                     <div className="flex-1 min-w-0 pt-1">
                         <h3 className="text-lg font-bold text-white leading-tight truncate">
-                            {user.name || "Без имени"}
+                            {user.name || t("unnamed")}
                         </h3>
                         <div className="mt-1.5 flex items-center gap-1.5 text-sm text-gray-300">
                             <Mail className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                            <span className="truncate text-xs">{user.email || "Нет email"}</span>
+                            <span className="truncate text-xs">{user.email || t("noEmail")}</span>
                         </div>
                         <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
                             <Calendar className="h-3 w-3 shrink-0" />
-                            <span>Зарегистрирован: {regDate}</span>
+                            <span>{t("registered", { date: regDate })}</span>
                         </div>
                     </div>
                 </div>
@@ -205,7 +211,7 @@ function UserDossier({
                         : "border-emerald-500/40 bg-emerald-500/20 text-emerald-300"
                         }`}>
                         {user.isBanned
-                            ? <><Ban className="h-3 w-3" /> Заблокирован</>
+                            ? <><Ban className="h-3 w-3" /> {t("status.banned")}</>
                             : <><CircleCheckBig className="h-3 w-3" /> Active</>
                         }
                     </span>
@@ -221,7 +227,7 @@ function UserDossier({
                         >
                             <Link href={`/salon/${user.profile.slug || user.profile.id}`} target="_blank">
                                 <ExternalLink className="mr-2 h-4 w-4" />
-                                Перейти в публичный профиль
+                                {t("openPublicProfile")}
                             </Link>
                         </Button>
                     </div>
@@ -237,13 +243,13 @@ function UserDossier({
                                 value="stats"
                                 className="rounded-none border-b-2 border-transparent px-2 pb-3 pt-1 text-xs font-semibold uppercase tracking-wider text-gray-400 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 data-[state=active]:shadow-none bg-transparent"
                             >
-                                Статистика
+                                {t("tabs.stats")}
                             </TabsTrigger>
                             <TabsTrigger
                                 value="bookings"
                                 className="rounded-none border-b-2 border-transparent px-2 pb-3 pt-1 text-xs font-semibold uppercase tracking-wider text-gray-400 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 data-[state=active]:shadow-none bg-transparent"
                             >
-                                История записей
+                                {t("tabs.bookings")}
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -253,19 +259,19 @@ function UserDossier({
                             {/* Client Stats */}
                             <div>
                                 <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                    Статистика Клиента
+                                    {t("clientStats")}
                                 </p>
                                 <div className="grid grid-cols-2 gap-3">
                                     <StatTile
                                         value={user._count?.bookings ?? 0}
-                                        label="Создано записей"
+                                        label={t("bookingsCreated")}
                                         color="text-blue-600"
                                         bg="bg-blue-50"
                                         icon={BookOpen}
                                     />
                                     <StatTile
-                                        value={hasMasterProfile ? "Да" : "Нет"}
-                                        label="Профиль мастера"
+                                        value={hasMasterProfile ? t("yes") : t("no")}
+                                        label={t("providerProfile")}
                                         color={hasMasterProfile ? "text-indigo-600" : "text-gray-400"}
                                         bg={hasMasterProfile ? "bg-indigo-50" : "bg-gray-50"}
                                         icon={Star}
@@ -279,19 +285,19 @@ function UserDossier({
                             {hasMasterProfile ? (
                                 <div>
                                     <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                        Статистика Мастера
+                                        {t("providerStats")}
                                     </p>
                                     <div className="grid grid-cols-2 gap-3">
                                         <StatTile
                                             value={user.profile._count?.services ?? 0}
-                                            label="Активных услуг"
+                                            label={t("activeServices")}
                                             color="text-amber-600"
                                             bg="bg-amber-50"
                                             icon={Briefcase}
                                         />
                                         <StatTile
                                             value={user.profile._count?.bookings ?? 0}
-                                            label="Полученных записей"
+                                            label={t("receivedBookings")}
                                             color="text-emerald-600"
                                             bg="bg-emerald-50"
                                             icon={BookOpen}
@@ -301,10 +307,10 @@ function UserDossier({
                             ) : (
                                 <div>
                                     <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                        Статистика Мастера
+                                        {t("providerStats")}
                                     </p>
                                     <p className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 text-sm text-gray-400 text-center italic">
-                                        Профиль мастера не создан
+                                        {t("noProviderProfile")}
                                     </p>
                                 </div>
                             )}
@@ -314,13 +320,13 @@ function UserDossier({
                             {/* Admin Actions */}
                             <div>
                                 <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                                    Действия администратора
+                                    {t("adminActions")}
                                 </p>
 
                                 {hasMasterProfile && (
                                     <div className="mb-4 rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
                                         <div className="mb-3 flex items-center justify-between gap-3">
-                                            <p className="text-xs font-semibold text-gray-900">Модерация профиля мастера</p>
+                                            <p className="text-xs font-semibold text-gray-900">{t("providerModeration")}</p>
                                             <ProviderModerationBadge status={user.profile.status} />
                                         </div>
                                         <div className="grid grid-cols-2 gap-2">
@@ -329,7 +335,7 @@ function UserDossier({
                                                 disabled={isPending || isApprovedProviderStatus(user.profile.status)}
                                                 className="bg-emerald-600 text-white hover:bg-emerald-700"
                                             >
-                                                Одобрить
+                                                {t("approve")}
                                             </Button>
                                             <Button
                                                 onClick={onRejectProvider}
@@ -337,7 +343,7 @@ function UserDossier({
                                                 variant="outline"
                                                 className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
                                             >
-                                                Отклонить
+                                                {t("reject")}
                                             </Button>
                                         </div>
                                     </div>
@@ -347,7 +353,7 @@ function UserDossier({
                                     <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 text-center">
                                         <ShieldCheck className="mx-auto mb-1.5 h-5 w-5 text-gray-400" />
                                         <p className="text-xs text-gray-500">
-                                            Администраторов заблокировать нельзя
+                                            {t("cannotBanAdmins")}
                                         </p>
                                     </div>
                                 ) : user.isBanned ? (
@@ -357,7 +363,7 @@ function UserDossier({
                                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-2"
                                     >
                                         <ShieldCheck className="h-4 w-4" />
-                                        Снять блокировку аккаунта
+                                        {t("unbanAccount")}
                                     </Button>
                                 ) : (
                                     <Button
@@ -367,7 +373,7 @@ function UserDossier({
                                         className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700 font-semibold gap-2"
                                     >
                                         <ShieldAlert className="h-4 w-4" />
-                                        Приостановить доступ (Soft Ban)
+                                        {t("softBan")}
                                     </Button>
                                 )}
                             </div>
@@ -408,11 +414,12 @@ function StatTile({
 }
 
 function AdminStatusBadge({ status }: { status: string }) {
+    const t = useTranslations("dashboard.admin.usersTable");
     const statusMap: Record<string, { label: string; classes: string }> = {
-        pending: { label: "Ожидает", classes: "bg-yellow-50 text-yellow-700 border border-yellow-200" },
-        confirmed: { label: "Подтверждено", classes: "bg-blue-50 text-blue-700 border border-blue-200" },
-        completed: { label: "Завершено", classes: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
-        canceled: { label: "Отменено", classes: "bg-red-50 text-red-700 border border-red-200" },
+        pending: { label: t("bookingStatus.pending"), classes: "bg-yellow-50 text-yellow-700 border border-yellow-200" },
+        confirmed: { label: t("bookingStatus.confirmed"), classes: "bg-blue-50 text-blue-700 border border-blue-200" },
+        completed: { label: t("bookingStatus.completed"), classes: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+        canceled: { label: t("bookingStatus.cancelled"), classes: "bg-red-50 text-red-700 border border-red-200" },
     };
 
     const config = statusMap[status] || { label: status, classes: "bg-gray-50 text-gray-700 border border-gray-200" };
@@ -425,6 +432,8 @@ function AdminStatusBadge({ status }: { status: string }) {
 }
 
 function UserBookingsList({ userId, userName }: { userId: string, userName: string | null }) {
+    const t = useTranslations("dashboard.admin.usersTable");
+    const locale = useLocale();
     const [bookings, setBookings] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -451,7 +460,7 @@ function UserBookingsList({ userId, userName }: { userId: string, userName: stri
         return (
             <div className="flex flex-col items-center justify-center py-10">
                 <RefreshCw className="h-6 w-6 animate-spin text-gray-300" />
-                <p className="mt-2 text-sm text-gray-500">Загрузка записей...</p>
+                <p className="mt-2 text-sm text-gray-500">{t("loadingBookings")}</p>
             </div>
         );
     }
@@ -460,9 +469,9 @@ function UserBookingsList({ userId, userName }: { userId: string, userName: stri
         return (
             <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 py-12 px-4 text-center">
                 <BookOpen className="h-8 w-8 text-gray-300" />
-                <h3 className="mt-3 text-sm font-medium text-gray-900">Нет записей</h3>
+                <h3 className="mt-3 text-sm font-medium text-gray-900">{t("noBookingsTitle")}</h3>
                 <p className="mt-1 text-xs text-gray-500">
-                    У пользователя пока нет ни одной записи (как мастера или клиента).
+                    {t("noBookingsBody")}
                 </p>
             </div>
         );
@@ -471,14 +480,14 @@ function UserBookingsList({ userId, userName }: { userId: string, userName: stri
     return (
         <div className="space-y-3">
             <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                Последние записи ({bookings.length})
+                {t("latestBookings", { count: bookings.length })}
             </p>
             {bookings.map((booking) => {
                 const isProvider = booking.profile?.user_id === userId;
-                const roleText = isProvider ? "ДЛЯ" : "К";
+                const roleText = isProvider ? t("bookingFor") : t("bookingWith");
                 const otherPersonName = isProvider
-                    ? (booking.user_name || booking.user?.name || "Без имени")
-                    : (booking.profile?.name || "Без имени");
+                    ? (booking.user_name || booking.user?.name || t("unnamed"))
+                    : (booking.profile?.name || t("unnamed"));
                 const otherPersonAvatar = isProvider
                     ? booking.user?.image
                     : (booking.profile?.image_url || booking.profile?.user?.image);
@@ -495,7 +504,7 @@ function UserBookingsList({ userId, userName }: { userId: string, userName: stri
                                 </Avatar>
                                 <div>
                                     <p className="text-sm font-semibold text-gray-900 leading-none">
-                                        {booking.service?.title || "Услуга удалена"}
+                                        {booking.service?.title || t("serviceDeleted")}
                                     </p>
                                     <p className="mt-1 text-xs text-gray-500">
                                         <span className="font-medium text-gray-400 text-[10px] mr-1">{roleText}</span>
@@ -512,7 +521,11 @@ function UserBookingsList({ userId, userName }: { userId: string, userName: stri
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
                                 <div className="flex items-center gap-1">
                                     <Calendar className="h-3 w-3 text-gray-400" />
-                                    {format(new Date(booking.date), "dd MMM yyyy", { locale: ru })}
+                                    {new Intl.DateTimeFormat(locale, {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric",
+                                    }).format(new Date(booking.date))}
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <Clock className="h-3 w-3 text-gray-400" />
@@ -535,6 +548,7 @@ function UserBookingsList({ userId, userName }: { userId: string, userName: stri
 
 /* ── Main Component ───────────────────────────────────────────── */
 export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
+    const t = useTranslations("dashboard.admin.usersTable");
     const [isPending, startTransition] = useTransition();
     const [selectedUser, setSelectedUser] = useState<AugmentedUser | null>(null);
     const [userFilter, setUserFilter] = useState<"all" | "masters" | "clients">("all");
@@ -547,7 +561,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
     });
 
     const handleToggleBan = (userId: string, currentStatus: boolean) => {
-        if (!currentStatus && !window.confirm("Вы уверены, что хотите заблокировать этого пользователя?")) {
+        if (!currentStatus && !window.confirm(t("confirmBan"))) {
             return;
         }
         startTransition(async () => {
@@ -586,7 +600,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
     };
 
     const handleRejectProvider = (profileId: number) => {
-        if (!window.confirm("Отклонить профиль и скрыть его из каталога?")) {
+        if (!window.confirm(t("confirmReject"))) {
             return;
         }
 
@@ -610,7 +624,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                     onClick={() => setUserFilter("all")}
                     className="rounded-full h-8 text-xs font-medium"
                 >
-                    Все
+                    {t("filters.all")}
                 </Button>
                 <Button
                     variant={userFilter === "masters" ? "default" : "outline"}
@@ -618,7 +632,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                     onClick={() => setUserFilter("masters")}
                     className="rounded-full h-8 text-xs font-medium"
                 >
-                    Только мастера
+                    {t("filters.masters")}
                 </Button>
                 <Button
                     variant={userFilter === "clients" ? "default" : "outline"}
@@ -626,7 +640,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                     onClick={() => setUserFilter("clients")}
                     className="rounded-full h-8 text-xs font-medium"
                 >
-                    Только клиенты
+                    {t("filters.clients")}
                 </Button>
             </div>
 
@@ -635,22 +649,22 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                     <TableHeader>
                         <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-100">
                             <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                                Имя
+                                {t("columns.name")}
                             </TableHead>
                             <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
                                 Email
                             </TableHead>
                             <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                                Тип аккаунта
+                                {t("columns.accountType")}
                             </TableHead>
                             <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                                Роль
+                                {t("columns.role")}
                             </TableHead>
                             <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                                Статус
+                                {t("columns.status")}
                             </TableHead>
                             <TableHead className="py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-400">
-                                Действия
+                                {t("columns.actions")}
                             </TableHead>
                         </TableRow>
                     </TableHeader>
@@ -659,7 +673,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                             <TableRow>
                                 <TableCell colSpan={6} className="py-12 text-center text-gray-400">
                                     <UserIcon className="mx-auto mb-2 h-8 w-8 text-gray-200" />
-                                    Нет пользователей
+                                    {t("emptyUsers")}
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -681,13 +695,13 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                                         {user.profile ? (
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <span className="inline-flex items-center rounded-sm bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
-                                                    💅 Мастер
+                                                    {t("accountType.provider")}
                                                 </span>
                                                 <ProviderModerationBadge status={user.profile.status} />
                                             </div>
                                         ) : (
                                             <span className="inline-flex items-center rounded-sm bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                                                👤 Клиент
+                                                {t("accountType.client")}
                                             </span>
                                         )}
                                     </TableCell>
@@ -710,7 +724,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                                                         size="sm"
                                                         className="bg-emerald-600 text-xs text-white hover:bg-emerald-700"
                                                     >
-                                                        Одобрить
+                                                        {t("approve")}
                                                     </Button>
                                                     <Button
                                                         onClick={(e) => {
@@ -722,7 +736,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                                                         size="sm"
                                                         className="border-rose-200 text-xs text-rose-700 hover:border-rose-300 hover:bg-rose-50"
                                                     >
-                                                        Отклонить
+                                                        {t("reject")}
                                                     </Button>
                                                 </>
                                             )}
@@ -741,7 +755,7 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                                                         : "border-gray-200 text-gray-700 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
                                                     }`}
                                             >
-                                                {user.isBanned ? "Разблокировать" : "Заблокировать"}
+                                                {user.isBanned ? t("unban") : t("ban")}
                                             </Button>
                                             <ChevronRight className="h-4 w-4 text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-gray-500" />
                                         </div>
@@ -761,9 +775,9 @@ export default function AdminUsersTable({ users }: { users: AugmentedUser[] }) {
                 >
                     {/* Visually hidden SheetHeader for accessibility */}
                     <SheetHeader className="sr-only">
-                        <SheetTitle>Досье пользователя</SheetTitle>
+                        <SheetTitle>{t("dossierTitle")}</SheetTitle>
                         <SheetDescription>
-                            Детальная информация, статистика и управление доступом.
+                            {t("dossierDescription")}
                         </SheetDescription>
                     </SheetHeader>
 

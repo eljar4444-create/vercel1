@@ -5,10 +5,12 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { Loader2 } from 'lucide-react';
 import { cancelClientBookingState } from '@/app/my-bookings/actions';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 const initialState = { success: false, error: null as string | null };
 
 function SubmitButton() {
+    const t = useTranslations('forms.cancelBooking');
     const { pending } = useFormStatus();
 
     return (
@@ -20,31 +22,32 @@ function SubmitButton() {
             {pending ? (
                 <>
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Отмена...
+                    {t('pending')}
                 </>
             ) : (
-                'Отменить визит'
+                t('submit')
             )}
         </button>
     );
 }
 
 export function CancelBookingForm({ bookingId }: { bookingId: number }) {
+    const t = useTranslations('forms.cancelBooking');
     const [state, action] = useFormState(cancelClientBookingState, initialState);
 
     useEffect(() => {
         if (state.success) {
-            toast.success('Запись отменена');
+            toast.success(t('success'));
         } else if (state.error) {
             toast.error(state.error);
         }
-    }, [state]);
+    }, [state, t]);
 
     return (
         <form
             action={action}
             onSubmit={(event) => {
-                const ok = window.confirm('Отменить запись? Это действие можно выполнить только до визита.');
+                const ok = window.confirm(t('confirm'));
                 if (!ok) {
                     event.preventDefault();
                 }

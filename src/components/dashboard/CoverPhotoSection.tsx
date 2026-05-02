@@ -4,12 +4,14 @@ import { useRef, useState } from 'react';
 import { Upload, Loader2, X, ImagePlus } from 'lucide-react';
 import { uploadCoverPhoto, deleteCoverPhoto } from '@/app/actions/cover-photo';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 interface CoverPhotoSectionProps {
     initialCoverUrl: string | null;
 }
 
 export function CoverPhotoSection({ initialCoverUrl }: CoverPhotoSectionProps) {
+    const t = useTranslations('dashboard.provider.media');
     const [coverUrl, setCoverUrl] = useState<string | null>(initialCoverUrl);
     const [isUploading, setIsUploading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -27,12 +29,12 @@ export function CoverPhotoSection({ initialCoverUrl }: CoverPhotoSectionProps) {
             const result = await uploadCoverPhoto(fd);
             if (result.success) {
                 setCoverUrl(result.url);
-                toast.success('Обложка загружена и сохранена');
+                toast.success(t('coverUploaded'));
             } else {
                 toast.error(result.error);
             }
         } catch {
-            toast.error('Ошибка загрузки обложки');
+            toast.error(t('coverUploadError'));
         } finally {
             setIsUploading(false);
             e.target.value = '';
@@ -45,12 +47,12 @@ export function CoverPhotoSection({ initialCoverUrl }: CoverPhotoSectionProps) {
             const result = await deleteCoverPhoto();
             if (result.success) {
                 setCoverUrl(null);
-                toast.success('Обложка удалена');
+                toast.success(t('coverDeleted'));
             } else {
                 toast.error(result.error);
             }
         } catch {
-            toast.error('Ошибка удаления обложки');
+            toast.error(t('coverDeleteError'));
         } finally {
             setIsDeleting(false);
         }
@@ -59,7 +61,7 @@ export function CoverPhotoSection({ initialCoverUrl }: CoverPhotoSectionProps) {
     return (
         <div className="space-y-2">
             <label className="block text-xs uppercase tracking-wide text-gray-400 mb-2">
-                Обложка профиля
+                {t('coverLabel')}
             </label>
 
             {coverUrl ? (
@@ -68,7 +70,7 @@ export function CoverPhotoSection({ initialCoverUrl }: CoverPhotoSectionProps) {
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src={coverUrl}
-                            alt="Обложка"
+                            alt={t('coverAlt')}
                             className="block max-h-40 w-auto h-auto"
                         />
                     </div>
@@ -85,14 +87,14 @@ export function CoverPhotoSection({ initialCoverUrl }: CoverPhotoSectionProps) {
                             ) : (
                                 <Upload className="h-3 w-3" />
                             )}
-                            Заменить
+                            {t('replace')}
                         </button>
                         <button
                             type="button"
                             onClick={handleDelete}
                             disabled={isDeleting}
                             className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm border border-gray-200 hover:bg-gray-50 hover:text-red-500 transition-colors disabled:opacity-60"
-                            aria-label="Удалить обложку"
+                            aria-label={t('deleteCover')}
                         >
                             {isDeleting ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -115,7 +117,7 @@ export function CoverPhotoSection({ initialCoverUrl }: CoverPhotoSectionProps) {
                         ) : (
                             <ImagePlus className="h-4 w-4" />
                         )}
-                        <span>{isUploading ? 'Загрузка…' : '+ Загрузить обложку'}</span>
+                        <span>{isUploading ? t('uploadingEllipsis') : t('uploadCover')}</span>
                     </button>
                 </div>
             )}
@@ -129,7 +131,7 @@ export function CoverPhotoSection({ initialCoverUrl }: CoverPhotoSectionProps) {
             />
 
             <span className="text-[10px] uppercase tracking-widest text-gray-400 block ml-1">
-                Рекомендуемый размер: 1200×400px (горизонтальная), до 5 МБ
+                {t('coverHint')}
             </span>
         </div>
     );

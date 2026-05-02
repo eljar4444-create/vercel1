@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import { CraftWallGrid, type CraftPhoto } from './CraftWallGrid';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -59,9 +60,10 @@ export function DeepDiveModal({
     photos,
     initialPhotoIndex = null,
     showSpecialistBadge = false,
-    ctaLabel = 'Записаться',
+    ctaLabel,
     onCtaClick,
 }: DeepDiveModalProps) {
+    const t = useTranslations('salon');
     const [lightboxIndex, setLightboxIndex] = useState<number | null>(initialPhotoIndex);
 
     // Reset lightbox when modal opens/closes
@@ -160,14 +162,14 @@ export function DeepDiveModal({
                                     {title}
                                 </h2>
                                 <p className="mt-0.5 text-xs text-booking-textMuted">
-                                    {photos.length} {photos.length === 1 ? 'фото' : 'фото'}
+                                    {t('service.photosPlural', { count: photos.length })}
                                 </p>
                             </div>
                             <button
                                 type="button"
                                 onClick={onClose}
                                 className="flex h-10 w-10 items-center justify-center rounded-full bg-booking-card text-booking-textMuted transition-colors hover:bg-booking-border hover:text-booking-textMain"
-                                aria-label="Закрыть"
+                                aria-label={t('modals.close')}
                             >
                                 <X className="h-5 w-5" />
                             </button>
@@ -212,7 +214,7 @@ export function DeepDiveModal({
                                                 type="button"
                                                 onClick={goToPrev}
                                                 className="flex h-10 w-10 items-center justify-center rounded-full bg-booking-card text-booking-textMuted shadow-soft-out transition hover:bg-booking-border"
-                                                aria-label="Предыдущее фото"
+                                                aria-label={t('gallery.prevPhoto')}
                                             >
                                                 <ChevronLeft className="h-5 w-5" />
                                             </button>
@@ -223,7 +225,7 @@ export function DeepDiveModal({
                                                 type="button"
                                                 onClick={goToNext}
                                                 className="flex h-10 w-10 items-center justify-center rounded-full bg-booking-card text-booking-textMuted shadow-soft-out transition hover:bg-booking-border"
-                                                aria-label="Следующее фото"
+                                                aria-label={t('gallery.nextPhoto')}
                                             >
                                                 <ChevronRight className="h-5 w-5" />
                                             </button>
@@ -237,7 +239,7 @@ export function DeepDiveModal({
                                             onClick={() => onCtaClick(currentPhoto)}
                                             className="mt-2 h-11 rounded-full bg-booking-primary px-8 text-sm font-medium text-white shadow-soft-out transition-all hover:bg-booking-primaryHover active:scale-95"
                                         >
-                                            {ctaLabel}
+                                            {ctaLabel ?? t('bookingCta.defaultLabel')}
                                         </button>
                                     )}
 
@@ -247,7 +249,7 @@ export function DeepDiveModal({
                                         onClick={() => setLightboxIndex(null)}
                                         className="text-xs text-booking-textMuted underline underline-offset-2 transition hover:text-booking-textMain"
                                     >
-                                        Назад к галерее
+                                        {t('modals.deepDive.backToGallery')}
                                     </button>
                                 </div>
                             ) : (

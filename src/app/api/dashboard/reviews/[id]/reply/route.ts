@@ -2,9 +2,11 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import { auth } from '@/auth';
+import { localeFromRequest, safeParseWithLocale } from '@/i18n/zod';
+import { getTranslations } from 'next-intl/server';
 
 const ReplySchema = z.object({
-    replyText: z.string().trim().min(1, 'Ответ не может быть пустым').max(2000),
+    replyText: z.string().trim().min(1).max(2000),
 });
 
 async function getOwnedReview(reviewId: string, userId: string) {
@@ -27,12 +29,15 @@ export async function PATCH(
     request: Request,
     { params }: { params: { id: string } },
 ) {
+    const locale = localeFromRequest(request);
+    const t = await getTranslations({ locale, namespace: 'forms.api' });
+
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     if (session.user.isBanned) {
-        return NextResponse.json({ error: 'Ваш аккаунт заблокирован.' }, { status: 403 });
+        return NextResponse.json({ error: t('banned') }, { status: 403 });
     }
 
     const owned = await getOwnedReview(params.id, session.user.id);
@@ -43,13 +48,13 @@ export async function PATCH(
     try {
         body = await request.json();
     } catch {
-        return NextResponse.json({ error: 'Некорректный JSON' }, { status: 400 });
+        return NextResponse.json({ error: t('invalidJson') }, { status: 400 });
     }
 
-    const parsed = ReplySchema.safeParse(body);
+    const parsed = await safeParseWithLocale(ReplySchema, body, locale);
     if (!parsed.success) {
         return NextResponse.json(
-            { error: parsed.error.issues[0]?.message ?? 'Некорректные данные' },
+            { error: parsed.error.issues[0]?.message ?? t('invalidData') },
             { status: 400 },
         );
     }

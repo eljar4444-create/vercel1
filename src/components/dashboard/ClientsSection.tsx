@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
 import { Search, Loader2, Users } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface ClientRow {
     id: string;
@@ -23,6 +22,8 @@ interface ClientsSectionProps {
 }
 
 export function ClientsSection(_: ClientsSectionProps) {
+    const t = useTranslations('dashboard.provider.clients');
+    const locale = useLocale();
     const [clients, setClients] = useState<ClientRow[]>([]);
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<SortKey>('lastVisit');
@@ -42,13 +43,13 @@ export function ClientsSection(_: ClientsSectionProps) {
                 params.set('sortDir', sortDir);
                 const res = await fetch(`/api/dashboard/clients?${params.toString()}`);
                 if (!res.ok) {
-                    if (!cancelled) setError('Не удалось загрузить клиентов');
+                    if (!cancelled) setError(t('loadError'));
                     return;
                 }
                 const data = await res.json();
                 if (!cancelled) setClients(data.clients ?? []);
             } catch {
-                if (!cancelled) setError('Ошибка сети');
+                if (!cancelled) setError(t('networkError'));
             } finally {
                 if (!cancelled) setIsLoading(false);
             }
@@ -82,10 +83,10 @@ export function ClientsSection(_: ClientsSectionProps) {
             <div className="border-b border-gray-300 pb-4 mb-6">
                 <div className="flex items-end justify-between">
                     <div>
-                        <h2 className="text-base font-semibold text-slate-900">Клиенты</h2>
+                        <h2 className="text-base font-semibold text-slate-900">{t('title')}</h2>
                         <p className="mt-0.5 text-xs text-stone-400">
-                            {clients.length} {clients.length === 1 ? 'клиент' : 'клиентов'}
-                            {totalRevenue > 0 && ` · ${Math.round(totalRevenue)} € совокупно`}
+                            {t('count', { count: clients.length })}
+                            {totalRevenue > 0 && ` · ${t('totalRevenue', { value: Math.round(totalRevenue) })}`}
                         </p>
                     </div>
                 </div>
@@ -97,7 +98,7 @@ export function ClientsSection(_: ClientsSectionProps) {
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Поиск по имени или телефону..."
+                    placeholder={t('searchPlaceholder')}
                     className="bg-transparent border-b border-gray-300 focus:border-gray-900 rounded-none px-0 py-2 w-full max-w-md text-sm outline-none placeholder:text-gray-400 transition-colors"
                 />
             </div>
@@ -114,37 +115,37 @@ export function ClientsSection(_: ClientsSectionProps) {
                     onClick={() => handleSort('name')}
                     className="text-left hover:text-gray-700"
                 >
-                    Клиент {arrow('name')}
+                    {t('columns.client')} {arrow('name')}
                 </button>
                 <button
                     type="button"
                     onClick={() => handleSort('totalBookings')}
                     className="text-left hover:text-gray-700"
                 >
-                    Визиты {arrow('totalBookings')}
+                    {t('columns.visits')} {arrow('totalBookings')}
                 </button>
                 <button
                     type="button"
                     onClick={() => handleSort('totalSpent')}
                     className="text-left hover:text-gray-700"
                 >
-                    Оборот {arrow('totalSpent')}
+                    {t('columns.revenue')} {arrow('totalSpent')}
                 </button>
                 <button
                     type="button"
                     onClick={() => handleSort('noShows')}
                     className="text-left hover:text-gray-700"
                 >
-                    Не пришёл {arrow('noShows')}
+                    {t('columns.noShows')} {arrow('noShows')}
                 </button>
                 <button
                     type="button"
                     onClick={() => handleSort('lastVisit')}
                     className="text-left hover:text-gray-700"
                 >
-                    Последний визит {arrow('lastVisit')}
+                    {t('columns.lastVisit')} {arrow('lastVisit')}
                 </button>
-                <span className="text-right">Действие</span>
+                <span className="text-right">{t('columns.action')}</span>
             </div>
 
             {isLoading && clients.length === 0 ? (
@@ -155,12 +156,12 @@ export function ClientsSection(_: ClientsSectionProps) {
                 <div className="border border-dashed border-gray-300 py-14 text-center">
                     <Users className="mx-auto mb-4 h-10 w-10 text-gray-300" />
                     <h3 className="text-base font-semibold text-slate-700">
-                        {search ? 'Ничего не найдено' : 'Пока нет клиентов'}
+                        {search ? t('emptySearchTitle') : t('emptyTitle')}
                     </h3>
                     <p className="mx-auto mt-1 max-w-xs text-sm text-stone-400">
                         {search
-                            ? 'Попробуйте изменить запрос.'
-                            : 'Клиенты появятся здесь после первой записи.'}
+                            ? t('emptySearchBody')
+                            : t('emptyBody')}
                     </p>
                 </div>
             ) : (
@@ -199,7 +200,7 @@ export function ClientsSection(_: ClientsSectionProps) {
 
                             <div className="text-sm text-gray-600 tabular-nums">
                                 {c.lastVisit
-                                    ? format(new Date(c.lastVisit), 'dd MMM yyyy', { locale: ru })
+                                    ? new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(c.lastVisit))
                                     : <span className="text-gray-300">—</span>}
                             </div>
 
@@ -211,7 +212,7 @@ export function ClientsSection(_: ClientsSectionProps) {
                                         // Future: navigate to client detail / booking history
                                     }}
                                 >
-                                    История
+                                    {t('history')}
                                 </button>
                             </div>
                         </div>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { MapPin, Key, Bell, Coffee, Save, Loader2, Trash2, Eye } from 'lucide-react';
 import { updateArrivalInfo } from '@/app/actions/portfolio-photos';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 
 type ArrivalInfoData = {
     address: string;
@@ -17,6 +18,7 @@ interface ArrivalInfoSectionProps {
 }
 
 export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
+    const t = useTranslations('dashboard.provider.arrivalInfo');
     const [address, setAddress] = useState(initialData?.address ?? '');
     const [doorCode, setDoorCode] = useState(initialData?.doorCode ?? '');
     const [bellNote, setBellNote] = useState(initialData?.bellNote ?? '');
@@ -29,7 +31,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
 
     const handleSave = async () => {
         if (!address.trim()) {
-            toast.error('Адрес обязателен.');
+            toast.error(t('addressRequired'));
             return;
         }
 
@@ -42,19 +44,19 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
 
             const result = await updateArrivalInfo(data);
             if (result.success) {
-                toast.success('Информация о прибытии сохранена');
+                toast.success(t('saved'));
             } else {
-                toast.error(result.error || 'Ошибка сохранения');
+                toast.error(result.error || t('saveError'));
             }
         } catch {
-            toast.error('Ошибка сохранения');
+            toast.error(t('saveError'));
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleClear = async () => {
-        if (!window.confirm('Удалить информацию о прибытии?')) return;
+        if (!window.confirm(t('deleteConfirm'))) return;
 
         setIsClearing(true);
         try {
@@ -64,12 +66,12 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                 setDoorCode('');
                 setBellNote('');
                 setWaitingSpot('');
-                toast.success('Информация о прибытии удалена');
+                toast.success(t('deleted'));
             } else {
-                toast.error(result.error || 'Ошибка удаления');
+                toast.error(result.error || t('deleteError'));
             }
         } catch {
-            toast.error('Ошибка удаления');
+            toast.error(t('deleteError'));
         } finally {
             setIsClearing(false);
         }
@@ -87,7 +89,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                     <label className={labelClass}>
                         <span className="inline-flex items-center gap-1.5">
                             <MapPin className="h-3 w-3" />
-                            Точный адрес <span className="text-red-400">*</span>
+                            {t('address')} <span className="text-red-400">*</span>
                         </span>
                     </label>
                     <input
@@ -99,7 +101,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                         id="arrival-address"
                     />
                     <p className="mt-1 text-xs text-gray-400">
-                        Адрес виден клиенту только после подтверждения записи.
+                        {t('addressHint')}
                     </p>
                 </div>
 
@@ -107,7 +109,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                     <label className={labelClass}>
                         <span className="inline-flex items-center gap-1.5">
                             <Key className="h-3 w-3" />
-                            Код двери
+                            {t('doorCode')}
                         </span>
                     </label>
                     <input
@@ -124,14 +126,14 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                     <label className={labelClass}>
                         <span className="inline-flex items-center gap-1.5">
                             <Bell className="h-3 w-3" />
-                            Звонок / домофон
+                            {t('bell')}
                         </span>
                     </label>
                     <input
                         type="text"
                         value={bellNote}
                         onChange={(e) => setBellNote(e.target.value)}
-                        placeholder="Звонок «Мария», 3 этаж"
+                            placeholder={t('bellPlaceholder')}
                         className={inputClass}
                         id="arrival-bell-note"
                     />
@@ -141,14 +143,14 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                     <label className={labelClass}>
                         <span className="inline-flex items-center gap-1.5">
                             <Coffee className="h-3 w-3" />
-                            Место ожидания
+                            {t('waitingSpot')}
                         </span>
                     </label>
                     <input
                         type="text"
                         value={waitingSpot}
                         onChange={(e) => setWaitingSpot(e.target.value)}
-                        placeholder="Café Oliv (2 мин) — отличное место подождать"
+                            placeholder={t('waitingSpotPlaceholder')}
                         className={inputClass}
                         id="arrival-waiting-spot"
                     />
@@ -169,7 +171,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                     ) : (
                         <Save className="h-4 w-4" />
                     )}
-                    Сохранить
+                    {t('save')}
                 </button>
 
                 {hasAnyValue && (
@@ -185,7 +187,7 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                         ) : (
                             <Trash2 className="h-4 w-4" />
                         )}
-                        Удалить
+                        {t('delete')}
                     </button>
                 )}
             </div>
@@ -195,10 +197,10 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                 <div className="space-y-2">
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
                         <Eye className="h-3 w-3" />
-                        Превью — так увидит клиент после записи
+                        {t('previewTitle')}
                     </div>
                     <div className="border-l-2 border-amber-300 bg-transparent pl-4 py-2">
-                        <h4 className="mb-3 text-sm font-bold text-slate-800">Как добраться</h4>
+                        <h4 className="mb-3 text-sm font-bold text-slate-800">{t('howToArrive')}</h4>
                         <div className="space-y-2 text-sm text-slate-700">
                             <div className="flex items-start gap-2.5">
                                 <span className="mt-0.5 text-base" role="img" aria-label="pin">📍</span>
@@ -213,13 +215,13 @@ export function ArrivalInfoSection({ initialData }: ArrivalInfoSectionProps) {
                             {doorCode.trim() && (
                                 <div className="flex items-start gap-2.5">
                                     <span className="mt-0.5 text-base" role="img" aria-label="key">🔑</span>
-                                    <span>Код двери: {doorCode.trim()}</span>
+                                    <span>{t('doorCodeValue', { code: doorCode.trim() })}</span>
                                 </div>
                             )}
                             {waitingSpot.trim() && (
                                 <div className="flex items-start gap-2.5">
                                     <span className="mt-0.5 text-base" role="img" aria-label="coffee">☕</span>
-                                    <span>Рядом: {waitingSpot.trim()}</span>
+                                    <span>{t('nearbyValue', { place: waitingSpot.trim() })}</span>
                                 </div>
                             )}
                         </div>

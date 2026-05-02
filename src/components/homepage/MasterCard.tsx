@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 type ProviderType = 'SALON' | 'PRIVATE' | 'INDIVIDUAL';
 
@@ -38,7 +41,8 @@ function SalonCard({
     workPhotoUrl,
     priority = false,
 }: MasterCardProps) {
-    const specialty = category || 'Салон';
+    const t = useTranslations('home.masterCard');
+    const specialty = category || t('salonFallback');
 
     return (
         <Link
@@ -83,7 +87,8 @@ function FreelancerCard({
     workPhotoUrl,
     priority = false,
 }: MasterCardProps) {
-    const specialty = category || 'Мастер';
+    const t = useTranslations('home.masterCard');
+    const specialty = category || t('masterFallback');
 
     return (
         <Link

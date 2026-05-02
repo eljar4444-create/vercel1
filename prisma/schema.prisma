@@ -26,6 +26,7 @@ enum ProfileStatus {
 }
 
 enum BookingStatus {
+  LOCKED
   PENDING
   CONFIRMED
   CANCELED
@@ -46,6 +47,23 @@ model Category {
   icon        String?
   form_schema Json
   profiles    Profile[]
+  translations CategoryTranslation[]
+}
+
+model CategoryTranslation {
+  id                  Int      @id @default(autoincrement())
+  categoryId          Int      @map("category_id")
+  locale              String   @db.VarChar(8)
+  name                String
+  translationSource   String   @default("original") @map("translation_source")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  category            Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale])
+  @@index([locale])
+  @@map("category_translations")
 }
 
 model Profile {
@@ -64,6 +82,7 @@ model Profile {
   studioImages String[] @default([])
   languages   String[]  @default([])
   bio         String?  @db.Text
+  originalLocale String @default("ru") @map("original_locale") @db.VarChar(8)
   phone       String?
   telegramChatId String?
   latitude    Float?
@@ -86,6 +105,7 @@ model Profile {
   user        User?     @relation(fields: [user_id], references: [id], onDelete: SetNull)
   category    Category  @relation(fields: [category_id], references: [id])
   services    Service[]
+  translations ProfileTranslation[]
   bookings    Booking[]
   conversations Conversation[]
   favorites   Favorite[] @relation("ProviderFavorited")
@@ -98,6 +118,22 @@ model Profile {
   @@index([category_id])
 }
 
+model ProfileTranslation {
+  id                  Int      @id @default(autoincrement())
+  profileId           Int      @map("profile_id")
+  locale              String   @db.VarChar(8)
+  bio                 String?  @db.Text
+  translationSource   String   @default("machine") @map("translation_source")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  profile             Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, locale])
+  @@index([locale])
+  @@map("profile_translations")
+}
+
 model Service {
   id           Int     @id @default(autoincrement())
   profile_id   Int
@@ -106,13 +142,32 @@ model Service {
   images       String[] @default([])
   price        Decimal @db.Decimal(10, 2)
   duration_min Int
+  originalLocale String @default("ru") @map("original_locale") @db.VarChar(8)
 
   profile      Profile @relation(fields: [profile_id], references: [id])
+  translations ServiceTranslation[]
   bookings     Booking[]
   photos       PortfolioPhoto[]
   staff        Staff[] @relation("ServiceStaff")
 
   @@index([profile_id])
+}
+
+model ServiceTranslation {
+  id                  Int      @id @default(autoincrement())
+  serviceId           Int      @map("service_id")
+  locale              String   @db.VarChar(8)
+  title               String
+  description         String?
+  translationSource   String   @default("machine") @map("translation_source")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  service             Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, locale])
+  @@index([locale])
+  @@map("service_translations")
 }
 
 model Booking {
@@ -125,10 +180,13 @@ model Booking {
   time        String
   user_name   String
   user_phone  String
+  user_email  String?
   status      BookingStatus      @default(PENDING)
   canceledBy  BookingCanceledBy?
   isManual    Boolean            @default(false)
   slotLock    String?            @unique
+  lockExpiresAt DateTime?
+  otpSessionId  String?
   reviewRequestedAt DateTime?
   created_at  DateTime           @default(now())
 
@@ -142,6 +200,7 @@ model Booking {
   @@index([user_id])
   @@index([staff_id])
   @@index([profile_id, date, status])
+  @@index([status, lockExpiresAt])
 }
 
 model User {
@@ -151,8 +210,10 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  phone         String?
   role          Role      @default(USER)
   isBanned      Boolean   @default(false)
+  isShadow      Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   bio           String?
@@ -315,6 +376,21 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  email     String
+  code      String                // bcrypt-hashed 6-digit code
+  expiresAt DateTime
+  attempts  Int      @default(0)  // max 5 before invalidation
+  verified  Boolean  @default(false)
+  bookingId Int?                  // links to the LOCKED booking
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([email, code])
+  @@index([expiresAt])
 }
 
 model Favorite {

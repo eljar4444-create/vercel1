@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { motion, Variants } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 import MasterCard from './MasterCard';
 import { ArrowRight, Loader2 } from 'lucide-react';
 
@@ -47,6 +48,7 @@ interface MasterGalleryProps {
 }
 
 export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
+    const t = useTranslations('home.gallery');
     const [masters, setMasters] = useState<MasterData[]>(initialMasters);
     const [localLoading, setLocalLoading] = useState(false);
     const [profileType, setProfileType] = useState<ProfileTab>('SALON');
@@ -68,8 +70,11 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
         profileType === 'SALON' ? m.providerType === 'SALON' : m.providerType !== 'SALON'
     );
 
-    const baseHeading = profileType === 'SALON' ? 'Топ-салоны платформы' : 'Топ-мастера платформы';
-    const localizedHeading = profileType === 'SALON' ? `Салоны — ${cityName}` : `Мастера — ${cityName}`;
+    const baseHeading = profileType === 'SALON' ? t('titleSalons') : t('titleMasters');
+    const localizedHeading =
+        profileType === 'SALON'
+            ? t('titleSalonsCity', { city: cityName ?? '' })
+            : t('titleMastersCity', { city: cityName ?? '' });
     const heading = localModeStatus === 'active' && cityName ? localizedHeading : baseHeading;
 
     const fetchGlobalMasters = () => {
@@ -176,7 +181,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                     className="flex flex-col items-center justify-center text-center mb-16 relative"
                 >
                     <span className="text-xs font-bold uppercase tracking-[0.2em] text-booking-primary mb-3 block">
-                        Выбор SVOI
+                        {t('eyebrow')}
                     </span>
                     
                     <div className="flex flex-col items-center gap-4 max-w-xl mx-auto">
@@ -185,7 +190,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                         </h2>
 
                         <p className="text-booking-textMuted text-lg leading-relaxed mt-2 mb-2">
-                            Мы проверяем каждого мастера на соответствие золотому стандарту качества SVOI.
+                            {t('subtitle')}
                         </p>
 
                         <div className="bg-gray-100 p-1 rounded-full inline-flex">
@@ -199,7 +204,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                                 }
                                 aria-pressed={profileType === 'FREELANCER'}
                             >
-                                Частные мастера
+                                {t('toggleFreelancers')}
                             </button>
                             <button
                                 type="button"
@@ -211,7 +216,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                                 }
                                 aria-pressed={profileType === 'SALON'}
                             >
-                                Салоны
+                                {t('toggleSalons')}
                             </button>
                         </div>
 
@@ -224,11 +229,11 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                                 {localLoading ? (
                                     <>
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        Ищем...
+                                        {t('searching')}
                                     </>
                                 ) : (
                                     <>
-                                        Показать мастеров рядом?
+                                        {t('showLocal')}
                                         <ArrowRight className="h-4 w-4 group-hover:translate-x-1 duration-300 transition-transform" />
                                     </>
                                 )}
@@ -242,12 +247,12 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                                 {localLoading ? (
                                     <>
                                         <Loader2 className="h-4 w-4 animate-spin" />
-                                        Загрузка...
+                                        {t('loading')}
                                     </>
                                 ) : (
                                     <>
                                         <ArrowRight className="h-4 w-4 rotate-180 group-hover:-translate-x-1 duration-300 transition-transform" />
-                                        Показать всех мастеров платформы
+                                        {t('showAll')}
                                     </>
                                 )}
                             </button>
@@ -255,7 +260,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
 
                         {localModeStatus === 'empty' && (
                             <p className="text-sm font-medium text-amber-700 bg-amber-50 py-2 px-3 rounded-lg w-fit mt-2">
-                                В вашем регионе пока нет мастеров, посмотрите лучших специалистов платформы.
+                                {t('noLocal')}
                             </p>
                         )}
                     </div>
@@ -265,7 +270,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                             <button
                                 type="button"
                                 onClick={() => scrollSalons('prev')}
-                                aria-label="Предыдущие салоны"
+                                aria-label={t('prevSalons')}
                                 className="w-12 h-12 rounded-full border border-stone-300 flex items-center justify-center hover:bg-white transition-all"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +280,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                             <button
                                 type="button"
                                 onClick={() => scrollSalons('next')}
-                                aria-label="Следующие салоны"
+                                aria-label={t('nextSalons')}
                                 className="w-12 h-12 rounded-full border border-stone-300 flex items-center justify-center hover:bg-white transition-all"
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -289,9 +294,7 @@ export default function MasterGallery({ initialMasters }: MasterGalleryProps) {
                 {filteredMasters.length === 0 ? (
                     <div className="mx-auto max-w-md text-center py-12">
                         <p className="text-base font-medium text-booking-textMain">
-                            {profileType === 'SALON'
-                                ? 'В вашем районе пока нет добавленных салонов. Будьте первыми!'
-                                : 'В вашем районе пока нет частных мастеров. Будьте первыми!'}
+                            {profileType === 'SALON' ? t('emptySalons') : t('emptyMasters')}
                         </p>
                     </div>
                 ) : profileType === 'SALON' ? (

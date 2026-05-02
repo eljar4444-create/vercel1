@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion, Variants } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -23,6 +24,7 @@ const itemVariants: Variants = {
 };
 
 export default function ManifestoBand() {
+    const t = useTranslations('home.manifesto');
     return (
         <section className="py-32 px-8 bg-white text-center">
             <motion.div 
@@ -36,7 +38,7 @@ export default function ManifestoBand() {
                     variants={itemVariants}
                     className="text-5xl md:text-7xl font-bold tracking-tighter text-booking-textMain mb-12 leading-tight"
                 >
-                    Мы не идём на компромиссы.<br />И вы не должны.
+                    {t('titleLine1')}<br />{t('titleLine2')}
                 </motion.h2>
 
                 <motion.div
@@ -47,13 +49,13 @@ export default function ManifestoBand() {
                         href="/search"
                         className="bg-booking-primary text-white px-12 py-5 rounded-lg font-bold uppercase tracking-widest text-sm hover:scale-105 transition-all"
                     >
-                        Найти мастера
+                        {t('findMaster')}
                     </Link>
                     <Link
                         href="/become-pro"
                         className="border-2 border-booking-primary text-booking-primary px-12 py-5 rounded-lg font-bold uppercase tracking-widest text-sm hover:bg-booking-primary hover:text-white transition-all"
                     >
-                        Стать мастером
+                        {t('becomePro')}
                     </Link>
                 </motion.div>
             </motion.div>

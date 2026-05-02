@@ -3,13 +3,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Euro, CheckCircle, XCircle, Users, Trophy, TrendingUp, CalendarDays } from 'lucide-react';
 import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { ProviderCalendar } from '@/components/dashboard/ProviderCalendar';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 type AnalyticsViewProps = {
     profileId: number;
 };
 
-function formatRevenue(value: number): string {
-    return new Intl.NumberFormat('de-DE', {
+function formatRevenue(value: number, locale: string): string {
+    return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: 'EUR',
         minimumFractionDigits: 0,
@@ -52,6 +53,10 @@ export function AnalyticsViewSkeleton() {
 }
 
 export async function AnalyticsView({ profileId }: AnalyticsViewProps) {
+    const [t, locale] = await Promise.all([
+        getTranslations('dashboard.provider.analytics'),
+        getLocale(),
+    ]);
     const [stats, topServices, revenueByDay] = await Promise.all([
         getProviderStats(profileId),
         getTopServices(profileId),
@@ -59,20 +64,20 @@ export async function AnalyticsView({ profileId }: AnalyticsViewProps) {
     ]);
 
     const statCards = [
-        { title: 'Доход', value: formatRevenue(stats.totalRevenue), icon: Euro, iconAccent: true },
-        { title: 'Завершённые визиты', value: String(stats.completedBookings), icon: CheckCircle, iconAccent: false },
-        { title: 'Отмены', value: String(stats.canceledBookings), icon: XCircle, iconAccent: false },
-        { title: 'Уникальные клиенты', value: String(stats.uniqueClients), icon: Users, iconAccent: false },
+        { title: t('revenue'), value: formatRevenue(stats.totalRevenue, locale), icon: Euro, iconAccent: true },
+        { title: t('completedVisits'), value: String(stats.completedBookings), icon: CheckCircle, iconAccent: false },
+        { title: t('cancellations'), value: String(stats.canceledBookings), icon: XCircle, iconAccent: false },
+        { title: t('uniqueClients'), value: String(stats.uniqueClients), icon: Users, iconAccent: false },
     ];
 
     return (
         <div className="space-y-8">
             <div className="border-b border-gray-300 pb-6">
-                <h1 className="text-xl font-semibold tracking-tight text-foreground">Аналитика</h1>
-                <p className="mt-0.5 text-sm text-muted-foreground">Ключевые метрики и топ услуг</p>
+                <h1 className="text-xl font-semibold tracking-tight text-foreground">{t('title')}</h1>
+                <p className="mt-0.5 text-sm text-muted-foreground">{t('subtitle')}</p>
             </div>
 
-            {/* Метрики — flat divider grid */}
+            {/* Metrics grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-gray-300 border-b border-gray-300 pb-8">
                 {statCards.map((card, idx) => {
                     const Icon = card.icon;
@@ -91,42 +96,42 @@ export async function AnalyticsView({ profileId }: AnalyticsViewProps) {
                 })}
             </div>
 
-            {/* Динамика дохода — график */}
+            {/* Revenue trend */}
             <div className="border-b border-gray-300 pb-8">
                 <div className="flex items-center gap-2 mb-4">
                     <TrendingUp className="h-4 w-4 text-muted-foreground" aria-hidden />
                     <div>
-                        <h2 className="text-sm font-semibold text-foreground">Динамика дохода</h2>
-                        <p className="text-xs text-muted-foreground">За последние 14 дней</p>
+                        <h2 className="text-sm font-semibold text-foreground">{t('revenueTrend')}</h2>
+                        <p className="text-xs text-muted-foreground">{t('last14Days')}</p>
                     </div>
                 </div>
                 <RevenueChart data={revenueByDay} />
             </div>
 
-            {/* Календарь записей (как на вкладке «Записи») */}
+            {/* Booking calendar */}
             <div className="border-b border-gray-300 pb-8">
                 <div className="flex items-center gap-2 mb-4">
                     <CalendarDays className="h-4 w-4 text-muted-foreground" aria-hidden />
                     <div>
-                        <h2 className="text-sm font-semibold text-foreground">Календарь записей</h2>
-                        <p className="text-xs text-muted-foreground">Назад / Сегодня / Вперёд — переключение недель</p>
+                        <h2 className="text-sm font-semibold text-foreground">{t('calendarTitle')}</h2>
+                        <p className="text-xs text-muted-foreground">{t('calendarSubtitle')}</p>
                     </div>
                 </div>
                 <ProviderCalendar profileId={profileId} />
             </div>
 
-            {/* Топ услуг */}
+            {/* Top services */}
             <div>
                 <div className="flex items-center gap-2 mb-4">
                     <Trophy className="h-4 w-4 text-muted-foreground" aria-hidden />
                     <div>
-                        <h2 className="text-sm font-semibold text-foreground">Топ услуг</h2>
-                        <p className="text-xs text-muted-foreground">По завершённым визитам и доходу</p>
+                        <h2 className="text-sm font-semibold text-foreground">{t('topServices')}</h2>
+                        <p className="text-xs text-muted-foreground">{t('topServicesSubtitle')}</p>
                     </div>
                 </div>
                 {topServices.length === 0 ? (
                     <div className="py-12 text-center">
-                        <p className="text-sm text-muted-foreground">Пока нет завершённых визитов по услугам</p>
+                        <p className="text-sm text-muted-foreground">{t('emptyTopServices')}</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -134,13 +139,13 @@ export async function AnalyticsView({ profileId }: AnalyticsViewProps) {
                             <thead>
                                 <tr className="border-b border-gray-300">
                                     <th className="py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                                        Услуга
+                                        {t('service')}
                                     </th>
                                     <th className="py-3 text-xs font-medium uppercase tracking-wider text-muted-foreground text-right">
-                                        Визитов
+                                        {t('visits')}
                                     </th>
                                     <th className="py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                                        Доход
+                                        {t('revenue')}
                                     </th>
                                 </tr>
                             </thead>
@@ -154,7 +159,7 @@ export async function AnalyticsView({ profileId }: AnalyticsViewProps) {
                                             {row.visitCount}
                                         </td>
                                         <td className="py-3 text-right text-sm font-medium text-foreground tabular-nums">
-                                            {formatRevenue(row.revenue)}
+                                            {formatRevenue(row.revenue, locale)}
                                         </td>
                                     </tr>
                                 ))}

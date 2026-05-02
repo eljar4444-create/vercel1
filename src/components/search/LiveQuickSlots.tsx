@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { getQuickSlots, QuickSlotsResponse } from '@/app/actions/getQuickSlots';
 import { Loader2 } from 'lucide-react';
 
@@ -17,6 +18,7 @@ interface LiveQuickSlotsProps {
 }
 
 export function LiveQuickSlots({ profileId, slug, service, maxSlots, prefetchedSlots }: LiveQuickSlotsProps) {
+    const t = useTranslations('search.quickSlots');
     const [slotsData, setSlotsData] = useState<QuickSlotsResponse | null>(prefetchedSlots || null);
     const [isLoading, setIsLoading] = useState(prefetchedSlots === undefined);
 
@@ -38,7 +40,7 @@ export function LiveQuickSlots({ profileId, slug, service, maxSlots, prefetchedS
     if (isLoading) {
         return (
             <div className={service ? "mt-2" : "mt-3"}>
-                {!service && <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">Быстрые слоты</p>}
+                {!service && <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">{t('label')}</p>}
                 <div className="mt-1.5 flex h-10 items-center justify-center rounded-xl bg-[#F5F2ED]/60">
                     <Loader2 className="h-4 w-4 animate-spin text-stone-300" />
                 </div>
@@ -49,8 +51,8 @@ export function LiveQuickSlots({ profileId, slug, service, maxSlots, prefetchedS
     if (!slotsData || !slotsData.hasSchedule) {
         return (
             <div className={service ? "mt-2" : "mt-3"}>
-                {!service && <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">Быстрые слоты</p>}
-                <p className="mt-1 text-xs text-stone-400">Уточняйте время при бронировании</p>
+                {!service && <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">{t('label')}</p>}
+                <p className="mt-1 text-xs text-stone-400">{t('uncertain')}</p>
             </div>
         );
     }
@@ -62,8 +64,8 @@ export function LiveQuickSlots({ profileId, slug, service, maxSlots, prefetchedS
     if (allSlots.length === 0) {
         return (
             <div className={service ? "mt-2" : "mt-3"}>
-                {!service && <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">Быстрые слоты</p>}
-                <p className="mt-1 text-xs text-stone-400">Нет свободных окон на ближайшие 7 дней</p>
+                {!service && <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">{t('label')}</p>}
+                <p className="mt-1 text-xs text-stone-400">{t('none')}</p>
             </div>
         );
     }

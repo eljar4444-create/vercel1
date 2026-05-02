@@ -6,12 +6,14 @@ import {
     Loader2, CheckCircle, AlertCircle,
     User, Mail, MapPin, Tag
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface ProFormProps {
     categories: { id: number; name: string; slug: string; icon: string | null }[];
 }
 
 export function ProRegistrationForm({ categories }: ProFormProps) {
+    const t = useTranslations('forms.proRegistration');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export function ProRegistrationForm({ categories }: ProFormProps) {
         if (result.success) {
             setIsSuccess(true);
         } else {
-            setError(result.error || 'Произошла ошибка.');
+            setError(result.error || t('genericError'));
         }
     };
 
@@ -40,10 +42,9 @@ export function ProRegistrationForm({ categories }: ProFormProps) {
                 <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle className="w-10 h-10 text-green-500" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">Заявка принята!</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">{t('successTitle')}</h3>
                 <p className="text-gray-500 max-w-sm mx-auto leading-relaxed">
-                    Спасибо! Мы свяжемся с вами для активации профиля.
-                    Обычно это занимает 1-2 рабочих дня.
+                    {t('successBody')}
                 </p>
             </div>
         );
@@ -53,8 +54,8 @@ export function ProRegistrationForm({ categories }: ProFormProps) {
     return (
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 p-8 shadow-sm space-y-5">
             <div>
-                <h3 className="text-xl font-bold text-gray-900 mb-1">Регистрация специалиста</h3>
-                <p className="text-sm text-gray-400">Заполните форму — мы свяжемся с вами</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">{t('title')}</h3>
+                <p className="text-sm text-gray-400">{t('subtitle')}</p>
             </div>
 
             {/* Error */}
@@ -69,13 +70,13 @@ export function ProRegistrationForm({ categories }: ProFormProps) {
             <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                     <User className="w-4 h-4 text-gray-400" />
-                    Имя / Название салона
+                    {t('name')}
                 </label>
                 <input
                     name="name"
                     type="text"
                     required
-                    placeholder="Елена Петрова или Beauty Studio"
+                    placeholder={t('namePlaceholder')}
                     className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all"
                 />
             </div>
@@ -99,7 +100,7 @@ export function ProRegistrationForm({ categories }: ProFormProps) {
             <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                     <MapPin className="w-4 h-4 text-gray-400" />
-                    Город
+                    {t('city')}
                 </label>
                 <input
                     name="city"
@@ -114,14 +115,14 @@ export function ProRegistrationForm({ categories }: ProFormProps) {
             <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                     <Tag className="w-4 h-4 text-gray-400" />
-                    Категория
+                    {t('category')}
                 </label>
                 <select
                     name="category_id"
                     required
                     className="w-full h-12 px-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all appearance-none cursor-pointer"
                 >
-                    <option value="">Выберите категорию</option>
+                    <option value="">{t('selectCategory')}</option>
                     {categories.map(cat => (
                         <option key={cat.id} value={cat.id}>
                             {cat.icon ? `${cat.icon} ` : ''}{cat.name}
@@ -139,15 +140,15 @@ export function ProRegistrationForm({ categories }: ProFormProps) {
                 {isSubmitting ? (
                     <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Отправка...
+                        {t('submitting')}
                     </>
                 ) : (
-                    'Зарегистрироваться'
+                    t('submit')
                 )}
             </button>
 
             <p className="text-xs text-gray-400 text-center">
-                Нажимая кнопку, вы соглашаетесь с условиями сервиса
+                {t('terms')}
             </p>
         </form>
     );

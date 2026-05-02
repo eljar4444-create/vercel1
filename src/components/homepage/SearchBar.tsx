@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import dynamic from 'next/dynamic';
 import { SUB_CATEGORIES } from '@/constants/categories';
@@ -37,6 +38,8 @@ interface SearchBarProps {
 
 export default function SearchBar({ categories = [] }: SearchBarProps) {
     const router = useRouter();
+    const t = useTranslations('home.searchBar');
+    const tCat = useTranslations('home.categories');
     const [serviceQuery, setServiceQuery] = useState('');
     const [locationQuery, setLocationQuery] = useState('');
     const [radius, setRadius] = useState(10);
@@ -51,10 +54,10 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
     const [selectedParams, setSelectedParams] = useState<{ category?: string; subcategory?: string } | null>(null);
 
     const PREMIUM_SERVICES = [
-        { id: 'hair', title: 'ВОЛОСЫ', items: ['Окрашивание', 'Стрижка', 'Укладка'] },
-        { id: 'nails', title: 'НОГТИ', items: ['Маникюр', 'Педикюр', 'Наращивание'] },
-        { id: 'face', title: 'ЛИЦО', items: ['Брови', 'Ресницы', 'Уход за кожей'] },
-        { id: 'body', title: 'ТЕЛО И ОБРАЗ', items: ['Макияж', 'Массаж', 'Депиляция'] }
+        { id: 'hair',  title: tCat('hair.title'),  items: [tCat('hair.service1'),  tCat('hair.service2'),  tCat('hair.service3')]  },
+        { id: 'nails', title: tCat('nails.title'), items: [tCat('nails.service1'), tCat('nails.service2'), tCat('nails.service3')] },
+        { id: 'face',  title: tCat('face.title'),  items: [tCat('face.service1'),  tCat('face.service2'),  tCat('face.service3')]  },
+        { id: 'body',  title: tCat('body.title'),  items: [tCat('body.service1'),  tCat('body.service2'),  tCat('body.service3')]  },
     ];
 
     const filteredMegaMenu = useMemo(() => {
@@ -112,7 +115,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
 
         if (!hasService || !hasLocation) {
             setValidationError({ service: !hasService, location: !hasLocation });
-            toast.error('Пожалуйста, укажите город и желаемую услугу для точного поиска');
+            toast.error(t('validationToast'));
             setTimeout(() => setValidationError({ service: false, location: false }), 3000);
             return;
         }
@@ -157,7 +160,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                                 'w-full h-full bg-transparent border-none focus:ring-0 focus:outline-none text-white placeholder-white/40 text-[16px] md:text-base',
                                 validationError.service && 'text-red-300 placeholder-red-300/50',
                             )}
-                            placeholder="Название услуги"
+                            placeholder={t('servicePlaceholder')}
                         />
                     </div>
                 </div>
@@ -197,7 +200,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                     type="submit"
                     className="bg-booking-primary text-white px-10 py-4 rounded-lg font-bold uppercase tracking-widest text-xs hover:brightness-110 active:scale-95 transition-all"
                 >
-                    Поиск
+                    {t('searchButton')}
                 </button>
             </form>
 
@@ -206,7 +209,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                 <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white rounded-3xl shadow-2xl overflow-hidden z-50 text-center animate-fade-in p-6 md:p-8 border border-gray-100">
                     {filteredMegaMenu.length === 0 ? (
                         <div className="text-center text-gray-500 text-sm py-4">
-                            Услуги не найдены
+                            {t('megaMenuEmpty')}
                         </div>
                     ) : (
                         <>
@@ -239,7 +242,7 @@ export default function SearchBar({ categories = [] }: SearchBarProps) {
                                     href="/services"
                                     className="text-sm font-medium text-gray-500 hover:text-green-800 transition-colors duration-200"
                                 >
-                                    Посмотреть все услуги ➔
+                                    {t('viewAllServices')}
                                 </Link>
                             </div>
                         </>

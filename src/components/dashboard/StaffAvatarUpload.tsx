@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import { Camera, Loader2, UserCircle } from 'lucide-react';
 import { uploadStaffAvatar } from '@/app/actions/uploadStaffAvatar';
+import { useTranslations } from 'next-intl';
 
 interface StaffAvatarUploadProps {
     staffId: string;
@@ -11,6 +12,7 @@ interface StaffAvatarUploadProps {
 }
 
 export function StaffAvatarUpload({ staffId, staffName, currentImageUrl }: StaffAvatarUploadProps) {
+    const t = useTranslations('dashboard.provider.avatarUpload');
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl);
@@ -38,12 +40,12 @@ export function StaffAvatarUpload({ staffId, staffName, currentImageUrl }: Staff
                 setPreviewUrl(result.url);
             } else {
                 setPreviewUrl(currentImageUrl);
-                setError(result.error || 'Ошибка загрузки');
+                setError(result.error || t('uploadError'));
             }
         } catch {
             setIsUploading(false);
             setPreviewUrl(currentImageUrl);
-            setError('Не удалось загрузить файл. Попробуйте снова.');
+            setError(t('uploadFailed'));
         }
     };
 
@@ -74,7 +76,7 @@ export function StaffAvatarUpload({ staffId, staffName, currentImageUrl }: Staff
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploading}
                 className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-slate-900 text-white shadow-sm transition-transform hover:scale-105 active:scale-95 disabled:pointer-events-none"
-                title="Изменить фото"
+                title={t('changePhoto')}
             >
                 <Camera className="h-4 w-4" />
             </button>

@@ -8,6 +8,7 @@ import { geocodeAddress } from '@/lib/geocode';
 import { requireProviderProfile } from '@/lib/auth-helpers';
 import { isProviderLanguage } from '@/lib/provider-languages';
 import { mutationRateLimit } from '@/lib/rate-limit';
+import { DEFAULT_LOCALE } from '@/i18n/config';
 
 const GEO_ERROR_MESSAGE =
     'Мы не смогли найти этот адрес на карте. Пожалуйста, проверьте правильность написания города и адреса или укажите ближайший крупный ориентир.';
@@ -212,6 +213,34 @@ export async function updateProfile(formData: FormData) {
                 await tx.user.update({
                     where: { id: profile.user_id },
                     data: { taxId: taxIdValue || null },
+                });
+            }
+
+            if (bioToSave) {
+                await tx.profileTranslation.upsert({
+                    where: {
+                        profileId_locale: {
+                            profileId,
+                            locale: DEFAULT_LOCALE,
+                        },
+                    },
+                    create: {
+                        profileId,
+                        locale: DEFAULT_LOCALE,
+                        bio: bioToSave,
+                        translationSource: 'original',
+                    },
+                    update: {
+                        bio: bioToSave,
+                        translationSource: 'original',
+                    },
+                });
+            } else {
+                await tx.profileTranslation.deleteMany({
+                    where: {
+                        profileId,
+                        locale: DEFAULT_LOCALE,
+                    },
                 });
             }
 

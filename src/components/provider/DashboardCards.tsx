@@ -6,6 +6,7 @@ import {
     Wallet, Images, Camera, MapPin, Info, Briefcase, Video, Pencil
 } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 // Helper for the grid cards
 interface StatusCardProps {
@@ -38,6 +39,8 @@ function StatusCard({ icon, iconBg, title, subtitle, badge }: StatusCardProps) {
 }
 
 export function PassportVerificationCard({ status = 'IDLE' }: { status?: string }) {
+    const t = useTranslations('dashboard.provider.dashboardCards.passport');
+
     if (status === 'PENDING') {
         return (
             <div className="bg-white p-6 rounded-2xl border border-gray-100 flex flex-col md:flex-row items-center gap-6 shadow-sm mb-6">
@@ -46,10 +49,10 @@ export function PassportVerificationCard({ status = 'IDLE' }: { status?: string 
                 </div>
                 <div className="flex-1 text-center md:text-left">
                     <h3 className="font-bold text-lg mb-1 text-yellow-700">
-                        Документы на проверке
+                        {t('pendingTitle')}
                     </h3>
                     <p className="text-gray-500 text-xs md:text-sm">
-                        Мы проверяем ваши документы. Обычно это занимает не более 24 часов.
+                        {t('pendingBody')}
                     </p>
                 </div>
             </div>
@@ -64,10 +67,10 @@ export function PassportVerificationCard({ status = 'IDLE' }: { status?: string 
                 </div>
                 <div className="flex-1 text-center md:text-left">
                     <h3 className="font-bold text-lg mb-1 text-green-700">
-                        Личность подтверждена
+                        {t('approvedTitle')}
                     </h3>
                     <p className="text-gray-500 text-xs md:text-sm">
-                        Ваши документы проверены. Доверие к вашему профилю повышено!
+                        {t('approvedBody')}
                     </p>
                 </div>
             </div>
@@ -83,18 +86,18 @@ export function PassportVerificationCard({ status = 'IDLE' }: { status?: string 
             <div className="flex-1 text-center md:text-left">
                 <h3 className="font-bold text-lg mb-1 flex items-center justify-center md:justify-start gap-2">
                     <span className="text-red-500 font-bold">!</span>
-                    {status === 'REJECTED' ? 'Проверка не пройдена' : 'Пройдите проверку паспорта'}
+                    {status === 'REJECTED' ? t('rejectedTitle') : t('idleTitle')}
                 </h3>
                 <p className="text-gray-500 text-xs md:text-sm">
                     {status === 'REJECTED'
-                        ? 'К сожалению, ваши документы были отклонены. Пожалуйста, попробуйте снова.'
-                        : 'Нам нужно убедиться, что вы — это вы. Для этого вам нужно показать свой паспорт и сфотографироваться с ним.'}
+                        ? t('rejectedBody')
+                        : t('idleBody')}
                 </p>
             </div>
             <div className="flex items-center gap-3 w-full md:w-auto">
                 <Link href="/provider/verification">
                     <Button variant="secondary" className="w-full md:w-auto bg-gray-100 hover:bg-gray-200 text-black border-none font-medium h-10 px-6">
-                        + Пройти проверку
+                        {t('verify')}
                     </Button>
                 </Link>
                 <button className="hidden md:flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 transition-colors">
@@ -106,16 +109,18 @@ export function PassportVerificationCard({ status = 'IDLE' }: { status?: string 
 }
 
 export function ServicePublicationCard() {
+    const t = useTranslations('dashboard.provider.dashboardCards.publication');
+
     return (
         <div className="bg-[#0044BB] text-white p-6 rounded-2xl shadow-lg mb-6 overflow-hidden relative">
             <div className="relative z-10">
-                <h3 className="font-bold text-xl mb-2">Осталось опубликовать профиль</h3>
+                <h3 className="font-bold text-xl mb-2">{t('title')}</h3>
                 <p className="text-white/80 text-sm mb-6 max-w-xl">
-                    Добавьте несколько услуг для публикации — без них клиенты не смогут вас найти
+                    {t('body')}
                 </p>
                 <Link href="/provider/services/new">
                     <Button className="bg-[#4477EE] hover:bg-[#3366DD] text-white border-none font-medium px-8 h-10 rounded-md">
-                        Добавить услуги
+                        {t('addServices')}
                     </Button>
                 </Link>
             </div>
@@ -124,6 +129,8 @@ export function ServicePublicationCard() {
 }
 
 export function PublicProfileCard() {
+    const t = useTranslations('dashboard.provider.dashboardCards.publicProfile');
+
     return (
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-6">
             <div className="flex items-center gap-3">
@@ -131,8 +138,8 @@ export function PublicProfileCard() {
                     <Layout className="w-5 h-5" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-gray-400 text-base">Публичный профиль</h3>
-                    <p className="text-gray-400 text-xs">Ваш профиль недоступен для просмотра</p>
+                    <h3 className="font-bold text-gray-400 text-base">{t('title')}</h3>
+                    <p className="text-gray-400 text-xs">{t('unavailable')}</p>
                 </div>
             </div>
         </div>
@@ -147,14 +154,16 @@ interface ProfileStatsGridProps {
 }
 
 export function ProfileStatsGrid({ hasPhoto, hasAddress, bioLength, specialtiesCount }: ProfileStatsGridProps) {
+    const t = useTranslations('dashboard.provider.dashboardCards.stats');
+
     return (
         <div className="grid md:grid-cols-2 gap-4">
             <div id="photo" className="h-full">
                 <StatusCard
                     icon={<Camera className="w-5 h-5 text-blue-600" />}
                     iconBg="bg-blue-100"
-                    title="Фото профиля"
-                    subtitle={hasPhoto ? "Фото добавлено" : "Фото не добавлено"}
+                    title={t('photoTitle')}
+                    subtitle={hasPhoto ? t('photoAdded') : t('photoMissing')}
                     badge={hasPhoto ? "OK" : undefined}
                 />
             </div>
@@ -162,8 +171,8 @@ export function ProfileStatsGrid({ hasPhoto, hasAddress, bioLength, specialtiesC
                 <StatusCard
                     icon={<MapPin className="w-5 h-5 text-fuchsia-600" />}
                     iconBg="bg-fuchsia-100"
-                    title="Адреса"
-                    subtitle={hasAddress ? "Адрес добавлен" : "Адрес не добавлен"}
+                    title={t('addressTitle')}
+                    subtitle={hasAddress ? t('addressAdded') : t('addressMissing')}
                     badge={hasAddress ? "OK" : undefined}
                 />
             </div>
@@ -171,8 +180,8 @@ export function ProfileStatsGrid({ hasPhoto, hasAddress, bioLength, specialtiesC
                 <StatusCard
                     icon={<Info className="w-5 h-5 text-orange-600" />}
                     iconBg="bg-orange-100"
-                    title="О себе"
-                    subtitle={bioLength > 0 ? `Заполнено символов: ${bioLength}` : "Не заполнено"}
+                    title={t('bioTitle')}
+                    subtitle={bioLength > 0 ? t('bioFilled', { count: bioLength }) : t('bioMissing')}
                     badge={bioLength > 20 ? "OK" : undefined}
                 />
             </div>
@@ -180,8 +189,8 @@ export function ProfileStatsGrid({ hasPhoto, hasAddress, bioLength, specialtiesC
                 <StatusCard
                     icon={<Briefcase className="w-5 h-5 text-cyan-600" />}
                     iconBg="bg-cyan-100"
-                    title="Специальности"
-                    subtitle={`Специальности добавлены (${specialtiesCount})`}
+                    title={t('specialtiesTitle')}
+                    subtitle={t('specialtiesAdded', { count: specialtiesCount })}
                     badge={specialtiesCount > 0 ? "OK" : undefined}
                 />
             </div>
@@ -200,17 +209,19 @@ export interface ServiceItem {
 }
 
 export function ServicesList({ services = [] }: { services?: ServiceItem[] }) {
+    const t = useTranslations('dashboard.provider.dashboardCards.services');
+
     if (services.length === 0) {
         return (
             <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mt-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <div>
-                        <h3 className="font-bold text-xl">Мои услуги</h3>
-                        <p className="text-gray-500 text-sm mt-1">Здесь будут ваши услуги</p>
+                        <h3 className="font-bold text-xl">{t('title')}</h3>
+                        <p className="text-gray-500 text-sm mt-1">{t('emptyBody')}</p>
                     </div>
                     <Link href="/provider/services/new">
                         <Button variant="secondary" className="bg-gray-100 hover:bg-gray-200 text-black border-none h-10 px-4 flex items-center gap-2">
-                            <span>+</span> Добавить услугу
+                            <span>+</span> {t('addService')}
                         </Button>
                     </Link>
                 </div>
@@ -221,10 +232,10 @@ export function ServicesList({ services = [] }: { services?: ServiceItem[] }) {
     return (
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm mt-6">
             <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-xl">Мои услуги</h3>
+                <h3 className="font-bold text-xl">{t('title')}</h3>
                 <Link href="/provider/services/new">
                     <Button variant="secondary" className="bg-gray-100 hover:bg-gray-200 text-black border-none h-10 px-4 flex items-center gap-2">
-                        <span>+</span> Добавить
+                        <span>+</span> {t('add')}
                     </Button>
                 </Link>
             </div>
@@ -235,13 +246,13 @@ export function ServicesList({ services = [] }: { services?: ServiceItem[] }) {
                         <div>
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                                    {service.categoryName || 'Без категории'}
+                                    {service.categoryName || t('uncategorized')}
                                 </span>
                                 {service.status === 'PENDING' && (
-                                    <span className="bg-yellow-100 text-yellow-700 text-[10px] px-2 py-0.5 rounded-full font-bold">На проверке</span>
+                                    <span className="bg-yellow-100 text-yellow-700 text-[10px] px-2 py-0.5 rounded-full font-bold">{t('pending')}</span>
                                 )}
                                 {service.status === 'APPROVED' && (
-                                    <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold">Активна</span>
+                                    <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold">{t('active')}</span>
                                 )}
                             </div>
                             <Link href={`/services/${service.id}`} className="block after:absolute after:inset-0">
@@ -249,7 +260,7 @@ export function ServicesList({ services = [] }: { services?: ServiceItem[] }) {
                                     {service.title}
                                 </h4>
                             </Link>
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-1 max-w-md">{service.description || 'Без описания'}</p>
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-1 max-w-md">{service.description || t('noDescription')}</p>
                         </div>
                         <div className="mt-4 md:mt-0 flex flex-col items-end gap-2">
                             <span className="font-bold text-lg">{Number(service.price).toFixed(2)} €</span>
@@ -267,9 +278,11 @@ export function ServicesList({ services = [] }: { services?: ServiceItem[] }) {
 }
 
 export function AddSpecialtyButton() {
+    const t = useTranslations('dashboard.provider.dashboardCards.specialties');
+
     return (
         <Button variant="secondary" className="w-full bg-gray-100 hover:bg-gray-200 text-black border-none h-12 rounded-xl mt-6 font-medium flex items-center justify-center gap-2 text-base">
-            <span>+</span> Добавить специальность
+            <span>+</span> {t('add')}
         </Button>
     )
 }

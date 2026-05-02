@@ -10,6 +10,7 @@ import { FavoriteButton } from '@/components/client/FavoriteButton';
 import { ReviewModal } from '@/components/client/ReviewModal';
 import { Star } from 'lucide-react';
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 export interface BookingItem {
     id: number;
     date: string;
@@ -52,8 +53,8 @@ interface DashboardViewProps {
     favoriteProfiles: { id: number; slug: string; name: string; city: string; image_url: string | null }[];
 }
 
-function formatDate(iso: string) {
-    return new Intl.DateTimeFormat('ru-RU', {
+function formatDate(iso: string, locale: string) {
+    return new Intl.DateTimeFormat(locale, {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -61,19 +62,24 @@ function formatDate(iso: string) {
 }
 
 function StatusBadge({ status }: { status: string }) {
+    const t = useTranslations('dashboard.client.status');
     const map: Record<string, { label: string; cls: string }> = {
         confirmed: {
-            label: 'Подтверждено',
+            label: t('confirmed'),
             cls: 'bg-emerald-50 text-emerald-700 border-emerald-200',
         },
+        canceled: {
+            label: t('cancelled'),
+            cls: 'bg-red-50 text-red-600 border-red-200',
+        },
         cancelled: {
-            label: 'Отменена',
+            label: t('cancelled'),
             cls: 'bg-red-50 text-red-600 border-red-200',
         },
     };
 
-    const meta = map[status] ?? {
-        label: 'Ожидает',
+    const meta = map[status.toLowerCase()] ?? {
+        label: t('pending'),
         cls: 'bg-amber-50 text-amber-700 border-amber-200',
     };
 
@@ -104,6 +110,8 @@ function ProfileAvatar({ src, name }: { src: string | null; name: string }) {
 }
 
 export function DashboardView({ user, upcoming, history, stats, recommendedCategories, favoriteProfiles }: DashboardViewProps) {
+    const t = useTranslations('dashboard.client');
+    const locale = useLocale();
     const firstName = user.name?.split(' ')[0] || '';
     const nextAppointment = upcoming.length > 0 ? upcoming[0] : null;
     const lastVisit = history.length > 0 ? history[0] : null;
@@ -112,20 +120,20 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
     const [selectedBookingForReview, setSelectedBookingForReview] = useState<{ id: number, masterName: string } | null>(null);
 
     const quickCategories = [
-        { name: 'Стрижка', href: '/search?q=Стрижка', icon: '💇' },
-        { name: 'Маникюр', href: '/search?q=Маникюр', icon: '💅' },
-        { name: 'Массаж', href: '/search?q=Массаж', icon: '💆' },
-        { name: 'Косметология', href: '/search?q=Косметология', icon: '✨' },
+        { name: t('quick.haircut'), icon: '💇' },
+        { name: t('quick.manicure'), icon: '💅' },
+        { name: t('quick.massage'), icon: '💆' },
+        { name: t('quick.cosmetology'), icon: '✨' },
     ];
 
     return (
         <div className="space-y-8">
-            {/* Hero — крупное приветствие и email */}
+            {/* Hero with greeting and email */}
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-50 to-white px-6 py-8 ring-1 ring-slate-200/50">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,rgba(15,23,42,0.04),transparent)]" />
                 <div className="relative">
                     <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                        {firstName ? `Привет, ${firstName}! 👋` : 'Добро пожаловать! 👋'}
+                        {firstName ? t('hero.greeting', { name: firstName }) : t('hero.welcome')}
                     </h1>
                     <p className="mt-1.5 text-sm text-slate-500">{user.email}</p>
                 </div>
@@ -142,7 +150,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                         <Sparkles className="h-5 w-5 text-indigo-500" />
-                                        Ближайшая запись
+                                        {t('next.title')}
                                     </h2>
                                     <StatusBadge status={nextAppointment.status} />
                                 </div>
@@ -152,7 +160,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                     <div className="flex-1 space-y-4">
                                         <div>
                                             <h3 className="text-lg font-semibold text-slate-900">
-                                                {nextAppointment.service?.title || 'Услуга'}
+                                                {nextAppointment.service?.title || t('serviceFallback')}
                                             </h3>
                                             <Link href={`/salon/${nextAppointment.profile.slug}`} className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors">
                                                 {nextAppointment.profile.name}
@@ -162,7 +170,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                                             <div className="flex items-center gap-2 text-slate-600">
                                                 <CalendarDays className="h-4 w-4 text-slate-400" />
-                                                <span>{formatDate(nextAppointment.date)} в {nextAppointment.time}</span>
+                                                <span>{t('dateTime', { date: formatDate(nextAppointment.date, locale), time: nextAppointment.time })}</span>
                                             </div>
                                             {(nextAppointment.service?.price || nextAppointment.service?.duration_min) && (
                                                 <div className="flex items-center gap-2 text-slate-600">
@@ -170,7 +178,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                     <span>
                                                         {nextAppointment.service?.price ? `€${nextAppointment.service.price}` : ''}
                                                         {nextAppointment.service?.price && nextAppointment.service?.duration_min ? ' • ' : ''}
-                                                        {nextAppointment.service?.duration_min ? `${nextAppointment.service.duration_min} мин` : ''}
+                                                        {nextAppointment.service?.duration_min ? t('durationMin', { count: nextAppointment.service.duration_min }) : ''}
                                                     </span>
                                                 </div>
                                             )}
@@ -187,7 +195,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                 <Button asChild size="sm" className="bg-slate-900 text-white hover:bg-slate-800">
                                                     <a href={`https://maps.google.com/?q=${encodeURIComponent(`${nextAppointment.profile.address}, ${nextAppointment.profile.city}`)}`} target="_blank" rel="noopener noreferrer">
                                                         <Navigation className="w-4 h-4 mr-2" />
-                                                        Проложить маршрут
+                                                        {t('next.route')}
                                                     </a>
                                                 </Button>
                                             )}
@@ -195,7 +203,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                 <Button asChild variant="outline" size="sm">
                                                     <a href={`https://wa.me/${nextAppointment.profile.phone.replace(/[^\d]/g, '')}`} target="_blank" rel="noopener noreferrer">
                                                         <MessageCircle className="w-4 h-4 mr-2" />
-                                                        Написать мастеру
+                                                        {t('next.message')}
                                                     </a>
                                                 </Button>
                                             )}
@@ -215,13 +223,13 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                 <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
                                     <CalendarDays className="h-7 w-7 text-slate-500" />
                                 </div>
-                                <h2 className="text-lg font-bold text-slate-900 mb-1.5">У вас пока нет предстоящих записей</h2>
+                                <h2 className="text-lg font-bold text-slate-900 mb-1.5">{t('empty.title')}</h2>
                                 <p className="mx-auto max-w-sm text-slate-500 text-sm mb-4">
-                                    Если вы планируете визит, рекомендуем записаться заранее.
+                                    {t('empty.body')}
                                 </p>
                                 {recommendedCategories.length > 0 && (
                                     <div className="mt-4">
-                                        <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wider">Рекомендуем сегодня</h3>
+                                        <h3 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wider">{t('empty.recommended')}</h3>
                                         <div className="flex flex-wrap justify-center gap-2">
                                             {recommendedCategories.map(cat => (
                                                 <Link key={cat.id} href={`/search?category=${cat.slug}`} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300 transition-colors text-sm font-medium text-slate-700">
@@ -232,32 +240,32 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                     </div>
                                 )}
                                 <Button asChild className="mt-4 bg-slate-900 hover:bg-slate-800 text-white">
-                                    <Link href="/search">Найти мастера</Link>
+                                    <Link href="/search">{t('findMaster')}</Link>
                                 </Button>
                             </div>
 
-                            {/* Повторить визит — мини-карточка профиля */}
+                            {/* Repeat visit profile card */}
                             {lastVisit && (
                                 <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex flex-col sm:flex-row items-center gap-4">
                                     <ProfileAvatar src={lastVisit.profile.image_url} name={lastVisit.profile.name} />
                                     <div className="flex-1 min-w-0 text-center sm:text-left">
                                         <p className="font-semibold text-slate-900 truncate">{lastVisit.profile.name}</p>
-                                        <p className="text-sm text-slate-500 mt-0.5">Записаться снова?</p>
+                                        <p className="text-sm text-slate-500 mt-0.5">{t('repeat.question')}</p>
                                     </div>
                                     <Button asChild className="bg-slate-900 text-white hover:bg-slate-800 shrink-0 w-full sm:w-auto">
-                                        <Link href={`/salon/${lastVisit.profile.slug}`}>Записаться</Link>
+                                        <Link href={`/salon/${lastVisit.profile.slug}`}>{t('repeat.book')}</Link>
                                     </Button>
                                 </div>
                             )}
 
-                            {/* Популярные услуги */}
+                            {/* Popular services */}
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-900 mb-3">Популярные услуги</h3>
+                                <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('popular')}</h3>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 overflow-x-auto pb-2 sm:overflow-visible sm:pb-0">
                                     {quickCategories.map((cat) => (
                                         <Link
                                             key={cat.name}
-                                            href={cat.href}
+                                            href={`/search?q=${encodeURIComponent(cat.name)}`}
                                             className="flex flex-col items-center gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md min-w-[120px] sm:min-w-0"
                                         >
                                             <span className="text-2xl" aria-hidden>{cat.icon}</span>
@@ -275,13 +283,13 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                             <div className="px-6 pt-6 border-b border-slate-100">
                                 <TabsList className="bg-transparent space-x-6 pb-2">
                                     <TabsTrigger value="history" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-slate-900 rounded-none px-0 pb-3 text-base font-semibold data-[state=inactive]:text-slate-500">
-                                        История посещений
+                                        {t('tabs.history')}
                                         <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-slate-100 px-2 text-[11px] font-medium text-slate-600">
                                             {history.length}
                                         </span>
                                     </TabsTrigger>
                                     <TabsTrigger value="masters" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-slate-900 rounded-none px-0 pb-3 text-base font-semibold data-[state=inactive]:text-slate-500">
-                                        Мои мастера
+                                        {t('tabs.masters')}
                                         <span className="ml-2 inline-flex h-5 items-center justify-center rounded-full bg-slate-100 px-2 text-[11px] font-medium text-slate-600">
                                             {favoriteProfiles.length}
                                         </span>
@@ -292,17 +300,17 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                             <TabsContent value="history" className="p-0">
                                 {upcoming.length > 0 && (
                                     <div className="px-6 pt-4 pb-2">
-                                        <h3 className="text-sm font-semibold text-slate-700 mb-3">Предстоящие записи</h3>
+                                        <h3 className="text-sm font-semibold text-slate-700 mb-3">{t('history.upcoming')}</h3>
                                         <ul className="space-y-3">
                                             {upcoming.map(b => (
                                                 <li key={b.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl border border-slate-100 bg-slate-50/50">
                                                     <div className="flex items-center gap-3 min-w-0">
                                                         <ProfileAvatar src={b.profile.image_url} name={b.profile.name} />
                                                         <div className="min-w-0">
-                                                            <h4 className="font-semibold text-slate-900 truncate">{b.service?.title || 'Услуга'}</h4>
+                                                            <h4 className="font-semibold text-slate-900 truncate">{b.service?.title || t('serviceFallback')}</h4>
                                                             <Link href={`/salon/${b.profile.slug}`} className="text-sm text-slate-500 hover:text-slate-900">{b.profile.name}</Link>
                                                             <div className="mt-1 flex items-center gap-4 text-sm text-slate-600">
-                                                                <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" />{formatDate(b.date)} в {b.time}</span>
+                                                                <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" />{t('dateTime', { date: formatDate(b.date, locale), time: b.time })}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -316,10 +324,10 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                 )}
                                 {upcoming.length > 0 && history.length > 0 && <div className="border-t border-slate-100" />}
                                 {history.length === 0 && upcoming.length === 0 ? (
-                                    <div className="p-8 text-center text-slate-500 text-sm">История посещений пуста</div>
+                                    <div className="p-8 text-center text-slate-500 text-sm">{t('history.empty')}</div>
                                 ) : (
                                     <div className="px-6 pb-6">
-                                        {upcoming.length > 0 && <h3 className="text-sm font-semibold text-slate-700 mb-3 pt-4">Прошлые визиты</h3>}
+                                        {upcoming.length > 0 && <h3 className="text-sm font-semibold text-slate-700 mb-3 pt-4">{t('history.past')}</h3>}
                                         <div className="divide-y divide-slate-100">
                                             {history.map(b => (
                                                 <div key={b.id} className="p-6 flex flex-col sm:flex-row gap-4 items-start hover:bg-slate-50 transition-colors">
@@ -328,12 +336,12 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex justify-between items-start mb-1">
-                                                            <h4 className="font-semibold text-slate-900 truncate">{b.service?.title || 'Услуга'}</h4>
+                                                            <h4 className="font-semibold text-slate-900 truncate">{b.service?.title || t('serviceFallback')}</h4>
                                                             <StatusBadge status={b.status} />
                                                         </div>
                                                         <Link href={`/salon/${b.profile.slug}`} className="text-sm text-slate-500 hover:text-slate-900">{b.profile.name}</Link>
                                                         <div className="mt-2 flex items-center gap-4 text-sm text-slate-600">
-                                                            <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" />{formatDate(b.date)}</span>
+                                                            <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" />{formatDate(b.date, locale)}</span>
                                                             {b.service?.price && <span className="font-medium text-slate-900">€{b.service.price}</span>}
                                                         </div>
                                                     </div>
@@ -349,16 +357,16 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                                                 }}
                                                             >
                                                                 <Star className="w-4 h-4 mr-2" />
-                                                                Оценить визит
+                                                                {t('history.review')}
                                                             </Button>
                                                         )}
                                                         {b.status !== 'CANCELED' ? (
                                                             <Button asChild variant="outline" size="sm" className="w-full sm:w-auto">
-                                                                <Link href={`/salon/${b.profile.slug}`}>Повторить запись</Link>
+                                                                <Link href={`/salon/${b.profile.slug}`}>{t('history.repeat')}</Link>
                                                             </Button>
                                                         ) : (
                                                             <Button asChild variant="ghost" size="sm" className="w-full sm:w-auto text-slate-500 hover:text-slate-900">
-                                                                <Link href={`/salon/${b.profile.slug}`}>Профиль</Link>
+                                                                <Link href={`/salon/${b.profile.slug}`}>{t('history.profile')}</Link>
                                                             </Button>
                                                         )}
                                                     </div>
@@ -371,7 +379,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
 
                             <TabsContent value="masters" className="p-6">
                                 {favoriteProfiles.length === 0 ? (
-                                    <div className="py-8 text-center text-slate-500 text-sm">У вас пока нет сохраненных мастеров. Добавляйте в избранное на странице поиска.</div>
+                                    <div className="py-8 text-center text-slate-500 text-sm">{t('masters.empty')}</div>
                                 ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {favoriteProfiles.map(master => (
@@ -404,14 +412,14 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
 
                     {/* Stats Widget */}
                     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h3 className="font-bold text-slate-900 mb-4">Ваша статистика</h3>
+                        <h3 className="font-bold text-slate-900 mb-4">{t('stats.title')}</h3>
                         <div className="space-y-4">
                             <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
                                 <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
                                     <Heart className="w-5 h-5 text-rose-500" />
                                 </div>
                                 <div>
-                                    <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">Всего визитов</p>
+                                    <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">{t('stats.total')}</p>
                                     <p className="text-lg font-bold text-slate-900">{stats.totalBookings}</p>
                                 </div>
                             </div>
@@ -421,7 +429,7 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
                                     <Store className="w-5 h-5 text-orange-500" />
                                 </div>
                                 <div className="min-w-0">
-                                    <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">Любимая категория</p>
+                                    <p className="text-xs text-slate-500 font-medium tracking-wide uppercase">{t('stats.favoriteCategory')}</p>
                                     <p className="text-lg font-bold text-slate-900 truncate">{stats.favoriteCategory || '—'}</p>
                                 </div>
                             </div>
@@ -430,15 +438,15 @@ export function DashboardView({ user, upcoming, history, stats, recommendedCateg
 
                     {/* Settings Quick Access */}
                     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h3 className="font-bold text-slate-900 mb-4">Настройки</h3>
+                        <h3 className="font-bold text-slate-900 mb-4">{t('settings.title')}</h3>
                         <Link href="/account/settings" className="group block p-4 rounded-2xl border border-slate-100 hover:border-slate-300 hover:bg-slate-50 transition-all">
                             <div className="flex items-center gap-3 mb-2">
                                 <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 group-hover:bg-white group-hover:shadow-sm transition-all">
                                     <Settings className="w-4 h-4 text-slate-600" />
                                 </div>
-                                <h4 className="font-semibold text-slate-900">Профиль и аккаунт</h4>
+                                <h4 className="font-semibold text-slate-900">{t('settings.profileTitle')}</h4>
                             </div>
-                            <p className="text-sm text-slate-500">Управление личными данными, номером телефона и email.</p>
+                            <p className="text-sm text-slate-500">{t('settings.profileBody')}</p>
                         </Link>
                     </div>
 

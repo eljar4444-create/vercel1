@@ -7,6 +7,7 @@ import { updateBookingStatus } from '@/app/actions/updateBookingStatus';
 import { getOrCreateConversationForProvider } from '@/app/actions/chat';
 import { Button } from '@/components/ui/button';
 import toast from 'react-hot-toast';
+import { useLocale, useTranslations } from 'next-intl';
 
 interface BookingData {
     id: number;
@@ -32,7 +33,7 @@ interface BookingRowProps {
 }
 
 const STATUS_CONFIG: Record<string, {
-    label: string;
+    labelKey: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'noShow';
     labelColor: string;
     dotColor: string;
     pillBg: string;
@@ -40,7 +41,7 @@ const STATUS_CONFIG: Record<string, {
     rowBg: string;
 }> = {
     PENDING: {
-        label: 'Ожидает',
+        labelKey: 'pending',
         labelColor: 'text-amber-700',
         dotColor: 'bg-amber-400',
         pillBg: 'bg-transparent border border-amber-300',
@@ -48,7 +49,7 @@ const STATUS_CONFIG: Record<string, {
         rowBg: '',
     },
     CONFIRMED: {
-        label: 'Подтверждена',
+        labelKey: 'confirmed',
         labelColor: 'text-emerald-700',
         dotColor: 'bg-emerald-500',
         pillBg: 'bg-transparent border border-emerald-300',
@@ -56,7 +57,7 @@ const STATUS_CONFIG: Record<string, {
         rowBg: '',
     },
     CANCELED: {
-        label: 'Отменена',
+        labelKey: 'cancelled',
         labelColor: 'text-rose-600',
         dotColor: 'bg-rose-400',
         pillBg: 'bg-transparent border border-rose-300',
@@ -64,7 +65,7 @@ const STATUS_CONFIG: Record<string, {
         rowBg: '',
     },
     COMPLETED: {
-        label: 'Визит завершён',
+        labelKey: 'completed',
         labelColor: 'text-slate-500',
         dotColor: 'bg-slate-400',
         pillBg: 'bg-transparent border border-slate-300',
@@ -72,7 +73,7 @@ const STATUS_CONFIG: Record<string, {
         rowBg: '',
     },
     NO_SHOW: {
-        label: 'Не пришёл',
+        labelKey: 'noShow',
         labelColor: 'text-slate-500',
         dotColor: 'bg-slate-400',
         pillBg: 'bg-transparent border border-slate-300',
@@ -82,7 +83,7 @@ const STATUS_CONFIG: Record<string, {
 };
 
 const DEFAULT_STATUS = {
-    label: 'Неизвестно',
+    labelKey: 'unknown' as const,
     labelColor: 'text-slate-500',
     dotColor: 'bg-slate-400',
     pillBg: 'bg-transparent border border-slate-300',
@@ -91,6 +92,8 @@ const DEFAULT_STATUS = {
 };
 
 export function BookingRow({ booking, providerId, onStatusChange, isPending }: BookingRowProps) {
+    const t = useTranslations('dashboard.provider.bookingRow');
+    const locale = useLocale();
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const [isOpeningChat, setIsOpeningChat] = useState(false);
     const router = useRouter();
@@ -108,11 +111,11 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
         try {
             const result = await updateBookingStatus(booking.id, newStatus);
             if (!result?.success) {
-                toast.error(result?.error ?? 'Не удалось обновить статус');
+                toast.error(result?.error ?? t('updateError'));
             }
         } catch (err) {
             console.error('updateBookingStatus failed:', err);
-            toast.error('Не удалось обновить статус');
+            toast.error(t('updateError'));
         } finally {
             setIsUpdating(null);
         }
@@ -121,8 +124,8 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
     const cfg = STATUS_CONFIG[booking.status] ?? DEFAULT_STATUS;
     const dateObj = new Date(booking.date);
     const dayNum = dateObj.getDate();
-    const monthShort = dateObj.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', '');
-    const formattedDate = dateObj.toLocaleDateString('ru-RU', {
+    const monthShort = dateObj.toLocaleDateString(locale, { month: 'short' }).replace('.', '');
+    const formattedDate = dateObj.toLocaleDateString(locale, {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -134,7 +137,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
         try {
             const result = await getOrCreateConversationForProvider(providerId, booking.user_id);
             if (!result?.success || !result.conversationId) {
-                alert(result?.error || 'Не удалось открыть чат');
+                alert(result?.error || t('chatError'));
                 return;
             }
             startNavTransition(() => {
@@ -170,7 +173,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                         <User className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                         <span className="text-sm font-semibold text-slate-900">{booking.user_name}</span>
                         <span className="inline-flex items-center rounded-full border border-violet-300 bg-transparent px-2 py-0.5 text-[10px] font-semibold text-violet-600">
-                            ✨ Новый клиент
+                            {t('newClient')}
                         </span>
                     </div>
 
@@ -205,7 +208,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                                 {isOpeningChat
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <MessageCircle className="h-3 w-3" />}
-                                Написать
+                                {t('message')}
                             </button>
                         )}
                     </div>
@@ -225,7 +228,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                     {/* Status badge */}
                     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${cfg.pillBg} ${cfg.labelColor}`}>
                         <span className={`h-1.5 w-1.5 rounded-full ${cfg.dotColor}`} />
-                        {cfg.label}
+                        {t(`status.${cfg.labelKey}`)}
                     </span>
 
                     {/* Action buttons — terminal states (COMPLETED/CANCELED/NO_SHOW) show none */}
@@ -239,7 +242,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                                 {isUpdating === 'CONFIRMED'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <Check className="h-3 w-3" />}
-                                Подтвердить
+                                {t('confirm')}
                             </button>
                             <button
                                 onClick={() => handleStatusChange('CANCELED')}
@@ -249,7 +252,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                                 {isUpdating === 'CANCELED'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <X className="h-3 w-3" />}
-                                Отменить
+                                {t('cancel')}
                             </button>
                         </div>
                     )}
@@ -264,7 +267,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                                 {isUpdating === 'COMPLETED'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <Check className="h-3 w-3" />}
-                                Завершить
+                                {t('complete')}
                             </button>
                             <button
                                 onClick={() => handleStatusChange('NO_SHOW')}
@@ -274,7 +277,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                                 {isUpdating === 'NO_SHOW'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <X className="h-3 w-3" />}
-                                Не пришёл
+                                {t('noShow')}
                             </button>
                             <button
                                 onClick={() => handleStatusChange('CANCELED')}
@@ -284,7 +287,7 @@ export function BookingRow({ booking, providerId, onStatusChange, isPending }: B
                                 {isUpdating === 'CANCELED'
                                     ? <Loader2 className="h-3 w-3 animate-spin" />
                                     : <X className="h-3 w-3" />}
-                                Отменить
+                                {t('cancel')}
                             </button>
                         </div>
                     )}

@@ -42,6 +42,7 @@ import { parseSchedule } from '@/lib/scheduling';
 import { Button } from '@/components/ui/button';
 import { createTelegramConnectLink } from '@/lib/telegram-link';
 import { PendingReviewNotice } from '@/components/dashboard/PendingReviewNotice';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -166,7 +167,7 @@ async function renderClientDashboard(userId: string) {
     });
 
     const upcoming = bookings
-        .filter((b) => b.isFuture && b.status !== 'CANCELED' && b.status !== 'COMPLETED' && b.status !== 'NO_SHOW')
+        .filter((b) => b.isFuture && b.status !== 'LOCKED' && b.status !== 'CANCELED' && b.status !== 'COMPLETED' && b.status !== 'NO_SHOW')
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     const history = bookings
@@ -244,6 +245,7 @@ async function renderProviderDashboard(
     profileId: number,
     searchParams?: DashboardPageProps['searchParams'],
 ) {
+    const t = await getTranslations('dashboard.provider');
     const profile = await prisma.profile.findUnique({
         where: { id: profileId },
         select: {
@@ -300,7 +302,11 @@ async function renderProviderDashboard(
             : null;
 
     const bookings = await prisma.booking.findMany({
-        where: { profile_id: profileId },
+        where: {
+            profile_id: profileId,
+            // Hide LOCKED bookings — transient system state, not actionable by provider
+            status: { not: 'LOCKED' },
+        },
         include: { service: { select: { id: true, title: true, price: true } } },
         orderBy: { date: 'desc' },
     });
@@ -393,38 +399,38 @@ async function renderProviderDashboard(
         currentSection === 'profile-notifications';
 
     const mobileNavItems = [
-        { key: 'bookings', label: 'Записи', icon: CalendarDays },
-        { key: 'analytics', label: 'Статистика', icon: BarChart2 },
-        ...(isSalonProvider ? [{ key: 'staff', label: 'Команда', icon: Users }] as const : []),
-        { key: 'profile-general', label: 'Профиль', icon: UserCircle2 },
+        { key: 'bookings', label: t('nav.bookings'), icon: CalendarDays },
+        { key: 'analytics', label: t('nav.analytics'), icon: BarChart2 },
+        ...(isSalonProvider ? [{ key: 'staff', label: t('nav.staff'), icon: Users }] as const : []),
+        { key: 'profile-general', label: t('nav.profile'), icon: UserCircle2 },
     ] as const;
 
     const kpiCards = [
         {
-            label: 'Всего записей',
+            label: t('kpi.total'),
             value: totalBookings,
-            trend: 'За всё время работы',
+            trend: t('kpi.totalTrend'),
             trendType: 'neutral' as const,
             icon: TrendingUp,
         },
         {
-            label: 'Ожидают подтверждения',
+            label: t('kpi.pending'),
             value: pendingCount,
-            trend: pendingCount > 0 ? 'Требуют вашего ответа' : 'Нет новых запросов',
+            trend: pendingCount > 0 ? t('kpi.pendingNeedsAnswer') : t('kpi.pendingEmpty'),
             trendType: pendingCount > 0 ? ('warn' as const) : ('neutral' as const),
             icon: Clock,
         },
         {
-            label: 'Подтверждено',
+            label: t('kpi.confirmed'),
             value: confirmedCount,
-            trend: completedCount > 0 ? `${completedCount} завершено` : 'Активных записей',
+            trend: completedCount > 0 ? t('kpi.completedCount', { count: completedCount }) : t('kpi.activeBookings'),
             trendType: 'positive' as const,
             icon: CheckCircle,
         },
         {
-            label: 'Отменено',
+            label: t('kpi.cancelled'),
             value: cancelledCount,
-            trend: cancelledCount === 0 ? 'Отлично — держите так' : 'Старайтесь снизить',
+            trend: cancelledCount === 0 ? t('kpi.cancelledEmpty') : t('kpi.cancelledWarn'),
             trendType: cancelledCount === 0 ? ('positive' as const) : ('warn' as const),
             icon: XCircle,
         },
@@ -443,7 +449,7 @@ async function renderProviderDashboard(
                         className="inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-700"
                     >
                         <ArrowLeft className="h-4 w-4" />
-                        Мой профиль
+                        {t('backToProfile')}
                     </Link>
 
                     {currentSection !== 'analytics' && (
@@ -471,7 +477,7 @@ async function renderProviderDashboard(
                                                 <div className="mt-2.5">
                                                     <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
                                                         <ShieldCheck className="h-3 w-3" />
-                                                        Активен
+                                                        {t('active')}
                                                     </span>
                                                 </div>
                                             )}
@@ -486,7 +492,7 @@ async function renderProviderDashboard(
                                             className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-transparent px-5 py-2 text-sm font-medium text-gray-900 transition-colors hover:border-gray-900 hover:bg-gray-50"
                                         >
                                             <Eye className="h-4 w-4" />
-                                            Посмотреть профиль
+                                            {t('viewProfile')}
                                         </Link>
                                         <CopyProfileLinkButton slug={profile.slug} />
                                     </div>
@@ -534,9 +540,9 @@ async function renderProviderDashboard(
                                         <ListChecks className="h-5 w-5 mt-1 shrink-0 text-violet-600" />
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between gap-2">
-                                                <h2 className="text-sm font-semibold text-slate-900">Ваш прогресс</h2>
+                                                <h2 className="text-sm font-semibold text-slate-900">{t('setup.title')}</h2>
                                                 <span className="text-xs font-semibold text-stone-400">
-                                                    {setupProgressPercent}% готово
+                                                    {t('setup.percent', { percent: setupProgressPercent })}
                                                 </span>
                                             </div>
                                             <div className="mt-2 h-1 w-full bg-gray-200">
@@ -561,7 +567,7 @@ async function renderProviderDashboard(
                                                     >
                                                         {hasServices ? '✓' : '1'}
                                                     </span>
-                                                    Добавьте услуги
+                                                    {t('setup.addServices')}
                                                 </Link>
                                                 <Link
                                                     href="/dashboard?section=schedule"
@@ -578,7 +584,7 @@ async function renderProviderDashboard(
                                                     >
                                                         {hasScheduleConfigured ? '✓' : '2'}
                                                     </span>
-                                                    Укажите рабочие часы
+                                                    {t('setup.addSchedule')}
                                                 </Link>
                                             </div>
                                         </div>
@@ -607,9 +613,9 @@ async function renderProviderDashboard(
                             <div className="bg-transparent">
                                 <div className="flex items-end justify-between border-b border-gray-300 pb-4 mb-6">
                                     <div>
-                                        <h2 className="text-base font-semibold text-slate-900">Календарь записей</h2>
+                                        <h2 className="text-base font-semibold text-slate-900">{t('bookings.calendarTitle')}</h2>
                                         <p className="mt-0.5 text-xs text-stone-400">
-                                            Неделя по умолчанию. Клик по записи — детали и смена статуса.
+                                            {t('bookings.calendarSubtitle')}
                                         </p>
                                     </div>
                                     <ManualBookingTrigger
@@ -631,13 +637,13 @@ async function renderProviderDashboard(
                             <div className="bg-transparent">
                                 <div className="flex items-center justify-between border-b border-gray-300 pb-4 mb-6">
                                     <div>
-                                        <h2 className="text-base font-semibold text-slate-900">Входящие записи</h2>
+                                        <h2 className="text-base font-semibold text-slate-900">{t('bookings.incomingTitle')}</h2>
                                         <p className="mt-0.5 text-xs text-stone-400">
-                                            {totalBookings} {totalBookings === 1 ? 'запись' : 'записей'}
+                                            {t('bookings.totalCount', { count: totalBookings })}
                                         </p>
                                     </div>
                                     {completedCount > 0 && (
-                                        <span className="text-xs text-stone-400">{completedCount} завершено</span>
+                                        <span className="text-xs text-stone-400">{t('bookings.completedCount', { count: completedCount })}</span>
                                     )}
                                 </div>
 
@@ -648,14 +654,14 @@ async function renderProviderDashboard(
                                         <div className="border border-dashed border-gray-300 py-14 text-center">
                                             <Inbox className="mx-auto mb-4 h-12 w-12 text-stone-300" />
                                             <h3 className="text-base font-semibold text-slate-700">
-                                                У вас пока нет записей
+                                                {t('bookings.emptyTitle')}
                                             </h3>
                                             <p className="mx-auto mt-1 max-w-xs text-sm text-stone-400">
-                                                Поделитесь ссылкой на профиль, чтобы клиенты начали бронировать услуги.
+                                                {t('bookings.emptyBody')}
                                             </p>
                                             <Button asChild className="mt-5 rounded-full border border-gray-300 bg-transparent text-gray-900 hover:border-gray-900 hover:bg-gray-50">
                                                 <Link href={`/salon/${profile.slug}`} target="_blank" rel="noopener noreferrer">
-                                                    Поделиться ссылкой на профиль
+                                                    {t('bookings.shareProfile')}
                                                 </Link>
                                             </Button>
                                         </div>
@@ -670,9 +676,9 @@ async function renderProviderDashboard(
                             <div className="flex items-center gap-3 border-b border-gray-300 pb-4 mb-6">
                                 <Briefcase className="h-5 w-5 text-violet-600" />
                                 <div>
-                                    <h2 className="text-base font-semibold text-slate-900">Мои услуги</h2>
+                                    <h2 className="text-base font-semibold text-slate-900">{t('services.title')}</h2>
                                     <p className="text-xs text-stone-400">
-                                        {services.length} {services.length === 1 ? 'услуга' : 'услуг'}
+                                        {t('services.count', { count: services.length })}
                                     </p>
                                 </div>
                             </div>
@@ -683,9 +689,9 @@ async function renderProviderDashboard(
                     {currentSection === 'schedule' && (
                         <div className="bg-transparent">
                             <div className="border-b border-gray-300 pb-4 mb-6">
-                                <h2 className="text-base font-semibold text-slate-900">Расписание салона</h2>
+                                <h2 className="text-base font-semibold text-slate-900">{t('schedule.title')}</h2>
                                 <p className="mt-0.5 text-xs text-stone-400">
-                                    Общие рабочие часы. Если для мастера не задано личное расписание, будет применяться это.
+                                    {t('schedule.subtitle')}
                                 </p>
                             </div>
                             <WorkingHoursForm
@@ -702,9 +708,9 @@ async function renderProviderDashboard(
                             <div className="flex items-center gap-3 border-b border-gray-300 pb-4 mb-6">
                                 <Users className="h-5 w-5 text-orange-600" />
                                 <div>
-                                    <h2 className="text-base font-semibold text-slate-900">Команда мастеров</h2>
+                                    <h2 className="text-base font-semibold text-slate-900">{t('staff.title')}</h2>
                                     <p className="text-xs text-stone-400">
-                                        Добавьте сотрудников, чтобы создать общий календарь записей.
+                                        {t('staff.subtitle')}
                                     </p>
                                 </div>
                             </div>
@@ -722,10 +728,10 @@ async function renderProviderDashboard(
                                             {isSalonProvider ? (
                                                 <>
                                                     <p className="text-sm font-semibold text-amber-900">
-                                                        Требуется налоговый номер (Steuernummer / USt-IdNr)
+                                                        {t('tax.salonTitle')}
                                                     </p>
                                                     <p className="mt-1 text-sm leading-relaxed text-amber-800">
-                                                        Для активации профиля салона и публикации в каталоге, пожалуйста, укажите налоговый номер вашей компании в настройках.
+                                                        {t('tax.salonBody')}
                                                     </p>
                                                     <div className="mt-3">
                                                         <ScrollToTaxIdButton />
@@ -734,10 +740,10 @@ async function renderProviderDashboard(
                                             ) : (
                                                 <>
                                                     <p className="text-sm font-semibold text-amber-900">
-                                                        Требуется налоговый номер (Steuernummer)
+                                                        {t('tax.individualTitle')}
                                                     </p>
                                                     <p className="mt-1 text-sm leading-relaxed text-amber-800">
-                                                        Чтобы клиенты могли находить вас в поиске и записываться, пожалуйста, укажите ваш налоговый номер в настройках профиля.
+                                                        {t('tax.individualBody')}
                                                     </p>
                                                     <div className="mt-3 flex flex-wrap items-center gap-2">
                                                         <ScrollToTaxIdButton />
@@ -745,7 +751,7 @@ async function renderProviderDashboard(
                                                             href="/guide/kleingewerbe"
                                                             className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-transparent px-4 py-1.5 text-sm font-medium text-amber-900 transition hover:border-amber-700"
                                                         >
-                                                            У меня еще нет номера. Как его получить? 👉
+                                                            {t('tax.guideLink')}
                                                         </Link>
                                                     </div>
                                                 </>
@@ -758,12 +764,12 @@ async function renderProviderDashboard(
                                 <div className="bg-transparent mb-6">
                                     <div className="border-b border-gray-300 pb-4 mb-6">
                                         <h2 className="text-base font-semibold text-slate-900">
-                                            {isSalonProvider ? 'Фото интерьера' : 'Фото работ'}
+                                            {isSalonProvider ? t('photos.salonTitle') : t('photos.individualTitle')}
                                         </h2>
                                         <p className="mt-0.5 text-xs text-stone-400">
                                             {isSalonProvider
-                                                ? 'Покажите атмосферу вашего салона — эти фото будут отображаться на вашем публичном профиле.'
-                                                : 'Добавьте фото ваших работ — они будут отображаться в шапке вашего профиля.'}
+                                                ? t('photos.salonSubtitle')
+                                                : t('photos.individualSubtitle')}
                                         </p>
                                     </div>
                                     <InteriorPhotosSection initialPhotos={interiorPhotos} />
@@ -803,9 +809,9 @@ async function renderProviderDashboard(
                             {!isSalonProvider && currentSection === 'profile-location' && (
                                 <div className="bg-transparent">
                                     <div className="border-b border-gray-300 pb-4 mb-6">
-                                        <h2 className="text-base font-semibold text-slate-900">Информация о прибытии</h2>
+                                        <h2 className="text-base font-semibold text-slate-900">{t('arrival.title')}</h2>
                                         <p className="mt-0.5 text-xs text-stone-400">
-                                            Эти данные будут видны клиенту только после подтверждения записи.
+                                            {t('arrival.subtitle')}
                                         </p>
                                     </div>
                                     <ArrivalInfoSection

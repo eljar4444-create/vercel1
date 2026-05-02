@@ -18,6 +18,10 @@ type TransitionRule = {
 };
 
 const TRANSITIONS: Record<BookingStatus, ReadonlyArray<TransitionRule>> = {
+    [BookingStatus.LOCKED]: [
+        { to: BookingStatus.PENDING, allowedActors: ['SYSTEM'] },
+        { to: BookingStatus.CANCELED, allowedActors: ['SYSTEM', 'CLIENT'] },
+    ],
     [BookingStatus.PENDING]: [
         { to: BookingStatus.CONFIRMED, allowedActors: ['MASTER'] },
         { to: BookingStatus.CANCELED, allowedActors: ['CLIENT', 'MASTER', 'SYSTEM'] },
@@ -57,6 +61,7 @@ export function actorToCanceledBy(actor: BookingActor): BookingCanceledBy {
 }
 
 export const STATUS_LABELS_RU: Record<BookingStatus, string> = {
+    [BookingStatus.LOCKED]: 'Резерв',
     [BookingStatus.PENDING]: 'Ожидает',
     [BookingStatus.CONFIRMED]: 'Подтверждена',
     [BookingStatus.CANCELED]: 'Отменена',

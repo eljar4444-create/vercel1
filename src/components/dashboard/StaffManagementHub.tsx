@@ -18,16 +18,9 @@ import {
 import { StaffAvatarUpload } from './StaffAvatarUpload';
 import { ServicePhotoUpload } from './ServicePhotoUpload';
 import type { StaffPhotoService } from './StaffSection';
+import { useTranslations } from 'next-intl';
 
-const DAYS: { id: number; label: string }[] = [
-    { id: 1, label: 'Понедельник' },
-    { id: 2, label: 'Вторник' },
-    { id: 3, label: 'Среда' },
-    { id: 4, label: 'Четверг' },
-    { id: 5, label: 'Пятница' },
-    { id: 6, label: 'Суббота' },
-    { id: 0, label: 'Воскресенье' },
-];
+const DAY_IDS = [1, 2, 3, 4, 5, 6, 0];
 
 const DEFAULT_DAY = (dayOfWeek: number): StaffAvailabilityDay => ({
     dayOfWeek,
@@ -54,6 +47,7 @@ interface StaffManagementHubProps {
 }
 
 export function StaffManagementHub({ staff, services, onClose }: StaffManagementHubProps) {
+    const t = useTranslations('dashboard.provider.staffHub');
     const [activeTab, setActiveTab] = useState<Tab>('profile');
 
     return (
@@ -66,7 +60,7 @@ export function StaffManagementHub({ staff, services, onClose }: StaffManagement
                 <div className="flex items-center justify-between border-b border-stone-100 bg-white px-6 py-4 shrink-0">
                     <div>
                         <h2 className="text-xl font-bold text-stone-900">
-                            Управление: {staff.name}
+                            {t('title', { name: staff.name })}
                         </h2>
                     </div>
                     <button
@@ -83,19 +77,19 @@ export function StaffManagementHub({ staff, services, onClose }: StaffManagement
                         className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'profile' ? 'border-amber-400 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
                         onClick={() => setActiveTab('profile')}
                     >
-                        Профиль
+                        {t('tabs.profile')}
                     </button>
                     <button
                         className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'schedule' ? 'border-amber-400 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
                         onClick={() => setActiveTab('schedule')}
                     >
-                        Расписание
+                        {t('tabs.schedule')}
                     </button>
                     <button
                         className={`py-3 px-4 text-sm font-medium border-b-2 transition-colors ${activeTab === 'portfolio' ? 'border-amber-400 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'}`}
                         onClick={() => setActiveTab('portfolio')}
                     >
-                        Работы
+                        {t('tabs.portfolio')}
                     </button>
                 </div>
 
@@ -118,6 +112,7 @@ export function StaffManagementHub({ staff, services, onClose }: StaffManagement
 }
 
 function HubProfileTab({ staff, onClose }: { staff: StaffManagementHubProps['staff'], onClose: () => void }) {
+    const t = useTranslations('dashboard.provider.staffHub.profile');
     const [name, setName] = useState(staff.name || '');
     const [specialty, setSpecialty] = useState(staff.specialty || '');
     const [bio, setBio] = useState(staff.bio || '');
@@ -130,13 +125,13 @@ function HubProfileTab({ staff, onClose }: { staff: StaffManagementHubProps['sta
 
     const handleSave = async () => {
         if (!name.trim()) {
-            toast.error('Имя не может быть пустым');
+            toast.error(t('nameRequired'));
             return;
         }
 
         const parsedRating = Number(rating);
         if (!Number.isFinite(parsedRating) || parsedRating < 0 || parsedRating > 5) {
-            toast.error('Рейтинг должен быть числом от 0 до 5');
+            toast.error(t('ratingInvalid'));
             return;
         }
 
@@ -158,10 +153,10 @@ function HubProfileTab({ staff, onClose }: { staff: StaffManagementHubProps['sta
         setIsSaving(false);
 
         if (res.success) {
-            toast.success('Профиль успешно обновлён');
+            toast.success(t('saved'));
             onClose();
         } else {
-            toast.error(res.error || 'Ошибка при сохранении');
+            toast.error(res.error || t('saveError'));
         }
     };
 
@@ -178,52 +173,52 @@ function HubProfileTab({ staff, onClose }: { staff: StaffManagementHubProps['sta
 
                 <div className="space-y-4 max-w-lg mx-auto w-full">
                     <div>
-                        <label className="mb-1.5 block text-xs font-medium text-stone-600">Имя мастера <span className="text-red-500">*</span></label>
+                        <label className="mb-1.5 block text-xs font-medium text-stone-600">{t('name')} <span className="text-red-500">*</span></label>
                         <input
                             required
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className="w-full rounded-xl border-stone-200 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-amber-400 focus:ring-amber-400 focus:outline-none"
-                            placeholder="Например: Анна"
+                            placeholder={t('namePlaceholder')}
                         />
                     </div>
 
                     <div>
-                        <label className="mb-1.5 block text-xs font-medium text-stone-600">Специализация (Должность)</label>
+                        <label className="mb-1.5 block text-xs font-medium text-stone-600">{t('specialty')}</label>
                         <input
                             type="text"
                             value={specialty}
                             onChange={(e) => setSpecialty(e.target.value)}
                             className="w-full rounded-xl border-stone-200 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-amber-400 focus:ring-amber-400 focus:outline-none"
-                            placeholder="Например: Бровист, Колорист"
+                            placeholder={t('specialtyPlaceholder')}
                         />
                     </div>
 
                     <div>
-                        <label className="mb-1.5 block text-xs font-medium text-stone-600">Описание (Био)</label>
+                        <label className="mb-1.5 block text-xs font-medium text-stone-600">{t('bio')}</label>
                         <textarea
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
                             rows={4}
                             className="w-full rounded-xl border-stone-200 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-amber-400 focus:ring-amber-400 focus:outline-none resize-none"
-                            placeholder="Краткая информация о мастере..."
+                            placeholder={t('bioPlaceholder')}
                         />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="mb-1.5 block text-xs font-medium text-stone-600">Опыт работы</label>
+                            <label className="mb-1.5 block text-xs font-medium text-stone-600">{t('experience')}</label>
                             <input
                                 type="text"
                                 value={experience}
                                 onChange={(e) => setExperience(e.target.value)}
                                 className="w-full rounded-xl border-stone-200 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-amber-400 focus:ring-amber-400 focus:outline-none"
-                                placeholder="Например: 5 лет опыта"
+                                placeholder={t('experiencePlaceholder')}
                             />
                         </div>
                         <div>
-                            <label className="mb-1.5 block text-xs font-medium text-stone-600">Рейтинг (0–5)</label>
+                            <label className="mb-1.5 block text-xs font-medium text-stone-600">{t('rating')}</label>
                             <input
                                 type="number"
                                 step="0.1"
@@ -238,24 +233,24 @@ function HubProfileTab({ staff, onClose }: { staff: StaffManagementHubProps['sta
                     </div>
 
                     <div>
-                        <label className="mb-1.5 block text-xs font-medium text-stone-600">Специализация (Теги)</label>
+                        <label className="mb-1.5 block text-xs font-medium text-stone-600">{t('tags')}</label>
                         <input
                             type="text"
                             value={tagsInput}
                             onChange={(e) => setTagsInput(e.target.value)}
                             className="w-full rounded-xl border-stone-200 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-amber-400 focus:ring-amber-400 focus:outline-none"
-                            placeholder="Ламинирование, Архитектура, Коррекция"
+                            placeholder={t('tagsPlaceholder')}
                         />
-                        <p className="mt-1 text-[11px] text-stone-400">Перечислите через запятую. Максимум 12.</p>
+                        <p className="mt-1 text-[11px] text-stone-400">{t('tagsHint')}</p>
                     </div>
                 </div>
             </div>
             {/* Action Bar */}
             <div className="mt-auto border-t border-stone-100 bg-white px-6 py-4 flex gap-3 justify-end items-center sticky bottom-0">
-                <Button variant="ghost" onClick={onClose} disabled={isSaving} className="text-stone-500 hover:text-stone-700">Отмена</Button>
+                <Button variant="ghost" onClick={onClose} disabled={isSaving} className="text-stone-500 hover:text-stone-700">{t('cancel')}</Button>
                 <Button onClick={handleSave} disabled={isSaving} className="bg-amber-400 text-stone-900 hover:bg-amber-500 px-6 font-medium gap-2 shadow-sm rounded-full">
                     {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    Сохранить
+                    {t('save')}
                 </Button>
             </div>
         </div>
@@ -263,11 +258,21 @@ function HubProfileTab({ staff, onClose }: { staff: StaffManagementHubProps['sta
 }
 
 function HubScheduleTab({ staff, onClose }: { staff: StaffManagementHubProps['staff'], onClose: () => void }) {
+    const t = useTranslations('dashboard.provider.staffHub.schedule');
+    const DAYS = [
+        { id: 1, label: t('days.mon') },
+        { id: 2, label: t('days.tue') },
+        { id: 3, label: t('days.wed') },
+        { id: 4, label: t('days.thu') },
+        { id: 5, label: t('days.fri') },
+        { id: 6, label: t('days.sat') },
+        { id: 0, label: t('days.sun') },
+    ];
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [days, setDays] = useState<Record<number, StaffAvailabilityDay>>(() => {
         const map: Record<number, StaffAvailabilityDay> = {};
-        for (const d of DAYS) map[d.id] = DEFAULT_DAY(d.id);
+        for (const id of DAY_IDS) map[id] = DEFAULT_DAY(id);
         return map;
     });
 
@@ -283,7 +288,7 @@ function HubScheduleTab({ staff, onClose }: { staff: StaffManagementHubProps['st
                     return next;
                 });
             } else if (!res.success) {
-                toast.error(res.error || 'Не удалось загрузить расписание');
+                toast.error(res.error || t('loadError'));
             }
             setLoading(false);
         })();
@@ -294,10 +299,10 @@ function HubScheduleTab({ staff, onClose }: { staff: StaffManagementHubProps['st
         setDays((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }));
 
     const handleSave = async () => {
-        const payload = DAYS.map((d) => days[d.id]);
+        const payload = DAY_IDS.map((id) => days[id]);
         for (const d of payload) {
             if (d.isWorking && d.startTime >= d.endTime) {
-                toast.error(`Проверьте время: ${DAYS.find((x) => x.id === d.dayOfWeek)?.label}`);
+                toast.error(t('checkTime', { day: DAYS.find((x) => x.id === d.dayOfWeek)?.label ?? t('dayFallback') }));
                 return;
             }
         }
@@ -307,10 +312,10 @@ function HubScheduleTab({ staff, onClose }: { staff: StaffManagementHubProps['st
         setSaving(false);
 
         if (res.success) {
-            toast.success('Расписание сохранено');
+            toast.success(t('saved'));
             onClose();
         } else {
-            toast.error(res.error || 'Не удалось сохранить');
+            toast.error(res.error || t('saveError'));
         }
     };
 
@@ -325,7 +330,7 @@ function HubScheduleTab({ staff, onClose }: { staff: StaffManagementHubProps['st
     return (
         <div className="flex flex-col h-full">
             <div className="p-6 space-y-3">
-                <p className="text-xs text-stone-500 mb-4 px-1">Индивидуальные рабочие часы мастера имеют приоритет над основным расписанием салона.</p>
+                <p className="text-xs text-stone-500 mb-4 px-1">{t('subtitle')}</p>
                 {DAYS.map((day) => {
                     const value = days[day.id];
                     const disabled = !value.isWorking;
@@ -359,16 +364,16 @@ function HubScheduleTab({ staff, onClose }: { staff: StaffManagementHubProps['st
                                 />
                             </div>
 
-                            {!value.isWorking && <span className="text-[11px] text-stone-400 font-medium bg-stone-100 px-2 py-1 rounded">Выходной</span>}
+                            {!value.isWorking && <span className="text-[11px] text-stone-400 font-medium bg-stone-100 px-2 py-1 rounded">{t('dayOff')}</span>}
                         </div>
                     );
                 })}
             </div>
             <div className="mt-auto border-t border-stone-100 bg-white px-6 py-4 flex gap-3 justify-end items-center sticky bottom-0">
-                <Button variant="ghost" onClick={onClose} disabled={saving} className="text-stone-500 hover:text-stone-700">Отмена</Button>
+                <Button variant="ghost" onClick={onClose} disabled={saving} className="text-stone-500 hover:text-stone-700">{t('cancel')}</Button>
                 <Button onClick={handleSave} disabled={saving} className="bg-amber-400 text-stone-900 hover:bg-amber-500 px-6 font-medium gap-2 shadow-sm rounded-full">
                     {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    Сохранить
+                    {t('save')}
                 </Button>
             </div>
         </div>
@@ -376,25 +381,26 @@ function HubScheduleTab({ staff, onClose }: { staff: StaffManagementHubProps['st
 }
 
 function HubPortfolioTab({ staff, services, onClose }: { staff: StaffManagementHubProps['staff'], services: StaffManagementHubProps['services'], onClose: () => void }) {
+    const t = useTranslations('dashboard.provider.staffHub.portfolio');
     const [expandedId, setExpandedId] = useState<number | null>(null);
 
     return (
         <div className="p-6">
             {services.length === 0 ? (
                 <div className="py-12 bg-white rounded-2xl border border-dashed border-stone-200 text-center flex flex-col items-center justify-center p-6">
-                    <p className="text-sm text-stone-500 max-w-md">В салоне пока нет услуг. Фотографии мастеров прикрепляются к конкретной услуге (например, &laquo;Окрашивание корней&raquo;).</p>
+                    <p className="text-sm text-stone-500 max-w-md">{t('emptyServices')}</p>
                     <Link
                         href="/dashboard?section=services"
                         onClick={onClose}
                         className="mt-5 inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
                     >
                         <Plus className="h-4 w-4" />
-                        Добавить услугу
+                        {t('addService')}
                     </Link>
                 </div>
             ) : (
                 <div className="space-y-3">
-                    <p className="text-xs text-stone-500 mb-2 px-1">Выберите услугу, чтобы добавить или удалить фотографии работ этого мастера.</p>
+                    <p className="text-xs text-stone-500 mb-2 px-1">{t('hint')}</p>
                     {services.map((s) => {
                         const staffPhotos = s.portfolioPhotos.filter((p) => p.staffId === staff.id);
                         const expanded = expandedId === s.id;
@@ -411,7 +417,7 @@ function HubPortfolioTab({ staff, services, onClose }: { staff: StaffManagementH
                                         <span className="truncate text-[15px] font-bold text-stone-900">{s.title}</span>
                                     </span>
                                     <span className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full bg-stone-100 text-stone-600">
-                                        {staffPhotos.length} {staffPhotos.length === 1 ? 'фото' : 'фото'}
+                                        {t('photoCount', { count: staffPhotos.length })}
                                     </span>
                                 </button>
                                 {expanded && (

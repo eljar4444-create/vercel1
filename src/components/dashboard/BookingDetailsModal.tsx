@@ -15,6 +15,7 @@ import {
 import { updateBookingStatus } from '@/app/actions/updateBookingStatus';
 import { getOrCreateConversationForProvider } from '@/app/actions/chat';
 import { Button } from '@/components/ui/button';
+import { useLocale, useTranslations } from 'next-intl';
 
 export interface BookingForModal {
     id: number;
@@ -35,34 +36,34 @@ export interface BookingForModal {
 
 const STATUS_CONFIG: Record<
     string,
-    { label: string; bg: string; text: string; dot: string }
+    { labelKey: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'noShow'; bg: string; text: string; dot: string }
 > = {
     PENDING: {
-        label: 'Ожидает',
+        labelKey: 'pending',
         bg: 'bg-amber-50',
         text: 'text-amber-700',
         dot: 'bg-amber-400',
     },
     CONFIRMED: {
-        label: 'Подтверждена',
+        labelKey: 'confirmed',
         bg: 'bg-green-50',
         text: 'text-green-700',
         dot: 'bg-green-400',
     },
     CANCELED: {
-        label: 'Отменена',
+        labelKey: 'cancelled',
         bg: 'bg-red-50',
         text: 'text-red-600',
         dot: 'bg-red-400',
     },
     COMPLETED: {
-        label: 'Визит завершён',
+        labelKey: 'completed',
         bg: 'bg-gray-100',
         text: 'text-gray-600',
         dot: 'bg-gray-400',
     },
     NO_SHOW: {
-        label: 'Не пришёл',
+        labelKey: 'noShow',
         bg: 'bg-slate-100',
         text: 'text-slate-500',
         dot: 'bg-slate-400',
@@ -70,7 +71,7 @@ const STATUS_CONFIG: Record<
 };
 
 const DEFAULT_STATUS = {
-    label: 'Неизвестно',
+    labelKey: 'unknown' as const,
     bg: 'bg-gray-50',
     text: 'text-gray-600',
     dot: 'bg-gray-400',
@@ -91,6 +92,8 @@ export function BookingDetailsModal({
     providerId,
     onStatusUpdated,
 }: BookingDetailsModalProps) {
+    const t = useTranslations('dashboard.provider.bookingDetails');
+    const locale = useLocale();
     const [isUpdating, setIsUpdating] = useState<string | null>(null);
     const [isOpeningChat, setIsOpeningChat] = useState(false);
     const router = useRouter();
@@ -104,9 +107,9 @@ export function BookingDetailsModal({
                     onClick={onClose}
                 />
                 <div className="relative rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
-                    <p className="text-slate-600">Запись не найдена</p>
+                    <p className="text-slate-600">{t('notFound')}</p>
                     <Button variant="outline" className="mt-4" onClick={onClose}>
-                        Закрыть
+                        {t('close')}
                     </Button>
                 </div>
             </div>
@@ -115,7 +118,7 @@ export function BookingDetailsModal({
 
     const statusConfig = STATUS_CONFIG[booking.status] ?? DEFAULT_STATUS;
     const dateObj = new Date(booking.date);
-    const formattedDate = dateObj.toLocaleDateString('ru-RU', {
+    const formattedDate = dateObj.toLocaleDateString(locale, {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
@@ -137,7 +140,7 @@ export function BookingDetailsModal({
                 booking.user_id
             );
             if (!result?.success || !result.conversationId) {
-                alert(result?.error ?? 'Не удалось открыть чат');
+                alert(result?.error ?? t('chatError'));
                 return;
             }
             router.push(`/chat/${result.conversationId}`);
@@ -162,13 +165,13 @@ export function BookingDetailsModal({
             >
                 <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
                     <h2 id="booking-details-title" className="text-lg font-semibold text-slate-900">
-                        Детали записи
+                        {t('title')}
                     </h2>
                     <button
                         type="button"
                         onClick={onClose}
                         className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-                        aria-label="Закрыть"
+                        aria-label={t('close')}
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -187,7 +190,7 @@ export function BookingDetailsModal({
                             className={`ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${statusConfig.bg} ${statusConfig.text}`}
                         >
                             <span className={`h-1.5 w-1.5 rounded-full ${statusConfig.dot}`} />
-                            {statusConfig.label}
+                            {t(`status.${statusConfig.labelKey}`)}
                         </span>
                     </div>
 
@@ -207,7 +210,7 @@ export function BookingDetailsModal({
                         </div>
                         {booking.service && (
                             <p className="text-sm text-slate-600">
-                                Услуга: <span className="font-medium">{booking.service.title}</span>
+                                {t('service')}: <span className="font-medium">{booking.service.title}</span>
                                 {' · '}
                                 {typeof booking.service.price === 'number'
                                     ? `€${booking.service.price.toFixed(0)}`
@@ -252,7 +255,7 @@ export function BookingDetailsModal({
                                 ) : (
                                     <MessageCircle className="h-4 w-4" />
                                 )}
-                                <span className="ml-2">Написать</span>
+                                <span className="ml-2">{t('message')}</span>
                             </Button>
                         )}
                     </div>
@@ -272,7 +275,7 @@ export function BookingDetailsModal({
                                         ) : (
                                             <Check className="h-4 w-4" />
                                         )}
-                                        <span className="ml-2">Подтвердить</span>
+                                        <span className="ml-2">{t('confirm')}</span>
                                     </Button>
                                     <Button
                                         size="sm"
@@ -286,7 +289,7 @@ export function BookingDetailsModal({
                                         ) : (
                                             <X className="h-4 w-4" />
                                         )}
-                                        <span className="ml-2">Отменить</span>
+                                        <span className="ml-2">{t('cancel')}</span>
                                     </Button>
                                 </>
                             )}
@@ -302,7 +305,7 @@ export function BookingDetailsModal({
                                         ) : (
                                             <Check className="h-4 w-4" />
                                         )}
-                                        <span className="ml-2">Завершить визит</span>
+                                        <span className="ml-2">{t('completeVisit')}</span>
                                     </Button>
                                     <Button
                                         size="sm"
@@ -315,7 +318,7 @@ export function BookingDetailsModal({
                                         ) : (
                                             <X className="h-4 w-4" />
                                         )}
-                                        <span className="ml-2">Не пришёл</span>
+                                        <span className="ml-2">{t('noShow')}</span>
                                     </Button>
                                     <Button
                                         size="sm"
@@ -329,7 +332,7 @@ export function BookingDetailsModal({
                                         ) : (
                                             <X className="h-4 w-4" />
                                         )}
-                                        <span className="ml-2">Отменить</span>
+                                        <span className="ml-2">{t('cancel')}</span>
                                     </Button>
                                 </>
                             )}

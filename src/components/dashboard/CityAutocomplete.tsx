@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, Loader2, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 export type CitySuggestion = {
     name: string;
@@ -27,6 +28,7 @@ export function CityAutocomplete({
     onSuggestionSelect,
     className,
 }: CityAutocompleteProps) {
+    const t = useTranslations('dashboard.provider.cityAutocomplete');
     const wrapperRef = useRef<HTMLDivElement>(null);
     const [isOpen, setIsOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -84,7 +86,7 @@ export function CityAutocomplete({
 
                 console.error('[CityAutocomplete] search failed:', error);
                 setResults([]);
-                setSearchError('Не удалось загрузить города. Попробуйте еще раз.');
+                setSearchError(t('loadError'));
             } finally {
                 setIsLoading(false);
             }
@@ -94,7 +96,7 @@ export function CityAutocomplete({
             controller.abort();
             window.clearTimeout(timeoutId);
         };
-    }, [isOpen, value]);
+    }, [isOpen, t, value]);
 
     const query = value.trim();
     const showDropdown = isOpen && Boolean(query);
@@ -110,7 +112,7 @@ export function CityAutocomplete({
                     onValueChange(event.target.value);
                     setIsOpen(true);
                 }}
-                placeholder="Начните вводить город"
+                placeholder={t('placeholder')}
                 autoComplete="off"
                 className={cn('h-10 bg-gray-50 pr-10 text-sm', className)}
             />
@@ -129,7 +131,7 @@ export function CityAutocomplete({
                 <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
                     {showMinLengthHint ? (
                         <div className="px-3 py-3 text-sm text-gray-500">
-                            Введите минимум 2 символа для поиска города.
+                            {t('minLength')}
                         </div>
                     ) : null}
 
@@ -141,7 +143,7 @@ export function CityAutocomplete({
 
                     {!showMinLengthHint && !searchError && !isLoading && results.length === 0 ? (
                         <div className="px-3 py-3 text-sm text-gray-500">
-                            Города не найдены. Уточните запрос.
+                            {t('notFound')}
                         </div>
                     ) : null}
 

@@ -2,6 +2,7 @@
 
 import { Camera, Clock, Euro, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { ServicePhotoUpload, type ServicePhoto } from '@/components/dashboard/ServicePhotoUpload';
+import { useTranslations } from 'next-intl';
 
 export interface ServiceData {
     id: number;
@@ -23,10 +24,11 @@ interface ServiceListProps {
 }
 
 export function ServiceList({ services, deletingId, onDelete, onEdit, showPhotoUpload = false }: ServiceListProps) {
+    const t = useTranslations('dashboard.provider.servicesUi');
     if (services.length === 0) {
         return (
             <div className="text-center py-8">
-                <p className="text-sm text-gray-400">Услуги пока не добавлены</p>
+                <p className="text-sm text-gray-400">{t('empty')}</p>
             </div>
         );
     }
@@ -54,7 +56,7 @@ export function ServiceList({ services, deletingId, onDelete, onEdit, showPhotoU
                                 {service.description ? (
                                     <p className="mt-1 line-clamp-2 text-xs text-gray-500">{service.description}</p>
                                 ) : (
-                                    <p className="mt-1 text-xs text-gray-400">Добавьте описание в карточку услуги</p>
+                                    <p className="mt-1 text-xs text-gray-400">{t('addDescription')}</p>
                                 )}
                             </div>
                             <div className="flex items-center gap-1">
@@ -64,14 +66,14 @@ export function ServiceList({ services, deletingId, onDelete, onEdit, showPhotoU
                                     className="inline-flex h-8 items-center gap-1 rounded-full border border-gray-300 px-3 text-xs font-medium text-gray-600 transition-colors hover:border-gray-900 hover:text-gray-900"
                                 >
                                     <Pencil className="h-3.5 w-3.5" />
-                                    Изменить
+                                    {t('edit')}
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => onDelete(service.id)}
                                     disabled={deletingId === service.id}
                                     className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-300 transition-colors hover:text-red-500 disabled:opacity-60"
-                                    aria-label="Удалить услугу"
+                                    aria-label={t('deleteService')}
                                 >
                                     {deletingId === service.id ? (
                                         <Loader2 className="h-4 w-4 animate-spin text-red-400" />
@@ -85,11 +87,11 @@ export function ServiceList({ services, deletingId, onDelete, onEdit, showPhotoU
                         <div className="mt-2 flex items-center gap-3">
                             <span className="flex items-center gap-1 text-xs text-gray-400">
                                 <Euro className="w-3 h-3" />
-                                {Number(service.price) === 0 ? 'по договорённости' : `${Number(service.price).toFixed(0)} €`}
+                                {Number(service.price) === 0 ? t('byAgreement') : `${Number(service.price).toFixed(0)} €`}
                             </span>
                             <span className="flex items-center gap-1 text-xs text-gray-400">
                                 <Clock className="w-3 h-3" />
-                                {service.duration_min === 0 ? 'по договорённости' : `${service.duration_min} мин`}
+                                {service.duration_min === 0 ? t('byAgreement') : t('durationMin', { count: service.duration_min })}
                             </span>
                         </div>
 

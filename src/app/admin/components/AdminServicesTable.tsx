@@ -13,14 +13,16 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Briefcase, Clock, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type ServiceWithProfile = Service & { profile: Profile | null };
 
 export default function AdminServicesTable({ services }: { services: ServiceWithProfile[] }) {
+    const t = useTranslations("dashboard.admin.servicesTable");
     const [isPending, startTransition] = useTransition();
 
     const handleDelete = (serviceId: number) => {
-        if (!window.confirm("Вы уверены, что хотите удалить эту услугу? Это действие нельзя отменить.")) {
+        if (!window.confirm(t("deleteConfirm"))) {
             return;
         }
         startTransition(() => {
@@ -34,19 +36,19 @@ export default function AdminServicesTable({ services }: { services: ServiceWith
                 <TableHeader>
                     <TableRow className="bg-gray-50 hover:bg-gray-50 border-b border-gray-100">
                         <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Название услуги
+                            {t("columns.service")}
                         </TableHead>
                         <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Мастер / Салон
+                            {t("columns.provider")}
                         </TableHead>
                         <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Цена
+                            {t("columns.price")}
                         </TableHead>
                         <TableHead className="py-3 text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Длительность
+                            {t("columns.duration")}
                         </TableHead>
                         <TableHead className="py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-400">
-                            Действия
+                            {t("columns.actions")}
                         </TableHead>
                     </TableRow>
                 </TableHeader>
@@ -55,7 +57,7 @@ export default function AdminServicesTable({ services }: { services: ServiceWith
                         <TableRow>
                             <TableCell colSpan={5} className="py-12 text-center text-gray-400">
                                 <Briefcase className="mx-auto mb-2 h-8 w-8 text-gray-200" />
-                                Нет услуг
+                                {t("empty")}
                             </TableCell>
                         </TableRow>
                     ) : (
@@ -76,7 +78,7 @@ export default function AdminServicesTable({ services }: { services: ServiceWith
                                             <span className="text-xs text-gray-400">{service.profile.city}</span>
                                         </div>
                                     ) : (
-                                        <span className="italic text-gray-400 text-sm">Профиль удален</span>
+                                        <span className="italic text-gray-400 text-sm">{t("profileDeleted")}</span>
                                     )}
                                 </TableCell>
                                 <TableCell className="py-3.5">
@@ -87,7 +89,7 @@ export default function AdminServicesTable({ services }: { services: ServiceWith
                                 <TableCell className="py-3.5">
                                     <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 border border-gray-200 px-2.5 py-0.5 text-xs font-medium text-gray-600">
                                         <Clock className="h-3 w-3" />
-                                        {service.duration_min} мин.
+                                        {t("durationMin", { count: service.duration_min })}
                                     </span>
                                 </TableCell>
                                 <TableCell className="py-3.5 text-right">
@@ -99,7 +101,7 @@ export default function AdminServicesTable({ services }: { services: ServiceWith
                                         className="gap-1.5 border-gray-200 text-gray-600 text-xs hover:bg-red-50 hover:text-red-700 hover:border-red-200"
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
-                                        Удалить
+                                        {t("delete")}
                                     </Button>
                                 </TableCell>
                             </TableRow>

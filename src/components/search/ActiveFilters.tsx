@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, X } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { PROVIDER_LANGUAGE_OPTIONS } from '@/lib/provider-languages';
 
 interface ActiveFiltersProps {
@@ -13,6 +14,7 @@ interface ActiveFiltersProps {
 export function ActiveFilters({ cityFilter, queryFilter, languageFilter }: ActiveFiltersProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const t = useTranslations('search.filters');
     const activeLanguage = PROVIDER_LANGUAGE_OPTIONS.find((option) => option.value === languageFilter);
 
     // Resolve the location: prefer the prop, fall back to the `location` URL param
@@ -47,7 +49,7 @@ export function ActiveFilters({ cityFilter, queryFilter, languageFilter }: Activ
             {resolvedCity && (
             <button
                     onClick={() => removeFilter(cityParamKey)}
-                    aria-label={`Удалить фильтр: ${resolvedCity}`}
+                    aria-label={t('removeFilter', { label: resolvedCity })}
                     className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[#E5D5C5] px-3 py-1.5 text-xs font-medium text-[#4A3B32] transition hover:bg-[#d9c8b5]"
                 >
                     {resolvedCity}
@@ -57,7 +59,7 @@ export function ActiveFilters({ cityFilter, queryFilter, languageFilter }: Activ
             {queryFilter && (
                 <button
                     onClick={() => removeFilter('q')}
-                    aria-label={`Удалить фильтр: ${queryFilter}`}
+                    aria-label={t('removeFilter', { label: queryFilter })}
                     className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[#E5D5C5] px-3 py-1.5 text-xs font-medium text-[#4A3B32] transition hover:bg-[#d9c8b5]"
                 >
                     <Search className="h-3 w-3" />
@@ -68,7 +70,7 @@ export function ActiveFilters({ cityFilter, queryFilter, languageFilter }: Activ
             {activeLanguage && (
                 <button
                     onClick={() => removeFilter('language')}
-                    aria-label={`Удалить фильтр: ${activeLanguage.label}`}
+                    aria-label={t('removeFilter', { label: activeLanguage.label })}
                     className="min-h-[44px] inline-flex items-center gap-1.5 rounded-full border border-transparent bg-[#E5D5C5] px-3 py-1.5 text-xs font-medium text-[#4A3B32] transition hover:bg-[#d9c8b5]"
                 >
                     {activeLanguage.flag} {activeLanguage.label}

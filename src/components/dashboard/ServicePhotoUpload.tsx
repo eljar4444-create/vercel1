@@ -10,6 +10,7 @@ import {
     reorderStaffServicePhotos,
     deletePortfolioPhoto,
 } from '@/app/actions/portfolio-photos';
+import { useTranslations } from 'next-intl';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -28,6 +29,7 @@ interface ServicePhotoUploadProps {
 }
 
 export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: ServicePhotoUploadProps) {
+    const t = useTranslations('dashboard.provider.media');
     const inputRef = useRef<HTMLInputElement>(null);
     const [photos, setPhotos] = useState<ServicePhoto[]>(initialPhotos);
     const [isUploading, setIsUploading] = useState(false);
@@ -41,12 +43,12 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
 
         for (const f of files) {
             if (!ALLOWED_TYPES.includes(f.type)) {
-                toast.error('Допустимы только JPEG, PNG и WebP.');
+                toast.error(t('invalidImageType'));
                 resetInput();
                 return;
             }
             if (f.size > MAX_FILE_SIZE) {
-                toast.error('Файл слишком большой (макс. 5 МБ).');
+                toast.error(t('fileTooLarge'));
                 resetInput();
                 return;
             }
@@ -68,8 +70,8 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
             );
             toast.success(
                 result.photos.length === 1
-                    ? 'Фото загружено'
-                    : `Загружено фото: ${result.photos.length}`
+                    ? t('photoUploaded')
+                    : t('photosUploaded', { count: result.photos.length })
             );
         } else {
             toast.error(result.error);
@@ -89,7 +91,7 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
         setIsMutating(false);
         if (!result.success) {
             setPhotos(snapshot);
-            toast.error(result.error || 'Не удалось изменить порядок.');
+            toast.error(result.error || t('reorderError'));
         }
     };
 
@@ -117,17 +119,17 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
 
     const handleDelete = async (photoId: string) => {
         if (busy) return;
-        if (!window.confirm('Удалить это фото?')) return;
+        if (!window.confirm(t('deletePhotoConfirm'))) return;
         const snapshot = photos;
         setPhotos((prev) => prev.filter((p) => p.id !== photoId));
         setIsMutating(true);
         const result = await deletePortfolioPhoto(photoId);
         setIsMutating(false);
         if (result.success) {
-            toast.success('Фото удалено');
+            toast.success(t('photoDeleted'));
         } else {
             setPhotos(snapshot);
-            toast.error(result.error || 'Не удалось удалить фото.');
+            toast.error(result.error || t('photoDeleteError'));
         }
     };
 
@@ -143,7 +145,7 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
             {idx === 0 && (
                 <span className="absolute left-0 top-0 inline-flex items-center gap-0.5 rounded-br-md bg-amber-500 px-1 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-white">
                     <Star className="h-2.5 w-2.5" />
-                    Обложка
+                    {t('coverBadge')}
                 </span>
             )}
 
@@ -157,7 +159,7 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
                             handleSetCover(p.id);
                         }}
                         disabled={busy}
-                        aria-label="Сделать обложкой"
+                        aria-label={t('makeCover')}
                         className="pointer-events-auto rounded-full bg-white/90 p-1 text-amber-600 shadow-sm transition hover:bg-white disabled:opacity-60"
                     >
                         <Star className="h-3 w-3" />
@@ -171,7 +173,7 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
                         handleDelete(p.id);
                     }}
                     disabled={busy}
-                    aria-label="Удалить фото"
+                    aria-label={t('deletePhoto')}
                     className="pointer-events-auto rounded-full bg-white/90 p-1 text-red-600 shadow-sm transition hover:bg-white disabled:opacity-60"
                 >
                     <Trash2 className="h-3 w-3" />
@@ -213,7 +215,7 @@ export function ServicePhotoUpload({ serviceId, staffId, initialPhotos }: Servic
                 ) : (
                     <Camera className="h-4 w-4" />
                 )}
-                {isUploading ? 'Загрузка...' : 'Добавить фото'}
+                {isUploading ? t('uploading') : t('addPhoto')}
             </button>
 
             <input

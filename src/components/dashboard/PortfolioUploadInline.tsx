@@ -5,6 +5,7 @@ import { Camera, Loader2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { uploadServicePhotos, uploadPortfolioFile, deletePortfolioPhoto } from '@/app/actions/portfolio-photos';
 import type { StaffOption } from './AddServiceForm';
+import { useTranslations } from 'next-intl';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -37,6 +38,7 @@ export function PortfolioUploadInline({
     assignedStaff,
     onPendingPhotosChange,
 }: PortfolioUploadInlineProps) {
+    const t = useTranslations('dashboard.provider.media');
     const inputRef = useRef<HTMLInputElement>(null);
     // Saved photos (have DB id, only used when serviceId is present)
     const [savedPhotos, setSavedPhotos] = useState<PortfolioItem[]>([]);
@@ -56,12 +58,12 @@ export function PortfolioUploadInline({
 
         for (const f of files) {
             if (!ALLOWED_TYPES.includes(f.type)) {
-                toast.error('Допустимы только JPEG, PNG и WebP.');
+                toast.error(t('invalidImageType'));
                 resetInput();
                 return;
             }
             if (f.size > MAX_FILE_SIZE) {
-                toast.error('Файл слишком большой (макс. 5 МБ).');
+                toast.error(t('fileTooLarge'));
                 resetInput();
                 return;
             }
@@ -92,8 +94,8 @@ export function PortfolioUploadInline({
                 onPendingPhotosChange?.(updated);
                 toast.success(
                     newPending.length === 1
-                        ? 'Фото загружено'
-                        : `Загружено фото: ${newPending.length}`
+                        ? t('photoUploaded')
+                        : t('photosUploaded', { count: newPending.length })
                 );
             }
         } else {
@@ -113,8 +115,8 @@ export function PortfolioUploadInline({
                 setSavedPhotos((prev) => [...prev, ...newSaved]);
                 toast.success(
                     result.photos.length === 1
-                        ? 'Фото загружено'
-                        : `Загружено фото: ${result.photos.length}`
+                        ? t('photoUploaded')
+                        : t('photosUploaded', { count: result.photos.length })
                 );
             } else {
                 toast.error(result.error);
@@ -127,7 +129,7 @@ export function PortfolioUploadInline({
 
     const handleDeleteSaved = async (photoId: string) => {
         if (busy) return;
-        if (!window.confirm('Удалить это фото?')) return;
+        if (!window.confirm(t('deletePhotoConfirm'))) return;
 
         setDeletingId(photoId);
         const result = await deletePortfolioPhoto(photoId);
@@ -135,9 +137,9 @@ export function PortfolioUploadInline({
 
         if (result.success) {
             setSavedPhotos((prev) => prev.filter((p) => p.id !== photoId));
-            toast.success('Фото удалено');
+            toast.success(t('photoDeleted'));
         } else {
-            toast.error(result.error || 'Не удалось удалить фото.');
+            toast.error(result.error || t('photoDeleteError'));
         }
     };
 
@@ -187,7 +189,7 @@ export function PortfolioUploadInline({
                                     }
                                     disabled={deletingId === p.key}
                                     className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100 disabled:opacity-50"
-                                    aria-label="Удалить"
+                                    aria-label={t('delete')}
                                 >
                                     {deletingId === p.key ? (
                                         <Loader2 className="h-2.5 w-2.5 animate-spin" />
@@ -203,9 +205,9 @@ export function PortfolioUploadInline({
                                         handleStaffChange(p.key, e.target.value || null)
                                     }
                                     className="w-16 truncate rounded border border-gray-200 bg-white px-0.5 py-0.5 text-[10px] text-gray-700 focus:border-gray-400 focus:outline-none"
-                                    title="Чья это работа?"
+                                    title={t('staffOwnerTitle')}
                                 >
-                                    <option value="">Мастер</option>
+                                    <option value="">{t('master')}</option>
                                     {assignedStaff.map((s) => (
                                         <option key={s.id} value={s.id}>
                                             {s.name}
@@ -229,7 +231,7 @@ export function PortfolioUploadInline({
                 ) : (
                     <Camera className="h-3.5 w-3.5" />
                 )}
-                {isUploading ? 'Загрузка...' : 'Добавить примеры работ'}
+                {isUploading ? t('uploading') : t('addPortfolioExamples')}
             </button>
 
             <input

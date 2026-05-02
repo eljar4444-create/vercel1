@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import Image from 'next/image';
 import { X, Star, Clock } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -66,6 +67,7 @@ export function SpecialistSelector({
     onSelect,
     preSelectedId,
 }: SpecialistSelectorProps) {
+    const t = useTranslations('salon');
     const handleSelect = useCallback(
         (id: string | null) => {
             onSelect(id);
@@ -85,7 +87,7 @@ export function SpecialistSelector({
                     exit="exit"
                     aria-modal="true"
                     role="dialog"
-                    aria-label="Выбор специалиста"
+                    aria-label={t('modals.specialistSelector.dialogLabel')}
                 >
                     {/* Backdrop */}
                     <div
@@ -106,7 +108,7 @@ export function SpecialistSelector({
                         <div className="flex items-center justify-between border-b border-booking-border/50 px-6 py-4">
                             <div>
                                 <h2 className="font-serif text-lg font-semibold text-booking-textMain">
-                                    Выберите специалиста
+                                    {t('modals.specialistSelector.title')}
                                 </h2>
                                 <p className="mt-0.5 text-xs text-booking-textMuted">{serviceTitle}</p>
                             </div>
@@ -114,7 +116,7 @@ export function SpecialistSelector({
                                 type="button"
                                 onClick={onClose}
                                 className="flex h-9 w-9 items-center justify-center rounded-full bg-booking-card text-booking-textMuted transition-colors hover:bg-booking-border"
-                                aria-label="Закрыть"
+                                aria-label={t('modals.close')}
                             >
                                 <X className="h-4 w-4" />
                             </button>
@@ -201,10 +203,10 @@ export function SpecialistSelector({
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm font-semibold text-booking-textMain">
-                                        Любой свободный специалист
+                                        {t('modals.specialistSelector.anyAvailable')}
                                     </p>
                                     <p className="text-xs text-booking-textMuted">
-                                        Мы подберём ближайшего
+                                        {t('modals.specialistSelector.anyAvailableHint')}
                                     </p>
                                 </div>
                             </button>

@@ -9,6 +9,7 @@ import type { MapBounds } from '@/components/search/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDebounce } from '@/hooks/useDebounce';
 import { cn } from '@/lib/utils';
+import { useTranslations } from 'next-intl';
 
 const SearchResultsMap = dynamic(
     () => import('@/components/search/SearchResultsMap').then((mod) => mod.SearchResultsMap),
@@ -20,10 +21,10 @@ const SearchResultsMap = dynamic(
 
 /** Catches React rendering errors inside the map without crashing the entire page. */
 class MapErrorBoundary extends React.Component<
-    { children: React.ReactNode },
+    { children: React.ReactNode; fallbackMessage: string },
     { hasError: boolean }
 > {
-    constructor(props: { children: React.ReactNode }) {
+    constructor(props: { children: React.ReactNode; fallbackMessage: string }) {
         super(props);
         this.state = { hasError: false };
     }
@@ -37,7 +38,7 @@ class MapErrorBoundary extends React.Component<
         if (this.state.hasError) {
             return (
                 <div className="flex h-full w-full items-center justify-center rounded-3xl bg-stone-50 text-sm text-stone-400">
-                    Карта временно недоступна
+                    {this.props.fallbackMessage}
                 </div>
             );
         }
@@ -115,6 +116,7 @@ export function SearchInteractiveLayout({
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
+    const t = useTranslations('search');
 
     const [profiles, setProfiles] = useState<any[]>(initialProfiles);
     const [mapMarkers, setMapMarkers] = useState<any[]>(initialMapMarkers);
@@ -129,18 +131,9 @@ export function SearchInteractiveLayout({
         profileType === 'SALON' ? p.provider_type === 'SALON' : p.provider_type !== 'SALON'
     );
 
-    // Russian pluralization: 1 салон, 2 салона, 5 салонов
-    const pluralize = (n: number, forms: [string, string, string]) => {
-        const mod10 = n % 10;
-        const mod100 = n % 100;
-        if (mod10 === 1 && mod100 !== 11) return forms[0];
-        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return forms[1];
-        return forms[2];
-    };
-
     const resultsLabel = profileType === 'SALON'
-        ? pluralize(filteredProfiles.length, ['салон', 'салона', 'салонов'])
-        : pluralize(filteredProfiles.length, ['специалист', 'специалиста', 'специалистов']);
+        ? t('resultsSalons', { count: filteredProfiles.length })
+        : t('resultsSpecialists', { count: filteredProfiles.length });
 
     const favoriteSet = new Set(favoriteIds);
 
@@ -269,13 +262,13 @@ export function SearchInteractiveLayout({
                 <div className="mb-3 flex items-center justify-between gap-3">
                     <h1 className="text-2xl font-bold text-stone-800 font-sans">
                         {isLoading
-                            ? 'Поиск специалистов…'
+                            ? t('loading')
                             : filteredProfiles.length > 0
-                                ? `Найдено ${filteredProfiles.length} ${resultsLabel}`
-                                : profileType === 'SALON' ? 'Салоны не найдены' : 'Специалисты не найдены'}
+                                ? resultsLabel
+                                : profileType === 'SALON' ? t('emptySalons') : t('emptySpecialists')}
                     </h1>
                     <Link href="/" className="text-sm text-stone-500 transition hover:text-stone-800">
-                        На главную
+                        {t('homeLink')}
                     </Link>
                 </div>
 
@@ -291,7 +284,7 @@ export function SearchInteractiveLayout({
                                 : 'text-stone-500 hover:text-stone-700'
                         )}
                     >
-                        Частные мастера
+                        {t('toggleFreelancers')}
                     </button>
                     <button
                         type="button"
@@ -303,7 +296,7 @@ export function SearchInteractiveLayout({
                                 : 'text-stone-500 hover:text-stone-700'
                         )}
                     >
-                        Салоны
+                        {t('toggleSalons')}
                     </button>
                 </div>
 
@@ -345,13 +338,13 @@ export function SearchInteractiveLayout({
                             </div>
                         ) : (
                             <div className="rounded-2xl bg-white p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-                                <h2 className="text-xl font-semibold text-stone-800 font-sans">Специалисты не найдены</h2>
-                                <p className="mt-2 text-sm text-stone-500">Попробуйте сдвинуть карту или изменить запрос.</p>
+                                <h2 className="text-xl font-semibold text-stone-800 font-sans">{t('emptySpecialists')}</h2>
+                                <p className="mt-2 text-sm text-stone-500">{t('emptyHint')}</p>
                                 <Link
                                     href="/search"
                                     className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-stone-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-700"
                                 >
-                                    Сбросить фильтры
+                                    {t('resetFilters')}
                                 </Link>
                             </div>
                         )}
@@ -361,7 +354,7 @@ export function SearchInteractiveLayout({
 
             <aside className="relative hidden h-full p-4 lg:flex lg:w-[52%] xl:w-[54%] lg:items-stretch">
                 <div className="h-full w-full overflow-hidden rounded-3xl border border-stone-200/50 shadow-[0_20px_50px_rgba(0,0,0,0.08)] filter grayscale-[0.3] sepia-[0.1] contrast-[0.9] opacity-90">
-                    <MapErrorBoundary>
+                    <MapErrorBoundary fallbackMessage={t('mapUnavailable')}>
                         <SearchResultsMap
                             markers={mapMarkers}
                             hoveredMarkerId={hoveredMasterId}

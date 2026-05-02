@@ -2,24 +2,19 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { SlidersHorizontal, Check } from 'lucide-react';
 import { PROVIDER_LANGUAGE_OPTIONS } from '@/lib/provider-languages';
 
 type FilterKey = 'today' | 'homeVisit' | 'promo' | 'inSalon' | 'cardPayment' | 'instantBooking';
 
-const FILTER_OPTIONS: { key: FilterKey; label: string }[] = [
-    { key: 'today', label: 'Доступно сегодня' },
-    { key: 'homeVisit', label: 'Выезд на дом' },
-    { key: 'promo', label: 'Акции' },
-    { key: 'inSalon', label: 'Работает в салоне' },
-    { key: 'cardPayment', label: 'Оплата картой / PayPal' },
-    { key: 'instantBooking', label: 'Мгновенное подтверждение' },
-];
+const FILTER_KEYS: FilterKey[] = ['today', 'homeVisit', 'promo', 'inSalon', 'cardPayment', 'instantBooking'];
 
 export function SearchQuickFilters() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const t = useTranslations('search.filters');
     const [open, setOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -75,7 +70,7 @@ export function SearchQuickFilters() {
 
     return (
         <nav
-            aria-label="Фильтры"
+            aria-label={t('title')}
             className="sticky top-0 z-10 -mx-4 mb-4 border-b border-[#E5E0D8]/50 bg-[var(--app-shell-bg)] px-4 py-2 md:-mx-6 md:px-6"
         >
             <div className="flex items-center">
@@ -86,11 +81,11 @@ export function SearchQuickFilters() {
                         className="flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-600 transition-colors hover:bg-stone-50"
                         aria-expanded={open}
                         aria-haspopup="menu"
-                        aria-label="Фильтры"
+                        aria-label={t('title')}
                     >
                         <SlidersHorizontal className="h-4 w-4 text-stone-500" />
                         <span className="whitespace-nowrap">
-                            Фильтры
+                            {t('title')}
                             {activeCount > 0 && (
                                 <span className="ml-1 font-medium text-stone-800">
                                     • {activeCount}
@@ -104,7 +99,7 @@ export function SearchQuickFilters() {
                             className="absolute left-0 top-full z-50 mt-2 w-56 rounded-2xl border border-stone-100 bg-white p-2 shadow-xl"
                             role="menu"
                         >
-                            {FILTER_OPTIONS.map(({ key, label }) => {
+                            {FILTER_KEYS.map((key) => {
                                 const active = isActive(key);
                                 return (
                                     <button
@@ -130,13 +125,13 @@ export function SearchQuickFilters() {
                                                 <Check className="h-3 w-3" strokeWidth={2.5} />
                                             ) : null}
                                         </span>
-                                        {label}
+                                        {t(key)}
                                     </button>
                                 );
                             })}
                             <div className="my-2 border-t border-stone-100" />
                             <div className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-400">
-                                Язык
+                                {t('languageHeader')}
                             </div>
                             {PROVIDER_LANGUAGE_OPTIONS.map(({ value, label, flag }) => {
                                 const active = activeLanguage === value;

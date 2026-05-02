@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { submitLegalSetup } from '@/app/actions/legalSetup';
 import { useSession } from 'next-auth/react';
+import { useTranslations } from 'next-intl';
 
 type InitialData = {
     legalEntityType: string;
@@ -13,6 +14,7 @@ type InitialData = {
 };
 
 export function LegalSetupForm({ profileId, initialData }: { profileId: number, initialData: InitialData }) {
+    const t = useTranslations('dashboard.provider.legalSetup.form');
     const router = useRouter();
     const { update } = useSession();
     const [loading, setLoading] = useState(false);
@@ -43,11 +45,11 @@ export function LegalSetupForm({ profileId, initialData }: { profileId: number, 
                 await update({ onboardingCompleted: true });
                 window.location.href = '/dashboard';
             } else {
-                setError(result.error || 'Ошибка при сохранении данных');
+                setError(result.error || t('saveError'));
                 setLoading(false);
             }
         } catch (e: any) {
-            setError(e.message || 'Произошла непредвиденная ошибка');
+            setError(e.message || t('unexpectedError'));
             setLoading(false);
         }
     };
@@ -62,28 +64,28 @@ export function LegalSetupForm({ profileId, initialData }: { profileId: number, 
 
             <div className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium mb-1">Тип лица</label>
+                    <label className="block text-sm font-medium mb-1">{t('entityType')}</label>
                     <select 
                         value={entityType}
                         onChange={(e) => setEntityType(e.target.value)}
                         className="w-full border rounded-md p-2 bg-white"
                         required
                     >
-                        <option value="individual">Физическое лицо / Самозанятый (Частный мастер)</option>
-                        <option value="company">Юридическое лицо (Салон / GmbH / UG)</option>
+                        <option value="individual">{t('individual')}</option>
+                        <option value="company">{t('company')}</option>
                     </select>
                 </div>
 
                 <div>
                     <label className="block text-sm font-medium mb-1">
-                        Полное юридическое имя (ФИО или название компании) *
+                        {t('legalName')}
                     </label>
                     <input 
                         type="text" 
                         value={data.legalName}
                         onChange={(e) => setData({ ...data, legalName: e.target.value })}
                         className="w-full border rounded-md p-2"
-                        placeholder="Например: Ivan Ivanov или Beauty Salon GmbH"
+                        placeholder={t('legalNamePlaceholder')}
                         required
                         minLength={3}
                     />
@@ -91,30 +93,30 @@ export function LegalSetupForm({ profileId, initialData }: { profileId: number, 
 
                 <div>
                     <label className="block text-sm font-medium mb-1">
-                        Идентификационный номер налогоплательщика (Steuer-ID / Steuernummer) *
+                        {t('taxId')}
                     </label>
                     <input 
                         type="text" 
                         value={data.taxId}
                         onChange={(e) => setData({ ...data, taxId: e.target.value })}
                         className="w-full border rounded-md p-2"
-                        placeholder="Например: 11/222/33333 или 11 222 33333"
+                        placeholder={t('taxIdPlaceholder')}
                         required
                     />
-                    <p className="text-xs text-gray-500 mt-1">Обязательно для всех, кто оказывает платные услуги.</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('taxIdHint')}</p>
                 </div>
 
                 {entityType === 'company' && (
                     <div>
                         <label className="block text-sm font-medium mb-1">
-                            НДС номер (USt-IdNr)
+                            {t('vatId')}
                         </label>
                         <input 
                             type="text" 
                             value={data.vatId}
                             onChange={(e) => setData({ ...data, vatId: e.target.value })}
                             className="w-full border rounded-md p-2"
-                            placeholder="DE123456789 (Если применимо)"
+                            placeholder={t('vatIdPlaceholder')}
                         />
                     </div>
                 )}
@@ -125,7 +127,7 @@ export function LegalSetupForm({ profileId, initialData }: { profileId: number, 
                 disabled={loading}
                 className="w-full bg-black text-white py-3 rounded-md font-medium hover:bg-gray-800 disabled:opacity-50"
             >
-                {loading ? 'Сохранение...' : 'Завершить регистрацию'}
+                {loading ? t('saving') : t('submit')}
             </button>
         </form>
     );

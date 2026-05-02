@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useCallback } from 'react';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,6 +57,7 @@ export function CraftWallGrid({
     onPhotoTap,
     shuffleSeed = 0,
 }: CraftWallGridProps) {
+    const t = useTranslations('salon');
     const shuffled = useMemo(
         () => (shuffleSeed ? seededShuffle(photos, shuffleSeed) : photos),
         [photos, shuffleSeed]
@@ -89,7 +91,7 @@ export function CraftWallGrid({
                         type="button"
                         onClick={() => onPhotoTap?.(photo, idx)}
                         className="group relative aspect-square overflow-hidden rounded-2xl bg-booking-card shadow-soft-out transition-transform duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-booking-primary focus-visible:ring-offset-2"
-                        aria-label={`Фото работы ${idx + 1}`}
+                        aria-label={t('modals.craftWall.photoAria', { number: idx + 1 })}
                     >
                         <Image
                             src={photo.url}
@@ -112,7 +114,7 @@ export function CraftWallGrid({
                         onClick={showMore}
                         className="rounded-full border border-booking-border bg-booking-card px-6 py-2.5 text-sm font-medium text-booking-textMain shadow-soft-out transition-all hover:bg-booking-bg hover:shadow-soft-in active:scale-95"
                     >
-                        Показать ещё
+                        {t('modals.craftWall.showMore')}
                     </button>
                 </div>
             )}

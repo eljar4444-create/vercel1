@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Info, AlertCircle, Sparkles, Loader2 } from 'lucide-react';
 import { verifyAndPublishProfile } from '@/app/actions/publishProfile';
+import { useTranslations } from 'next-intl';
 
 type PendingReviewNoticeProps = {
     profileId: number;
@@ -11,6 +12,7 @@ type PendingReviewNoticeProps = {
 };
 
 export function PendingReviewNotice({ profileId, profileStatus }: PendingReviewNoticeProps) {
+    const t = useTranslations('dashboard.provider.publishNotice');
     const isPendingReview = profileStatus === 'PENDING_REVIEW' || profileStatus === 'PENDING' || profileStatus === 'DRAFT';
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -25,10 +27,10 @@ export function PendingReviewNotice({ profileId, profileStatus }: PendingReviewN
         try {
             const result = await verifyAndPublishProfile();
             if (!result.success) {
-                setError(result.error || 'Ошибка публикации');
+                setError(result.error || t('publishError'));
             }
         } catch (e) {
-            setError('Внутренняя ошибка сервера');
+            setError(t('serverError'));
         } finally {
             setLoading(false);
         }
@@ -43,11 +45,13 @@ export function PendingReviewNotice({ profileId, profileStatus }: PendingReviewN
                     </div>
                     <div>
                         <h3 className="text-base font-bold text-sky-950">
-                            Ваш профиль скрыт из поиска
+                            {t('title')}
                         </h3>
                         <p className="mt-1 text-sm leading-relaxed text-sky-800 max-w-2xl">
-                            Чтобы клиенты могли находить вас и записываться онлайн, необходимо опубликовать профиль. 
-                            Убедитесь, что вы добавили <strong>фотографию</strong> и хотя бы одну <strong>услугу с ценой</strong>.
+                            {t.rich('body', {
+                                photo: (chunks) => <strong>{chunks}</strong>,
+                                service: (chunks) => <strong>{chunks}</strong>,
+                            })}
                         </p>
                         
                         {error && (
@@ -66,7 +70,7 @@ export function PendingReviewNotice({ profileId, profileStatus }: PendingReviewN
                         className="w-full sm:w-auto bg-sky-600 text-white hover:bg-sky-700 shadow-sm"
                     >
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {loading ? 'Проверка...' : 'Опубликовать профиль'}
+                        {loading ? t('checking') : t('publish')}
                     </Button>
                 </div>
             </div>

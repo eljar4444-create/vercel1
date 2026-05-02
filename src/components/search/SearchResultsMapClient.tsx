@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, useId } from 'react';
+import { useTranslations } from 'next-intl';
 
 import { divIcon } from 'leaflet';
 import { Circle, MapContainer, Marker, TileLayer, useMap, FeatureGroup, useMapEvents } from 'react-leaflet';
@@ -133,6 +134,7 @@ export function SearchResultsMapClient({
     initialZoom,
 }: SearchResultsMapClientProps) {
     const router = useRouter();
+    const t = useTranslations('search');
     const zoom = initialZoom ?? 11;
     // Unique key per component instance — forces a fresh DOM container on Strict Mode remount
     const mapKey = useId();
@@ -169,7 +171,7 @@ export function SearchResultsMapClient({
     if (mapError) {
         return (
             <div className="flex h-full w-full items-center justify-center bg-stone-50 text-stone-400 text-sm">
-                Карта временно недоступна
+                {t('mapUnavailable')}
             </div>
         );
     }
@@ -217,7 +219,7 @@ export function SearchResultsMapClient({
                                 </div>
                                 
                                 <div class="w-full py-2 bg-slate-900 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm">
-                                    Перейти в профиль
+                                    ${t('mapTooltipCta')}
                                 </div>
                             </div>
                             
@@ -266,7 +268,7 @@ export function SearchResultsMapClient({
         if (!mapError) setMapError(true);
         return (
             <div className="flex h-full w-full items-center justify-center bg-stone-50 text-stone-400 text-sm">
-                Карта временно недоступна
+                {t('mapUnavailable')}
             </div>
         );
     }

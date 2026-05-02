@@ -82,7 +82,7 @@ async function fetchSingleEntitySlots(
     const busyWhere: any = {
         profile_id: profileId,
         date: new Date(date),
-        status: { in: ['PENDING', 'CONFIRMED'] },
+        status: { in: ['LOCKED', 'PENDING', 'CONFIRMED'] },
     };
 
     if (staffId) {
@@ -199,7 +199,7 @@ export async function getWeekAvailableSlots(input: {
                     gte: start,
                     lt: end,
                 },
-                status: { in: ['PENDING', 'CONFIRMED'] },
+                status: { in: ['LOCKED', 'PENDING', 'CONFIRMED'] },
             },
             select: {
                 date: true,

@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { CityAutocomplete, type CitySuggestion } from '@/components/dashboard/CityAutocomplete';
 import { SalonAddressAutocomplete, type SalonAddressSuggestion } from '@/components/dashboard/SalonAddressAutocomplete';
 import { LANGUAGES, PROVIDER_LANGUAGE_OPTIONS, normalizeProviderLanguage, type ProviderLanguage } from '@/lib/provider-languages';
+import { useTranslations } from 'next-intl';
 
 export type ProfileSection = 'general' | 'location' | 'notifications';
 
@@ -44,6 +45,7 @@ interface EditProfileFormProps {
 }
 
 export function EditProfileForm({ profile, categories, connectTelegramLink, section }: EditProfileFormProps) {
+    const t = useTranslations('dashboard.provider.profileForm');
     const router = useRouter();
     const initialProviderType: 'SALON' | 'PRIVATE' | 'INDIVIDUAL' =
         profile.providerType === 'SALON' ? 'SALON' : profile.providerType === 'INDIVIDUAL' ? 'INDIVIDUAL' : 'PRIVATE';
@@ -142,7 +144,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
 
     const handleUploadStudioImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
         if (!isSalon) {
-            toast.error('Фото студии доступны только для салона.');
+            toast.error(t('studioPhotosSalonOnly'));
             event.target.value = '';
             return;
         }
@@ -155,7 +157,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
             let currentCount = studioImages.length;
             for (const file of Array.from(files)) {
                 if (currentCount >= 8) {
-                    toast.error('Можно загрузить максимум 8 фото студии.');
+                    toast.error(t('maxStudioPhotos'));
                     break;
                 }
                 const payload = new FormData();
@@ -165,12 +167,12 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                     currentCount += 1;
                     setStudioImages((prev) => [...prev, result.imageUrl]);
                 } else if (!result.success) {
-                    toast.error(result.error || 'Не удалось загрузить фото');
+                    toast.error(result.error || t('photoUploadError'));
                     break;
                 }
             }
         } catch (uploadError: any) {
-            toast.error(uploadError?.message || 'Не удалось загрузить фото');
+            toast.error(uploadError?.message || t('photoUploadError'));
         } finally {
             setIsUploadingStudio(false);
             event.target.value = '';
@@ -186,19 +188,19 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!city || !city.trim() || !isCityValidated) {
-            setError('Выберите город из выпадающего списка.');
+            setError(t('errors.selectCity'));
             goToLocationSection();
             return;
         }
         if (isSalon) {
             if (!address.trim()) {
-                setError('Укажите полный адрес салона.');
+                setError(t('errors.salonAddress'));
                 goToLocationSection();
                 return;
             }
 
             if (!isAddressValidated || addressCoordinates.lat == null || addressCoordinates.lng == null) {
-                setError('Выберите адрес салона из выпадающего списка.');
+                setError(t('errors.selectSalonAddress'));
                 goToLocationSection();
                 return;
             }
@@ -231,11 +233,11 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
 
         if (result.success) {
             setSaved(true);
-            toast.success('Профиль сохранен');
+            toast.success(t('savedToast'));
             setTimeout(() => setSaved(false), 3000);
         } else {
-            setError(result.error || 'Ошибка');
-            toast.error(result.error || 'Ошибка при сохранении профиля');
+            setError(result.error || t('errors.generic'));
+            toast.error(result.error || t('errors.saveProfile'));
         }
     };
 
@@ -254,7 +256,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
             {saved && (
                 <div className="flex items-center gap-2 border-l-2 border-green-500 px-3 py-2 text-xs text-green-600">
                     <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
-                    Изменения сохранены!
+                    {t('savedInline')}
                 </div>
             )}
 
@@ -262,7 +264,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                 <div className="space-y-4 bg-transparent">
 
                     <div>
-                        <label className={labelClass}>Имя / Название <span className="text-red-500">*</span></label>
+                        <label className={labelClass}>{t('name')} <span className="text-red-500">*</span></label>
                         <input
                             name="name"
                             type="text"
@@ -274,7 +276,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                     </div>
 
                     <div>
-                        <label className={labelClass}>Тип исполнителя <span className="text-red-500">*</span></label>
+                        <label className={labelClass}>{t('providerType')} <span className="text-red-500">*</span></label>
                         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             <label className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-700 hover:border-gray-900 transition-colors">
                                 <input
@@ -285,7 +287,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                                     onChange={() => setProviderType('SALON')}
                                     className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
                                 />
-                                Я представляю салон
+                                {t('salonOption')}
                             </label>
                             <label className="flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-700 hover:border-gray-900 transition-colors">
                                 <input
@@ -296,17 +298,17 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                                     onChange={() => setProviderType(providerType === 'PRIVATE' ? 'PRIVATE' : 'INDIVIDUAL')}
                                     className="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-300"
                                 />
-                                Я частный мастер
+                                {t('privateOption')}
                             </label>
                         </div>
                         <p className="mt-2 text-xs text-gray-500">
-                            Фото студии доступны только для профилей с типом «Салон».
+                            {t('studioPhotosHint')}
                         </p>
                     </div>
 
                     <div>
                         <label className="block text-xs uppercase tracking-wide text-gray-400 mb-1.5">
-                            Специализация (категория) <span className="text-red-500">*</span>
+                            {t('category')} <span className="text-red-500">*</span>
                         </label>
                         <select
                             value={categoryId}
@@ -322,19 +324,19 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                     </div>
 
                     <div>
-                        <label className={labelClass}>О себе / О салоне</label>
+                        <label className={labelClass}>{t('bio')}</label>
                         <textarea
                             name="bio"
                             rows={4}
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
-                            placeholder="Расскажите о вашем опыте, подходе к работе и материалах, которые вы используете..."
+                            placeholder={t('bioPlaceholder')}
                             className="w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-gray-900 transition-colors resize-none"
                         />
                     </div>
 
                     <div>
-                        <label className={labelClass}>Языки</label>
+                        <label className={labelClass}>{t('languages')}</label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6 mt-3">
                             {PROVIDER_LANGUAGE_OPTIONS.map((option) => {
                                 const active = languages.includes(option.value);
@@ -362,7 +364,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
 
                     <div>
                         <label className="block text-xs uppercase tracking-wide text-gray-400 mb-1.5">
-                            Контактный телефон <span className="text-red-500">*</span>
+                            {t('phone')} <span className="text-red-500">*</span>
                         </label>
                         <input
                             name="phone"
@@ -376,7 +378,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
 
                     <div className="bg-gray-50 border border-gray-200 p-6 rounded-xl">
                         <p className="text-xs uppercase text-gray-500 mb-4 tracking-wide font-semibold">
-                            Юридическая информация
+                            {t('legalInfo')}
                         </p>
                         <label className={labelClass}>Steuernummer</label>
                         <input
@@ -389,7 +391,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                             className={inputClass}
                         />
                         <p className="mt-1.5 text-xs text-gray-500">
-                            Erforderlich, um Ihr Profil für Kunden sichtbar zu machen.
+                            {t('taxHint')}
                         </p>
                     </div>
                 </div>
@@ -398,7 +400,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
             {section === 'location' && (
                 <div className="space-y-4 bg-transparent">
                     <div>
-                        <label className={labelClass}>Город</label>
+                        <label className={labelClass}>{t('city')}</label>
                         <CityAutocomplete
                             value={city}
                             isValidated={isCityValidated}
@@ -407,18 +409,18 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                             className={inputClass}
                         />
                         <p className="mt-2 text-xs text-gray-500">
-                            Сначала выберите город из подсказок OpenStreetMap.
+                            {t('cityHint')}
                         </p>
                         {!isCityValidated && city.trim().length > 0 ? (
                             <p className="mt-1 text-xs text-amber-600">
-                                Город нужно подтвердить кликом по одной из подсказок.
+                                {t('cityConfirmHint')}
                             </p>
                         ) : null}
                     </div>
 
                     {isSalon ? (
                         <div>
-                            <label className={labelClass}>Полный адрес салона</label>
+                            <label className={labelClass}>{t('salonAddress')}</label>
                             <SalonAddressAutocomplete
                                 value={address}
                                 city={city}
@@ -430,12 +432,12 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                             />
                             <p className="mt-2 text-xs text-gray-500">
                                 {!isCityValidated
-                                    ? 'Сначала выберите город, затем введите адрес внутри этого города.'
-                                    : 'Введите минимум 3 символа и выберите адрес из списка OpenStreetMap.'}
+                                    ? t('addressNeedsCity')
+                                    : t('addressHint')}
                             </p>
                             {!isAddressValidated && address.trim().length > 0 ? (
                                 <p className="mt-1 text-xs text-amber-600">
-                                    Адрес нужно подтвердить кликом по одной из подсказок.
+                                    {t('addressConfirmHint')}
                                 </p>
                             ) : null}
                         </div>
@@ -446,12 +448,12 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
             {section === 'notifications' && (
                 <div className="space-y-4 bg-transparent">
                     <div className="space-y-3">
-                        <h3 className="text-sm font-semibold text-gray-900">Telegram-уведомления</h3>
+                        <h3 className="text-sm font-semibold text-gray-900">{t('telegramTitle')}</h3>
                         {profile.telegramChatId ? (
                             <>
                                 <p className="flex items-center gap-2 text-sm text-green-700">
                                     <CheckCircle className="h-4 w-4 flex-shrink-0" />
-                                    Telegram успешно подключен
+                                    {t('telegramConnected')}
                                 </p>
                                 <button
                                     type="button"
@@ -461,16 +463,16 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                                         const result = await disconnectTelegram(profile.id);
                                         setIsDisconnecting(false);
                                         if (result.success) {
-                                            toast.success('Telegram отключён');
+                                            toast.success(t('telegramDisconnected'));
                                             router.refresh();
                                         } else {
-                                            toast.error(result.error || 'Ошибка');
+                                            toast.error(result.error || t('errors.generic'));
                                         }
                                     }}
                                     className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-transparent px-4 py-2 text-sm font-medium text-gray-700 hover:border-gray-900 disabled:opacity-60 transition-colors"
                                 >
                                     {isDisconnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                                    Отключить
+                                    {t('disconnect')}
                                 </button>
                             </>
                         ) : connectTelegramLink ? (
@@ -481,11 +483,11 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                                 className="inline-flex items-center gap-2 rounded-xl bg-[#0088cc] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#0077b5]"
                             >
                                 <TelegramIcon className="h-5 w-5" />
-                                Подключить Telegram-бота
+                                {t('connectTelegram')}
                             </a>
                         ) : (
                             <p className="text-sm text-gray-500">
-                                Ссылка для подключения недоступна. Укажите TELEGRAM_BOT_USERNAME в настройках сервера.
+                                {t('telegramUnavailable')}
                             </p>
                         )}
                     </div>
@@ -503,7 +505,7 @@ export function EditProfileForm({ profile, categories, connectTelegramLink, sect
                 ) : (
                     <Save className="w-4 h-4" />
                 )}
-                Сохранить изменения
+                {t('saveChanges')}
             </button>
         </form>
     );

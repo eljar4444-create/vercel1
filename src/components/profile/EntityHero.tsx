@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { MapPin } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { BookingCTA } from './BookingCTA';
 
 export interface EntityHeroProps {
@@ -27,6 +28,7 @@ export function EntityHero({
     outcallRadiusKm,
     interiorPhotos = [],
 }: EntityHeroProps) {
+    const t = useTranslations('salon');
     const isPrivate = providerType !== 'SALON';
 
     if (isPrivate) {
@@ -62,7 +64,7 @@ export function EntityHero({
                     <MapPin className="h-3.5 w-3.5" />
                     <span>{city}</span>
                     {outcallRadiusKm && (
-                        <span>• Выезд до {outcallRadiusKm} км</span>
+                        <span>• {t('hero.homeVisit', { radius: outcallRadiusKm })}</span>
                     )}
                 </div>
 
@@ -128,7 +130,7 @@ export function EntityHero({
                             >
                                 <Image
                                     src={url}
-                                    alt={`Интерьер салона ${name} ${i + 1}`}
+                                    alt={t('gallery.interiorAlt', { name, n: i + 1 })}
                                     fill
                                     className="object-cover"
                                     sizes="(max-width: 640px) 288px, 288px"

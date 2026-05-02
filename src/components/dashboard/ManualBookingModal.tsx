@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Loader2, Search } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export interface ManualBookingService {
     id: number;
@@ -36,6 +37,7 @@ export function ManualBookingModal({
     staff,
     onCreated,
 }: ManualBookingModalProps) {
+    const t = useTranslations('dashboard.provider.manualBooking');
     const router = useRouter();
     const [clientName, setClientName] = useState('');
     const [clientPhone, setClientPhone] = useState('');
@@ -73,11 +75,11 @@ export function ManualBookingModal({
         e.preventDefault();
         setError(null);
 
-        if (!clientName.trim()) return setError('Укажите имя клиента');
-        if (!clientPhone.trim()) return setError('Укажите телефон клиента');
-        if (!serviceId) return setError('Выберите услугу');
-        if (!date) return setError('Выберите дату');
-        if (!time) return setError('Выберите время');
+        if (!clientName.trim()) return setError(t('errors.clientName'));
+        if (!clientPhone.trim()) return setError(t('errors.clientPhone'));
+        if (!serviceId) return setError(t('errors.service'));
+        if (!date) return setError(t('errors.date'));
+        if (!time) return setError(t('errors.time'));
 
         setIsSubmitting(true);
         try {
@@ -97,7 +99,7 @@ export function ManualBookingModal({
 
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
-                setError(data?.error ?? 'Не удалось создать запись');
+                setError(data?.error ?? t('errors.create'));
                 setIsSubmitting(false);
                 return;
             }
@@ -107,7 +109,7 @@ export function ManualBookingModal({
             onClose();
         } catch (err) {
             console.error('manual booking error:', err);
-            setError('Ошибка сети');
+            setError(t('errors.network'));
             setIsSubmitting(false);
         }
     };
@@ -130,13 +132,13 @@ export function ManualBookingModal({
                         id="manual-booking-title"
                         className="text-base font-semibold text-gray-900"
                     >
-                        Новая запись
+                        {t('newBooking')}
                     </h2>
                     <button
                         type="button"
                         onClick={onClose}
                         className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-800"
-                        aria-label="Закрыть"
+                        aria-label={t('close')}
                     >
                         <X className="h-4 w-4" />
                     </button>
@@ -145,21 +147,21 @@ export function ManualBookingModal({
                 <form onSubmit={handleSubmit} className="space-y-4 p-5">
                     <div className="space-y-1.5">
                         <label className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                            Имя клиента
+                            {t('clientName')}
                         </label>
                         <input
                             type="text"
                             value={clientName}
                             onChange={(e) => setClientName(e.target.value)}
                             className={inputClass}
-                            placeholder="Имя Фамилия"
+                            placeholder={t('clientNamePlaceholder')}
                             autoFocus
                         />
                     </div>
 
                     <div className="space-y-1.5">
                         <label className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                            Телефон
+                            {t('phone')}
                         </label>
                         <input
                             type="tel"
@@ -172,7 +174,7 @@ export function ManualBookingModal({
 
                     <div className="space-y-1.5">
                         <label className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                            Услуга
+                            {t('service')}
                         </label>
                         <div className="relative">
                             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
@@ -181,13 +183,13 @@ export function ManualBookingModal({
                                 value={serviceQuery}
                                 onChange={(e) => setServiceQuery(e.target.value)}
                                 className={`${inputClass} pl-8`}
-                                placeholder="Поиск услуги..."
+                                placeholder={t('serviceSearchPlaceholder')}
                             />
                         </div>
                         <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-md bg-white/50">
                             {filteredServices.length === 0 ? (
                                 <div className="px-3 py-2 text-xs text-gray-400">
-                                    Ничего не найдено
+                                    {t('nothingFound')}
                                 </div>
                             ) : (
                                 filteredServices.map((s) => (
@@ -203,7 +205,7 @@ export function ManualBookingModal({
                                     >
                                         <span className="text-gray-900">{s.title}</span>
                                         <span className="text-xs text-gray-500">
-                                            {s.duration_min} мин
+                                            {t('durationMin', { count: s.duration_min })}
                                         </span>
                                     </button>
                                 ))
@@ -214,14 +216,14 @@ export function ManualBookingModal({
                     {staff.length > 0 && (
                         <div className="space-y-1.5">
                             <label className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                Сотрудник
+                                {t('staff')}
                             </label>
                             <select
                                 value={staffId ?? ''}
                                 onChange={(e) => setStaffId(e.target.value || null)}
                                 className={inputClass}
                             >
-                                <option value="">Без привязки</option>
+                                <option value="">{t('noStaff')}</option>
                                 {staff.map((m) => (
                                     <option key={m.id} value={m.id}>
                                         {m.name}
@@ -234,7 +236,7 @@ export function ManualBookingModal({
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <label className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                Дата
+                                {t('date')}
                             </label>
                             <input
                                 type="date"
@@ -245,7 +247,7 @@ export function ManualBookingModal({
                         </div>
                         <div className="space-y-1.5">
                             <label className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                Время
+                                {t('time')}
                             </label>
                             <input
                                 type="time"
@@ -269,7 +271,7 @@ export function ManualBookingModal({
                             disabled={isSubmitting}
                             className="rounded-full border border-gray-300 bg-transparent px-5 py-2 text-sm font-medium text-gray-700 hover:border-gray-900 hover:bg-gray-50 disabled:opacity-50"
                         >
-                            Отмена
+                            {t('cancel')}
                         </button>
                         <button
                             type="submit"
@@ -277,7 +279,7 @@ export function ManualBookingModal({
                             className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
                         >
                             {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                            Создать запись
+                            {t('createBooking')}
                         </button>
                     </div>
                 </form>

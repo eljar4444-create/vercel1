@@ -1,6 +1,9 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 export function ScrollToTaxIdButton() {
+    const t = useTranslations('dashboard.provider.tax');
     const handleClick = () => {
         const el = document.getElementById('steuernummer-input');
         if (!el) return;
@@ -16,7 +19,7 @@ export function ScrollToTaxIdButton() {
             onClick={handleClick}
             className="bg-yellow-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-yellow-700 transition-colors"
         >
-            Ввести номер
+            {t('enterNumber')}
         </button>
     );
 }

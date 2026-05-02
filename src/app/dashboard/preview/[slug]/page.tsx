@@ -2,13 +2,18 @@ import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { auth } from '@/auth';
 import { fetchProfileForView, PublicProfileView } from '@/lib/profileView';
+import { getTranslations } from 'next-intl/server';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-    title: 'Предпросмотр профиля | Svoi.de',
-    robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const t = await getTranslations('dashboard.provider.preview');
+
+    return {
+        title: t('title'),
+        robots: { index: false, follow: false },
+    };
+}
 
 export default async function ProfilePreviewPage({
     params,
